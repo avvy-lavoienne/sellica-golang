@@ -303,6 +303,12 @@ func (s *Service) generateSessionID(userID string) string {
 }
 
 func (s *Service) storeMessage(ctx context.Context, sessionID, userID, message, response string) {
+	// Check if context is cancelled
+	if ctx.Err() != nil {
+		logrus.WithError(ctx.Err()).Warn("Context cancelled, skipping message storage")
+		return
+	}
+
 	// Implementation for storing messages in database
 	// This would integrate with Supabase to store conversation history
 	logrus.WithFields(logrus.Fields{

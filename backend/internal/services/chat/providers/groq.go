@@ -250,7 +250,7 @@ func (p *GroqProvider) makeAPIRequest(ctx context.Context, req GroqRequest) (*Gr
 
 	resp, err := p.httpClient.Do(httpReq)
 	if err != nil {
-		return nil, fmt.Errorf("HTTP request failed: %w", err)
+		return nil, fmt.Errorf("http request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -260,7 +260,7 @@ func (p *GroqProvider) makeAPIRequest(ctx context.Context, req GroqRequest) (*Gr
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(body))
+		return nil, fmt.Errorf("api request failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
 	var groqResp GroqResponse
