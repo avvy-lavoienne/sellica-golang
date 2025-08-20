@@ -7,6 +7,7 @@ import (
 	"selly-backend/internal/api/middleware"
 	"selly-backend/internal/services/auth"
 	"selly-backend/internal/services/cache"
+	"selly-backend/internal/services/chat"
 	"selly-backend/internal/services/database"
 	"selly-backend/internal/services/monitoring"
 )
@@ -16,6 +17,7 @@ type Services struct {
 	Database   *database.Service
 	Cache      *cache.Service
 	Auth       *auth.Service
+	Chat       *chat.Service
 	Monitoring *monitoring.Service
 }
 
@@ -26,6 +28,7 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	metricsHandler := handlers.NewMetricsHandler(services.Monitoring, services.Database, services.Cache)
 	databaseHandler := handlers.NewDatabaseHandler(services.Database, services.Monitoring)
 	cacheHandler := handlers.NewCacheHandler(services.Cache, services.Monitoring)
+	chatHandler := handlers.NewChatHandler(services.Chat, services.Monitoring)
 
 	// Global middleware
 	router.Use(middleware.RequestIDMiddleware())
@@ -50,6 +53,9 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 
 	// Cache routes (public)
 	setupCacheRoutes(router, cacheHandler)
+
+	// Chat routes (public and protected)
+	setupChatRoutes(router, chatHandler, services.Auth)
 
 	// Authentication routes (public)
 	setupAuthRoutes(router, services.Auth)
@@ -170,12 +176,27 @@ func setupAuthRoutes(router *gin.Engine, authService *auth.Service) {
 	}
 }
 
+// setupChatRoutes configures chat endpoints
+func setupChatRoutes(router *gin.Engine, handler *handlers.ChatHandler, authService *auth.Service) {
+	// Public chat endpoints (with optional auth)
+	router.POST("/chat", handler.ProcessChat)
+	router.POST("/chat/session", handler.ProcessSessionChat)
+
+	// Chat management endpoints
+	chat := router.Group("/chat")
+	{
+		chat.GET("/history", handler.GetChatHistory)   // GET /chat/history - Chat history retrieval
+		chat.GET("/sessions", handler.GetChatSessions) // GET /chat/sessions - User session management
+	}
+}
+
 // GetServices creates and returns the services struct for dependency injection
-func GetServices(db *database.Service, cache *cache.Service, auth *auth.Service, monitoring *monitoring.Service) *Services {
+func GetServices(db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service) *Services {
 	return &Services{
 		Database:   db,
 		Cache:      cache,
 		Auth:       auth,
+		Chat:       chat,
 		Monitoring: monitoring,
 	}
 }

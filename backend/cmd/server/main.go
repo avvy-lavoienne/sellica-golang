@@ -17,6 +17,7 @@ import (
 	"selly-backend/internal/config"
 	"selly-backend/internal/services/auth"
 	"selly-backend/internal/services/cache"
+	"selly-backend/internal/services/chat"
 	"selly-backend/internal/services/database"
 	"selly-backend/internal/services/monitoring"
 )
@@ -50,6 +51,7 @@ func main() {
 		Database:   services.Database,
 		Cache:      services.Cache,
 		Auth:       services.Auth,
+		Chat:       services.Chat,
 		Monitoring: services.Monitoring,
 	}
 	routes.SetupRoutes(router, routeServices)
@@ -100,6 +102,7 @@ type Services struct {
 	Database   *database.Service
 	Cache      *cache.Service
 	Auth       *auth.Service
+	Chat       *chat.Service
 	Monitoring *monitoring.Service
 }
 
@@ -133,6 +136,9 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	// Initialize auth service
 	authService := auth.NewService(cfg.Auth.JWTSecret, dbService)
 
+	// Initialize chat service
+	chatService := chat.NewService(dbService, cacheService, authService)
+
 	// Initialize monitoring service
 	monitoringService := monitoring.NewService()
 
@@ -142,6 +148,7 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		Database:   dbService,
 		Cache:      cacheService,
 		Auth:       authService,
+		Chat:       chatService,
 		Monitoring: monitoringService,
 	}, nil
 }
