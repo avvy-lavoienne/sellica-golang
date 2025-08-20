@@ -248,13 +248,22 @@ func (ic *IntentClassifier) classifyByKeywords(text string) map[IntentCategory]f
 func (ic *IntentClassifier) classifyByContext(text string, context map[string]interface{}) map[IntentCategory]float64 {
 	scores := make(map[IntentCategory]float64)
 
+	// Use text length as a factor for context scoring
+	textLength := len(text)
+	lengthFactor := 1.0
+	if textLength > 100 {
+		lengthFactor = 1.1 // Boost for longer, more detailed text
+	} else if textLength < 20 {
+		lengthFactor = 0.9 // Reduce for very short text
+	}
+
 	// Check for previous conversation context
 	if prevIntent, exists := context["previous_intent"]; exists {
 		if intentStr, ok := prevIntent.(string); ok {
-			// Boost related intents
+			// Boost related intents with length factor
 			if strings.Contains(intentStr, "application") {
-				scores[IntentStatusCheck] += 0.2
-				scores[IntentDocumentRequest] += 0.1
+				scores[IntentStatusCheck] += 0.2 * lengthFactor
+				scores[IntentDocumentRequest] += 0.1 * lengthFactor
 			}
 		}
 	}
@@ -263,8 +272,8 @@ func (ic *IntentClassifier) classifyByContext(text string, context map[string]in
 	if userType, exists := context["user_type"]; exists {
 		if userTypeStr, ok := userType.(string); ok {
 			if userTypeStr == "first_time" {
-				scores[IntentInformation] += 0.1
-				scores[IntentAssistance] += 0.1
+				scores[IntentInformation] += 0.1 * lengthFactor
+				scores[IntentAssistance] += 0.1 * lengthFactor
 			}
 		}
 	}
@@ -435,11 +444,12 @@ func (ic *IntentClassifier) extractQuantity(text string) int {
 	matches := re.FindStringSubmatch(text)
 	if len(matches) > 1 {
 		// Convert to int (simplified)
-		if matches[1] == "1" {
+		switch matches[1] {
+		case "1":
 			return 1
-		} else if matches[1] == "2" {
+		case "2":
 			return 2
-		} else if matches[1] == "3" {
+		case "3":
 			return 3
 		}
 	}

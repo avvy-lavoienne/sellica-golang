@@ -388,12 +388,15 @@ func (s *Service) storeNLPTrainingData(ctx context.Context, req *NLPRequest, res
 
 	// Store training data for continuous learning (when training service is available)
 	logrus.WithFields(logrus.Fields{
-		"training_id":     trainingData.ID,
-		"text_length":     len(trainingData.Text),
-		"confidence":      response.Confidence,
-		"processing_mode": trainingData.ProcessingMode,
-		"created_at":      trainingData.CreatedAt,
-		"updated_at":      trainingData.UpdatedAt,
-		"metadata_keys":   len(trainingData.Metadata),
+		"training_id":       trainingData.ID,
+		"text_length":       len(trainingData.Text),
+		"confidence":        trainingData.ActualResult.Confidence,
+		"processing_mode":   trainingData.ProcessingMode,
+		"created_at":        trainingData.CreatedAt,
+		"updated_at":        trainingData.UpdatedAt,
+		"metadata_keys":     len(trainingData.Metadata),
+		"processed_features": len(trainingData.ActualResult.ProcessedFeatures),
+		"entities_found":    len(trainingData.ActualResult.Entities),
+		"admin_terms":       len(trainingData.ActualResult.AdministrativeTerms),
 	}).Debug("NLP training data prepared for continuous learning storage")
 }

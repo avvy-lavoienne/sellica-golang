@@ -365,21 +365,24 @@ func (ca *CulturalAnalyzer) calculateAppropriateness(text string, context Cultur
 	// Context-formality matching
 	switch context {
 	case ContextGovernment:
-		if formality == FormalityVeryFormal || formality == FormalityFormal {
+		switch formality {
+		case FormalityVeryFormal, FormalityFormal:
 			appropriateness += 0.2
-		} else if formality == FormalityVeryInformal {
+		case FormalityVeryInformal:
 			appropriateness -= 0.3
 		}
 	case ContextBusiness:
-		if formality == FormalityFormal || formality == FormalityNeutral {
+		switch formality {
+		case FormalityFormal, FormalityNeutral:
 			appropriateness += 0.1
-		} else if formality == FormalityVeryInformal {
+		case FormalityVeryInformal:
 			appropriateness -= 0.2
 		}
 	case ContextCasual:
-		if formality == FormalityInformal || formality == FormalityNeutral {
+		switch formality {
+		case FormalityInformal, FormalityNeutral:
 			appropriateness += 0.1
-		} else if formality == FormalityVeryFormal {
+		case FormalityVeryFormal:
 			appropriateness -= 0.1
 		}
 	}
