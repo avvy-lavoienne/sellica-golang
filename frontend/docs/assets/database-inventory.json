@@ -1,5 +1,5 @@
 {
-  "discoveredAt": "2025-07-27T14:14:48.453Z",
+  "discoveredAt": "2025-08-20T10:30:00.000Z",
   "tables": {
     "adjudicate_record": {
       "type": "BASE TABLE",
@@ -1510,12 +1510,345 @@
       "references": [
         "users"
       ]
+    },
+    "training_data": {
+      "type": "BASE TABLE",
+      "columns": {
+        "id": {
+          "dataType": "uuid",
+          "isNullable": false,
+          "defaultValue": "gen_random_uuid()",
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": true
+        },
+        "query": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "response": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "user_id": {
+          "dataType": "uuid",
+          "isNullable": true,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false,
+          "foreignKey": {
+            "table": "users",
+            "column": "id"
+          }
+        },
+        "session_id": {
+          "dataType": "varchar",
+          "isNullable": true,
+          "defaultValue": null,
+          "maxLength": 255,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "timestamp": {
+          "dataType": "timestamptz",
+          "isNullable": true,
+          "defaultValue": "NOW()",
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "classification": {
+          "dataType": "jsonb",
+          "isNullable": false,
+          "defaultValue": "'{}'::jsonb",
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "metadata": {
+          "dataType": "jsonb",
+          "isNullable": false,
+          "defaultValue": "'{}'::jsonb",
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "quality": {
+          "dataType": "jsonb",
+          "isNullable": false,
+          "defaultValue": "'{}'::jsonb",
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "status": {
+          "dataType": "varchar",
+          "isNullable": true,
+          "defaultValue": "'pending'",
+          "maxLength": 50,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "created_at": {
+          "dataType": "timestamptz",
+          "isNullable": true,
+          "defaultValue": "NOW()",
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "updated_at": {
+          "dataType": "timestamptz",
+          "isNullable": true,
+          "defaultValue": "NOW()",
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        }
+      },
+      "primaryKeys": [
+        "id"
+      ],
+      "foreignKeys": [
+        {
+          "column": "user_id",
+          "referencedTable": "users",
+          "referencedColumn": "id",
+          "constraintName": "fk_training_data_user_id"
+        }
+      ],
+      "sampleData": [],
+      "estimatedRowCount": 0,
+      "indexes": [
+        "idx_training_data_user_id",
+        "idx_training_data_session_id",
+        "idx_training_data_timestamp",
+        "idx_training_data_status",
+        "idx_training_data_created_at",
+        "idx_training_data_service_type",
+        "idx_training_data_intent",
+        "idx_training_data_quality_score"
+      ],
+      "references": [
+        "users"
+      ]
+    },
+    "training_sessions": {
+      "type": "BASE TABLE",
+      "columns": {
+        "id": {
+          "dataType": "uuid",
+          "isNullable": false,
+          "defaultValue": "gen_random_uuid()",
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": true
+        },
+        "session_id": {
+          "dataType": "varchar",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": 255,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false,
+          "unique": true
+        },
+        "user_id": {
+          "dataType": "uuid",
+          "isNullable": true,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false,
+          "foreignKey": {
+            "table": "users",
+            "column": "id"
+          }
+        },
+        "conversation_data": {
+          "dataType": "jsonb",
+          "isNullable": false,
+          "defaultValue": "'{}'::jsonb",
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "analytics": {
+          "dataType": "jsonb",
+          "isNullable": false,
+          "defaultValue": "'{}'::jsonb",
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "created_at": {
+          "dataType": "timestamptz",
+          "isNullable": true,
+          "defaultValue": "NOW()",
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "updated_at": {
+          "dataType": "timestamptz",
+          "isNullable": true,
+          "defaultValue": "NOW()",
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        }
+      },
+      "primaryKeys": [
+        "id"
+      ],
+      "foreignKeys": [
+        {
+          "column": "user_id",
+          "referencedTable": "users",
+          "referencedColumn": "id",
+          "constraintName": "fk_training_sessions_user_id"
+        }
+      ],
+      "sampleData": [],
+      "estimatedRowCount": 0,
+      "indexes": [
+        "idx_training_sessions_session_id",
+        "idx_training_sessions_user_id",
+        "idx_training_sessions_created_at"
+      ],
+      "references": [
+        "users"
+      ]
+    },
+    "training_analytics": {
+      "type": "BASE TABLE",
+      "columns": {
+        "id": {
+          "dataType": "uuid",
+          "isNullable": false,
+          "defaultValue": "gen_random_uuid()",
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": true
+        },
+        "date": {
+          "dataType": "date",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "total_queries": {
+          "dataType": "integer",
+          "isNullable": true,
+          "defaultValue": "0",
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "successful_responses": {
+          "dataType": "integer",
+          "isNullable": true,
+          "defaultValue": "0",
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "failed_responses": {
+          "dataType": "integer",
+          "isNullable": true,
+          "defaultValue": "0",
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "average_quality_score": {
+          "dataType": "decimal",
+          "isNullable": true,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": 3,
+          "scale": 2,
+          "isPrimaryKey": false
+        },
+        "top_service_types": {
+          "dataType": "jsonb",
+          "isNullable": true,
+          "defaultValue": "'{}'::jsonb",
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "improvement_suggestions": {
+          "dataType": "jsonb",
+          "isNullable": true,
+          "defaultValue": "'[]'::jsonb",
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "created_at": {
+          "dataType": "timestamptz",
+          "isNullable": true,
+          "defaultValue": "NOW()",
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        }
+      },
+      "primaryKeys": [
+        "id"
+      ],
+      "foreignKeys": [],
+      "sampleData": [],
+      "estimatedRowCount": 0,
+      "indexes": [
+        "idx_training_analytics_date"
+      ],
+      "references": []
     }
   },
   "summary": {
-    "totalTables": 10,
-    "totalColumns": 100,
-    "totalRelationships": 6,
+    "totalTables": 13,
+    "totalColumns": 131,
+    "totalRelationships": 8,
     "totalBuckets": 2
   }
 }
