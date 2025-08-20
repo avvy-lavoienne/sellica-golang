@@ -48,6 +48,7 @@ type TrainingDataValidator struct {
 
 // DataCollector handles data collection operations
 type DataCollector struct {
+	service       *Service
 	batchSize     int
 	batchTimeout  time.Duration
 	pendingBatch  []TrainingData
@@ -114,6 +115,9 @@ func NewService(db *database.Service, cache *cache.Service) (*Service, error) {
 		},
 	}
 
+	// Set service reference in collector
+	collector.service = service
+
 	// Start batch processing goroutine
 	go service.startBatchProcessor()
 
@@ -179,57 +183,33 @@ func (s *Service) GetTrainingData(ctx context.Context, req *TrainingDataRequest)
 		s.incrementCacheMisses()
 	}
 
-	// Build query
-	query := s.buildSelectQuery(req)
-	args := s.buildQueryArgs(req)
+	// Build filters for Supabase query
+	filters := make(map[string]interface{})
+	if req.UserID != "" {
+		filters["user_id"] = req.UserID
+	}
+	if req.SessionID != "" {
+		filters["session_id"] = req.SessionID
+	}
+	if req.Status != "" {
+		filters["status"] = string(req.Status)
+	}
 
-	// Execute query
-	rows, err := s.db.Query(ctx, query, args...)
+	// Execute query using Supabase
+	results, err := s.db.SelectTrainingData(ctx, filters, req.Limit, req.Offset)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query training data: %w", err)
 	}
-	defer rows.Close()
 
+	// Convert results to TrainingData structs
 	var data []TrainingData
-	for rows.Next() {
-		var item TrainingData
-		var classificationJSON, metadataJSON, qualityJSON []byte
-
-		err := rows.Scan(
-			&item.ID,
-			&item.Query,
-			&item.Response,
-			&item.UserID,
-			&item.SessionID,
-			&item.Timestamp,
-			&classificationJSON,
-			&metadataJSON,
-			&qualityJSON,
-			&item.Status,
-			&item.CreatedAt,
-			&item.UpdatedAt,
-		)
-		if err != nil {
-			logrus.WithError(err).Error("Failed to scan training data row")
-			continue
-		}
-
-		// Unmarshal JSON fields
-		if err := json.Unmarshal(classificationJSON, &item.Classification); err != nil {
-			logrus.WithError(err).Error("Failed to unmarshal classification")
-		}
-		if err := json.Unmarshal(metadataJSON, &item.Metadata); err != nil {
-			logrus.WithError(err).Error("Failed to unmarshal metadata")
-		}
-		if err := json.Unmarshal(qualityJSON, &item.Quality); err != nil {
-			logrus.WithError(err).Error("Failed to unmarshal quality")
-		}
-
+	for _, result := range results {
+		item := s.parseTrainingDataResult(result)
 		data = append(data, item)
 	}
 
-	// Get total count
-	totalCount, err := s.getTotalCount(ctx, req)
+	// Get total count using Supabase
+	totalCount, err := s.db.CountTrainingData(ctx, filters)
 	if err != nil {
 		logrus.WithError(err).Error("Failed to get total count")
 		totalCount = len(data)
@@ -477,8 +457,18 @@ func (dc *DataCollector) processBatch() {
 	}
 	dc.batchMutex.Unlock()
 
-	// Process batch (this would be implemented by the service)
+	// Process batch - store in database
 	logrus.Infof("Processing batch of %d training data entries", len(batch))
+
+	// Store each item in the database
+	for _, item := range batch {
+		if err := dc.service.storeTrainingDataInDB(context.Background(), &item); err != nil {
+			logrus.WithError(err).Error("Failed to store training data in database")
+			dc.service.incrementFailedInserts()
+		} else {
+			dc.service.incrementSuccessfulInserts()
+		}
+	}
 }
 
 // AnalyzeQuery analyzes a query and returns classification
@@ -741,10 +731,193 @@ func (s *Service) startBatchProcessor() {
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
 
-	for {
-		select {
-		case <-ticker.C:
-			s.collector.processBatch()
+	for range ticker.C {
+		s.collector.processBatch()
+	}
+}
+
+// storeTrainingDataInDB stores training data in the database using Supabase
+func (s *Service) storeTrainingDataInDB(ctx context.Context, data *TrainingData) error {
+	// Convert TrainingData to map for Supabase insertion
+	dataMap := map[string]interface{}{
+		"id":             data.ID,
+		"query":          data.Query,
+		"response":       data.Response,
+		"user_id":        data.UserID,
+		"session_id":     data.SessionID,
+		"timestamp":      data.Timestamp,
+		"classification": data.Classification,
+		"metadata":       data.Metadata,
+		"quality":        data.Quality,
+		"status":         string(data.Status),
+		"created_at":     data.CreatedAt,
+		"updated_at":     data.UpdatedAt,
+	}
+
+	// Use the database service's InsertTrainingData method
+	return s.db.InsertTrainingData(ctx, dataMap)
+}
+
+// parseTrainingDataResult parses a database result into TrainingData struct
+func (s *Service) parseTrainingDataResult(result map[string]interface{}) TrainingData {
+	item := TrainingData{}
+
+	// Map basic fields
+	if id, ok := result["id"].(string); ok {
+		item.ID = id
+	}
+	if query, ok := result["query"].(string); ok {
+		item.Query = query
+	}
+	if response, ok := result["response"].(string); ok {
+		item.Response = response
+	}
+	if userID, ok := result["user_id"].(string); ok {
+		item.UserID = userID
+	}
+	if sessionID, ok := result["session_id"].(string); ok {
+		item.SessionID = sessionID
+	}
+	if status, ok := result["status"].(string); ok {
+		item.Status = TrainingStatus(status)
+	}
+
+	// Parse timestamp fields
+	if timestamp, ok := result["timestamp"].(string); ok {
+		if t, err := time.Parse(time.RFC3339, timestamp); err == nil {
+			item.Timestamp = t
 		}
 	}
+	if createdAt, ok := result["created_at"].(string); ok {
+		if t, err := time.Parse(time.RFC3339, createdAt); err == nil {
+			item.CreatedAt = t
+		}
+	}
+	if updatedAt, ok := result["updated_at"].(string); ok {
+		if t, err := time.Parse(time.RFC3339, updatedAt); err == nil {
+			item.UpdatedAt = t
+		}
+	}
+
+	// Parse JSON fields
+	if classification, ok := result["classification"].(map[string]interface{}); ok {
+		item.Classification = s.parseClassification(classification)
+	}
+	if metadata, ok := result["metadata"].(map[string]interface{}); ok {
+		item.Metadata = s.parseMetadata(metadata)
+	}
+	if quality, ok := result["quality"].(map[string]interface{}); ok {
+		item.Quality = s.parseQuality(quality)
+	}
+
+	return item
+}
+
+// parseClassification parses classification data from database result
+func (s *Service) parseClassification(data map[string]interface{}) QueryClassification {
+	classification := QueryClassification{}
+
+	if serviceType, ok := data["service_type"].(string); ok {
+		classification.ServiceType = serviceType
+	}
+	if intent, ok := data["intent"].(string); ok {
+		classification.Intent = intent
+	}
+	if confidence, ok := data["confidence"].(float64); ok {
+		classification.Confidence = confidence
+	}
+	if complexity, ok := data["complexity"].(string); ok {
+		classification.Complexity = complexity
+	}
+	if priority, ok := data["priority"].(float64); ok {
+		classification.Priority = int(priority)
+	}
+
+	return classification
+}
+
+// parseMetadata parses metadata from database result
+func (s *Service) parseMetadata(data map[string]interface{}) TrainingMetadata {
+	metadata := TrainingMetadata{}
+
+	if processingTime, ok := data["processing_time"].(float64); ok {
+		metadata.ProcessingTime = processingTime
+	}
+	if enhancementMode, ok := data["enhancement_mode"].(bool); ok {
+		metadata.EnhancementMode = enhancementMode
+	}
+	if providerUsed, ok := data["provider_used"].(string); ok {
+		metadata.ProviderUsed = providerUsed
+	}
+	if contextLayers, ok := data["context_layers"].([]interface{}); ok {
+		layers := make([]string, len(contextLayers))
+		for i, layer := range contextLayers {
+			if str, ok := layer.(string); ok {
+				layers[i] = str
+			}
+		}
+		metadata.ContextLayers = layers
+	}
+	if userFeedbackData, ok := data["user_feedback"].(map[string]interface{}); ok {
+		feedback := &UserFeedback{}
+		if rating, ok := userFeedbackData["rating"].(float64); ok {
+			feedback.Rating = int(rating)
+		}
+		if helpful, ok := userFeedbackData["helpful"].(bool); ok {
+			feedback.Helpful = helpful
+		}
+		if comments, ok := userFeedbackData["comments"].(string); ok {
+			feedback.Comments = comments
+		}
+		if timestamp, ok := userFeedbackData["timestamp"].(string); ok {
+			if t, err := time.Parse(time.RFC3339, timestamp); err == nil {
+				feedback.Timestamp = t
+			}
+		}
+		metadata.UserFeedback = feedback
+	}
+	if semanticData, ok := data["semantic_analysis"].(map[string]interface{}); ok {
+		semantic := &SemanticData{}
+		if keywords, ok := semanticData["keywords"].([]interface{}); ok {
+			keywordList := make([]string, len(keywords))
+			for i, keyword := range keywords {
+				if str, ok := keyword.(string); ok {
+					keywordList[i] = str
+				}
+			}
+			semantic.Keywords = keywordList
+		}
+		if sentiment, ok := semanticData["sentiment"].(string); ok {
+			semantic.Sentiment = sentiment
+		}
+		if confidence, ok := semanticData["confidence"].(float64); ok {
+			semantic.Confidence = confidence
+		}
+		metadata.SemanticAnalysis = semantic
+	}
+
+	return metadata
+}
+
+// parseQuality parses quality metrics from database result
+func (s *Service) parseQuality(data map[string]interface{}) QualityMetrics {
+	quality := QualityMetrics{}
+
+	if accuracy, ok := data["accuracy"].(float64); ok {
+		quality.Accuracy = accuracy
+	}
+	if relevance, ok := data["relevance"].(float64); ok {
+		quality.Relevance = relevance
+	}
+	if completeness, ok := data["completeness"].(float64); ok {
+		quality.Completeness = completeness
+	}
+	if clarity, ok := data["clarity"].(float64); ok {
+		quality.Clarity = clarity
+	}
+	if overallScore, ok := data["overall_score"].(float64); ok {
+		quality.OverallScore = overallScore
+	}
+
+	return quality
 }

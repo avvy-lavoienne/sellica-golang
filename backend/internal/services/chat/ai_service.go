@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"os"
 	"strings"
 	"time"
+
+	"selly-backend/internal/services/chat/providers"
 
 	"github.com/sirupsen/logrus"
 )
@@ -62,6 +65,16 @@ type EnhancedAIProvider struct {
 	name string
 }
 
+// GroqProviderAdapter adapts Groq provider to AIProvider interface
+type GroqProviderAdapter struct {
+	provider *providers.GroqProvider
+}
+
+// HuggingFaceProviderAdapter adapts HuggingFace provider to AIProvider interface
+type HuggingFaceProviderAdapter struct {
+	provider *providers.HuggingFaceProvider
+}
+
 // NewAIService creates a new AI service with multiple providers
 func NewAIService() *AIService {
 	service := &AIService{
@@ -69,9 +82,47 @@ func NewAIService() *AIService {
 		fallback:  &SimpleAIProvider{name: "simple-fallback"},
 	}
 
-	// Register AI providers
-	service.providers["simple"] = &SimpleAIProvider{name: "simple-response-service"}
-	service.providers["enhanced"] = &EnhancedAIProvider{name: "enhanced-indonesian-ai"}
+	// Initialize real AI providers
+	groqAPIKey := os.Getenv("GROQ_API_KEY")
+	hfAPIKey := os.Getenv("HUGGINGFACE_API_KEY")
+
+	// Register Groq provider if API key is available
+	if groqAPIKey != "" {
+		groqProvider := providers.NewGroqProvider(groqAPIKey)
+		service.providers["groq"] = &GroqProviderAdapter{provider: groqProvider}
+		service.providers["enhanced"] = &GroqProviderAdapter{provider: groqProvider} // Use Groq as enhanced provider
+		logrus.Info("✅ Groq AI provider registered")
+	} else {
+		logrus.Warn("⚠️ Groq API key not found, using fallback for enhanced mode")
+		service.providers["enhanced"] = &EnhancedAIProvider{name: "enhanced-indonesian-ai"}
+	}
+
+	// Register HuggingFace provider if API key is available
+	if hfAPIKey != "" {
+		hfProvider := providers.NewHuggingFaceProvider(hfAPIKey)
+		service.providers["huggingface"] = &HuggingFaceProviderAdapter{provider: hfProvider}
+		// Use HuggingFace as simple provider if Groq is not available
+		if groqAPIKey == "" {
+			service.providers["simple"] = &HuggingFaceProviderAdapter{provider: hfProvider}
+		}
+		logrus.Info("✅ HuggingFace AI provider registered")
+	} else {
+		logrus.Warn("⚠️ HuggingFace API key not found, using fallback for simple mode")
+	}
+
+	// Fallback to mock providers if no real providers are available
+	if groqAPIKey == "" && hfAPIKey == "" {
+		logrus.Warn("⚠️ No AI provider API keys found, using mock providers")
+		service.providers["simple"] = &SimpleAIProvider{name: "simple-response-service"}
+		if _, exists := service.providers["enhanced"]; !exists {
+			service.providers["enhanced"] = &EnhancedAIProvider{name: "enhanced-indonesian-ai"}
+		}
+	} else {
+		// Set simple provider to mock if not set by real providers
+		if _, exists := service.providers["simple"]; !exists {
+			service.providers["simple"] = &SimpleAIProvider{name: "simple-response-service"}
+		}
+	}
 
 	logrus.Info("✅ AI service initialized with multiple providers")
 	return service
@@ -291,4 +342,82 @@ func (p *EnhancedAIProvider) generateEnhancedResponse(query string, context map[
 
 	// Default enhanced response
 	return "Terima kasih atas pertanyaan Anda. Sistem AI kami telah dioptimalkan untuk memahami kebutuhan masyarakat Indonesia. Silakan berikan detail lebih spesifik agar kami dapat memberikan informasi yang lebih akurat dan relevan."
+}
+
+// GroqProviderAdapter implementation
+
+func (a *GroqProviderAdapter) ProcessQuery(ctx context.Context, req *AIRequest) (*AIResponse, error) {
+	// Convert chat.AIRequest to providers.AIRequest
+	providerReq := &providers.AIRequest{
+		Query:           req.Query,
+		UserID:          req.UserID,
+		SessionID:       req.SessionID,
+		Context:         req.Context,
+		EnhancementMode: req.EnhancementMode,
+	}
+
+	// Call the provider
+	providerResp, err := a.provider.ProcessQuery(ctx, providerReq)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert providers.AIResponse to chat.AIResponse
+	return &AIResponse{
+		Content:         providerResp.Content,
+		Type:            providerResp.Type,
+		Confidence:      providerResp.Confidence,
+		Model:           providerResp.Model,
+		ProcessingTime:  providerResp.ProcessingTime,
+		CacheHit:        providerResp.CacheHit,
+		CacheLayer:      providerResp.CacheLayer,
+		Recommendations: providerResp.Recommendations,
+	}, nil
+}
+
+func (a *GroqProviderAdapter) GetProviderName() string {
+	return a.provider.GetProviderName()
+}
+
+func (a *GroqProviderAdapter) IsHealthy() bool {
+	return a.provider.IsHealthy()
+}
+
+// HuggingFaceProviderAdapter implementation
+
+func (a *HuggingFaceProviderAdapter) ProcessQuery(ctx context.Context, req *AIRequest) (*AIResponse, error) {
+	// Convert chat.AIRequest to providers.AIRequest
+	providerReq := &providers.AIRequest{
+		Query:           req.Query,
+		UserID:          req.UserID,
+		SessionID:       req.SessionID,
+		Context:         req.Context,
+		EnhancementMode: req.EnhancementMode,
+	}
+
+	// Call the provider
+	providerResp, err := a.provider.ProcessQuery(ctx, providerReq)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert providers.AIResponse to chat.AIResponse
+	return &AIResponse{
+		Content:         providerResp.Content,
+		Type:            providerResp.Type,
+		Confidence:      providerResp.Confidence,
+		Model:           providerResp.Model,
+		ProcessingTime:  providerResp.ProcessingTime,
+		CacheHit:        providerResp.CacheHit,
+		CacheLayer:      providerResp.CacheLayer,
+		Recommendations: providerResp.Recommendations,
+	}, nil
+}
+
+func (a *HuggingFaceProviderAdapter) GetProviderName() string {
+	return a.provider.GetProviderName()
+}
+
+func (a *HuggingFaceProviderAdapter) IsHealthy() bool {
+	return a.provider.IsHealthy()
 }
