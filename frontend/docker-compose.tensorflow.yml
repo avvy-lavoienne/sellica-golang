@@ -1,0 +1,59 @@
+# TensorFlow Serving Configuration for SELLY AI
+# Enhanced configuration for staging deployment
+# Version: 2.0
+# Date: 2025-01-27
+
+version: '3.8'
+
+services:
+  # Enhanced TensorFlow Serving
+  tensorflow-serving:
+    image: tensorflow/serving:latest
+    container_name: selly-tensorflow-serving
+    command:
+      - --port=8500
+      - --rest_api_port=8501
+      - --model_config_file=/models/models.config
+      - --allow_version_labels_for_unavailable_models=true
+      - --enable_batching=true
+      - --batching_parameters_file=/models/batching_config.txt
+      - --monitoring_config_file=/models/monitoring_config.txt
+    environment:
+      MODEL_CONFIG_FILE: /models/models.config
+      MODEL_CONFIG_FILE_POLL_WAIT_SECONDS: '60'
+      TF_CPP_MIN_LOG_LEVEL: '2'
+      TENSORFLOW_SERVING_ENABLE_BATCHING: 'true'
+      TENSORFLOW_SERVING_BATCH_TIMEOUT_MICROS: '50000'
+      TENSORFLOW_SERVING_MAX_BATCH_SIZE: '32'
+    ports:
+      - "8501:8501"  # REST API
+      - "8500:8500"  # gRPC API
+    volumes:
+      - ./tf_serving/models:/models:ro
+      - ./logs/tensorflow:/logs
+    networks:
+      - tensorflow-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/v1/models"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+networks:
+  tensorflow-network:
+    driver: bridge

@@ -1,0 +1,224 @@
+{
+  "service_name": "Kartu Tanda Penduduk (KTP)",
+  "service_code": "KTP-001",
+  "last_updated": "2025-01-30",
+  "version": "1.0",
+  "procedures": {
+    "new_ktp": {
+      "service_type": "Pembuatan KTP Baru",
+      "target_age": "17 tahun ke atas",
+      "requirements": [
+        "Surat pengantar dari RT/RW",
+        "Fotokopi Kartu Keluarga (KK)",
+        "Fotokopi akta kelahiran",
+        "Pas foto berwarna 3x4 cm (2 lembar, latar belakang merah)",
+        "Formulir permohonan F-1.01"
+      ],
+      "process_steps": [
+        {
+          "step": 1,
+          "description": "Datang ke kantor Disdukcapil dengan persyaratan lengkap",
+          "location": "Loket pelayanan KTP",
+          "estimated_time": "15 menit"
+        },
+        {
+          "step": 2,
+          "description": "Mengisi formulir permohonan F-1.01",
+          "location": "Meja pengisian formulir",
+          "estimated_time": "10 menit"
+        },
+        {
+          "step": 3,
+          "description": "Verifikasi dokumen oleh petugas",
+          "location": "Loket verifikasi",
+          "estimated_time": "10 menit"
+        },
+        {
+          "step": 4,
+          "description": "Pengambilan foto dan sidik jari (perekaman biometrik)",
+          "location": "Ruang perekaman",
+          "estimated_time": "15 menit"
+        },
+        {
+          "step": 5,
+          "description": "Mendapat tanda terima dan surat keterangan sementara",
+          "location": "Loket penyerahan",
+          "estimated_time": "5 menit"
+        },
+        {
+          "step": 6,
+          "description": "Menunggu proses cetak KTP",
+          "duration": "14 hari kerja",
+          "note": "Akan dihubungi jika sudah selesai"
+        },
+        {
+          "step": 7,
+          "description": "Pengambilan KTP sesuai jadwal yang diberikan",
+          "location": "Loket pengambilan",
+          "requirements": "Membawa tanda terima"
+        }
+      ],
+      "duration": "14 hari kerja",
+      "cost": "Gratis",
+      "office_hours": "08:00-15:00 WIB (Senin-Jumat)",
+      "special_notes": [
+        "Pemohon harus datang sendiri untuk perekaman biometrik",
+        "Surat keterangan sementara berlaku selama 30 hari",
+        "Jika KTP tidak diambil dalam 30 hari, akan dikembalikan ke pusat"
+      ]
+    },
+    "ktp_replacement": {
+      "service_type": "Penggantian KTP Rusak/Hilang",
+      "requirements": [
+        "Surat keterangan kehilangan dari kepolisian (jika hilang)",
+        "KTP lama yang rusak (jika rusak)",
+        "Fotokopi Kartu Keluarga (KK)",
+        "Pas foto berwarna 3x4 cm (2 lembar, latar belakang merah)",
+        "Formulir permohonan F-1.07"
+      ],
+      "process_steps": [
+        {
+          "step": 1,
+          "description": "Membuat surat keterangan kehilangan di polsek terdekat (jika hilang)",
+          "estimated_time": "30-60 menit",
+          "cost": "Gratis"
+        },
+        {
+          "step": 2,
+          "description": "Datang ke kantor Disdukcapil dengan persyaratan lengkap",
+          "location": "Loket pelayanan KTP",
+          "estimated_time": "15 menit"
+        },
+        {
+          "step": 3,
+          "description": "Mengisi formulir permohonan F-1.07",
+          "location": "Meja pengisian formulir",
+          "estimated_time": "10 menit"
+        },
+        {
+          "step": 4,
+          "description": "Verifikasi dokumen dan data di sistem",
+          "location": "Loket verifikasi",
+          "estimated_time": "15 menit"
+        },
+        {
+          "step": 5,
+          "description": "Pengambilan foto dan sidik jari ulang",
+          "location": "Ruang perekaman",
+          "estimated_time": "15 menit"
+        },
+        {
+          "step": 6,
+          "description": "Mendapat tanda terima",
+          "location": "Loket penyerahan",
+          "estimated_time": "5 menit"
+        },
+        {
+          "step": 7,
+          "description": "Menunggu proses cetak KTP pengganti",
+          "duration": "14 hari kerja"
+        },
+        {
+          "step": 8,
+          "description": "Pengambilan KTP pengganti",
+          "location": "Loket pengambilan",
+          "requirements": "Membawa tanda terima"
+        }
+      ],
+      "duration": "14 hari kerja",
+      "cost": "Gratis",
+      "special_notes": [
+        "Untuk kehilangan, wajib membuat laporan polisi terlebih dahulu",
+        "KTP rusak harus dibawa sebagai bukti",
+        "Data lama akan dinonaktifkan setelah KTP baru terbit"
+      ]
+    },
+    "ktp_renewal": {
+      "service_type": "Perpanjangan KTP",
+      "requirements": [
+        "KTP lama yang akan habis masa berlaku",
+        "Fotokopi Kartu Keluarga (KK)",
+        "Pas foto berwarna 3x4 cm (2 lembar, latar belakang merah)",
+        "Formulir permohonan F-1.01"
+      ],
+      "process_steps": [
+        {
+          "step": 1,
+          "description": "Datang ke kantor Disdukcapil 30 hari sebelum masa berlaku habis",
+          "location": "Loket pelayanan KTP",
+          "estimated_time": "15 menit"
+        },
+        {
+          "step": 2,
+          "description": "Mengisi formulir permohonan F-1.01",
+          "location": "Meja pengisian formulir",
+          "estimated_time": "10 menit"
+        },
+        {
+          "step": 3,
+          "description": "Verifikasi data dan dokumen",
+          "location": "Loket verifikasi",
+          "estimated_time": "10 menit"
+        },
+        {
+          "step": 4,
+          "description": "Pengambilan foto dan sidik jari (jika diperlukan)",
+          "location": "Ruang perekaman",
+          "estimated_time": "15 menit",
+          "note": "Tidak selalu diperlukan jika data biometrik masih valid"
+        },
+        {
+          "step": 5,
+          "description": "Mendapat tanda terima",
+          "location": "Loket penyerahan",
+          "estimated_time": "5 menit"
+        },
+        {
+          "step": 6,
+          "description": "Menunggu proses cetak KTP baru",
+          "duration": "14 hari kerja"
+        },
+        {
+          "step": 7,
+          "description": "Pengambilan KTP baru",
+          "location": "Loket pengambilan",
+          "requirements": "Membawa tanda terima dan KTP lama"
+        }
+      ],
+      "duration": "14 hari kerja",
+      "cost": "Gratis",
+      "special_notes": [
+        "Sebaiknya diperpanjang 30 hari sebelum masa berlaku habis",
+        "KTP lama akan dinonaktifkan setelah KTP baru terbit",
+        "Masa berlaku KTP adalah seumur hidup (sejak 2016)"
+      ]
+    }
+  },
+  "common_issues": {
+    "photo_requirements": {
+      "issue": "Foto tidak sesuai standar",
+      "solution": "Foto harus berwarna, latar belakang merah, ukuran 3x4 cm, tampak muka, tidak memakai kacamata hitam atau topi",
+      "prevention": "Gunakan jasa foto di sekitar kantor Disdukcapil yang sudah mengetahui standar"
+    },
+    "document_incomplete": {
+      "issue": "Dokumen persyaratan tidak lengkap",
+      "solution": "Pastikan semua dokumen sudah disiapkan sebelum datang ke kantor",
+      "prevention": "Cek kembali daftar persyaratan sebelum berangkat"
+    },
+    "queue_management": {
+      "issue": "Antrian panjang",
+      "solution": "Datang lebih pagi (jam 08:00) atau gunakan sistem antrian online jika tersedia",
+      "prevention": "Hindari hari Senin dan hari setelah libur panjang"
+    }
+  },
+  "contact_information": {
+    "phone": "(0262) 232XXX",
+    "email": "disdukcapil@garutkab.go.id",
+    "address": "Jl. Pembangunan No. 1, Garut, Jawa Barat",
+    "website": "disdukcapil.garutkab.go.id",
+    "social_media": {
+      "instagram": "@disdukcapil_garut",
+      "facebook": "Disdukcapil Kabupaten Garut"
+    }
+  }
+}

@@ -1,0 +1,674 @@
+[
+  {
+    "question": "Kami menikah siri dan tidak punya buku nikah. Bisakah anak kami mendapatkan akta kelahiran dengan nama saya dan suami tercantum?",
+    "answer": "Ya, bisa. Anda dapat menggunakan Surat Pernyataan Tanggung Jawab Mutlak (SPTJM) Kebenaran Sebagai Pasangan Suami-Istri (Formulir F-2.04) sebagai pengganti buku nikah.[4, 5, 3] Dengan ini, nama ayah dan ibu akan tercantum di akta, namun status hukum anak berbeda dengan anak dari perkawinan tercatat.[6]",
+    "category": "nikah_siri",
+    "scenario": "special_case",
+    "keywords": ["nikah siri", "SPTJM", "F-2.04", "buku nikah", "status hukum anak"]
+  },
+  {
+    "question": "Saya seorang ibu tunggal dan ingin membuat akta kelahiran untuk anak saya. Apa saja persyaratannya?",
+    "answer": "Untuk anak seorang ibu, persyaratannya lebih sederhana: 1. Mengisi formulir pelaporan, 2. Surat Keterangan Kelahiran, 3. KTP-el ibu, 4. Kartu Keluarga (KK) ibu, dan 5. KTP-el dua orang saksi. Akta yang terbit akan mencantumkan frasa 'Anak seorang ibu'.[3]",
+    "category": "ibu_tunggal",
+    "scenario": "special_case",
+    "keywords": ["ibu tunggal", "anak seorang ibu", "persyaratan", "saksi"]
+  },
+  {
+    "question": "Apakah benar mengurus akta kelahiran sekarang gratis?",
+    "answer": "Benar. Sesuai Pasal 79A UU No. 24 Tahun 2013, pengurusan dan penerbitan semua dokumen kependudukan, termasuk akta kelahiran, tidak dipungut biaya atau gratis.[7, 8, 9] Ada sanksi pidana bagi petugas yang melakukan pungutan liar.[10]",
+    "category": "biaya",
+    "scenario": "A",
+    "keywords": ["gratis", "UU 24/2013", "biaya", "pungutan liar"]
+  },
+  {
+    "question": "Apa implikasi hukum jika akta kelahiran anak saya dibuat menggunakan SPTJM karena kami menikah siri?",
+    "answer": "Implikasinya signifikan. Meskipun nama ayah tercantum, anak tersebut secara hukum hanya memiliki hubungan perdata dengan ibu, tidak berhak atas warisan dari ayah, dan jika anak perempuan menikah kelak, walinya adalah wali hakim, bukan ayahnya (wali nasab).[6]",
+    "category": "implikasi_hukum",
+    "scenario": "special_case",
+    "keywords": ["implikasi hukum", "SPTJM", "hubungan perdata", "warisan", "wali hakim"]
+  },
+  {
+    "question": "Apakah SPTJM bisa dianggap sebagai pengganti buku nikah?",
+    "answer": "Tidak. SPTJM Kebenaran Sebagai Pasangan Suami-Istri bukanlah pengganti buku nikah.[6] Dokumen ini hanyalah alat administratif untuk memungkinkan penerbitan akta kelahiran, namun tidak mengesahkan perkawinan Anda di mata hukum negara.[6]",
+    "category": "sptjm_vs_buku_nikah",
+    "scenario": "special_case",
+    "keywords": ["SPTJM", "buku nikah", "alat administratif", "hukum negara"]
+  },
+  {
+    "question": "Saya melahirkan di Jakarta, tapi KTP dan KK saya beralamat di Surabaya. Di mana saya harus mengurus akta kelahiran anak saya?",
+    "answer": "Anda harus mengurusnya di Dinas Dukcapil Surabaya. Berdasarkan UU No. 24 Tahun 2013, penerbitan akta pencatatan sipil kini menganut asas domisili, yaitu diurus di instansi pelaksana sesuai alamat KTP dan KK orang tua, bukan di tempat peristiwa terjadi.[7, 1]",
+    "category": "asas_domisili",
+    "scenario": "A",
+    "keywords": ["asas domisili", "tempat lahir", "alamat KTP", "UU 24/2013"]
+  },
+  {
+    "question": "Surat keterangan lahir anak saya dari bidan hilang. Apakah saya masih bisa membuat akta kelahiran?",
+    "answer": "Ya, masih bisa. Jika surat keterangan kelahiran tidak ada, Anda dapat menggantinya dengan mengisi Surat Pernyataan Tanggung Jawab Mutlak (SPTJM) Kebenaran Data Kelahiran (Formulir F-2.03) yang ditandatangani oleh Anda dan dua orang saksi.[5, 3, 11]",
+    "category": "dokumen_hilang",
+    "scenario": "B",
+    "keywords": ["surat keterangan lahir hilang", "SPTJM", "F-2.03", "saksi"]
+  },
+  {
+    "question": "Apa solusi hukum terbaik bagi kami yang sudah terlanjur membuat akta anak dengan SPTJM agar hak-hak anak kami terjamin penuh?",
+    "answer": "Solusi terbaik adalah mengajukan **Isbat Nikah** ke Pengadilan Agama. Setelah mendapat penetapan pengadilan, Anda bisa mendapatkan buku nikah dan kemudian mengajukan permohonan pembetulan data pada akta kelahiran anak di Dukcapil agar statusnya menjadi anak sah dari perkawinan.[12, 6]",
+    "category": "isbat_nikah",
+    "scenario": "D",
+    "keywords": ["Isbat Nikah", "Pengadilan Agama", "pembetulan data", "anak sah"]
+  },
+  {
+    "question": "Apa yang akan tertulis di akta kelahiran anak yang lahir di luar nikah?",
+    "answer": "Pada kutipan akta kelahiran akan tercantum frasa: **'Anak seorang ibu, [Nama Ibu]'**. Kolom data ayah akan dikosongkan.[3]",
+    "category": "anak_luar_nikah",
+    "scenario": "special_case",
+    "keywords": ["anak luar nikah", "anak seorang ibu", "kolom ayah kosong"]
+  },
+  {
+    "question": "Anak saya lahir di luar nikah. Apakah ayah biologisnya bisa mengakui anak tersebut secara hukum di kemudian hari?",
+    "answer": "Ya, bisa. Ayah biologis dapat mengajukan permohonan pengakuan anak melalui penetapan pengadilan. Berdasarkan penetapan tersebut, Dinas Dukcapil akan membuat catatan pinggir pada register dan kutipan akta kelahiran anak mengenai pengakuan tersebut.[7]",
+    "category": "pengakuan_anak",
+    "scenario": "D",
+    "keywords": ["pengakuan anak", "penetapan pengadilan", "catatan pinggir", "ayah biologis"]
+  },
+  {
+    "question": "Apa itu Formulir F-2.01 dan kapan saya harus menggunakannya?",
+    "answer": "Formulir F-2.01 adalah formulir induk untuk Pelaporan Pencatatan Sipil di wilayah NKRI. Anda harus mengisi formulir ini setiap kali akan mengurus pencatatan sipil, termasuk kelahiran, kematian, perkawinan, dan perceraian.[13, 5, 14]",
+    "category": "formulir",
+    "scenario": "A",
+    "keywords": ["F-2.01", "formulir induk", "pencatatan sipil", "kelahiran"]
+  },
+  {
+    "question": "Di KK kami, status perkawinan sudah tertulis 'Kawin Tercatat', tapi kami tidak punya buku nikah. Apakah ini berarti pernikahan kami sah?",
+    "answer": "Tidak. Status 'Kawin Tercatat' atau 'Kawin Belum Tercatat' di KK hanyalah catatan administratif dan tidak dengan sendirinya mengesahkan perkawinan di mata hukum negara. Bukti hukum perkawinan yang sah adalah buku nikah atau akta perkawinan.[6]",
+    "category": "status_perkawinan",
+    "scenario": "special_case",
+    "keywords": ["Kawin Tercatat", "catatan administratif", "buku nikah", "akta perkawinan"]
+  },
+  {
+    "question": "Saya mendapat kiriman file PDF akta kelahiran dari Dukcapil. Apakah saya bisa mencetaknya sendiri di kertas HVS biasa? Apakah itu sah?",
+    "answer": "Ya, Anda bisa mencetaknya sendiri menggunakan kertas HVS A4 80 gram. Dokumen yang dicetak mandiri tersebut sah dan memiliki kekuatan hukum yang sama, karena keabsahannya dapat diverifikasi melalui QR code yang ada pada dokumen.[15, 11]",
+    "category": "cetak_mandiri",
+    "scenario": "A",
+    "keywords": ["cetak mandiri", "HVS A4 80 gram", "QR code", "kekuatan hukum"]
+  },
+  {
+    "question": "Siapa saja yang bisa menjadi saksi untuk pembuatan akta kelahiran?",
+    "answer": "Saksi adalah dua orang yang mengetahui peristiwa kelahiran tersebut. Mereka harus sudah dewasa dan memiliki KTP-el. Saksi bisa berasal dari keluarga, tetangga, atau pihak lain yang memenuhi syarat dan bersedia memberikan data KTP-elnya.[2, 3, 16]",
+    "category": "saksi",
+    "scenario": "A",
+    "keywords": ["saksi", "dua orang", "dewasa", "KTP-el", "keluarga", "tetangga"]
+  },
+  {
+    "question": "Anak saya sudah berumur 10 tahun tapi belum punya akta kelahiran. Apakah ada denda keterlambatan?",
+    "answer": "Tidak ada denda. Berdasarkan UU No. 24 Tahun 2013, pengurusan akta kelahiran yang terlambat tidak lagi memerlukan penetapan pengadilan dan tidak dikenakan denda. Anda bisa langsung mengurusnya ke Dinas Dukcapil dengan keputusan dari Kepala Dinas.[7]",
+    "category": "keterlambatan",
+    "scenario": "B",
+    "keywords": ["terlambat", "tidak ada denda", "UU 24/2013", "Kepala Dinas"]
+  },
+  {
+    "question": "Apa landasan hukum utama yang mengatur semua kemudahan dalam pengurusan akta kelahiran saat ini?",
+    "answer": "Landasan hukum utamanya adalah **UU Nomor 24 Tahun 2013** tentang Perubahan Atas UU Nomor 23 Tahun 2006 tentang Administrasi Kependudukan. UU ini memperkenalkan prinsip seperti layanan gratis, asas domisili, dan stelsel aktif pemerintah.[7, 17, 14]",
+    "category": "landasan_hukum",
+    "scenario": "A",
+    "keywords": ["UU 24/2013", "UU 23/2006", "layanan gratis", "asas domisili", "stelsel aktif"]
+  },
+  {
+    "question": "Akta kelahiran anak saya hilang. Bagaimana cara mengurusnya kembali?",
+    "answer": "Anda dapat mengajukan permohonan penerbitan kutipan kedua akta kelahiran di Dinas Dukcapil. Umumnya persyaratannya adalah mengisi formulir, melampirkan surat keterangan kehilangan dari kepolisian, dan fotokopi dokumen pendukung seperti KK dan KTP orang tua.[18, 3]",
+    "category": "akta_hilang",
+    "scenario": "C",
+    "keywords": ["akta hilang", "kutipan kedua", "surat kehilangan", "kepolisian"]
+  },
+  {
+    "question": "Apa itu 'stelsel aktif' yang disebut dalam UU Adminduk baru?",
+    "answer": "Stelsel aktif berarti kewajiban untuk melaporkan peristiwa kependudukan (seperti kematian) kini bergeser dari penduduk ke pemerintah melalui aparaturnya (misalnya Ketua RT). Ini adalah perubahan dari sistem lama di mana penduduk yang wajib aktif melapor.[7]",
+    "category": "stelsel_aktif",
+    "scenario": "A",
+    "keywords": ["stelsel aktif", "kewajiban melapor", "pemerintah", "Ketua RT"]
+  },
+  {
+    "question": "Apa hukuman bagi seseorang yang memalsukan data atau memberikan keterangan palsu dalam SPTJM?",
+    "answer": "Menurut Pasal 94 UU No. 24 Tahun 2013, setiap orang yang memerintahkan, memfasilitasi, atau melakukan manipulasi data kependudukan dapat dipidana penjara paling lama 6 tahun dan/atau denda paling banyak Rp75.000.000.[10, 7]",
+    "category": "sanksi_hukum",
+    "scenario": "special_case",
+    "keywords": ["sanksi hukum", "Pasal 94", "manipulasi data", "6 tahun penjara", "denda 75 juta"]
+  },
+  {
+    "question": "Apakah anak hasil nikah siri yang aktanya dibuat dengan SPTJM berhak atas warisan ayahnya?",
+    "answer": "Secara hukum negara, tidak. Karena perkawinan orang tuanya tidak tercatat, anak tersebut tidak memiliki hubungan perdata dengan ayahnya dan tidak memiliki kekuatan hukum untuk menuntut hak waris dari harta ayahnya.[6]",
+    "category": "hak_waris",
+    "scenario": "special_case",
+    "keywords": ["hak waris", "nikah siri", "hubungan perdata", "tidak tercatat"]
+  },
+  {
+    "question": "Jika seorang anak perempuan yang aktanya dibuat dengan SPTJM akan menikah, siapa yang menjadi walinya?",
+    "answer": "Walinya adalah **wali hakim** yang ditunjuk oleh Pengadilan Agama, bukan ayah biologisnya. Ini karena ayahnya tidak dianggap sebagai wali nasab akibat perkawinan yang tidak tercatat secara hukum.[6]",
+    "category": "wali_nikah",
+    "scenario": "special_case",
+    "keywords": ["wali hakim", "Pengadilan Agama", "wali nasab", "perkawinan tidak tercatat"]
+  },
+  {
+    "question": "Saya ingin mengurus akta kelahiran, tapi saya tidak bisa datang langsung ke kantor Dukcapil. Bisakah diwakilkan?",
+    "answer": "Bisa. Anda dapat memberikan kuasa kepada orang lain untuk mengurusnya. Anda harus membuat surat kuasa yang ditandatangani di atas meterai, dan melampirkan fotokopi KTP Anda sebagai pemberi kuasa dan KTP orang yang menerima kuasa.[2, 3, 16]",
+    "category": "kuasa",
+    "scenario": "A",
+    "keywords": ["surat kuasa", "meterai", "diwakilkan", "pemberi kuasa"]
+  },
+  {
+    "question": "Apa saja peraturan turunan dari UU Adminduk yang penting untuk diketahui terkait pembuatan akta kelahiran?",
+    "answer": "Beberapa peraturan penting adalah Perpres No. 96 Tahun 2018, Permendagri No. 108 Tahun 2019 (peraturan pelaksana), dan Permendagri No. 109 Tahun 2019 (tentang standardisasi formulir seperti F-2.01 dan SPTJM).[10, 8, 13, 5, 19]",
+    "category": "peraturan_turunan",
+    "scenario": "A",
+    "keywords": ["Perpres 96/2018", "Permendagri 108/2019", "Permendagri 109/2019", "standardisasi formulir"]
+  },
+  {
+    "question": "Nama anak saya salah ketik satu huruf di akta kelahiran. Bagaimana cara memperbaikinya?",
+    "answer": "Untuk kesalahan tulis redaksional minor, Anda dapat mengajukan permohonan pembetulan akta di Dinas Dukcapil. Namun, jika perubahannya substantif (misalnya ganti nama), biasanya memerlukan penetapan dari pengadilan negeri terlebih dahulu.",
+    "category": "pembetulan_data",
+    "scenario": "D",
+    "keywords": ["kesalahan tulis", "pembetulan akta", "substantif", "pengadilan negeri"]
+  },
+  {
+    "question": "Apakah anak yang tidak punya akta kelahiran bisa sekolah?",
+    "answer": "Meskipun beberapa sekolah mungkin memiliki kebijakan internal, secara umum akta kelahiran adalah syarat administrasi penting untuk pendaftaran sekolah. Ketiadaan akta kelahiran dapat menghambat akses anak terhadap hak-hak dasar seperti pendidikan dan layanan kesehatan.[4]",
+    "category": "akses_pendidikan",
+    "scenario": "B",
+    "keywords": ["sekolah", "syarat administrasi", "hak dasar", "pendidikan", "layanan kesehatan"]
+  },
+  {
+    "question": "Apa fungsi dari Permendagri Nomor 9 Tahun 2016?",
+    "answer": "Permendagri Nomor 9 Tahun 2016 adalah tentang Percepatan Peningkatan Cakupan Kepemilikan Akta Kelahiran. Peraturan ini menunjukkan komitmen dan target spesifik pemerintah untuk memastikan setiap anak di Indonesia memiliki akta kelahiran.[18, 8, 13, 20]",
+    "category": "permendagri_9_2016",
+    "scenario": "A",
+    "keywords": ["Permendagri 9/2016", "percepatan", "cakupan kepemilikan", "komitmen pemerintah"]
+  },
+  {
+    "question": "Apakah data pribadi saya dalam proses pengurusan akta kelahiran dijamin kerahasiaannya?",
+    "answer": "Ya. Menurut UU No. 24 Tahun 2013, negara (melalui Instansi Pelaksana/Dukcapil) wajib menyimpan, melindungi, dan menjamin kerahasiaan data perseorangan dan dokumen kependudukan.[21]",
+    "category": "kerahasiaan_data",
+    "scenario": "A",
+    "keywords": ["kerahasiaan data", "UU 24/2013", "Instansi Pelaksana", "data perseorangan"]
+  },
+  {
+    "question": "Saya menemukan bayi yang ditelantarkan. Bagaimana cara membuatkan akta kelahiran untuknya?",
+    "answer": "Untuk anak temuan atau tidak diketahui asal-usulnya, pembuatan akta kelahiran memerlukan Berita Acara Pemeriksaan (BAP) dari kepolisian dan SPTJM Kebenaran Data Kelahiran yang ditandatangani oleh wali atau penanggung jawabnya.[20, 3]",
+    "category": "anak_temuan",
+    "scenario": "special_case",
+    "keywords": ["anak temuan", "BAP", "kepolisian", "wali", "penanggung jawab"]
+  },
+  {
+    "question": "Apa perbedaan mendasar antara akta kelahiran anak dari perkawinan sah dan anak dari perkawinan siri (dengan SPTJM)?",
+    "answer": "Perbedaan mendasar terletak pada kepastian hukum. Anak dari perkawinan sah memiliki hubungan perdata penuh dengan kedua orang tua, menjamin hak waris dan perwalian. Anak dari perkawinan siri (dengan SPTJM) tidak memiliki hubungan perdata dengan ayah, sehingga hak waris dan perwalian dari ayah tidak diakui hukum negara.[6]",
+    "category": "perbedaan_status",
+    "scenario": "special_case",
+    "keywords": ["kepastian hukum", "hubungan perdata", "hak waris", "perwalian", "hukum negara"]
+  },
+  {
+    "question": "Apakah saya harus memperbarui Kartu Keluarga (KK) dulu sebelum membuat akta kelahiran anak?",
+    "answer": "Idealnya, ya. Disarankan untuk memasukkan nama anak ke dalam KK terlebih dahulu. Beberapa daerah bahkan mensyaratkan KK yang sudah mencantumkan nama anak yang akan dibuatkan akta.[20, 3, 11]",
+    "category": "update_kk",
+    "scenario": "A",
+    "keywords": ["update KK", "nama anak", "syarat daerah", "mencantumkan nama"]
+  },
+  {
+    "question": "Apakah ada batas waktu pelaporan kelahiran anak?",
+    "answer": "Sebelumnya ada batas waktu 60 hari, namun dengan peraturan baru, pelaporan yang melebihi batas waktu tersebut tidak lagi menjadi masalah besar dan tidak memerlukan penetapan pengadilan. Pemerintah mendorong agar kelahiran dilaporkan sesegera mungkin.[7, 1]",
+    "category": "batas_waktu",
+    "scenario": "B",
+    "keywords": ["batas waktu", "60 hari", "peraturan baru", "penetapan pengadilan"]
+  },
+  {
+    "question": "Bagaimana pemerintah memastikan semua anak, bahkan di daerah terpencil, mendapatkan akta kelahiran?",
+    "answer": "Pemerintah menerapkan 'stelsel aktif' di mana petugas registrasi di tingkat desa/kelurahan diwajibkan aktif mendata. Selain itu, ada program layanan keliling atau 'jemput bola' oleh Dukcapil untuk menjangkau masyarakat di daerah terpencil.[7, 6]",
+    "category": "jangkauan_layanan",
+    "scenario": "A",
+    "keywords": ["daerah terpencil", "stelsel aktif", "layanan keliling", "jemput bola"]
+  },
+  {
+    "question": "Saya Warga Negara Asing (WNA) menikah dengan WNI dan anak kami lahir di Indonesia. Bisakah anak saya dapat akta kelahiran Indonesia?",
+    "answer": "Ya, bisa. Prosedurnya mirip dengan WNI, namun Anda sebagai WNA perlu melampirkan dokumen tambahan seperti paspor dan dokumen keimigrasian (ITAS/ITAP).[3]",
+    "category": "wna",
+    "scenario": "E",
+    "keywords": ["WNA", "WNI", "paspor", "ITAS", "ITAP", "dokumen keimigrasian"]
+  },
+  {
+    "question": "Apa itu Formulir F-2.04?",
+    "answer": "Formulir F-2.04 adalah kode resmi untuk Surat Pernyataan Tanggung Jawab Mutlak (SPTJM) Kebenaran Sebagai Pasangan Suami-Istri, yang digunakan oleh pasangan yang belum memiliki buku nikah untuk mengurus akta kelahiran anak.[13, 5, 14]",
+    "category": "formulir_f204",
+    "scenario": "special_case",
+    "keywords": ["F-2.04", "SPTJM", "pasangan suami-istri", "belum punya buku nikah"]
+  },
+  {
+    "question": "Jika saya menggunakan SPTJM, apakah nama saya dan suami akan tercatat di Kartu Keluarga sebagai 'Kawin Belum Tercatat'?",
+    "answer": "Ya, penggunaan SPTJM biasanya terkait dengan status perkawinan 'Kawin Belum Tercatat' atau 'Kawin Tidak Tercatat' di Kartu Keluarga. Ini adalah penanda administratif bahwa perkawinan tersebut belum disahkan oleh negara.[6]",
+    "category": "status_kk",
+    "scenario": "special_case",
+    "keywords": ["Kawin Belum Tercatat", "Kawin Tidak Tercatat", "penanda administratif", "belum disahkan"]
+  },
+  {
+    "question": "Apakah proses Isbat Nikah itu rumit dan mahal?",
+    "answer": "Proses Isbat Nikah dilakukan di Pengadilan Agama. Tingkat kerumitan dan biaya bisa bervariasi, namun ini adalah satu-satunya jalur hukum untuk mengesahkan pernikahan siri dan menjamin status hukum anak Anda secara penuh di mata negara.[6]",
+    "category": "proses_isbat",
+    "scenario": "D",
+    "keywords": ["Isbat Nikah", "Pengadilan Agama", "jalur hukum", "mengesahkan pernikahan siri"]
+  },
+  {
+    "question": "Mengapa pemerintah menyediakan opsi SPTJM jika memiliki banyak konsekuensi hukum negatif bagi anak?",
+    "answer": "Opsi SPTJM adalah solusi pragmatis dari pemerintah. Tujuannya adalah memprioritaskan hak fundamental setiap anak untuk memiliki identitas hukum (akta kelahiran), meskipun kondisi perkawinan orang tuanya belum ideal secara hukum. Ini adalah bentuk perlindungan dasar bagi anak.[22]",
+    "category": "filosofi_sptjm",
+    "scenario": "special_case",
+    "keywords": ["solusi pragmatis", "hak fundamental", "identitas hukum", "perlindungan dasar"]
+  },
+  {
+    "question": "Setelah saya mendapatkan penetapan Isbat Nikah, apa langkah selanjutnya terkait akta kelahiran anak?",
+    "answer": "Setelah mendapatkan penetapan Isbat Nikah dan menerbitkan Buku Nikah di KUA, Anda harus kembali ke Dinas Dukcapil untuk mengajukan permohonan perubahan/pembetulan data pada akta kelahiran anak Anda, dengan melampirkan buku nikah tersebut sebagai dasar hukumnya.",
+    "category": "langkah_setelah_isbat",
+    "scenario": "D",
+    "keywords": ["penetapan Isbat", "Buku Nikah", "KUA", "perubahan data", "dasar hukum"]
+  },
+  {
+    "question": "Apakah akta kelahiran yang diterbitkan sebelum adanya UU No. 24 Tahun 2013 masih berlaku?",
+    "answer": "Ya, semua akta kelahiran yang telah diterbitkan secara sah sebelumnya tetap berlaku.",
+    "category": "akta_lama",
+    "scenario": "A",
+    "keywords": ["akta lama", "UU 24/2013", "tetap berlaku", "diterbitkan sah"]
+  },
+  {
+    "question": "Saya sudah dewasa (30 tahun) tapi baru sadar belum punya akta kelahiran. Bagaimana cara mengurusnya?",
+    "answer": "Prosedurnya sama. Anda perlu menyiapkan dokumen seperti KTP, KK, KTP saksi, dan bukti pendukung kelahiran. Jika ada, ijazah juga bisa dilampirkan sebagai dokumen pendukung untuk memverifikasi data diri Anda.[20, 11]",
+    "category": "dewasa_belum_akta",
+    "scenario": "B",
+    "keywords": ["dewasa", "30 tahun", "ijazah", "bukti pendukung", "verifikasi data"]
+  },
+  {
+    "question": "Apakah ada perbedaan warna blangko akta kelahiran sekarang?",
+    "answer": "Saat ini, dokumen kependudukan seperti akta kelahiran dan KK tidak lagi menggunakan blangko khusus berwarna (security printing), melainkan dicetak di kertas HVS putih ukuran A4 80 gram. Keamanannya dijamin oleh Tanda Tangan Elektronik (TTE) dalam bentuk QR code.[18]",
+    "category": "blangko_baru",
+    "scenario": "A",
+    "keywords": ["blangko", "security printing", "HVS putih A4", "TTE", "QR code"]
+  },
+  {
+    "question": "Apa tujuan utama pemerintah melakukan reformasi administrasi kependudukan ini?",
+    "answer": "Tujuan utamanya adalah untuk mewujudkan tertib administrasi kependudukan, memberikan perlindungan dan pengakuan status hukum kepada setiap penduduk, serta meningkatkan kualitas pelayanan publik agar lebih profesional, cepat, mudah, dan tidak diskriminatif.[23, 21]",
+    "category": "tujuan_reformasi",
+    "scenario": "A",
+    "keywords": ["tertib administrasi", "perlindungan", "status hukum", "pelayanan publik", "tidak diskriminatif"]
+  },
+  {
+    "question": "Jika petugas Dukcapil menolak permohonan saya padahal syarat sudah lengkap, apa yang harus saya lakukan?",
+    "answer": "Anda berhak meminta penjelasan tertulis mengenai alasan penolakan. Jika merasa dirugikan, Anda bisa melaporkannya ke atasan petugas tersebut (Kepala Dinas), atau melalui kanal pengaduan resmi yang biasanya disediakan oleh pemerintah daerah atau Dukcapil pusat.",
+    "category": "penolakan_permohonan",
+    "scenario": "A",
+    "keywords": ["penolakan", "penjelasan tertulis", "Kepala Dinas", "kanal pengaduan"]
+  },
+  {
+    "question": "Apakah anak yang lahir dari perkawinan beda agama bisa mendapatkan akta kelahiran?",
+    "answer": "Ya. Selama perkawinan tersebut telah dicatatkan di Dinas Dukcapil (berdasarkan penetapan pengadilan), maka anak yang lahir berhak mendapatkan akta kelahiran dengan prosedur normal yang mencantumkan nama kedua orang tuanya.[1]",
+    "category": "beda_agama",
+    "scenario": "A",
+    "keywords": ["beda agama", "dicatatkan", "penetapan pengadilan", "prosedur normal"]
+  },
+  {
+    "question": "Akta kelahiran anak saya rusak karena basah. Bagaimana cara menggantinya?",
+    "answer": "Anda bisa mengajukan permohonan penerbitan kutipan kedua karena rusak. Bawa akta yang rusak tersebut beserta dokumen pendukung seperti KK dan KTP orang tua ke Dinas Dukcapil.[3]",
+    "category": "akta_rusak",
+    "scenario": "C",
+    "keywords": ["akta rusak", "basah", "kutipan kedua", "dokumen pendukung"]
+  },
+  {
+    "question": "Apakah NIK (Nomor Induk Kependudukan) anak langsung terbit bersamaan dengan akta kelahiran?",
+    "answer": "Ya. Saat kelahiran seorang anak dilaporkan dan aktanya diterbitkan, anak tersebut akan secara otomatis terdaftar dalam sistem, dimasukkan ke dalam KK, dan diberikan NIK yang berlaku seumur hidup.[16, 24]",
+    "category": "nik",
+    "scenario": "A",
+    "keywords": ["NIK", "otomatis terdaftar", "dimasukkan KK", "seumur hidup"]
+  },
+  {
+    "question": "Apakah saya bisa mengurus akta kelahiran secara online?",
+    "answer": "Banyak Dinas Dukcapil di berbagai daerah yang sudah menyediakan layanan pengajuan akta kelahiran secara online melalui website atau aplikasi khusus untuk mempermudah masyarakat.[9, 15]",
+    "category": "layanan_online",
+    "scenario": "A",
+    "keywords": ["online", "website", "aplikasi khusus", "mempermudah masyarakat"]
+  },
+  {
+    "question": "Apa perbedaan antara 'Akta Kelahiran' dan 'Kutipan Akta Kelahiran'?",
+    "answer": "'Akta Kelahiran' atau 'Register Akta' adalah buku catatan asli yang disimpan sebagai arsip oleh negara di Dinas Dukcapil. 'Kutipan Akta Kelahiran' adalah salinan otentik dari register tersebut yang diberikan kepada penduduk sebagai bukti hukum.[18, 5]",
+    "category": "perbedaan_akta_kutipan",
+    "scenario": "A",
+    "keywords": ["Register Akta", "buku catatan asli", "arsip negara", "salinan otentik", "bukti hukum"]
+  },
+  {
+    "question": "Apa sanksi hukum bagi oknum petugas Dukcapil yang meminta bayaran untuk mengurus akta kelahiran?",
+    "answer": "Setiap pejabat atau petugas yang memerintahkan, memfasilitasi, atau melakukan pungutan biaya dalam pengurusan dokumen kependudukan dapat dipidana dengan pidana penjara paling lama 6 tahun dan/atau denda paling banyak Rp75.000.000, sesuai dengan Pasal 95B UU No. 24 Tahun 2013.[1]",
+    "category": "sanksi_petugas",
+    "scenario": "special_case",
+    "keywords": ["sanksi hukum", "pungutan liar", "Pasal 95B", "6 tahun penjara", "denda 75 juta", "petugas korup"]
+  },
+  {
+    "question": "Saya menemukan bayi terlantar. Apa saja dokumen yang diperlukan untuk membuatkan akta kelahirannya?",
+    "answer": "Untuk anak yang ditemukan dan tidak diketahui asal-usulnya, persyaratan utamanya adalah Berita Acara Pemeriksaan (BAP) dari kepolisian dan Surat Pernyataan Tanggung Jawab Mutlak (SPTJM) Kebenaran Data Kelahiran yang ditandatangani oleh wali atau penanggung jawabnya.[2, 3]",
+    "category": "bayi_terlantar",
+    "scenario": "special_case",
+    "keywords": ["bayi terlantar", "anak temuan", "BAP kepolisian", "SPTJM", "wali", "penanggung jawab"]
+  },
+  {
+    "question": "Bagaimana UU No. 24 Tahun 2013 mengubah proses pengesahan anak?",
+    "answer": "UU No. 24 Tahun 2013 mengubah proses pengesahan anak. Jika sebelumnya hanya berupa catatan pinggir pada akta kelahiran, kini diubah menjadi penerbitan Akta Pengesahan Anak tersendiri. Proses ini ditujukan untuk anak yang lahir dari perkawinan yang sah secara agama tetapi belum sah menurut hukum negara.[4]",
+    "category": "pengesahan_anak",
+    "scenario": "D",
+    "keywords": ["pengesahan anak", "UU 24/2013", "Akta Pengesahan Anak", "catatan pinggir", "sah agama"]
+  },
+  {
+    "question": "Di Kartu Keluarga (KK) saya, status perkawinan tertulis 'Kawin Belum Tercatat'. Apakah ini berarti pernikahan saya sudah diakui sebagian oleh negara?",
+    "answer": "Tidak. Status 'Kawin Belum Tercatat' di KK tidak berarti Disdukcapil mengesahkan perkawinan Anda. Itu hanyalah sebuah catatan administratif dan tidak memiliki kekuatan hukum yang mengikat karena tidak ada akta otentik sebagai bukti keabsahan perkawinan.[5, 6]",
+    "category": "status_kk_detail",
+    "scenario": "special_case",
+    "keywords": ["Kawin Belum Tercatat", "tidak diakui negara", "catatan administratif", "tidak mengikat", "akta otentik"]
+  },
+  {
+    "question": "Saya mau mengajukan akta kelahiran online, tapi saya tidak punya alamat email. Bagaimana solusinya?",
+    "answer": "Dalam beberapa sistem pengajuan online, jika Anda tidak memiliki email, Anda bisa mengisi kolom email dengan 'TIDAK ADA' atau '-'. Dokumen PDF yang terbit nantinya dapat diunduh langsung dari sistem layanan tersebut atau dikirim melalui media lain seperti WhatsApp.[7]",
+    "category": "layanan_online_detail",
+    "scenario": "A",
+    "keywords": ["online tanpa email", "TIDAK ADA", "unduh PDF", "WhatsApp", "sistem layanan"]
+  },
+  {
+    "question": "Apa fungsi dari Formulir F-1.07 dalam layanan administrasi kependudukan?",
+    "answer": "Formulir F-1.07 adalah Surat Kuasa Dalam Pelayanan Administrasi Kependudukan. Formulir ini digunakan untuk memberikan kuasa kepada orang lain untuk mengisi data dan mengurus layanan jika penduduk yang bersangkutan tidak mampu mengurusnya sendiri.[8]",
+    "category": "formulir_f107",
+    "scenario": "A",
+    "keywords": ["F-1.07", "Surat Kuasa", "tidak mampu mengurus", "kuasa orang lain"]
+  },
+  {
+    "question": "Sebelum dicetak di kertas HVS, seperti apa spesifikasi blangko kutipan akta kelahiran yang lama?",
+    "answer": "Berdasarkan Permendagri No. 9 Tahun 2016, blangko kutipan akta kelahiran manual memiliki spesifikasi tertentu, termasuk bahan baku kertas HVS 100 gram, desain, ukuran, warna (dasar biru muda untuk register), dan tanda pengaman untuk mencegah pemalsuan.[9]",
+    "category": "blangko_lama",
+    "scenario": "A",
+    "keywords": ["blangko lama", "HVS 100 gram", "biru muda", "tanda pengaman", "Permendagri 9/2016"]
+  },
+  {
+    "question": "Selain menerbitkan dokumen, apa saja kewajiban Dinas Dukcapil sebagai Instansi Pelaksana?",
+    "answer": "Kewajiban Instansi Pelaksana (Dukcapil) meliputi mendaftar Peristiwa Kependudukan dan mencatat Peristiwa Penting, memberikan pelayanan yang sama dan profesional kepada setiap penduduk, mencetak dan mendistribusikan dokumen, serta menjamin kerahasiaan dan keamanan data penduduk.",
+    "category": "kewajiban_dukcapil",
+    "scenario": "A",
+    "keywords": ["kewajiban Dukcapil", "Peristiwa Kependudukan", "pelayanan profesional", "kerahasiaan data"]
+  },
+  {
+    "question": "Saya Warga Negara Asing (WNA) menikah dengan WNI, anak kami lahir di Indonesia. Dokumen khusus apa yang saya perlukan untuk membuat akta kelahiran anak?",
+    "answer": "Selain persyaratan umum, sebagai WNA Anda perlu melampirkan dokumen seperti fotokopi paspor, dokumen keimigrasian (misalnya Izin Tinggal Tetap), dan Surat Tanda Melapor Diri (STMD) dari kepolisian.[10, 3]",
+    "category": "wna_detail",
+    "scenario": "E",
+    "keywords": ["WNA detail", "Izin Tinggal Tetap", "STMD", "kepolisian", "dokumen keimigrasian"]
+  },
+  {
+    "question": "Apakah 'Catatan Pinggir' itu dan untuk peristiwa apa saja catatan pinggir dibuat pada akta kelahiran?",
+    "answer": "Catatan Pinggir adalah catatan yang ditambahkan pada register akta setelah akta terbit. Untuk akta kelahiran, catatan pinggir bisa dibuat untuk peristiwa seperti pengakuan anak, pengangkatan anak, perubahan nama, atau perubahan status kewarganegaraan, yang didasarkan pada penetapan pengadilan atau dokumen sah lainnya.[11, 12]",
+    "category": "catatan_pinggir",
+    "scenario": "D",
+    "keywords": ["Catatan Pinggir", "pengakuan anak", "pengangkatan anak", "perubahan nama", "kewarganegaraan"]
+  },
+  {
+    "question": "Apakah saya harus datang ke kantor Dukcapil bersama kedua saksi saat melapor?",
+    "answer": "Tidak selalu. Yang terpenting adalah melampirkan fotokopi KTP-el dari dua orang saksi. Kehadiran fisik saksi biasanya tidak diwajibkan, namun data mereka harus valid dan dapat dipertanggungjawabkan.[13, 7, 14]",
+    "category": "kehadiran_saksi",
+    "scenario": "A",
+    "keywords": ["tidak harus datang", "fotokopi KTP saksi", "kehadiran fisik", "data valid"]
+  },
+  {
+    "question": "Apa yang dimaksud dengan 'Petugas Registrasi' di tingkat desa/kelurahan?",
+    "answer": "Petugas Registrasi adalah petugas yang diangkat oleh Bupati/Walikota untuk membantu Kepala Desa/Lurah dan Instansi Pelaksana dalam pendaftaran penduduk dan pencatatan sipil di tingkat desa/kelurahan, sebagai bagian dari 'stelsel aktif' pemerintah.[4]",
+    "category": "petugas_registrasi",
+    "scenario": "A",
+    "keywords": ["Petugas Registrasi", "Bupati/Walikota", "Kepala Desa", "stelsel aktif"]
+  },
+  {
+    "question": "Jika orang tua kandung sudah meninggal, siapa yang harus melaporkan kelahiran anak untuk pembuatan akta?",
+    "answer": "Pelaporan bisa dilakukan oleh wali atau penanggung jawab anak tersebut. Mereka akan mengisi formulir pelaporan dan mungkin memerlukan dokumen tambahan seperti surat keterangan kematian orang tua dan dokumen perwalian.",
+    "category": "orang_tua_meninggal",
+    "scenario": "special_case",
+    "keywords": ["orang tua meninggal", "wali", "penanggung jawab", "surat kematian", "dokumen perwalian"]
+  },
+  {
+    "question": "Apakah ada perbedaan prosedur pembuatan akta kelahiran untuk anak pertama dan anak kedua?",
+    "answer": "Tidak ada perbedaan prosedur. Persyaratannya tetap sama untuk setiap anak, yang membedakan hanya pengisian data 'anak ke-' pada formulir pelaporan.[7]",
+    "category": "anak_pertama_kedua",
+    "scenario": "A",
+    "keywords": ["tidak ada perbedaan", "anak ke-", "prosedur sama", "formulir pelaporan"]
+  },
+  {
+    "question": "Bagaimana cara pemerintah memastikan data kependudukan digunakan secara aman dan tidak disalahgunakan?",
+    "answer": "UU No. 24 Tahun 2013 mengamanatkan bahwa data perseorangan dan dokumen kependudukan wajib disimpan dan dilindungi kerahasiaannya oleh negara. Ada sanksi pidana berat bagi siapa pun yang menyebarluaskan data kependudukan tanpa hak.",
+    "category": "keamanan_data",
+    "scenario": "A",
+    "keywords": ["keamanan data", "kerahasiaan", "sanksi pidana", "penyebarluasan tanpa hak"]
+  },
+  {
+    "question": "Apa itu Sistem Informasi Administrasi Kependudukan (SIAK)?",
+    "answer": "SIAK adalah sistem informasi yang digunakan oleh Dinas Dukcapil di seluruh Indonesia untuk mengelola data kependudukan, mulai dari pendaftaran, pencatatan, hingga penerbitan dokumen. Sistem ini memastikan data terintegrasi secara nasional.[2]",
+    "category": "siak",
+    "scenario": "A",
+    "keywords": ["SIAK", "sistem informasi", "terintegrasi nasional", "pengelolaan data"]
+  },
+  {
+    "question": "Saya menikah sebelum tahun 1974 dan hanya punya surat keterangan kawin dari desa. Apakah itu bisa dipakai untuk membuat akta kelahiran anak?",
+    "answer": "Ya, untuk perkawinan yang terjadi sebelum 1 Oktober 1974 (sebelum UU Perkawinan berlaku), surat keterangan kawin dari Kepala Desa atau Lurah yang disahkan oleh Camat dapat digunakan sebagai bukti perkawinan untuk mengurus akta kelahiran anak.[10]",
+    "category": "nikah_sebelum_1974",
+    "scenario": "special_case",
+    "keywords": ["sebelum 1974", "UU Perkawinan", "surat keterangan kawin", "Kepala Desa", "Camat"]
+  },
+  {
+    "question": "Apakah anak yang lahir dari perkawinan beda agama bisa mendapatkan akta kelahiran dengan nama kedua orang tuanya?",
+    "answer": "Ya, bisa. Selama perkawinan beda agama tersebut telah mendapatkan penetapan dari Pengadilan Negeri dan kemudian dicatatkan di Dinas Dukcapil, maka anak yang lahir berhak mendapatkan akta kelahiran dengan nama ayah dan ibu tercantum.[10]",
+    "category": "beda_agama_detail",
+    "scenario": "special_case",
+    "keywords": ["beda agama", "Pengadilan Negeri", "dicatatkan Dukcapil", "nama kedua orang tua"]
+  },
+  {
+    "question": "Apa dasar hukum yang menyatakan bahwa KTP-el berlaku seumur hidup?",
+    "answer": "Ketentuan bahwa KTP-el berlaku seumur hidup diatur dalam Pasal 64 ayat 7 huruf a Undang-Undang Nomor 24 Tahun 2013.[4]",
+    "category": "ktp_seumur_hidup",
+    "scenario": "A",
+    "keywords": ["KTP-el seumur hidup", "Pasal 64", "UU 24/2013"]
+  },
+  {
+    "question": "Apa fungsi dari Permendagri Nomor 109 Tahun 2019?",
+    "answer": "Permendagri Nomor 109 Tahun 2019 berfungsi untuk menstandarisasi semua formulir dan buku yang digunakan dalam layanan administrasi kependudukan di seluruh Indonesia, seperti formulir F-2.01, F-2.03, dan F-2.04, untuk memastikan keseragaman pelayanan.[1, 15, 16, 8]",
+    "category": "permendagri_109_2019",
+    "scenario": "A",
+    "keywords": ["Permendagri 109/2019", "standardisasi formulir", "keseragaman pelayanan", "F-2.01", "F-2.03", "F-2.04"]
+  },
+  {
+    "question": "Jika saya sudah melakukan Isbat Nikah, apakah akta kelahiran anak saya otomatis berubah?",
+    "answer": "Tidak otomatis. Setelah mendapatkan penetapan Isbat Nikah dan Buku Nikah, Anda harus mengajukan permohonan pembetulan atau perubahan data pada akta kelahiran anak ke Dinas Dukcapil dengan melampirkan Buku Nikah sebagai dasar hukumnya.[5, 6]",
+    "category": "isbat_nikah_detail",
+    "scenario": "D",
+    "keywords": ["tidak otomatis", "penetapan Isbat", "pembetulan data", "Buku Nikah", "dasar hukum"]
+  },
+  {
+    "question": "Apakah NIK (Nomor Induk Kependudukan) anak langsung terbit bersamaan dengan akta kelahiran?",
+    "answer": "Ya. Saat kelahiran seorang anak dilaporkan dan aktanya diterbitkan, anak tersebut akan secara otomatis terdaftar dalam sistem, dimasukkan ke dalam Kartu Keluarga (KK), dan diberikan NIK yang berlaku seumur hidup.",
+    "category": "nik_otomatis",
+    "scenario": "A",
+    "keywords": ["NIK otomatis", "terdaftar sistem", "dimasukkan KK", "seumur hidup"]
+  },
+  {
+    "question": "Apa perbedaan antara 'Register Akta Kelahiran' dan 'Kutipan Akta Kelahiran'?",
+    "answer": "'Register Akta Kelahiran' adalah buku catatan asli yang berisi data otentik dan disimpan sebagai arsip oleh negara di Dinas Dukcapil. Sedangkan 'Kutipan Akta Kelahiran' adalah salinan otentik dari register tersebut yang diberikan kepada penduduk sebagai bukti hukum.[9, 11, 12]",
+    "category": "register_vs_kutipan",
+    "scenario": "A",
+    "keywords": ["Register Akta", "buku catatan asli", "data otentik", "arsip negara", "salinan otentik"]
+  },
+  {
+    "question": "Apakah saya bisa mencantumkan gelar pendidikan orang tua di akta kelahiran anak?",
+    "answer": "Umumnya, data yang dicantumkan adalah nama sesuai dokumen resmi seperti KTP dan KK. Pencantuman gelar biasanya tidak dilakukan pada akta kelahiran, namun kebijakan spesifik bisa berbeda di setiap daerah.",
+    "category": "gelar_pendidikan",
+    "scenario": "A",
+    "keywords": ["gelar pendidikan", "nama sesuai KTP", "tidak dicantumkan", "kebijakan daerah"]
+  },
+  {
+    "question": "Apa yang harus saya lakukan jika data di akta kelahiran anak berbeda dengan data di Kartu Keluarga?",
+    "answer": "Anda harus segera mengajukan permohonan pembetulan data ke Dinas Dukcapil dengan membawa kedua dokumen tersebut beserta dokumen pendukung lainnya (seperti buku nikah atau ijazah) untuk disesuaikan agar semua data menjadi sinkron.",
+    "category": "data_tidak_sinkron",
+    "scenario": "D",
+    "keywords": ["data berbeda", "pembetulan data", "dokumen pendukung", "sinkronisasi"]
+  },
+  {
+    "question": "Apakah anak adopsi (anak angkat) mendapatkan akta kelahiran baru?",
+    "answer": "Tidak. Anak adopsi tetap menggunakan akta kelahiran aslinya. Proses adopsi yang sah melalui penetapan pengadilan akan dicatatkan sebagai 'catatan pinggir' pada register dan kutipan akta kelahiran anak tersebut, yang menerangkan status pengangkatannya.[11]",
+    "category": "anak_adopsi",
+    "scenario": "D",
+    "keywords": ["anak adopsi", "akta asli", "penetapan pengadilan", "catatan pinggir", "status pengangkatan"]
+  },
+  {
+    "question": "Apa tujuan dari Permendagri Nomor 108 Tahun 2019?",
+    "answer": "Permendagri Nomor 108 Tahun 2019 adalah peraturan pelaksanaan dari Peraturan Presiden (Perpres) Nomor 96 Tahun 2018, yang merinci lebih lanjut tata cara teknis dan prosedur pelayanan pendaftaran penduduk dan pencatatan sipil di lapangan.[2, 17, 18, 1]",
+    "category": "permendagri_108_2019",
+    "scenario": "A",
+    "keywords": ["Permendagri 108/2019", "Perpres 96/2018", "tata cara teknis", "prosedur pelayanan"]
+  },
+  {
+    "question": "Jika orang tua bercerai, apakah status di akta kelahiran anak berubah?",
+    "answer": "Tidak. Akta kelahiran mencatat peristiwa kelahiran dan status orang tua pada saat anak dilahirkan. Perceraian orang tua tidak mengubah data pada akta kelahiran anak. Akta perceraian adalah dokumen terpisah.[10]",
+    "category": "orang_tua_cerai",
+    "scenario": "A",
+    "keywords": ["orang tua cerai", "tidak berubah", "saat dilahirkan", "akta perceraian terpisah"]
+  },
+  {
+    "question": "Apakah ada perbedaan persyaratan akta kelahiran untuk bayi yang lahir normal dengan yang lahir melalui operasi caesar?",
+    "answer": "Tidak ada perbedaan persyaratan. Yang terpenting adalah adanya Surat Keterangan Kelahiran yang sah dari rumah sakit atau tenaga medis yang menolong, terlepas dari metode persalinannya.[2, 3]",
+    "category": "metode_persalinan",
+    "scenario": "A",
+    "keywords": ["tidak ada perbedaan", "normal vs caesar", "surat keterangan sah", "tenaga medis"]
+  },
+  {
+    "question": "Saya tinggal di perbatasan negara. Apakah ada kebijakan khusus untuk pencatatan penduduk?",
+    "answer": "Ya, ada buku khusus yang disebut 'buku Pendaftaran Penduduk pelintas batas' untuk mencatat penduduk di daerah perbatasan yang memiliki buku pas lintas batas dan sering melakukan kegiatan lintas batas sesuai perjanjian antarnegara.[12]",
+    "category": "perbatasan_negara",
+    "scenario": "special_case",
+    "keywords": ["perbatasan negara", "pelintas batas", "pas lintas batas", "perjanjian antarnegara"]
+  },
+  {
+    "question": "Apakah saya bisa meminta duplikat akta kelahiran jika yang asli tidak hilang tapi hanya ingin punya cadangan?",
+    "answer": "Tidak bisa. Penerbitan kutipan kedua akta kelahiran hanya dilakukan untuk mengganti akta yang hilang (dengan surat keterangan polisi) atau rusak (dengan menunjukkan akta yang rusak).[9, 19]",
+    "category": "duplikat_cadangan",
+    "scenario": "C",
+    "keywords": ["tidak bisa duplikat", "kutipan kedua", "hilang atau rusak", "surat keterangan polisi"]
+  },
+  {
+    "question": "Apa itu 'Buku Harian Pelayanan Administrasi Kependudukan' yang ada di desa/kelurahan?",
+    "answer": "Itu adalah buku yang digunakan oleh petugas di tingkat desa/kelurahan untuk mencatat setiap peristiwa kependudukan (seperti pindah datang) dan peristiwa penting (seperti kelahiran dan kematian) yang terjadi di wilayahnya setiap hari.[12]",
+    "category": "buku_harian",
+    "scenario": "A",
+    "keywords": ["Buku Harian", "desa/kelurahan", "peristiwa kependudukan", "peristiwa penting"]
+  },
+  {
+    "question": "Apakah anak yang lahir dari ibu pengganti (surrogate mother) bisa dicatatkan kelahirannya di Indonesia?",
+    "answer": "Hukum di Indonesia belum mengatur secara spesifik tentang ibu pengganti. Pencatatan kelahiran akan didasarkan pada siapa ibu yang melahirkan secara biologis sesuai dengan surat keterangan kelahiran. Kasus seperti ini sangat kompleks dan mungkin memerlukan konsultasi hukum lebih lanjut.",
+    "category": "ibu_pengganti",
+    "scenario": "special_case",
+    "keywords": ["ibu pengganti", "surrogate mother", "belum diatur", "ibu biologis", "konsultasi hukum"]
+  },
+  {
+    "question": "Bagaimana jika nama orang tua di buku nikah berbeda dengan di KTP (misalnya karena ejaan lama)?",
+    "answer": "Anda harus melakukan penyesuaian data terlebih dahulu. Biasanya, Anda perlu mengurus perubahan data pada salah satu dokumen (misalnya KTP atau KK) agar sesuai dengan dokumen lainnya, seringkali dengan dasar putusan pengadilan atau dokumen pendukung lain seperti ijazah.",
+    "category": "nama_berbeda",
+    "scenario": "D",
+    "keywords": ["nama berbeda", "ejaan lama", "penyesuaian data", "putusan pengadilan", "ijazah"]
+  },
+  {
+    "question": "Apakah anak hasil inseminasi buatan atau bayi tabung memiliki prosedur akta kelahiran yang berbeda?",
+    "answer": "Tidak. Selama anak lahir dari pasangan suami-istri yang sah dan memiliki bukti perkawinan, prosedurnya sama dengan kelahiran biasa. Yang terpenting adalah surat keterangan kelahiran dari rumah sakit atau klinik tempat prosedur dilakukan.[2]",
+    "category": "inseminasi_bayi_tabung",
+    "scenario": "A",
+    "keywords": ["inseminasi buatan", "bayi tabung", "prosedur sama", "pasangan sah", "rumah sakit"]
+  },
+  {
+    "question": "Apa yang dimaksud dengan 'verifikasi dan validasi data' yang dilakukan oleh petugas Dukcapil?",
+    "answer": "Verifikasi dan validasi adalah proses pengecekan kebenaran dan keabsahan semua dokumen persyaratan yang Anda serahkan. Petugas akan memastikan data di formulir, KTP, KK, dan surat lahir konsisten dan tidak ada yang janggal sebelum data diinput ke sistem.",
+    "category": "verifikasi_validasi",
+    "scenario": "A",
+    "keywords": ["verifikasi validasi", "pengecekan kebenaran", "keabsahan dokumen", "konsisten", "input sistem"]
+  },
+  {
+    "question": "Jika saya tidak puas dengan pelayanan Dukcapil, ke mana saya bisa mengadu?",
+    "answer": "Anda bisa mengadu ke atasan petugas yang bersangkutan, seperti Kepala Dinas Dukcapil setempat. Banyak juga instansi yang menyediakan kanal pengaduan resmi, baik online maupun offline, serta melalui sistem pengaduan nasional seperti LAPOR!.",
+    "category": "pengaduan_layanan",
+    "scenario": "A",
+    "keywords": ["tidak puas", "mengadu", "Kepala Dinas", "kanal pengaduan", "LAPOR!"]
+  },
+  {
+    "question": "Apakah akta kelahiran bisa dijadikan jaminan untuk pinjaman?",
+    "answer": "Tidak. Akta kelahiran adalah dokumen hak sipil yang melekat pada diri seseorang dan bukan merupakan aset yang bisa dijaminkan. Menjadikannya jaminan adalah tindakan yang tidak sah dan tidak akan diterima oleh lembaga keuangan resmi.",
+    "category": "jaminan_pinjaman",
+    "scenario": "special_case",
+    "keywords": ["tidak bisa jaminan", "hak sipil", "bukan aset", "tidak sah", "lembaga keuangan"]
+  },
+  {
+    "question": "Apakah anak kembar mendapatkan satu akta kelahiran atau dua?",
+    "answer": "Setiap anak, termasuk anak kembar, adalah individu yang terpisah dan masing-masing akan mendapatkan akta kelahiran sendiri dengan nomor akta yang berbeda. Pelaporannya dilakukan secara individual untuk setiap anak.",
+    "category": "anak_kembar",
+    "scenario": "A",
+    "keywords": ["anak kembar", "individu terpisah", "akta sendiri", "nomor berbeda", "pelaporan individual"]
+  },
+  {
+    "question": "Apakah saya bisa mengurus akta kelahiran di Mal Pelayanan Publik (MPP)?",
+    "answer": "Ya, banyak pemerintah daerah yang telah mengintegrasikan layanan Dukcapil, termasuk pengurusan akta kelahiran, di dalam Mal Pelayanan Publik (MPP) untuk mempermudah dan mempercepat layanan.",
+    "category": "mpp",
+    "scenario": "A",
+    "keywords": ["MPP", "Mal Pelayanan Publik", "terintegrasi", "mempermudah", "mempercepat"]
+  },
+  {
+    "question": "Apa peran pemerintah provinsi dalam penyelenggaraan administrasi kependudukan?",
+    "answer": "Pemerintah provinsi, melalui gubernur, berperan dalam melakukan koordinasi, memberikan bimbingan, supervisi, dan konsultasi pelaksanaan Adminduk di tingkat kabupaten/kota di wilayahnya.",
+    "category": "peran_provinsi",
+    "scenario": "A",
+    "keywords": ["pemerintah provinsi", "gubernur", "koordinasi", "bimbingan", "supervisi", "konsultasi"]
+  },
+  {
+    "question": "Apakah ada batasan jumlah karakter untuk nama anak di akta kelahiran?",
+    "answer": "Permendagri No. 73 Tahun 2022 mengatur bahwa nama tidak boleh lebih dari 60 huruf termasuk spasi. Selain itu, nama harus mudah dibaca, tidak bermakna negatif, dan tidak multitafsir.",
+    "category": "batasan_nama",
+    "scenario": "A",
+    "keywords": ["60 huruf", "Permendagri 73/2022", "mudah dibaca", "tidak negatif", "tidak multitafsir"]
+  },
+  {
+    "question": "Jika saya WNI yang melahirkan di luar negeri, bagaimana cara mencatatkan kelahiran anak saya?",
+    "answer": "Anda harus melaporkan kelahiran tersebut ke perwakilan RI (KBRI/KJRI) di negara tempat anak lahir untuk mendapatkan bukti pelaporan. Setelah kembali ke Indonesia, laporan tersebut digunakan untuk menerbitkan akta kelahiran di Dinas Dukcapil sesuai domisili Anda.[8, 11]",
+    "category": "wni_lahir_luar_negeri",
+    "scenario": "E",
+    "keywords": ["WNI luar negeri", "KBRI/KJRI", "bukti pelaporan", "domisili Indonesia"]
+  },
+  {
+    "question": "Apakah saya bisa memilih untuk tidak mencantumkan nama ayah di akta kelahiran meskipun saya menikah secara sah?",
+    "answer": "Tidak bisa. Jika perkawinan Anda sah dan tercatat, maka secara hukum anak tersebut adalah anak dari pasangan suami-istri tersebut. Akta kelahiran harus mencerminkan status hukum yang sebenarnya dengan mencantumkan nama ayah dan ibu.[2]",
+    "category": "tidak_cantumkan_ayah",
+    "scenario": "special_case",
+    "keywords": ["tidak bisa pilih", "perkawinan sah", "status hukum", "nama ayah ibu"]
+  },
+  {
+    "question": "Apa itu 'Buku Induk Penduduk' di tingkat desa/kelurahan?",
+    "answer": "Buku Induk Penduduk adalah buku yang digunakan untuk mencatat data penduduk dalam setiap keluarga di suatu desa/kelurahan. Ini adalah salah satu alat pencatatan manual yang mendukung tertib administrasi di tingkat paling bawah.[12]",
+    "category": "buku_induk_penduduk",
+    "scenario": "A",
+    "keywords": ["Buku Induk Penduduk", "data keluarga", "pencatatan manual", "tertib administrasi"]
+  },
+  {
+    "question": "Apakah QR Code pada akta kelahiran cetak mandiri bisa kedaluwarsa?",
+    "answer": "Tidak. QR Code tersebut berisi data digital yang terenkripsi dan terhubung ke database kependudukan nasional. Selama data di database tidak berubah, QR Code tersebut akan selalu valid untuk verifikasi keaslian dokumen.[8]",
+    "category": "qr_code_kedaluwarsa",
+    "scenario": "A",
+    "keywords": ["QR Code tidak kedaluwarsa", "data terenkripsi", "database nasional", "verifikasi keaslian"]
+  },
+  {
+    "question": "Saya sudah punya akta kelahiran lama yang ditulis tangan. Apakah saya perlu menggantinya dengan yang baru?",
+    "answer": "Tidak wajib. Akta kelahiran lama tetap sah dan berlaku. Namun, jika Anda ingin memiliki dokumen dengan format digital terbaru yang dilengkapi QR code, Anda bisa mengajukan permohonan pencetakan ulang di Dinas Dukcapil.",
+    "category": "akta_lama_tulis_tangan",
+    "scenario": "A",
+    "keywords": ["tidak wajib ganti", "tetap sah", "format digital", "QR code", "pencetakan ulang"]
+  },
+  {
+    "question": "Apa yang dimaksud dengan 'peristiwa penting' dalam konteks administrasi kependudukan?",
+    "answer": "Peristiwa penting adalah kejadian yang dialami oleh seseorang yang harus dicatatkan, meliputi kelahiran, kematian, lahir mati, perkawinan, perceraian, pengakuan anak, pengesahan anak, pengangkatan anak, perubahan nama, dan perubahan status kewarganegaraan.",
+    "category": "peristiwa_penting",
+    "scenario": "A",
+    "keywords": ["peristiwa penting", "kelahiran", "kematian", "perkawinan", "perceraian", "pengakuan anak", "pengesahan anak", "pengangkatan anak", "perubahan nama", "kewarganegaraan"]
+  }
+]

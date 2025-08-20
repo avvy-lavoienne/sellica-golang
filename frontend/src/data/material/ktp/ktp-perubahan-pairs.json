@@ -1,0 +1,16 @@
+[
+  {
+    "query": "Gimana cara ganti data di KTP setelah nikah?",
+    "expectedResponse": "Untuk mengubah status perkawinan di KTP: 1) Update dulu data di Kartu Keluarga dengan membawa buku nikah, 2) Setelah KK diperbarui, ajukan pencetakan ulang e-KTP dengan membawa KK baru + e-KTP lama + fotokopi buku nikah.",
+    "serviceType": "ktp",
+    "category": "perubahan_data",
+    "priority": "medium"
+  },
+  {
+    "query": "Bisa ganti alamat di KTP kalau pindah rumah?",
+    "expectedResponse": "Bisa, Bapak/Ibu. Untuk pindah alamat: jika masih dalam satu kabupaten/kota, langsung ke Disdukcapil dengan KK yang sudah diperbarui. Jika pindah antar kabupaten/kota, perlu urus Surat Keterangan Pindah (SKP) dari daerah asal dulu.",
+    "serviceType": "ktp",
+    "category": "pindah_alamat",
+    "priority": "medium"
+  }
+]

@@ -1,0 +1,37 @@
+{
+  "integrationType": "Q&A Knowledge Service Integration",
+  "timestamp": "2025-08-05T11:16:46.632Z",
+  "results": {
+    "totalPairsIntegrated": 583,
+    "newPatternsAdded": 54,
+    "specialCasesAdded": 3,
+    "scenarioEnhancements": 6,
+    "integrationDuration": 23.158207000000004,
+    "status": "SUCCESS"
+  },
+  "summary": {
+    "status": "SUCCESS",
+    "message": "Successfully integrated 583 Q&A pairs into knowledge service",
+    "expectedImpact": "Enhanced pattern matching and response accuracy for real-world queries",
+    "newCapabilities": [
+      "Comprehensive nikah siri guidance",
+      "Complete ibu tunggal support",
+      "WNA-WNI marriage documentation",
+      "Legal reference integration",
+      "Enhanced scenario detection"
+    ]
+  },
+  "metrics": {
+    "totalPairsIntegrated": 583,
+    "specialCasesAdded": 3,
+    "newPatternsAdded": 54,
+    "scenarioEnhancements": 6,
+    "integrationDuration": "0.02s"
+  },
+  "nextSteps": [
+    "Test integrated responses with sample queries",
+    "Monitor accuracy improvements in production",
+    "Collect user feedback on new capabilities",
+    "Plan additional Q&A training based on usage patterns"
+  ]
+}

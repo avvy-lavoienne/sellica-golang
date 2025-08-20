@@ -1,0 +1,23 @@
+{
+  "name": "indonesian-qa",
+  "version": "1.0.0",
+  "description": "Production indonesian-qa model for SELLY",
+  "type": "qa",
+  "tasks": [
+    "question-answering"
+  ],
+  "language": "Indonesian",
+  "size": "400MB",
+  "source": "huggingface",
+  "model_id": "indobenchmark/indobert-base-p1",
+  "created_at": "D:\\Journey Code\\Project\\lab\\sellica-prop",
+  "tensorflow_js": {
+    "model_url": "/models/indonesian-qa/model.json",
+    "weights_url": "/models/indonesian-qa/weights.bin"
+  },
+  "tensorflow_serving": {
+    "model_name": "indonesian-qa",
+    "version": 1,
+    "signature_name": "serving_default"
+  }
+}

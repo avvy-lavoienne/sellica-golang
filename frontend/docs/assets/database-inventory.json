@@ -1,0 +1,1521 @@
+{
+  "discoveredAt": "2025-07-27T14:14:48.453Z",
+  "tables": {
+    "adjudicate_record": {
+      "type": "BASE TABLE",
+      "columns": {
+        "id": {
+          "dataType": "uuid",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": true
+        },
+        "user_id": {
+          "dataType": "uuid",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false,
+          "foreignKey": {
+            "table": "users",
+            "column": "id"
+          }
+        },
+        "nik_adjudicate": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nama_adjudicate": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nik_pengaju": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nama_pengaju": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "jenis_eksepsi": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "tanggal_pengajuan": {
+          "dataType": "timestamp",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "created_at": {
+          "dataType": "timestamp",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "is_ready_to_record": {
+          "dataType": "boolean",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "estimasi_tanggal_perekaman": {
+          "dataType": "unknown",
+          "isNullable": true,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        }
+      },
+      "primaryKeys": [
+        "id"
+      ],
+      "foreignKeys": [
+        {
+          "column": "user_id",
+          "referencedTable": "users",
+          "referencedColumn": "id",
+          "constraintName": "fk_adjudicate_record_user_id"
+        }
+      ],
+      "sampleData": [
+        {
+          "id": "393e15f3-258e-4a6c-8aaa-5ec046cb5caf",
+          "user_id": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "nik_adjudicate": "3270054112558874",
+          "nama_adjudicate": "UDIN SAMSUDIN",
+          "nik_pengaju": "3273052309950003",
+          "nama_pengaju": "Firman F",
+          "jenis_eksepsi": "eksepsi total",
+          "tanggal_pengajuan": "2025-01-14",
+          "created_at": "2025-03-30T12:27:33.572663+00:00",
+          "is_ready_to_record": true,
+          "estimasi_tanggal_perekaman": null
+        },
+        {
+          "id": "05ea0431-ae3c-479e-893e-2968be1f5ed9",
+          "user_id": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "nik_adjudicate": "7170054112558874",
+          "nama_adjudicate": "UDIN SAMSUDINS",
+          "nik_pengaju": "3273052309950003",
+          "nama_pengaju": "Firman F",
+          "jenis_eksepsi": "eksepsi iris mata",
+          "tanggal_pengajuan": "2025-04-30",
+          "created_at": "2025-01-30T12:19:34.731621+00:00",
+          "is_ready_to_record": true,
+          "estimasi_tanggal_perekaman": null
+        },
+        {
+          "id": "e06e6f13-5e1f-49bd-a36c-b44ff4ebd236",
+          "user_id": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "nik_adjudicate": "3205331203480001",
+          "nama_adjudicate": "A. SUHARDA",
+          "nik_pengaju": "3273052309950003",
+          "nama_pengaju": "Firman F",
+          "jenis_eksepsi": "eksepsi total",
+          "tanggal_pengajuan": "2025-05-02",
+          "created_at": "2025-05-02T09:15:07.965865+00:00",
+          "is_ready_to_record": true,
+          "estimasi_tanggal_perekaman": null
+        }
+      ],
+      "estimatedRowCount": 7
+    },
+    "aktivitas_siak": {
+      "type": "BASE TABLE",
+      "columns": {
+        "id": {
+          "dataType": "uuid",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": true
+        },
+        "user_id": {
+          "dataType": "uuid",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false,
+          "foreignKey": {
+            "table": "users",
+            "column": "id"
+          }
+        },
+        "total_aktivitas_individu": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "total_aktivitas_keseluruhan": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "fix_anomali_data": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "restore_data_maintenance": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "restore_data_ktp": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "daftar_duplikasi": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "login_user": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "logout_user": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "mutasi_elemen_data": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "bulan_rekapitulasi": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "created_at": {
+          "dataType": "timestamp",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        }
+      },
+      "primaryKeys": [
+        "id"
+      ],
+      "foreignKeys": [
+        {
+          "column": "user_id",
+          "referencedTable": "users",
+          "referencedColumn": "id",
+          "constraintName": "fk_aktivitas_siak_user_id"
+        }
+      ],
+      "sampleData": [
+        {
+          "id": "817d7c34-4ddf-40f3-b628-86f1cbb94714",
+          "user_id": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "total_aktivitas_individu": "3549",
+          "total_aktivitas_keseluruhan": "423171",
+          "fix_anomali_data": "684",
+          "restore_data_maintenance": "244",
+          "restore_data_ktp": "311",
+          "daftar_duplikasi": "33",
+          "login_user": "10730",
+          "logout_user": "5491",
+          "mutasi_elemen_data": "26895",
+          "bulan_rekapitulasi": "2025-02",
+          "created_at": "2025-04-29T12:18:42.297748+00:00"
+        },
+        {
+          "id": "1ee874cc-83c4-4e04-99e1-494cf7422d98",
+          "user_id": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "total_aktivitas_individu": "2440",
+          "total_aktivitas_keseluruhan": "403578",
+          "fix_anomali_data": "556",
+          "restore_data_maintenance": "200",
+          "restore_data_ktp": "288",
+          "daftar_duplikasi": "41",
+          "login_user": "9622",
+          "logout_user": "5208",
+          "mutasi_elemen_data": "25337",
+          "bulan_rekapitulasi": "2025-01",
+          "created_at": "2025-04-22T05:05:50.936656+00:00"
+        },
+        {
+          "id": "aded1ffb-9cb3-4f6d-a993-8c2aea162674",
+          "user_id": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "total_aktivitas_individu": "2952",
+          "total_aktivitas_keseluruhan": "341881",
+          "fix_anomali_data": "498",
+          "restore_data_maintenance": "179",
+          "restore_data_ktp": "223",
+          "daftar_duplikasi": "22",
+          "login_user": "9779",
+          "logout_user": "4807",
+          "mutasi_elemen_data": "19715",
+          "bulan_rekapitulasi": "2025-03",
+          "created_at": "2025-05-05T07:56:47.808765+00:00"
+        }
+      ],
+      "estimatedRowCount": 7
+    },
+    "aktivitas_user": {
+      "type": "BASE TABLE",
+      "columns": {},
+      "primaryKeys": [],
+      "foreignKeys": [],
+      "sampleData": [],
+      "estimatedRowCount": 0
+    },
+    "dokumentasi": {
+      "type": "BASE TABLE",
+      "columns": {
+        "id": {
+          "dataType": "uuid",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": true
+        },
+        "tanggal": {
+          "dataType": "timestamp",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "judul": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "keterangan": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "foto": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "created_by": {
+          "dataType": "uuid",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "created_at": {
+          "dataType": "timestamp",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        }
+      },
+      "primaryKeys": [
+        "id"
+      ],
+      "foreignKeys": [],
+      "sampleData": [
+        {
+          "id": "0478a6f4-b776-4e1f-a8e4-d3ed47f181fe",
+          "tanggal": "2025-04-30T08:24:05+00:00",
+          "judul": "Apel Pagi",
+          "keterangan": "Apel pagi di Disdukcapil Kab. Garut dengan pembina apel Subkoor PPDK.",
+          "foto": "1746156309575-WhatsApp Image 2025-04-30 at 7.34.41 AM.jpeg",
+          "created_by": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "created_at": "2025-05-02T03:25:09.937348+00:00"
+        },
+        {
+          "id": "7b7561cc-9184-462b-9899-4b7c5df73491",
+          "tanggal": "2025-04-29T11:26:16+00:00",
+          "judul": "Pengaduan",
+          "keterangan": "Pengajuan PAJERO dan pelacakan data yang berada di Kabupaten Karawang",
+          "foto": "1746156422126-WhatsApp Image 2025-04-29 at 10.56.23 AM.jpeg",
+          "created_by": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "created_at": "2025-05-02T03:27:02.38989+00:00"
+        },
+        {
+          "id": "3dcb801f-b9ac-4118-9e31-fd10629b6998",
+          "tanggal": "2025-05-01T07:27:37+00:00",
+          "judul": "Pengembangan Aplikasi Sellica",
+          "keterangan": "Pengembangan telah mencapai versi 1.1.0 (stable) untuk Aplikasi Sellica",
+          "foto": "1746156508944-WhatsApp Image 2025-05-01 at 1.25.09 PM.jpeg",
+          "created_by": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "created_at": "2025-05-02T03:28:29.206844+00:00"
+        }
+      ],
+      "estimatedRowCount": 9
+    },
+    "duplicate_operator": {
+      "type": "BASE TABLE",
+      "columns": {
+        "id": {
+          "dataType": "uuid",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": true
+        },
+        "user_id": {
+          "dataType": "uuid",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false,
+          "foreignKey": {
+            "table": "users",
+            "column": "id"
+          }
+        },
+        "nik_duplicate": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nama_duplicate": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nik_operator": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nama_operator": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nik_pengaju": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nama_pengaju": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "tanggal_perekaman": {
+          "dataType": "timestamp",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "tanggal_pengajuan": {
+          "dataType": "timestamp",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "created_at": {
+          "dataType": "timestamp",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "is_ready_to_record": {
+          "dataType": "boolean",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "estimasi_tanggal_perekaman": {
+          "dataType": "unknown",
+          "isNullable": true,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        }
+      },
+      "primaryKeys": [
+        "id"
+      ],
+      "foreignKeys": [
+        {
+          "column": "user_id",
+          "referencedTable": "users",
+          "referencedColumn": "id",
+          "constraintName": "fk_duplicate_operator_user_id"
+        }
+      ],
+      "sampleData": [
+        {
+          "id": "613e0dc6-a16e-42b6-8bfe-18d658dac157",
+          "user_id": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "nik_duplicate": "3205085008920010",
+          "nama_duplicate": "LATIFAH",
+          "nik_operator": "9999999999999999",
+          "nama_operator": "320508FANNY",
+          "nik_pengaju": "3273052309950003",
+          "nama_pengaju": "Firman F",
+          "tanggal_perekaman": "2025-04-24",
+          "tanggal_pengajuan": "2025-05-02",
+          "created_at": "2025-05-02T08:26:24.037947+00:00",
+          "is_ready_to_record": false,
+          "estimasi_tanggal_perekaman": null
+        },
+        {
+          "id": "21b4d82f-627b-4538-9263-8f4fd2736f65",
+          "user_id": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "nik_duplicate": "3205220408070004",
+          "nama_duplicate": "RIJAL PAHRI",
+          "nik_operator": "9999999999999999",
+          "nama_operator": "320522DENI",
+          "nik_pengaju": "9999999999999999",
+          "nama_pengaju": "V",
+          "tanggal_perekaman": "2025-05-06",
+          "tanggal_pengajuan": "2025-06-02",
+          "created_at": "2025-06-02T04:44:42.792623+00:00",
+          "is_ready_to_record": false,
+          "estimasi_tanggal_perekaman": null
+        },
+        {
+          "id": "b0799611-dd89-4549-9e7b-5d259dab3632",
+          "user_id": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "nik_duplicate": "3205151806070002",
+          "nama_duplicate": "DIAN NURJAMAN",
+          "nik_operator": "9999999999999999",
+          "nama_operator": "320515BUDIMAN",
+          "nik_pengaju": "9999999999999999",
+          "nama_pengaju": "Firman F",
+          "tanggal_perekaman": "2025-04-24",
+          "tanggal_pengajuan": "2025-05-09",
+          "created_at": "2025-05-09T01:46:20.696502+00:00",
+          "is_ready_to_record": true,
+          "estimasi_tanggal_perekaman": "2025-05-23"
+        }
+      ],
+      "estimatedRowCount": 96
+    },
+    "pending_users": {
+      "type": "BASE TABLE",
+      "columns": {
+        "id": {
+          "dataType": "uuid",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": true
+        },
+        "email": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "name": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "password": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "requested_at": {
+          "dataType": "timestamp",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "status": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "approved_at": {
+          "dataType": "timestamp",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "approved_by": {
+          "dataType": "uuid",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "user_metadata": {
+          "dataType": "jsonb",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        }
+      },
+      "primaryKeys": [
+        "id"
+      ],
+      "foreignKeys": [],
+      "sampleData": [
+        {
+          "id": "9dd7faa8-9849-4c6d-b6d6-6e5c8c32c914",
+          "email": "karinfarm2@gmail.com",
+          "name": "Karin",
+          "password": "akuganteng1",
+          "requested_at": "2025-04-28T12:20:18.494+00:00",
+          "status": "approved",
+          "approved_at": "2025-04-28T12:23:44.081+00:00",
+          "approved_by": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "user_metadata": {
+            "nik": "3205330311100001",
+            "nip": "199311152025022001",
+            "position": "Kasi Pelayanan"
+          }
+        },
+        {
+          "id": "98a683cd-95f8-4fc5-b53d-4a2509facf92",
+          "email": "sigit.pratamaaaa@gmail.com",
+          "name": "Sigit Pratama",
+          "password": "3205S1G1T",
+          "requested_at": "2025-05-07T07:18:39.36+00:00",
+          "status": "approved",
+          "approved_at": "2025-05-07T07:54:41.264+00:00",
+          "approved_by": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "user_metadata": {
+            "nik": "3205021305890000",
+            "nip": "9999999999999999",
+            "position": "ADB"
+          }
+        },
+        {
+          "id": "1a753e11-d6c7-46fc-880b-100c3aabd379",
+          "email": "natasya_s1pendmas@mahasiswa.ung.ac.id",
+          "name": "Firman",
+          "password": "akuganteng1",
+          "requested_at": "2025-05-07T07:17:20.183+00:00",
+          "status": "approved",
+          "approved_at": "2025-05-07T07:55:05.662+00:00",
+          "approved_by": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "user_metadata": {
+            "nik": "3273052309950084",
+            "nip": "199509232020121018",
+            "position": "Pengelola SIAK"
+          }
+        }
+      ],
+      "estimatedRowCount": 8
+    },
+    "pengaduan_bulanan": {
+      "type": "BASE TABLE",
+      "columns": {
+        "id": {
+          "dataType": "uuid",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": true
+        },
+        "user_id": {
+          "dataType": "uuid",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false,
+          "foreignKey": {
+            "table": "users",
+            "column": "id"
+          }
+        },
+        "nik_pengaduan": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nama_pengaduan": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "alasan_pengaduan": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "deskripsi_pengaduan": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nomor_telepon": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "tindak_lanjut_pengaduan": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "tanggal_pengaduan": {
+          "dataType": "timestamp",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "created_at": {
+          "dataType": "timestamp",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        }
+      },
+      "primaryKeys": [
+        "id"
+      ],
+      "foreignKeys": [
+        {
+          "column": "user_id",
+          "referencedTable": "users",
+          "referencedColumn": "id",
+          "constraintName": "fk_pengaduan_bulanan_user_id"
+        }
+      ],
+      "sampleData": [
+        {
+          "id": "7a5a8522-7fd0-4251-9ba0-0fbe084b797c",
+          "user_id": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "nik_pengaduan": "3274125458965247",
+          "nama_pengaduan": "ATIN MULYATI",
+          "alasan_pengaduan": "Data dipakai rekam oleh orang Jakarta yang tidak dikenal",
+          "deskripsi_pengaduan": "adfdsd",
+          "nomor_telepon": "083819790445",
+          "tindak_lanjut_pengaduan": "",
+          "tanggal_pengaduan": "2025-05-19",
+          "created_at": "2025-05-19T08:17:33.338883+00:00"
+        },
+        {
+          "id": "42eb46f4-b8b8-4bbe-858f-009e51f13923",
+          "user_id": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "nik_pengaduan": "3205190107060289",
+          "nama_pengaduan": "NAUVAL MUHAMAD AHSAN",
+          "alasan_pengaduan": "Kesalahan Perekaman",
+          "deskripsi_pengaduan": "Kesalahan Perekaman KTP",
+          "nomor_telepon": "085268185375",
+          "tindak_lanjut_pengaduan": "Diajukan penghapusan data rekam",
+          "tanggal_pengaduan": "2025-06-16",
+          "created_at": "2025-06-16T04:57:17.682976+00:00"
+        }
+      ],
+      "estimatedRowCount": 2
+    },
+    "pengajuan_bulanan": {
+      "type": "BASE TABLE",
+      "columns": {
+        "id": {
+          "dataType": "uuid",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": true
+        },
+        "user_id": {
+          "dataType": "uuid",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false,
+          "foreignKey": {
+            "table": "users",
+            "column": "id"
+          }
+        },
+        "nik_pengajuan_hapus": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nama_pengajuan": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "alasan_pengajuan": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "alasan_lainnya": {
+          "dataType": "unknown",
+          "isNullable": true,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nik_pengaju": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nama_pengaju": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "tanggal_pengajuan": {
+          "dataType": "timestamp",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "estimasi_tanggal_perekaman": {
+          "dataType": "timestamp",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "is_ready_to_record": {
+          "dataType": "boolean",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "created_at": {
+          "dataType": "timestamp",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        }
+      },
+      "primaryKeys": [
+        "id"
+      ],
+      "foreignKeys": [
+        {
+          "column": "user_id",
+          "referencedTable": "users",
+          "referencedColumn": "id",
+          "constraintName": "fk_pengajuan_bulanan_user_id"
+        }
+      ],
+      "sampleData": [
+        {
+          "id": "8ea16379-9324-4f4a-8a58-3fec663a7cb2",
+          "user_id": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "nik_pengajuan_hapus": "3205241207390002",
+          "nama_pengajuan": "-",
+          "alasan_pengajuan": "LAINNYA",
+          "alasan_lainnya": null,
+          "nik_pengaju": "3273052309950003",
+          "nama_pengaju": "FIRMAN FIRDAUS",
+          "tanggal_pengajuan": "2018-06-11",
+          "estimasi_tanggal_perekaman": "2025-04-29",
+          "is_ready_to_record": true,
+          "created_at": "2018-06-11T00:00:00+00:00"
+        },
+        {
+          "id": "cadde17c-6c8a-4b77-8792-420fca3d1db6",
+          "user_id": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "nik_pengajuan_hapus": "3205335303000005",
+          "nama_pengajuan": "-",
+          "alasan_pengajuan": "LAINNYA",
+          "alasan_lainnya": null,
+          "nik_pengaju": "3273052309950003",
+          "nama_pengaju": "FIRMAN FIRDAUS",
+          "tanggal_pengajuan": "2018-06-11",
+          "estimasi_tanggal_perekaman": "2025-04-29",
+          "is_ready_to_record": true,
+          "created_at": "2018-06-11T00:00:00+00:00"
+        },
+        {
+          "id": "e814776a-d97d-493b-8872-d6c730f4cd78",
+          "user_id": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "nik_pengajuan_hapus": "3205075209900002",
+          "nama_pengajuan": "-",
+          "alasan_pengajuan": "LAINNYA",
+          "alasan_lainnya": null,
+          "nik_pengaju": "3273052309950003",
+          "nama_pengaju": "FIRMAN FIRDAUS",
+          "tanggal_pengajuan": "2018-06-11",
+          "estimasi_tanggal_perekaman": "2025-04-29",
+          "is_ready_to_record": true,
+          "created_at": "2018-06-11T00:00:00+00:00"
+        }
+      ],
+      "estimatedRowCount": 2530
+    },
+    "profiles": {
+      "type": "BASE TABLE",
+      "columns": {
+        "id": {
+          "dataType": "uuid",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": true
+        },
+        "name": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nip": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "position": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "avatar_url": {
+          "dataType": "unknown",
+          "isNullable": true,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "updated_at": {
+          "dataType": "timestamp",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nik": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "role": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "email": {
+          "dataType": "text",
+          "isNullable": true,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        }
+      },
+      "primaryKeys": [
+        "id"
+      ],
+      "foreignKeys": [],
+      "sampleData": [
+        {
+          "id": "6e676c8a-bb55-4f4d-a1fa-68ba86805968",
+          "name": "Firman",
+          "nip": "199509232020121018",
+          "position": "Pengelola SIAK",
+          "avatar_url": null,
+          "updated_at": "2025-05-07T07:55:05.345437+00:00",
+          "nik": "3273052309950084",
+          "role": "user",
+          "email": "natasya_s1pendmas@mahasiswa.ung.ac.id"
+        },
+        {
+          "id": "65b68c09-673c-4492-abf0-a1ae39df9d0e",
+          "name": "Bukan Firman Firdaus",
+          "nip": "199509222020121009",
+          "position": "Aslinya Pengelola SIAK",
+          "avatar_url": "https://yrssspoimsxpibcbeaca.supabase.co/storage/v1/object/public/avatars/65b68c09-673c-4492-abf0-a1ae39df9d0e.jpg?t=1744888141220",
+          "updated_at": "2025-04-17T11:09:01.901+00:00",
+          "nik": "3273052309950003",
+          "role": "user",
+          "email": null
+        },
+        {
+          "id": "848c8ef8-d305-4f15-9f3d-c323acff98de",
+          "name": "Aris Gristianto",
+          "nip": "197808192008011003",
+          "position": "Pengelola SIAK",
+          "avatar_url": null,
+          "updated_at": "2025-05-10T04:22:08.769095+00:00",
+          "nik": "3205011908780002",
+          "role": "user",
+          "email": "arisgristianto@gmail.com"
+        }
+      ],
+      "estimatedRowCount": 10
+    },
+    "salah_rekam": {
+      "type": "BASE TABLE",
+      "columns": {
+        "id": {
+          "dataType": "uuid",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": true
+        },
+        "user_id": {
+          "dataType": "uuid",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false,
+          "foreignKey": {
+            "table": "users",
+            "column": "id"
+          }
+        },
+        "nik_salah_rekam": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nama_salah_rekam": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nik_pemilik_biometric": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nama_pemilik_biometric": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nik_pemilik_foto": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nama_pemilik_foto": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nik_petugas_rekam": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nama_petugas_rekam": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "tanggal_perekaman": {
+          "dataType": "timestamp",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nik_pengaju": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "nama_pengaju": {
+          "dataType": "text",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "created_at": {
+          "dataType": "timestamp",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "is_ready_to_record": {
+          "dataType": "boolean",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        },
+        "estimasi_tanggal_perekaman": {
+          "dataType": "timestamp",
+          "isNullable": false,
+          "defaultValue": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null,
+          "isPrimaryKey": false
+        }
+      },
+      "primaryKeys": [
+        "id"
+      ],
+      "foreignKeys": [
+        {
+          "column": "user_id",
+          "referencedTable": "users",
+          "referencedColumn": "id",
+          "constraintName": "fk_salah_rekam_user_id"
+        }
+      ],
+      "sampleData": [
+        {
+          "id": "c698a8bc-fe8f-4abc-993f-8303f084f162",
+          "user_id": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "nik_salah_rekam": "3205064107062205",
+          "nama_salah_rekam": "-",
+          "nik_pemilik_biometric": "9999999999999999",
+          "nama_pemilik_biometric": "-",
+          "nik_pemilik_foto": "9999999999999999",
+          "nama_pemilik_foto": "-",
+          "nik_petugas_rekam": "9999999999999999",
+          "nama_petugas_rekam": "-",
+          "tanggal_perekaman": "2025-03-18",
+          "nik_pengaju": "9999999999999999",
+          "nama_pengaju": "-",
+          "created_at": "2025-03-18T00:00:00+00:00",
+          "is_ready_to_record": true,
+          "estimasi_tanggal_perekaman": "2025-04-29"
+        },
+        {
+          "id": "dd37b958-ebd6-4b3a-a06f-4844b00623bd",
+          "user_id": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "nik_salah_rekam": "3205045609010004",
+          "nama_salah_rekam": "-",
+          "nik_pemilik_biometric": "9999999999999999",
+          "nama_pemilik_biometric": "-",
+          "nik_pemilik_foto": "9999999999999999",
+          "nama_pemilik_foto": "-",
+          "nik_petugas_rekam": "9999999999999999",
+          "nama_petugas_rekam": "-",
+          "tanggal_perekaman": "2025-03-18",
+          "nik_pengaju": "9999999999999999",
+          "nama_pengaju": "-",
+          "created_at": "2025-03-18T00:00:00+00:00",
+          "is_ready_to_record": true,
+          "estimasi_tanggal_perekaman": "2025-04-29"
+        },
+        {
+          "id": "5b94de78-d7cb-47ec-a9b4-e742a4142c6d",
+          "user_id": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+          "nik_salah_rekam": "3205292907040001",
+          "nama_salah_rekam": "-",
+          "nik_pemilik_biometric": "9999999999999999",
+          "nama_pemilik_biometric": "-",
+          "nik_pemilik_foto": "9999999999999999",
+          "nama_pemilik_foto": "-",
+          "nik_petugas_rekam": "9999999999999999",
+          "nama_petugas_rekam": "-",
+          "tanggal_perekaman": "2024-12-16",
+          "nik_pengaju": "9999999999999999",
+          "nama_pengaju": "-",
+          "created_at": "2024-12-16T00:00:00+00:00",
+          "is_ready_to_record": true,
+          "estimasi_tanggal_perekaman": "2025-04-29"
+        }
+      ],
+      "estimatedRowCount": 112
+    }
+  },
+  "storage": {
+    "buckets": [
+      {
+        "name": "avatars",
+        "id": "avatars",
+        "public": true,
+        "createdAt": "2025-04-14T07:49:50.071Z",
+        "fileCount": 0,
+        "sampleFiles": []
+      },
+      {
+        "name": "dokumentasi-foto",
+        "id": "dokumentasi-foto",
+        "public": true,
+        "createdAt": "2025-04-24T13:21:40.730Z",
+        "fileCount": 0,
+        "sampleFiles": []
+      }
+    ]
+  },
+  "relationships": {
+    "adjudicate_record": {
+      "referencedBy": [],
+      "references": [
+        "users"
+      ]
+    },
+    "aktivitas_siak": {
+      "referencedBy": [],
+      "references": [
+        "users"
+      ]
+    },
+    "aktivitas_user": {
+      "referencedBy": [],
+      "references": []
+    },
+    "dokumentasi": {
+      "referencedBy": [],
+      "references": []
+    },
+    "duplicate_operator": {
+      "referencedBy": [],
+      "references": [
+        "users"
+      ]
+    },
+    "pending_users": {
+      "referencedBy": [],
+      "references": []
+    },
+    "pengaduan_bulanan": {
+      "referencedBy": [],
+      "references": [
+        "users"
+      ]
+    },
+    "pengajuan_bulanan": {
+      "referencedBy": [],
+      "references": [
+        "users"
+      ]
+    },
+    "profiles": {
+      "referencedBy": [],
+      "references": []
+    },
+    "salah_rekam": {
+      "referencedBy": [],
+      "references": [
+        "users"
+      ]
+    }
+  },
+  "summary": {
+    "totalTables": 10,
+    "totalColumns": 100,
+    "totalRelationships": 6,
+    "totalBuckets": 2
+  }
+}

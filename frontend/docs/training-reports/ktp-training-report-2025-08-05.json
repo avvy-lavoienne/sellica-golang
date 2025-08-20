@@ -1,0 +1,72 @@
+{
+  "timestamp": "2025-08-05T08:41:37.452Z",
+  "trainingSource": "ktp_dr.md + categorized training pairs",
+  "totalPairs": 12,
+  "trainingDuration": 489.53730700000006,
+  "finalAccuracy": 0.9488448947800652,
+  "scenarioSupport": [
+    "A",
+    "B",
+    "C",
+    "D"
+  ],
+  "personaIntegration": "Sahabat Adminduk personality applied",
+  "testResults": [
+    {
+      "query": "Apakah masih perlu surat pengantar RT untuk buat KTP?",
+      "response": "Halo kak! 😊 Saya SELLY siap bantu kakak dengan layanan KTP.\n\nUntuk memberikan panduan yang tepat, boleh cerita kondisi kakak saat ini?\n\n🤔 **Pilih situasi kakak:**\n\n**A** - Sudah pernah perekaman, tapi KTP hilang/rusak\n**B** - Sudah pernah perekaman, tapi ada data yang salah/perlu dikoreksi\n**C** - Belum pernah perekaman sama sekali (KTP pertama kali)\n**D** - Tidak yakin/tidak ingat\n\n💬 **Silakan jawab dengan huruf (A, B, C, atau D) atau ceritakan situasi kakak dengan kata-kata.**\n\n📞 **Info lebih lanjut:** WhatsApp +62-851-8304-3205 atau online di pastioke.garutkab.go.id\n\nSELLY siap bantu kakak! 🤝",
+      "accuracyScore": 0.75
+    },
+    {
+      "query": "KTP saya hilang, gimana cara ngurusnya?",
+      "response": "**A - Sudah pernah perekaman, tapi KTP hilang/rusak (Penggantian KTP Hilang/Rusak)**\n\nSituasi ini untuk penggantian karena hilang atau rusak. Proses lebih cepat karena data biometrik sudah ada di sistem.\n\n📋 **Persyaratan (Hilang):**\n• Surat kehilangan dari kepolisian (asli)\n• Fotokopi Kartu Keluarga (KK)\n\n📋 **Persyaratan (Rusak):**\n• KTP lama yang rusak\n• Fotokopi Kartu Keluarga (KK)\n\n🔄 **Langkah-langkah:**\n1. (Hilang: Buat surat kehilangan di polisi, 30-60 menit)\n2. Datang ke Disdukcapil dengan syarat (15 menit)\n3. Verifikasi dokumen dan data (10 menit)\n4. Pengambilan foto/sidik jari jika diperlukan (15 menit)\n5. Dapat tanda terima (5 menit)\n6. Ambil KTP baru dalam 7 hari kerja\n\n⏱️ **Waktu:** 7 hari kerja | 💰 **Biaya:** Gratis | 🕐 **Jam:** 08:00-15:00 WIB (Senin-Jumat)\n\n🌐 **Layanan Digital 2025:** ✅ IKD support (aktivasi wajib), ✅ Online application via pastioke.garutkab.go.id, ✅ QR verification, ✅ TTE\n\n📌 **Catatan Penting:**\n• Wajib datang sendiri untuk verifikasi biometrik jika diperlukan\n• Nama harus huruf Latin, min 2 kata, max 60 huruf, tanpa angka/tanda baca negatif\n• Cetak mandiri dengan QR code\n• Kalau hilang, surat polisi wajib; kalau rusak, serahkan KTP lama\n\nApakah ini situasi kak? Kalau ya, SELLY bisa bantu detail lebih lanjut! Hubungi WhatsApp +62-851-8304-3205 untuk info tambahan. 🤝",
+      "accuracyScore": 0.7,
+      "scenarioDetected": "A"
+    },
+    {
+      "query": "Berapa biaya buat KTP?",
+      "response": "Halo kak! 😊 Saya SELLY siap bantu kakak dengan layanan KTP.\n\nUntuk memberikan panduan yang tepat, boleh cerita kondisi kakak saat ini?\n\n🤔 **Pilih situasi kakak:**\n\n**A** - Sudah pernah perekaman, tapi KTP hilang/rusak\n**B** - Sudah pernah perekaman, tapi ada data yang salah/perlu dikoreksi\n**C** - Belum pernah perekaman sama sekali (KTP pertama kali)\n**D** - Tidak yakin/tidak ingat\n\n💬 **Silakan jawab dengan huruf (A, B, C, atau D) atau ceritakan situasi kakak dengan kata-kata.**\n\n📞 **Info lebih lanjut:** WhatsApp +62-851-8304-3205 atau online di pastioke.garutkab.go.id\n\nSELLY siap bantu kakak! 🤝",
+      "accuracyScore": 0.75
+    },
+    {
+      "query": "Berapa lama proses pembuatan KTP?",
+      "response": "Halo kak! 😊 Saya SELLY siap bantu kakak dengan layanan KTP.\n\nUntuk memberikan panduan yang tepat, boleh cerita kondisi kakak saat ini?\n\n🤔 **Pilih situasi kakak:**\n\n**A** - Sudah pernah perekaman, tapi KTP hilang/rusak\n**B** - Sudah pernah perekaman, tapi ada data yang salah/perlu dikoreksi\n**C** - Belum pernah perekaman sama sekali (KTP pertama kali)\n**D** - Tidak yakin/tidak ingat\n\n💬 **Silakan jawab dengan huruf (A, B, C, atau D) atau ceritakan situasi kakak dengan kata-kata.**\n\n📞 **Info lebih lanjut:** WhatsApp +62-851-8304-3205 atau online di pastioke.garutkab.go.id\n\nSELLY siap bantu kakak! 🤝",
+      "accuracyScore": 0.75
+    },
+    {
+      "query": "aku ingin cetak ktp",
+      "response": "Halo kak! 😊 Saya SELLY siap bantu kakak dengan layanan KTP.\n\nUntuk memberikan panduan yang tepat, boleh cerita kondisi kakak saat ini?\n\n🤔 **Pilih situasi kakak:**\n\n**A** - Sudah pernah perekaman, tapi KTP hilang/rusak\n**B** - Sudah pernah perekaman, tapi ada data yang salah/perlu dikoreksi\n**C** - Belum pernah perekaman sama sekali (KTP pertama kali)\n**D** - Tidak yakin/tidak ingat\n\n💬 **Silakan jawab dengan huruf (A, B, C, atau D) atau ceritakan situasi kakak dengan kata-kata.**\n\n📞 **Info lebih lanjut:** WhatsApp +62-851-8304-3205 atau online di pastioke.garutkab.go.id\n\nSELLY siap bantu kakak! 🤝",
+      "accuracyScore": 0.75,
+      "scenarioDetected": "Interactive Assessment"
+    },
+    {
+      "query": "ktp gue hilang",
+      "response": "**A - Sudah pernah perekaman, tapi KTP hilang/rusak (Penggantian KTP Hilang/Rusak)**\n\nSituasi ini untuk penggantian karena hilang atau rusak. Proses lebih cepat karena data biometrik sudah ada di sistem.\n\n📋 **Persyaratan (Hilang):**\n• Surat kehilangan dari kepolisian (asli)\n• Fotokopi Kartu Keluarga (KK)\n\n📋 **Persyaratan (Rusak):**\n• KTP lama yang rusak\n• Fotokopi Kartu Keluarga (KK)\n\n🔄 **Langkah-langkah:**\n1. (Hilang: Buat surat kehilangan di polisi, 30-60 menit)\n2. Datang ke Disdukcapil dengan syarat (15 menit)\n3. Verifikasi dokumen dan data (10 menit)\n4. Pengambilan foto/sidik jari jika diperlukan (15 menit)\n5. Dapat tanda terima (5 menit)\n6. Ambil KTP baru dalam 7 hari kerja\n\n⏱️ **Waktu:** 7 hari kerja | 💰 **Biaya:** Gratis | 🕐 **Jam:** 08:00-15:00 WIB (Senin-Jumat)\n\n🌐 **Layanan Digital 2025:** ✅ IKD support (aktivasi wajib), ✅ Online application via pastioke.garutkab.go.id, ✅ QR verification, ✅ TTE\n\n📌 **Catatan Penting:**\n• Wajib datang sendiri untuk verifikasi biometrik jika diperlukan\n• Nama harus huruf Latin, min 2 kata, max 60 huruf, tanpa angka/tanda baca negatif\n• Cetak mandiri dengan QR code\n• Kalau hilang, surat polisi wajib; kalau rusak, serahkan KTP lama\n\nApakah ini situasi kak? Kalau ya, SELLY bisa bantu detail lebih lanjut! Hubungi WhatsApp +62-851-8304-3205 untuk info tambahan. 🤝",
+      "accuracyScore": 0.7,
+      "scenarioDetected": "A"
+    },
+    {
+      "query": "pertama kali bikin ktp",
+      "response": "**C - Belum pernah perekaman sama sekali (KTP Pertama Kali)**\n\nSituasi ini untuk pembuatan KTP baru (usia 17+ atau sudah kawin). Wajib perekaman biometrik pertama kali.\n\n📋 **Persyaratan:**\n• Fotokopi Kartu Keluarga (KK)\n• Akta kelahiran/ijazah terakhir (asli)\n• Bukti umur 17 tahun atau buku nikah/akta perkawinan jika sudah kawin\n\n🔄 **Langkah-langkah:**\n1. Datang ke Disdukcapil dengan syarat (15 menit)\n2. Verifikasi dokumen (10 menit)\n3. Perekaman biometrik: Foto dan sidik jari (15 menit)\n4. Dapat tanda terima dan surat sementara (5 menit)\n5. Ambil KTP dalam jadwal (5 menit)\n\n⏱️ **Waktu:** Bisa langsung/online | 💰 **Biaya:** Gratis | 🕐 **Jam:** 08:00-15:00 WIB (Senin-Jumat)\n\n🌐 **Layanan Digital 2025:** ✅ IKD support (wajib aktivasi setelah dapat KTP), ✅ Online via pastioke.garutkab.go.id atau IKD/situs Dukcapil, ✅ QR verification, ✅ TTE\n\n📌 **Catatan Penting:**\n• Wajib datang sendiri untuk biometrik\n• Bawa dokumen asli\n• Nama: Huruf Latin, min 2 kata, max 60 huruf, tidak negatif\n• Cetak mandiri dengan QR; aktivasi IKD: Scan QR, verifikasi wajah, app dengan NIK/email/HP\n\nIni situasi pertama kali ya kak? SELLY siap pandu langkah demi langkah! Hubungi WhatsApp +62-851-8304-3205 untuk info tambahan. 🚀",
+      "accuracyScore": 0.7,
+      "scenarioDetected": "C"
+    },
+    {
+      "query": "data di ktp salah",
+      "response": "**B - Sudah pernah perekaman, tapi ada data yang salah/perlu dikoreksi (Perubahan Data KTP)**\n\nSituasi ini untuk koreksi data (e.g., nama salah, alamat berubah). Proses mirip penggantian, tapi fokus verifikasi perubahan. Berdasarkan Permendagri 73/2022, koreksi nama harus sesuai aturan Latin.\n\n📋 **Persyaratan:**\n• KTP lama (asli)\n• Fotokopi Kartu Keluarga (KK)\n• Dokumen pendukung perubahan (e.g., akta/surat resmi untuk nama/alamat)\n\n🔄 **Langkah-langkah:**\n1. Datang ke Disdukcapil dengan syarat (15 menit)\n2. Verifikasi dokumen dan bukti perubahan (10-20 menit)\n3. Pengambilan foto/sidik jari jika data biometrik berubah (15 menit)\n4. Dapat tanda terima (5 menit)\n5. Ambil KTP baru dalam 7 hari kerja\n\n⏱️ **Waktu:** 7 hari kerja | 💰 **Biaya:** Gratis | 🕐 **Jam:** 08:00-15:00 WIB (Senin-Jumat)\n\n🌐 **Layanan Digital 2025:** ✅ IKD support (update data via app setelah koreksi), ✅ Online application via pastioke.garutkab.go.id, ✅ QR verification, ✅ TTE\n\n📌 **Catatan Penting:**\n• Wajib bawa bukti asli perubahan (e.g., akta untuk nama)\n• Nama harus minimal 2 kata, max 60 huruf, huruf Latin, tidak negatif\n• Datang sendiri untuk verifikasi\n• Cetak mandiri dengan QR code setelah koreksi\n\nKalau data kak yang mana perlu dikoreksi? SELLY bisa bantu spesifik! Hubungi WhatsApp +62-851-8304-3205 untuk info tambahan. 😊",
+      "accuracyScore": 0.7,
+      "scenarioDetected": "B"
+    }
+  ],
+  "nextSteps": [
+    "Monitor user interactions for 48 hours",
+    "Collect feedback for continuous improvement",
+    "Prepare KK (Kartu Keluarga) training next",
+    "Analyze performance metrics and optimize"
+  ],
+  "performanceMetrics": {
+    "averageTestAccuracy": 0.7250000000000001,
+    "scenarioDetectionRate": 0.625,
+    "trainingEfficiency": 116.2949031110389
+  }
+}

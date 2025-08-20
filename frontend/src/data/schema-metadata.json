@@ -1,0 +1,622 @@
+{
+  "database": {
+    "name": "SELLICA Database",
+    "description": "Sistem administrasi data warga dan pelayanan publik",
+    "version": "1.0",
+    "lastUpdated": "2025-01-27"
+  },
+  "tables": {
+    "profiles": {
+      "displayName": "Profil Pengguna",
+      "description": "Data profil pengguna sistem SELLICA",
+      "businessPurpose": "Menyimpan informasi identitas dan akses pengguna",
+      "primaryKey": "id",
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "description": "ID unik pengguna",
+          "businessMeaning": "Identifikasi unik setiap pengguna dalam sistem",
+          "searchable": true,
+          "displayInSummary": false
+        },
+        "name": {
+          "type": "text",
+          "description": "Nama lengkap pengguna",
+          "businessMeaning": "Nama lengkap pengguna untuk identifikasi",
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["nama", "nama lengkap", "identitas"]
+        },
+        "nik": {
+          "type": "text",
+          "description": "Nomor Induk Kependudukan",
+          "businessMeaning": "NIK 16 digit sesuai KTP untuk verifikasi identitas",
+          "searchable": true,
+          "displayInSummary": true,
+          "format": "16 digit",
+          "synonyms": ["nik", "nomor ktp", "nomor identitas"]
+        },
+        "email": {
+          "type": "email",
+          "description": "Alamat email pengguna",
+          "businessMeaning": "Email untuk komunikasi dan login sistem",
+          "searchable": true,
+          "displayInSummary": false
+        },
+        "role": {
+          "type": "enum",
+          "description": "Peran pengguna dalam sistem",
+          "businessMeaning": "Level akses dan tanggung jawab pengguna",
+          "values": ["admin", "operator", "user"],
+          "displayInSummary": true,
+          "synonyms": ["peran", "jabatan", "level akses"]
+        },
+        "status": {
+          "type": "enum",
+          "description": "Status aktif pengguna",
+          "businessMeaning": "Apakah pengguna masih aktif menggunakan sistem",
+          "values": ["active", "inactive", "pending"],
+          "displayInSummary": true,
+          "synonyms": ["status", "kondisi", "keadaan"]
+        },
+        "created_at": {
+          "type": "timestamp",
+          "description": "Waktu pendaftaran",
+          "businessMeaning": "Kapan pengguna pertama kali mendaftar",
+          "searchable": false,
+          "displayInSummary": false
+        }
+      },
+      "relationships": {
+        "pengajuan_bulanan": {
+          "type": "one-to-many",
+          "foreignKey": "user_id",
+          "description": "Satu pengguna bisa memiliki banyak pengajuan"
+        }
+      },
+      "commonQueries": [
+        "Berapa jumlah pengguna?",
+        "Siapa saja admin?",
+        "Pengguna yang belum aktif?",
+        "Cari pengguna berdasarkan nama"
+      ],
+      "businessRules": [
+        "NIK harus unik dan 16 digit",
+        "Email harus valid dan unik",
+        "Admin minimal 1 orang"
+      ]
+    },
+    "pengajuan_bulanan": {
+      "displayName": "Pengajuan Bulanan",
+      "description": "Data pengajuan layanan bulanan warga",
+      "businessPurpose": "Tracking pengajuan layanan administrasi per bulan",
+      "primaryKey": "id",
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "description": "ID unik pengajuan",
+          "businessMeaning": "Identifikasi unik setiap pengajuan",
+          "searchable": true,
+          "displayInSummary": false
+        },
+        "user_id": {
+          "type": "uuid",
+          "description": "ID pengguna yang mengajukan",
+          "businessMeaning": "Referensi ke pengguna yang membuat pengajuan",
+          "searchable": true,
+          "displayInSummary": false,
+          "foreignKey": "profiles.id"
+        },
+        "jenis_pengajuan": {
+          "type": "text",
+          "description": "Jenis layanan yang diajukan",
+          "businessMeaning": "Kategori layanan administrasi yang diminta warga",
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["jenis", "kategori", "layanan", "tipe", "macam"],
+          "commonValues": [
+            "KTP Baru",
+            "KTP Hilang",
+            "Kartu Keluarga",
+            "Akta Kelahiran",
+            "Akta Kematian",
+            "Surat Domisili",
+            "Surat Keterangan Usaha",
+            "Surat Keterangan Tidak Mampu",
+            "Legalisir Dokumen"
+          ],
+          "businessCategories": {
+            "identitas": ["KTP Baru", "KTP Hilang", "Kartu Keluarga"],
+            "akta": ["Akta Kelahiran", "Akta Kematian"],
+            "keterangan": ["Surat Domisili", "Surat Keterangan Usaha", "Surat Keterangan Tidak Mampu"],
+            "legalisir": ["Legalisir Dokumen"]
+          },
+          "processingTime": {
+            "KTP Baru": "7-14 hari kerja",
+            "KTP Hilang": "3-7 hari kerja",
+            "Kartu Keluarga": "7-14 hari kerja",
+            "Akta Kelahiran": "14-21 hari kerja",
+            "Akta Kematian": "7-14 hari kerja",
+            "Surat Domisili": "1-3 hari kerja",
+            "Surat Keterangan Usaha": "3-5 hari kerja",
+            "Surat Keterangan Tidak Mampu": "1-3 hari kerja",
+            "Legalisir Dokumen": "1-2 hari kerja"
+          },
+          "requiredDocuments": {
+            "KTP Baru": ["Kartu Keluarga", "Akta Kelahiran", "Pas Foto"],
+            "KTP Hilang": ["Surat Kehilangan", "Kartu Keluarga", "Pas Foto"],
+            "Kartu Keluarga": ["KTP Kepala Keluarga", "Akta Nikah/Cerai", "Akta Kelahiran Anak"],
+            "Akta Kelahiran": ["Surat Kelahiran RS", "KTP Orang Tua", "Akta Nikah"],
+            "Surat Domisili": ["KTP", "Surat Keterangan RT/RW"]
+          },
+          "businessRules": [
+            "Jenis pengajuan harus sesuai dengan layanan yang tersedia",
+            "Setiap jenis memiliki persyaratan dokumen yang berbeda",
+            "Waktu pemrosesan bervariasi berdasarkan jenis layanan",
+            "Beberapa jenis memerlukan verifikasi lapangan"
+          ],
+          "relatedColumns": ["status", "tanggal_pengajuan", "keterangan"],
+          "commonQueries": [
+            "berapa pengajuan KTP bulan ini?",
+            "jenis pengajuan apa yang paling banyak?",
+            "waktu pemrosesan rata-rata per jenis?",
+            "dokumen apa saja yang dibutuhkan untuk KTP?"
+          ]
+        },
+        "status": {
+          "type": "enum",
+          "description": "Status pemrosesan pengajuan",
+          "businessMeaning": "Tahap pemrosesan pengajuan dalam workflow administrasi",
+          "values": ["pending", "in_progress", "completed", "rejected"],
+          "displayInSummary": true,
+          "synonyms": ["status", "kondisi", "tahap", "keadaan", "situasi"],
+          "workflow": {
+            "pending": {
+              "description": "Menunggu review dari operator",
+              "nextStates": ["in_progress", "rejected"],
+              "actor": "operator",
+              "sla": "3 hari kerja",
+              "businessMeaning": "Pengajuan baru yang belum ditinjau"
+            },
+            "in_progress": {
+              "description": "Sedang diproses oleh operator",
+              "nextStates": ["completed", "rejected"],
+              "actor": "operator/admin",
+              "sla": "5 hari kerja",
+              "businessMeaning": "Pengajuan sedang dalam tahap verifikasi dan pemrosesan"
+            },
+            "completed": {
+              "description": "Pengajuan selesai diproses",
+              "nextStates": [],
+              "actor": "system",
+              "sla": "final",
+              "businessMeaning": "Layanan telah selesai dan dapat diambil warga"
+            },
+            "rejected": {
+              "description": "Pengajuan ditolak karena tidak memenuhi syarat",
+              "nextStates": ["pending"],
+              "actor": "operator/admin",
+              "sla": "final",
+              "businessMeaning": "Pengajuan tidak dapat diproses karena dokumen/syarat tidak lengkap"
+            }
+          },
+          "businessRules": [
+            "Hanya operator/admin yang dapat mengubah status",
+            "Perubahan status harus disertai keterangan",
+            "Status rejected harus disertai alasan penolakan",
+            "Completed otomatis trigger notifikasi ke user",
+            "SLA pending: maksimal 3 hari kerja",
+            "SLA in_progress: maksimal 5 hari kerja total"
+          ],
+          "relatedColumns": ["tanggal_pengajuan", "keterangan", "user_id"],
+          "commonQueries": [
+            "berapa pengajuan yang pending?",
+            "ada yang ditolak hari ini?",
+            "status pengajuan saya gimana?",
+            "pengajuan yang sudah selesai bulan ini?",
+            "yang melebihi SLA berapa?"
+          ],
+          "analyticsQueries": [
+            "trend status pengajuan 3 bulan terakhir",
+            "rata-rata waktu pemrosesan per status",
+            "bottleneck di status mana?",
+            "tingkat approval vs rejection"
+          ]
+        },
+        "tanggal_pengajuan": {
+          "type": "date",
+          "description": "Tanggal pengajuan dibuat",
+          "businessMeaning": "Timestamp kapan warga pertama kali mengajukan layanan",
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["tanggal", "waktu pengajuan", "tanggal submit", "waktu daftar"],
+          "format": "YYYY-MM-DD HH:mm:ss",
+          "timezone": "Asia/Jakarta",
+          "businessRules": [
+            "Tanggal tidak boleh di masa depan",
+            "Digunakan untuk menghitung SLA pemrosesan",
+            "Basis untuk laporan statistik bulanan/tahunan",
+            "Otomatis diset saat pengajuan dibuat"
+          ],
+          "analyticsCapabilities": {
+            "trends": "Analisis trend pengajuan per hari/bulan/tahun",
+            "seasonality": "Identifikasi pola musiman pengajuan",
+            "workload": "Distribusi beban kerja operator",
+            "sla": "Monitoring ketepatan waktu pemrosesan"
+          },
+          "temporalQueries": {
+            "daily": "pengajuan hari ini",
+            "weekly": "pengajuan minggu ini",
+            "monthly": "pengajuan bulan ini",
+            "yearly": "pengajuan tahun ini",
+            "range": "pengajuan dari tanggal X sampai Y",
+            "comparison": "bandingkan bulan ini vs bulan lalu"
+          },
+          "relatedColumns": ["status", "jenis_pengajuan"],
+          "commonQueries": [
+            "berapa pengajuan hari ini?",
+            "trend pengajuan 3 bulan terakhir?",
+            "hari apa paling banyak pengajuan?",
+            "pengajuan yang sudah lewat SLA?",
+            "rata-rata pengajuan per hari?"
+          ],
+          "businessInsights": [
+            "Senin-Rabu biasanya paling ramai",
+            "Akhir/awal bulan ada lonjakan pengajuan",
+            "Libur nasional mempengaruhi volume",
+            "Jam 08:00-10:00 peak time pengajuan"
+          ]
+        },
+        "keterangan": {
+          "type": "text",
+          "description": "Catatan atau keterangan tambahan",
+          "businessMeaning": "Detail, catatan khusus, atau alasan terkait pengajuan",
+          "searchable": true,
+          "displayInSummary": false,
+          "synonyms": ["keterangan", "catatan", "note", "detail", "alasan"],
+          "maxLength": 1000,
+          "businessPurpose": {
+            "pending": "Catatan awal dari warga tentang kebutuhan khusus",
+            "in_progress": "Update progress dari operator",
+            "completed": "Konfirmasi penyelesaian dan instruksi pengambilan",
+            "rejected": "Alasan penolakan dan langkah perbaikan yang diperlukan"
+          },
+          "businessRules": [
+            "Wajib diisi jika status rejected",
+            "Operator harus update keterangan saat mengubah status",
+            "Keterangan penolakan harus spesifik dan actionable",
+            "Dapat berisi instruksi untuk warga"
+          ],
+          "commonPatterns": [
+            "Dokumen tidak lengkap: [sebutkan dokumen]",
+            "Perlu verifikasi lapangan",
+            "Menunggu konfirmasi dari instansi terkait",
+            "Siap diambil di kantor kelurahan",
+            "Dokumen sudah selesai, bawa KTP asli"
+          ],
+          "relatedColumns": ["status", "jenis_pengajuan"],
+          "commonQueries": [
+            "pengajuan yang ditolak karena apa?",
+            "keterangan untuk pengajuan saya?",
+            "alasan penolakan paling sering?",
+            "instruksi pengambilan dokumen?"
+          ]
+        }
+      },
+      "relationships": {
+        "profiles": {
+          "type": "many-to-one",
+          "foreignKey": "user_id",
+          "description": "Banyak pengajuan dari satu pengguna"
+        }
+      },
+      "commonQueries": [
+        "Berapa pengajuan bulan ini?",
+        "Pengajuan yang masih pending?",
+        "Siapa yang paling banyak mengajukan?",
+        "Jenis pengajuan apa saja?",
+        "Pengajuan yang melebihi SLA?",
+        "Trend pengajuan 3 bulan terakhir?",
+        "Bottleneck di tahap mana?",
+        "Tingkat penyelesaian berapa persen?"
+      ],
+      "aggregations": {
+        "total_pengajuan": "COUNT(*)",
+        "pengajuan_selesai": "COUNT(*) WHERE status = 'completed'",
+        "pengajuan_pending": "COUNT(*) WHERE status = 'pending'",
+        "pengajuan_progress": "COUNT(*) WHERE status = 'in_progress'",
+        "pengajuan_ditolak": "COUNT(*) WHERE status = 'rejected'",
+        "rata_rata_per_bulan": "COUNT(*) / DISTINCT(MONTH(tanggal_pengajuan))",
+        "tingkat_penyelesaian": "(COUNT(*) WHERE status = 'completed') / COUNT(*) * 100",
+        "rata_rata_pemrosesan": "AVG(DATEDIFF(updated_at, tanggal_pengajuan)) WHERE status = 'completed'"
+      },
+      "businessMetrics": {
+        "kpi": {
+          "target_sla": "95% pengajuan selesai dalam SLA",
+          "target_approval": "90% tingkat persetujuan",
+          "target_response": "100% pending direview dalam 3 hari",
+          "target_completion": "85% selesai dalam waktu standar"
+        },
+        "alerts": {
+          "sla_breach": "Pengajuan pending >3 hari atau in_progress >5 hari",
+          "high_rejection": "Tingkat penolakan >15% per bulan",
+          "volume_spike": "Volume pengajuan >150% dari rata-rata",
+          "bottleneck": "Akumulasi >50 pengajuan di satu status"
+        }
+      },
+      "workflowIntelligence": {
+        "stages": [
+          {
+            "name": "submission",
+            "description": "Warga mengajukan layanan",
+            "duration": "instant",
+            "actor": "warga",
+            "nextStage": "review"
+          },
+          {
+            "name": "review",
+            "description": "Operator mereview kelengkapan dokumen",
+            "duration": "1-3 hari",
+            "actor": "operator",
+            "nextStage": ["processing", "rejection"]
+          },
+          {
+            "name": "processing",
+            "description": "Pemrosesan dokumen dan verifikasi",
+            "duration": "3-7 hari",
+            "actor": "operator/admin",
+            "nextStage": ["completion", "rejection"]
+          },
+          {
+            "name": "completion",
+            "description": "Dokumen selesai dan siap diambil",
+            "duration": "instant",
+            "actor": "system",
+            "nextStage": []
+          }
+        ],
+        "escalationRules": [
+          "Review >3 hari → escalate ke supervisor",
+          "Processing >7 hari → escalate ke manager",
+          "Rejection tanpa alasan → return ke operator",
+          "Volume >100/hari → tambah operator"
+        ]
+      }
+    },
+    "salah_rekam": {
+      "displayName": "Salah Rekam",
+      "description": "Data kesalahan perekaman yang perlu diperbaiki",
+      "businessPurpose": "Tracking dan perbaikan kesalahan data",
+      "primaryKey": "id",
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "description": "ID unik kesalahan",
+          "businessMeaning": "Identifikasi unik setiap kesalahan perekaman",
+          "searchable": true,
+          "displayInSummary": false
+        },
+        "tabel_sumber": {
+          "type": "text",
+          "description": "Nama tabel yang bermasalah",
+          "businessMeaning": "Tabel mana yang mengalami kesalahan data",
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["tabel", "sumber data"]
+        },
+        "jenis_kesalahan": {
+          "type": "text",
+          "description": "Kategori kesalahan yang terjadi",
+          "businessMeaning": "Tipe kesalahan untuk klasifikasi dan prioritas perbaikan",
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["jenis", "kategori", "tipe kesalahan", "macam error"],
+          "commonValues": [
+            "Data Duplikat",
+            "Format Salah",
+            "Data Kosong",
+            "Inkonsistensi Data",
+            "Salah Entry",
+            "Missing Reference",
+            "Constraint Violation",
+            "Encoding Error"
+          ],
+          "severityLevels": {
+            "critical": ["Data Duplikat", "Missing Reference", "Constraint Violation"],
+            "high": ["Inkonsistensi Data", "Salah Entry"],
+            "medium": ["Format Salah", "Encoding Error"],
+            "low": ["Data Kosong"]
+          },
+          "businessImpact": {
+            "Data Duplikat": "Menyebabkan konflik dalam sistem dan laporan tidak akurat",
+            "Format Salah": "Data tidak dapat diproses dengan benar",
+            "Data Kosong": "Informasi tidak lengkap untuk pengambilan keputusan",
+            "Inkonsistensi Data": "Laporan dan analisis menjadi tidak reliable",
+            "Salah Entry": "Informasi warga tidak sesuai dengan dokumen asli"
+          },
+          "fixingPriority": {
+            "urgent": ["Data Duplikat", "Constraint Violation"],
+            "high": ["Missing Reference", "Inkonsistensi Data"],
+            "normal": ["Salah Entry", "Format Salah"],
+            "low": ["Data Kosong", "Encoding Error"]
+          },
+          "relatedColumns": ["status_perbaikan", "tabel_sumber"],
+          "commonQueries": [
+            "jenis kesalahan apa yang paling sering?",
+            "kesalahan critical berapa?",
+            "data duplikat di tabel mana?",
+            "prioritas perbaikan apa saja?"
+          ]
+        },
+        "status_perbaikan": {
+          "type": "enum",
+          "description": "Status perbaikan kesalahan",
+          "businessMeaning": "Tahap pemrosesan perbaikan kesalahan data",
+          "values": ["pending", "in_progress", "fixed", "cannot_fix"],
+          "displayInSummary": true,
+          "synonyms": ["status", "kondisi perbaikan", "tahap koreksi"],
+          "workflow": {
+            "pending": {
+              "description": "Kesalahan baru yang belum ditangani",
+              "nextStates": ["in_progress", "cannot_fix"],
+              "actor": "data_analyst",
+              "sla": "2 hari kerja",
+              "businessMeaning": "Menunggu analisis dan assignment ke teknisi"
+            },
+            "in_progress": {
+              "description": "Sedang dalam proses perbaikan",
+              "nextStates": ["fixed", "cannot_fix"],
+              "actor": "data_technician",
+              "sla": "5 hari kerja",
+              "businessMeaning": "Teknisi sedang melakukan koreksi data"
+            },
+            "fixed": {
+              "description": "Kesalahan sudah diperbaiki",
+              "nextStates": [],
+              "actor": "system",
+              "sla": "final",
+              "businessMeaning": "Data sudah dikoreksi dan diverifikasi"
+            },
+            "cannot_fix": {
+              "description": "Kesalahan tidak dapat diperbaiki",
+              "nextStates": [],
+              "actor": "supervisor",
+              "sla": "final",
+              "businessMeaning": "Kesalahan sistemik atau memerlukan perubahan struktur"
+            }
+          },
+          "businessRules": [
+            "Hanya data analyst yang dapat mengubah dari pending",
+            "Status cannot_fix harus disertai alasan teknis",
+            "Fixed harus melalui verifikasi quality assurance",
+            "SLA pending: maksimal 2 hari kerja",
+            "SLA in_progress: maksimal 5 hari kerja"
+          ],
+          "escalationRules": [
+            "Pending >2 hari → escalate ke supervisor",
+            "In_progress >5 hari → escalate ke manager",
+            "Cannot_fix >10% → review proses entry data"
+          ],
+          "relatedColumns": ["jenis_kesalahan", "tanggal_ditemukan"],
+          "commonQueries": [
+            "berapa yang masih pending?",
+            "kesalahan yang sudah fixed hari ini?",
+            "yang tidak bisa diperbaiki kenapa?",
+            "rata-rata waktu perbaikan?"
+          ]
+        },
+        "tanggal_ditemukan": {
+          "type": "date",
+          "description": "Kapan kesalahan ditemukan",
+          "businessMeaning": "Waktu identifikasi masalah data",
+          "searchable": true,
+          "displayInSummary": true
+        },
+        "deskripsi": {
+          "type": "text",
+          "description": "Detail kesalahan yang ditemukan",
+          "businessMeaning": "Penjelasan spesifik tentang kesalahan data",
+          "searchable": true,
+          "displayInSummary": false
+        }
+      },
+      "commonQueries": [
+        "Berapa kesalahan yang belum diperbaiki?",
+        "Tabel mana yang paling banyak error?",
+        "Kesalahan bulan ini?",
+        "Jenis kesalahan apa saja?"
+      ],
+      "aggregations": {
+        "total_kesalahan": "COUNT(*)",
+        "belum_diperbaiki": "COUNT(*) WHERE status_perbaikan = 'pending'",
+        "sudah_diperbaiki": "COUNT(*) WHERE status_perbaikan = 'fixed'"
+      }
+    },
+    "aktivitas_user": {
+      "displayName": "Aktivitas Pengguna",
+      "description": "Log aktivitas pengguna dalam sistem",
+      "businessPurpose": "Tracking aktivitas dan interaksi pengguna",
+      "primaryKey": "id",
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "description": "ID unik aktivitas",
+          "businessMeaning": "Identifikasi unik setiap aktivitas pengguna",
+          "searchable": true,
+          "displayInSummary": false
+        },
+        "user_id": {
+          "type": "uuid",
+          "description": "ID pengguna yang melakukan aktivitas",
+          "businessMeaning": "Referensi ke pengguna yang melakukan aktivitas",
+          "searchable": true,
+          "displayInSummary": false,
+          "foreignKey": "profiles.id"
+        },
+        "activity_type": {
+          "type": "text",
+          "description": "Jenis aktivitas yang dilakukan",
+          "businessMeaning": "Kategori aktivitas untuk analisis pola penggunaan",
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["jenis", "tipe aktivitas", "kategori"]
+        },
+        "status": {
+          "type": "enum",
+          "description": "Status aktivitas",
+          "businessMeaning": "Apakah aktivitas berhasil atau gagal",
+          "values": ["completed", "failed", "in_progress", "cancelled"],
+          "displayInSummary": true,
+          "synonyms": ["status", "kondisi", "hasil"]
+        },
+        "created_at": {
+          "type": "timestamp",
+          "description": "Waktu aktivitas dilakukan",
+          "businessMeaning": "Kapan aktivitas terjadi untuk analisis temporal",
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["waktu", "tanggal", "timestamp"]
+        },
+        "updated_at": {
+          "type": "timestamp",
+          "description": "Waktu terakhir aktivitas diperbarui",
+          "businessMeaning": "Kapan status aktivitas terakhir diubah",
+          "searchable": false,
+          "displayInSummary": false
+        }
+      },
+      "relationships": {
+        "profiles": {
+          "type": "many-to-one",
+          "foreignKey": "user_id",
+          "description": "Banyak aktivitas dari satu pengguna"
+        }
+      },
+      "commonQueries": [
+        "Berapa aktivitas user hari ini?",
+        "Aktivitas apa saja yang dilakukan user?",
+        "User mana yang paling aktif?",
+        "Trend aktivitas per bulan?"
+      ],
+      "aggregations": {
+        "total_aktivitas": "COUNT(*)",
+        "aktivitas_hari_ini": "COUNT(*) WHERE DATE(created_at) = CURRENT_DATE",
+        "aktivitas_berhasil": "COUNT(*) WHERE status = 'completed'",
+        "rata_rata_per_user": "COUNT(*) / COUNT(DISTINCT user_id)"
+      }
+    }
+  },
+  "queryPatterns": {
+    "userStatistics": {
+      "triggers": ["berapa user", "jumlah pengguna", "total user", "statistik user"],
+      "table": "profiles",
+      "aggregations": ["COUNT(*)", "COUNT(*) GROUP BY role", "COUNT(*) GROUP BY status"],
+      "responseTemplate": "Ada {total} pengguna: {breakdown_by_role}"
+    },
+    "tableStatistics": {
+      "triggers": ["berapa {table}", "jumlah {table}", "statistik {table}"],
+      "aggregations": ["COUNT(*)", "COUNT(*) GROUP BY status"],
+      "responseTemplate": "Tabel {table}: {total} record total"
+    }
+  }
+}

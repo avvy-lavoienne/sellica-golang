@@ -1,0 +1,101 @@
+# CRITICAL: Preserve essential Next.js files for build process
+!node_modules/next/
+!node_modules/next/dist/
+!node_modules/next/dist/compiled/
+!node_modules/next/dist/compiled/babel/
+!node_modules/next/dist/compiled/babel/code-frame/
+!node_modules/next/dist/next-devtools/
+!node_modules/next/dist/server/
+!node_modules/next/dist/build/
+!node_modules/next/dist/cli/
+
+# Development files
+*.md
+README.md
+CHANGELOG.md
+LICENSE
+.env.example
+.env.local.example
+
+# Documentation
+docs/
+*.md
+
+# Test files (specific patterns only)
+**/__tests__/
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+jest.config.js
+jest.config.enhanced.js
+jest.setup.js
+jest.canvas.setup.js
+coverage/
+
+# Development tools
+.vscode/
+.idea/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Source maps (keep only in development) - be specific to avoid matching essential files
+src/**/*.map
+public/**/*.map
+.next/**/*.map
+node_modules/**/*.map
+!node_modules/next/dist/compiled/**/*.map
+
+# Test files within src (keep src/app and src/lib)
+src/test/
+src/services/chatbot/test*.ts
+src/services/chatbot/__tests__/
+
+# Build artifacts we don't need
+.next/cache/
+.next/trace
+.next/static/chunks/webpack-*
+
+# Large dependencies we can optimize
+node_modules/@mui/x-charts/node_modules/
+node_modules/@emotion/*/node_modules/
+node_modules/canvas/build/
+
+# Development scripts (keep heroku-postbuild.js for deployment)
+# scripts/  # Don't exclude entire scripts directory
+build.js
+# Keep scripts/heroku-postbuild.js for Heroku deployment
+server.js
+
+# Package manager files
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# Git files
+.git/
+.gitignore
+.gitattributes
+
+# Editor files
+.editorconfig
+.prettierrc
+.eslintrc.json
+.eslintignore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Large static assets that can be served from CDN
+public/models/
+public/assets/large/

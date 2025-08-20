@@ -1,0 +1,15 @@
+{
+  "name": "sentiment-analyzer",
+  "description": "Indonesian sentiment analysis",
+  "version": "1.0.0",
+  "size": "3.2MB",
+  "tasks": [
+    "sentiment-analysis"
+  ],
+  "language": "Indonesian",
+  "vocab_size": 12000,
+  "embedding_dim": 128,
+  "max_length": 128,
+  "created_at": "D:\\Journey Code\\Project\\lab\\sellica-prop",
+  "status": "ready"
+}

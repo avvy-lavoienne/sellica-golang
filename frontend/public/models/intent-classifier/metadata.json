@@ -1,0 +1,15 @@
+{
+  "name": "intent-classifier",
+  "description": "Indonesian intent classification",
+  "version": "1.0.0",
+  "size": "1.8MB",
+  "tasks": [
+    "intent-classification"
+  ],
+  "language": "Indonesian",
+  "vocab_size": 8000,
+  "embedding_dim": 96,
+  "max_length": 50,
+  "created_at": "D:\\Journey Code\\Project\\lab\\sellica-prop",
+  "status": "ready"
+}

@@ -1,0 +1,16 @@
+[
+  {
+    "query": "Berapa biaya buat KTP?",
+    "expectedResponse": "Semua layanan pembuatan e-KTP GRATIS 100%. Tidak ada biaya sama sekali, baik untuk KTP baru, penggantian hilang, rusak, maupun perubahan data. Jika ada yang minta bayar, itu pungli dan bisa dilaporkan ke Disdukcapil.",
+    "serviceType": "ktp",
+    "category": "biaya",
+    "priority": "high"
+  },
+  {
+    "query": "Dimana bisa bikin KTP?",
+    "expectedResponse": "Anda bisa membuat e-KTP di: 1) Kantor Disdukcapil Kabupaten/Kota, 2) UPT di kantor Kecamatan, 3) Layanan keliling (Mepeling), 4) Beberapa daerah ada layanan di mall atau aplikasi online. Pilih yang paling dekat dengan domisili Anda.",
+    "serviceType": "ktp",
+    "category": "lokasi_layanan",
+    "priority": "medium"
+  }
+]

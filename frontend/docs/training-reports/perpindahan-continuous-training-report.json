@@ -1,0 +1,100 @@
+{
+  "trainingType": "Perpindahan Continuous Training",
+  "timestamp": "2025-08-09T06:24:46.005Z",
+  "result": {
+    "success": false,
+    "trainingDuration": 1047,
+    "finalAccuracy": 0.939499530976133,
+    "totalTrainingPairs": 20,
+    "scenarioSupport": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "special_case"
+    ],
+    "personaIntegration": "Sahabat Adminduk - Friendly Indonesian administrative assistant enhanced with Groq AI",
+    "groqEnhancement": {
+      "enabled": false,
+      "enhancedResponses": 0,
+      "averageEnhancementTime": 0
+    },
+    "testResults": [
+      {
+        "query": "Bagaimana cara pindah domisili?",
+        "response": "Halo kak! 😊 Prosedur pindah domisili tergantung jenisnya: 1) Pindah dalam satu kota - langsung ke Disdukcapil dengan KK + KTP-el asli, 2) Pindah antar kota - perlu SKPWNI dari daerah asal dulu. Semua GRATIS! SELLY siap bantu dengan panduan detail! 🤝",
+        "accuracyScore": 0.9999999999999999,
+        "scenarioDetected": "A",
+        "groqEnhanced": false,
+        "enhancementTime": 0
+      },
+      {
+        "query": "Biaya pindah domisili berapa?",
+        "response": "Halo kak! 😊 Semua layanan perpindahan domisili 100% GRATIS sesuai UU No. 24 Tahun 2013! Tidak ada biaya apapun untuk SKPWNI, KK baru, atau KTP-el baru. SELLY siap bantu dengan prosedur lengkapnya! 🤝",
+        "accuracyScore": 1,
+        "scenarioDetected": "A",
+        "groqEnhanced": false,
+        "enhancementTime": 0
+      },
+      {
+        "query": "Pindah dalam satu kota prosedurnya gimana?",
+        "response": "Halo kak! 😊 Prosedur pindah domisili tergantung jenisnya: 1) Pindah dalam satu kota - langsung ke Disdukcapil dengan KK + KTP-el asli, 2) Pindah antar kota - perlu SKPWNI dari daerah asal dulu. Semua GRATIS! SELLY siap bantu dengan panduan detail! 🤝",
+        "accuracyScore": 0.9999999999999999,
+        "scenarioDetected": "A",
+        "groqEnhanced": false,
+        "enhancementTime": 0
+      },
+      {
+        "query": "Sudah terlanjur pindah tapi belum lapor gimana?",
+        "response": "Halo kak! 😊 Jangan khawatir! Bisa diurus dengan fasilitasi dari daerah tujuan. Datang ke Disdukcapil kota tujuan, mereka akan koordinasi dengan daerah asal untuk terbitkan SKPWNI. Tidak perlu balik ke kota asal! SELLY siap bantu prosesnya! 🤝",
+        "accuracyScore": 0.8999999999999999,
+        "scenarioDetected": "B",
+        "groqEnhanced": false,
+        "enhancementTime": 0
+      },
+      {
+        "query": "KTP hilang saat mau pindah gimana?",
+        "response": "Halo kak! 😊 KTP hilang bisa diatasi! Buat surat kehilangan di polisi, lalu urus KTP-el pengganti di Disdukcapil dengan surat kehilangan + KK asli. Setelah dapat KTP-el baru, baru bisa proses pindah. Semua GRATIS! SELLY siap bantu! 🤝",
+        "accuracyScore": 0.9999999999999999,
+        "scenarioDetected": "C",
+        "groqEnhanced": false,
+        "enhancementTime": 0
+      },
+      {
+        "query": "Pindah domisili bisa diwakilkan?",
+        "response": "Halo kak! 😊 Pindah domisili TIDAK BISA diwakilkan untuk keamanan data. Harus datang langsung untuk verifikasi identitas. Kecuali kepala keluarga bisa wakili anggota dalam 1 KK. Ada layanan online via IKD atau WhatsApp untuk kemudahan! SELLY siap bantu! 🤝",
+        "accuracyScore": 0.8999999999999999,
+        "scenarioDetected": "D",
+        "groqEnhanced": false,
+        "enhancementTime": 0
+      },
+      {
+        "query": "Pindah ke luar negeri prosedurnya gimana?",
+        "response": "Halo kak! 😊 Prosedur pindah domisili tergantung jenisnya: 1) Pindah dalam satu kota - langsung ke Disdukcapil dengan KK + KTP-el asli, 2) Pindah antar kota - perlu SKPWNI dari daerah asal dulu. Semua GRATIS! SELLY siap bantu dengan panduan detail! 🤝",
+        "accuracyScore": 0.9999999999999999,
+        "scenarioDetected": "E",
+        "groqEnhanced": false,
+        "enhancementTime": 0
+      }
+    ],
+    "nextSteps": [
+      "Monitor Perpindahan query accuracy in production",
+      "Collect user feedback for continuous improvement",
+      "Update training data based on new migration regulations",
+      "Expand Perpindahan scenario coverage based on usage patterns",
+      "Optimize Groq API integration for better response quality"
+    ]
+  },
+  "summary": {
+    "success": false,
+    "accuracy": "93.9%",
+    "duration": "0.0 minutes",
+    "totalPairs": 20,
+    "groqEnhancement": {
+      "enabled": false,
+      "enhancedResponses": 0,
+      "averageEnhancementTime": 0
+    }
+  }
+}

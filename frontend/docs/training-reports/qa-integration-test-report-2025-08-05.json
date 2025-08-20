@@ -1,0 +1,145 @@
+{
+  "testType": "Q&A Integration Validation",
+  "timestamp": "2025-08-05T09:08:28.958Z",
+  "summary": {
+    "totalTests": 12,
+    "passedTests": 0,
+    "partialTests": 6,
+    "failedTests": 6,
+    "passRate": "0.0%",
+    "averageAccuracy": "48.3%",
+    "averageResponseTime": "1372ms"
+  },
+  "detailedResults": [
+    {
+      "query": "Kami menikah siri dan tidak punya buku nikah. Bisakah anak kami mendapatkan akta kelahiran dengan na...",
+      "status": "FAIL",
+      "accuracy": "35%",
+      "responseTime": "12256ms",
+      "categoryDetected": false,
+      "scenarioDetected": false,
+      "personaApplied": true,
+      "legalReferencesFound": false
+    },
+    {
+      "query": "Apa implikasi hukum jika akta kelahiran anak saya dibuat menggunakan SPTJM karena kami menikah siri?...",
+      "status": "FAIL",
+      "accuracy": "35%",
+      "responseTime": "1530ms",
+      "categoryDetected": false,
+      "scenarioDetected": false,
+      "personaApplied": true,
+      "legalReferencesFound": false
+    },
+    {
+      "query": "Apakah SPTJM bisa dianggap sebagai pengganti buku nikah?...",
+      "status": "PARTIAL",
+      "accuracy": "55%",
+      "responseTime": "2387ms",
+      "categoryDetected": false,
+      "scenarioDetected": true,
+      "personaApplied": true,
+      "legalReferencesFound": false
+    },
+    {
+      "query": "Saya seorang ibu tunggal dan ingin membuat akta kelahiran untuk anak saya. Apa saja persyaratannya?...",
+      "status": "PARTIAL",
+      "accuracy": "60%",
+      "responseTime": "32ms",
+      "categoryDetected": false,
+      "scenarioDetected": true,
+      "personaApplied": true,
+      "legalReferencesFound": false
+    },
+    {
+      "query": "Apa yang akan tertulis di akta kelahiran anak yang lahir di luar nikah?...",
+      "status": "PARTIAL",
+      "accuracy": "75%",
+      "responseTime": "27ms",
+      "categoryDetected": false,
+      "scenarioDetected": true,
+      "personaApplied": true,
+      "legalReferencesFound": true
+    },
+    {
+      "query": "Apakah benar mengurus akta kelahiran sekarang gratis?...",
+      "status": "FAIL",
+      "accuracy": "40%",
+      "responseTime": "29ms",
+      "categoryDetected": true,
+      "scenarioDetected": false,
+      "personaApplied": false,
+      "legalReferencesFound": false
+    },
+    {
+      "query": "Apa solusi hukum terbaik bagi kami yang sudah terlanjur membuat akta anak dengan SPTJM agar hak-hak ...",
+      "status": "FAIL",
+      "accuracy": "30%",
+      "responseTime": "26ms",
+      "categoryDetected": false,
+      "scenarioDetected": false,
+      "personaApplied": true,
+      "legalReferencesFound": false
+    },
+    {
+      "query": "Surat keterangan lahir anak saya dari bidan hilang. Apakah saya masih bisa membuat akta kelahiran?...",
+      "status": "PARTIAL",
+      "accuracy": "60%",
+      "responseTime": "53ms",
+      "categoryDetected": false,
+      "scenarioDetected": true,
+      "personaApplied": true,
+      "legalReferencesFound": false
+    },
+    {
+      "query": "Saya Warga Negara Asing (WNA) menikah dengan WNI dan anak kami lahir di Indonesia. Bisakah anak saya...",
+      "status": "PARTIAL",
+      "accuracy": "60%",
+      "responseTime": "56ms",
+      "categoryDetected": false,
+      "scenarioDetected": true,
+      "personaApplied": true,
+      "legalReferencesFound": false
+    },
+    {
+      "query": "Akta kelahiran anak saya hilang. Bagaimana cara mengurusnya kembali?...",
+      "status": "FAIL",
+      "accuracy": "35%",
+      "responseTime": "26ms",
+      "categoryDetected": false,
+      "scenarioDetected": false,
+      "personaApplied": true,
+      "legalReferencesFound": false
+    },
+    {
+      "query": "Nama anak saya salah ketik satu huruf di akta kelahiran. Bagaimana cara memperbaikinya?...",
+      "status": "FAIL",
+      "accuracy": "35%",
+      "responseTime": "27ms",
+      "categoryDetected": false,
+      "scenarioDetected": false,
+      "personaApplied": true,
+      "legalReferencesFound": false
+    },
+    {
+      "query": "Apakah saya bisa mengurus akta kelahiran secara online?...",
+      "status": "PARTIAL",
+      "accuracy": "60%",
+      "responseTime": "21ms",
+      "categoryDetected": false,
+      "scenarioDetected": true,
+      "personaApplied": true,
+      "legalReferencesFound": false
+    }
+  ],
+  "analysis": {
+    "categoryDetectionRate": "8.3%",
+    "scenarioDetectionRate": "50.0%",
+    "personaApplicationRate": "91.7%",
+    "legalReferenceRate": "8.3%"
+  },
+  "recommendations": [
+    "Consider additional training for failed test cases",
+    "Improve pattern matching for better accuracy"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "entity-extractor",
+  "description": "Indonesian named entity recognition",
+  "version": "1.0.0",
+  "size": "4.1MB",
+  "tasks": [
+    "named-entity-recognition"
+  ],
+  "language": "Indonesian",
+  "vocab_size": 15000,
+  "embedding_dim": 128,
+  "max_length": 256,
+  "created_at": "D:\\Journey Code\\Project\\lab\\sellica-prop",
+  "status": "ready"
+}

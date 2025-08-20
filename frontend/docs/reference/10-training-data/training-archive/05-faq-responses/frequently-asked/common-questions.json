@@ -1,0 +1,229 @@
+{
+  "faq_category": "Frequently Asked Questions - Civil Registration Services",
+  "version": "1.0",
+  "last_updated": "2025-01-30",
+  "total_questions": 25,
+  "questions": [
+    {
+      "id": "faq_001",
+      "question": "Berapa lama proses pembuatan KTP?",
+      "answer": "Proses pembuatan KTP membutuhkan waktu 14 hari kerja sejak dokumen lengkap diterima. Anda akan diberikan surat keterangan sementara yang dapat digunakan selama menunggu KTP selesai. Surat keterangan ini berlaku selama 30 hari.",
+      "keywords": ["lama", "proses", "KTP", "waktu", "berapa hari"],
+      "category": "KTP",
+      "priority": "high",
+      "related_questions": [
+        "Apakah bisa dipercepat?",
+        "Bagaimana jika lebih dari 14 hari?",
+        "Surat keterangan sementara berlaku berapa lama?"
+      ],
+      "escalation_needed": false
+    },
+    {
+      "id": "faq_002",
+      "question": "Apakah pembuatan KTP dikenakan biaya?",
+      "answer": "Pembuatan KTP untuk pertama kali, perpanjangan, dan penggantian karena rusak/hilang adalah GRATIS sesuai dengan peraturan yang berlaku. Tidak ada biaya administrasi yang dikenakan untuk layanan KTP.",
+      "keywords": ["biaya", "gratis", "KTP", "tarif", "bayar"],
+      "category": "KTP",
+      "priority": "high",
+      "related_questions": [
+        "Bagaimana dengan legalisir?",
+        "Apakah ada biaya tersembunyi?",
+        "Kenapa ada yang minta bayar?"
+      ],
+      "escalation_needed": false
+    },
+    {
+      "id": "faq_003",
+      "question": "Apa saja syarat membuat KTP baru?",
+      "answer": "Syarat membuat KTP baru:\n1. Surat pengantar dari RT/RW\n2. Fotokopi Kartu Keluarga (KK)\n3. Fotokopi akta kelahiran\n4. Pas foto berwarna 3x4 cm (2 lembar, latar belakang merah)\n5. Formulir permohonan F-1.01\n\nSemua dokumen harus asli dan fotokopi. Pemohon harus datang sendiri untuk perekaman biometrik.",
+      "keywords": ["syarat", "persyaratan", "KTP", "dokumen", "butuh apa"],
+      "category": "KTP",
+      "priority": "high",
+      "related_questions": [
+        "Dimana dapat formulir F-1.01?",
+        "Apakah bisa diwakilkan?",
+        "Bagaimana jika akta kelahiran hilang?"
+      ],
+      "escalation_needed": false
+    },
+    {
+      "id": "faq_004",
+      "question": "Jam buka kantor Disdukcapil Garut?",
+      "answer": "Jam pelayanan Dinas Kependudukan dan Pencatatan Sipil Kabupaten Garut:\n- Senin - Kamis: 08:00 - 15:00 WIB\n- Jumat: 08:00 - 11:30 WIB (istirahat), 13:00 - 15:00 WIB\n- Sabtu - Minggu: TUTUP\n\nPelayanan dihentikan 30 menit sebelum jam tutup untuk penyelesaian administrasi.",
+      "keywords": ["jam buka", "jam kerja", "buka", "tutup", "kapan"],
+      "category": "Informasi Umum",
+      "priority": "medium",
+      "related_questions": [
+        "Apakah buka hari Sabtu?",
+        "Jam istirahat kapan?",
+        "Buka hari libur nasional?"
+      ],
+      "escalation_needed": false
+    },
+    {
+      "id": "faq_005",
+      "question": "Alamat kantor Disdukcapil Garut dimana?",
+      "answer": "Alamat Dinas Kependudukan dan Pencatatan Sipil Kabupaten Garut:\n📍 Jl. Pembangunan No. 1, Garut, Jawa Barat 44111\n📞 Telepon: (0262) 232XXX\n📧 Email: disdukcapil@garutkab.go.id\n🌐 Website: disdukcapil.garutkab.go.id\n\nLokasi mudah diakses dengan transportasi umum dan tersedia area parkir.",
+      "keywords": ["alamat", "lokasi", "dimana", "kantor", "disdukcapil"],
+      "category": "Informasi Umum",
+      "priority": "medium",
+      "related_questions": [
+        "Bagaimana cara ke sana?",
+        "Ada parkir tidak?",
+        "Dekat dengan apa?"
+      ],
+      "escalation_needed": false
+    },
+    {
+      "id": "faq_006",
+      "question": "Bagaimana cara membuat Kartu Keluarga (KK) baru?",
+      "answer": "Untuk membuat KK baru, Anda memerlukan:\n1. Surat pengantar dari RT/RW\n2. Surat nikah/akta perkawinan (jika sudah menikah)\n3. Akta kelahiran semua anggota keluarga\n4. KTP kepala keluarga\n5. Formulir permohonan F-1.03\n\nProses: 14 hari kerja, gratis. Kepala keluarga harus datang sendiri untuk verifikasi data.",
+      "keywords": ["KK", "kartu keluarga", "buat", "syarat", "cara"],
+      "category": "KK",
+      "priority": "high",
+      "related_questions": [
+        "Siapa yang bisa jadi kepala keluarga?",
+        "Bagaimana jika belum punya KTP?",
+        "Apakah bisa pisah KK?"
+      ],
+      "escalation_needed": false
+    },
+    {
+      "id": "faq_007",
+      "question": "Berapa lama proses pembuatan akta kelahiran?",
+      "answer": "Proses pembuatan akta kelahiran:\n- Kelahiran normal (< 60 hari): 7 hari kerja\n- Kelahiran terlambat (> 60 hari): 30 hari kerja\n- Semua layanan GRATIS\n\nUntuk kelahiran terlambat diperlukan surat keterangan dari kelurahan dan saksi-saksi yang mengetahui kelahiran.",
+      "keywords": ["akta kelahiran", "lama", "proses", "bayi", "lahir"],
+      "category": "Akta Kelahiran",
+      "priority": "high",
+      "related_questions": [
+        "Apa bedanya kelahiran normal dan terlambat?",
+        "Siapa saja yang bisa jadi saksi?",
+        "Bagaimana jika lahir di luar negeri?"
+      ],
+      "escalation_needed": false
+    },
+    {
+      "id": "faq_008",
+      "question": "Apakah bisa diwakilkan untuk mengurus dokumen?",
+      "answer": "Perwakilan terbatas untuk beberapa layanan:\n\n✅ BISA DIWAKILKAN:\n- Pengambilan dokumen jadi (dengan surat kuasa)\n- Pengumpulan berkas awal (untuk verifikasi)\n\n❌ TIDAK BISA DIWAKILKAN:\n- Perekaman biometrik (foto & sidik jari)\n- Verifikasi data pribadi\n- Tanda tangan dokumen resmi\n\nPemohon tetap harus datang sendiri untuk tahap perekaman.",
+      "keywords": ["diwakilkan", "kuasa", "orang lain", "wakil", "sendiri"],
+      "category": "Prosedur",
+      "priority": "medium",
+      "related_questions": [
+        "Bagaimana format surat kuasa?",
+        "Siapa yang bisa jadi wakil?",
+        "Dokumen apa yang perlu dibawa wakil?"
+      ],
+      "escalation_needed": false
+    },
+    {
+      "id": "faq_009",
+      "question": "Bagaimana jika dokumen hilang atau rusak?",
+      "answer": "Penanganan dokumen hilang/rusak:\n\n📋 DOKUMEN HILANG:\n- Buat surat keterangan kehilangan di polsek\n- Ajukan permohonan penggantian dengan surat kehilangan\n- Proses sama seperti pembuatan baru\n\n🔧 DOKUMEN RUSAK:\n- Bawa dokumen rusak sebagai bukti\n- Ajukan permohonan penggantian\n- Dokumen lama akan dinonaktifkan\n\nSemua layanan penggantian GRATIS.",
+      "keywords": ["hilang", "rusak", "ganti", "kehilangan", "sobek"],
+      "category": "Penggantian Dokumen",
+      "priority": "high",
+      "related_questions": [
+        "Dimana buat surat kehilangan?",
+        "Berapa lama proses penggantian?",
+        "Apakah data lama masih berlaku?"
+      ],
+      "escalation_needed": false
+    },
+    {
+      "id": "faq_010",
+      "question": "Apa itu legalisir dan bagaimana caranya?",
+      "answer": "Legalisir adalah pengesahan dokumen oleh pejabat berwenang untuk keperluan resmi.\n\n📝 DOKUMEN YANG BISA DILEGALISIR:\n- Fotokopi KTP, KK, Akta kelahiran\n- Surat keterangan dari kelurahan\n- Dokumen administrasi lainnya\n\n💰 BIAYA: Gratis untuk dokumen kependudukan\n⏱️ WAKTU: Selesai saat itu juga (1 hari)\n📋 SYARAT: Bawa dokumen asli + fotokopi",
+      "keywords": ["legalisir", "pengesahan", "cap", "sah", "fotokopi"],
+      "category": "Legalisir",
+      "priority": "medium",
+      "related_questions": [
+        "Untuk apa saja legalisir diperlukan?",
+        "Berapa lembar bisa dilegalisir?",
+        "Apakah ada masa berlaku legalisir?"
+      ],
+      "escalation_needed": false
+    },
+    {
+      "id": "faq_011",
+      "question": "Bagaimana cara pindah alamat/domisili?",
+      "answer": "Prosedur pindah alamat:\n\n🏠 DALAM KABUPATEN GARUT:\n- Lapor ke RT/RW lama dan baru\n- Buat surat keterangan pindah dari kelurahan lama\n- Daftar di kelurahan baru\n- Update data di Disdukcapil\n\n🌍 ANTAR KABUPATEN/PROVINSI:\n- Surat pindah dari Disdukcapil asal\n- Surat pindah datang di Disdukcapil tujuan\n- Update KTP dan KK sesuai alamat baru\n\nLayanan gratis, proses 7-14 hari kerja.",
+      "keywords": ["pindah", "alamat", "domisili", "mutasi", "pindah datang"],
+      "category": "Pindah Datang",
+      "priority": "medium",
+      "related_questions": [
+        "Apakah KTP harus diganti jika pindah?",
+        "Bagaimana jika pindah ke luar negeri?",
+        "Berapa lama surat pindah berlaku?"
+      ],
+      "escalation_needed": false
+    },
+    {
+      "id": "faq_012",
+      "question": "Apa yang harus dilakukan jika data di dokumen salah?",
+      "answer": "Perbaikan data dokumen:\n\n✏️ KESALAHAN KECIL (ejaan nama, tanggal):\n- Ajukan permohonan perbaikan\n- Bawa dokumen pendukung yang benar\n- Proses 14 hari kerja, gratis\n\n🔄 KESALAHAN BESAR (identitas, hubungan keluarga):\n- Perlu penelitian lebih lanjut\n- Dokumen pendukung lengkap\n- Konsultasi dengan petugas\n- Proses bisa 30-60 hari kerja\n\nSemua perbaikan data GRATIS sesuai peraturan.",
+      "keywords": ["salah", "perbaikan", "koreksi", "data", "ubah"],
+      "category": "Perbaikan Data",
+      "priority": "high",
+      "related_questions": [
+        "Dokumen apa yang perlu dibawa?",
+        "Berapa lama proses perbaikan?",
+        "Apakah dokumen lama masih berlaku?"
+      ],
+      "escalation_needed": true
+    },
+    {
+      "id": "faq_013",
+      "question": "Bagaimana cara mengurus akta kematian?",
+      "answer": "Prosedur pembuatan akta kematian:\n\n📋 PERSYARATAN:\n- Surat keterangan kematian dari dokter/rumah sakit\n- KTP almarhum\n- KK almarhum\n- Surat keterangan dari kelurahan\n- KTP pelapor (ahli waris)\n\n⏱️ WAKTU: 7 hari kerja\n💰 BIAYA: Gratis\n👥 PELAPOR: Keluarga terdekat/ahli waris\n\nAkta kematian diperlukan untuk urusan warisan dan administrasi lainnya.",
+      "keywords": ["akta kematian", "meninggal", "kematian", "mati", "almarhum"],
+      "category": "Akta Kematian",
+      "priority": "medium",
+      "related_questions": [
+        "Siapa yang bisa melaporkan kematian?",
+        "Bagaimana jika meninggal di luar daerah?",
+        "Berapa lama batas waktu pelaporan?"
+      ],
+      "escalation_needed": false
+    },
+    {
+      "id": "faq_014",
+      "question": "Apakah ada layanan online untuk administrasi kependudukan?",
+      "answer": "Layanan online yang tersedia:\n\n💻 LAYANAN ONLINE:\n- Cek status dokumen\n- Download formulir\n- Informasi persyaratan\n- Jadwal pelayanan\n- Pengaduan online\n\n🏢 MASIH HARUS DATANG LANGSUNG:\n- Perekaman biometrik\n- Verifikasi dokumen asli\n- Pengambilan dokumen jadi\n- Tanda tangan resmi\n\n🌐 Akses: disdukcapil.garutkab.go.id",
+      "keywords": ["online", "internet", "website", "digital", "aplikasi"],
+      "category": "Layanan Online",
+      "priority": "medium",
+      "related_questions": [
+        "Bagaimana cara daftar online?",
+        "Apakah bisa bayar online?",
+        "Dokumen apa yang bisa diunduh?"
+      ],
+      "escalation_needed": false
+    },
+    {
+      "id": "faq_015",
+      "question": "Bagaimana jika antrian sangat panjang?",
+      "answer": "Tips menghindari antrian panjang:\n\n⏰ WAKTU TERBAIK:\n- Datang jam 08:00 (buka kantor)\n- Hindari hari Senin dan setelah libur\n- Pilih hari Selasa-Kamis\n\n📱 PERSIAPAN:\n- Siapkan dokumen lengkap sebelum datang\n- Cek persyaratan di website\n- Bawa fotokopi yang cukup\n\n🎫 SISTEM ANTRIAN:\n- Ambil nomor antrian\n- Tunggu panggilan di ruang tunggu\n- Pantau layar informasi\n\nJika sangat mendesak, sampaikan ke petugas informasi.",
+      "keywords": ["antrian", "panjang", "ramai", "tunggu", "lama"],
+      "category": "Informasi Umum",
+      "priority": "low",
+      "related_questions": [
+        "Apakah ada sistem booking online?",
+        "Berapa lama rata-rata menunggu?",
+        "Bagaimana jika urgent?"
+      ],
+      "escalation_needed": false
+    }
+  ],
+  "response_templates": {
+    "greeting_with_faq": "Selamat [waktu], Bapak/Ibu! Saya SELLY dari Disdukcapil Garut. Berdasarkan pertanyaan Anda tentang [topik], berikut informasinya:\n\n[jawaban_faq]\n\nApakah ada yang perlu saya jelaskan lebih detail?",
+    "follow_up_questions": "Pertanyaan terkait yang sering ditanyakan:\n[daftar_pertanyaan]\n\nSilakan pilih atau tanyakan hal lain yang ingin Anda ketahui.",
+    "escalation_needed": "Untuk kasus seperti ini, saya sarankan Anda berkonsultasi langsung dengan petugas kami untuk penanganan yang lebih personal. Silakan hubungi [kontak] atau datang langsung ke kantor."
+  },
+  "metadata": {
+    "update_frequency": "monthly",
+    "source_authority": "Dinas Kependudukan dan Pencatatan Sipil Kabupaten Garut",
+    "legal_basis": "UU No. 24 Tahun 2013 tentang Administrasi Kependudukan",
+    "last_regulation_check": "2025-01-30"
+  }
+}

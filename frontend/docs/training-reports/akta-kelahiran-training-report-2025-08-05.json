@@ -1,0 +1,87 @@
+{
+  "timestamp": "2025-08-05T08:41:55.258Z",
+  "trainingSource": "akta_dr.md + categorized training pairs",
+  "totalPairs": 50,
+  "trainingDuration": 2636.6695290000002,
+  "finalAccuracy": 0.941563784791296,
+  "scenarioSupport": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E"
+  ],
+  "personaIntegration": "Sahabat Adminduk personality applied",
+  "testResults": [
+    {
+      "query": "Apa saja syarat buat akta kelahiran bayi baru lahir?",
+      "response": "**A - Bayi Baru Lahir (Kurang dari 60 Hari)**\n\nSituasi ini untuk kelahiran normal yang didaftarkan dalam waktu kurang dari 60 hari setelah kelahiran. Prosesnya paling mudah dan cepat.\n\n📋 **Persyaratan:**\n• Surat keterangan kelahiran dari bidan/dokter/rumah sakit\n• Fotokopi KTP kedua orang tua\n• Fotokopi Kartu Keluarga (KK)\n• Fotokopi akta nikah/buku nikah orang tua\n• Surat keterangan kelahiran dari kelurahan/desa\n\n🔄 **Langkah-langkah:**\n1. Siapkan semua dokumen persyaratan (15 menit)\n2. Datang ke Disdukcapil dengan dokumen lengkap (10 menit)\n3. Mengisi formulir permohonan akta kelahiran (10 menit)\n4. Verifikasi dokumen oleh petugas (15 menit)\n5. Dapat tanda terima dan nomor registrasi (5 menit)\n6. Ambil akta kelahiran sesuai jadwal (5 menit)\n\n⏱️ **Waktu:** 7 hari kerja | 💰 **Biaya:** Gratis | 🕐 **Jam:** 08:00-15:00 WIB (Senin-Jumat)\n\n🌐 **Layanan Digital 2025:** ✅ Online via pastioke.garutkab.go.id, ✅ QR verification, ✅ TTE (Tanda Tangan Elektronik)\n\n📌 **Catatan Penting:**\n• Wajib daftar dalam 60 hari setelah kelahiran\n• Bawa dokumen asli untuk verifikasi\n• Nama anak: Huruf Latin, min 2 kata, max 60 huruf\n• Akta kelahiran berlaku seumur hidup\n\nIni situasi kelahiran normal ya kak? SELLY siap pandu langkah demi langkah! Hubungi WhatsApp +62-851-8304-3205 untuk info tambahan. 🚀",
+      "accuracyScore": 0.75,
+      "scenarioDetected": "A"
+    },
+    {
+      "query": "Berapa lama proses pembuatan akta kelahiran?",
+      "response": "👶 **Layanan Akta Kelahiran - Penilaian Situasi Kak**\n\nHalo kak! 😊 Saya SELLY akan membantu kak dengan layanan Akta Kelahiran. Untuk memberikan panduan yang tepat sesuai situasi kak, saya perlu mengetahui kondisi kelahiran yang akan didaftarkan.\n\n🤔 **Mari kita mulai dengan pertanyaan pertama:**\n\n**Apa situasi kelahiran yang akan kak urus?**\n\n📋 **Pilihan jawaban:**\n• **A** - Bayi baru lahir (kurang dari 60 hari)\n• **B** - Anak sudah lahir lama tapi belum punya akta kelahiran (terlambat daftar)\n• **C** - Akta kelahiran hilang/rusak dan perlu penggantian\n• **D** - Ada kesalahan data di akta kelahiran yang perlu dikoreksi\n• **E** - Kelahiran di luar negeri (WNI di luar negeri)\n\n💡 **Kenapa saya tanya ini?**\nSetiap situasi kelahiran memiliki persyaratan dan prosedur yang berbeda, kak. Kelahiran baru (kurang dari 60 hari) prosesnya lebih mudah dibanding terlambat daftar. Dengan mengetahui kondisi kak, saya bisa memberikan panduan yang lebih akurat dan menghemat waktu kak.\n\n🎯 **Silakan jawab dengan huruf (A, B, C, D, atau E) atau jelaskan situasi kelahiran kak dengan kata-kata.**\n\nSaya siap membantu kak mendapatkan panduan Akta Kelahiran yang tepat! 🤝",
+      "accuracyScore": 0.75,
+      "scenarioDetected": "Interactive Assessment"
+    },
+    {
+      "query": "Berapa biaya buat akta kelahiran?",
+      "response": "👶 **Layanan Akta Kelahiran - Penilaian Situasi Kak**\n\nHalo kak! 😊 Saya SELLY akan membantu kak dengan layanan Akta Kelahiran. Untuk memberikan panduan yang tepat sesuai situasi kak, saya perlu mengetahui kondisi kelahiran yang akan didaftarkan.\n\n🤔 **Mari kita mulai dengan pertanyaan pertama:**\n\n**Apa situasi kelahiran yang akan kak urus?**\n\n📋 **Pilihan jawaban:**\n• **A** - Bayi baru lahir (kurang dari 60 hari)\n• **B** - Anak sudah lahir lama tapi belum punya akta kelahiran (terlambat daftar)\n• **C** - Akta kelahiran hilang/rusak dan perlu penggantian\n• **D** - Ada kesalahan data di akta kelahiran yang perlu dikoreksi\n• **E** - Kelahiran di luar negeri (WNI di luar negeri)\n\n💡 **Kenapa saya tanya ini?**\nSetiap situasi kelahiran memiliki persyaratan dan prosedur yang berbeda, kak. Kelahiran baru (kurang dari 60 hari) prosesnya lebih mudah dibanding terlambat daftar. Dengan mengetahui kondisi kak, saya bisa memberikan panduan yang lebih akurat dan menghemat waktu kak.\n\n🎯 **Silakan jawab dengan huruf (A, B, C, D, atau E) atau jelaskan situasi kelahiran kak dengan kata-kata.**\n\nSaya siap membantu kak mendapatkan panduan Akta Kelahiran yang tepat! 🤝",
+      "accuracyScore": 0.75,
+      "scenarioDetected": "Interactive Assessment"
+    },
+    {
+      "query": "Akta kelahiran hilang gimana cara ngurusnya?",
+      "response": "**C - Akta Kelahiran Hilang/Rusak dan Perlu Penggantian**\n\nSituasi ini untuk penggantian akta kelahiran yang hilang atau rusak. Memerlukan surat keterangan kehilangan atau akta yang rusak.\n\n📋 **Persyaratan:**\n• Surat keterangan kehilangan dari kepolisian (jika hilang) atau akta kelahiran yang rusak\n• Fotokopi KTP pemohon (jika sudah dewasa) atau KTP orang tua/wali\n• Fotokopi Kartu Keluarga (KK)\n• Pas foto 3x4 sebanyak 2 lembar (jika diperlukan)\n• Surat kuasa bermaterai jika diwakilkan\n\n🔄 **Langkah-langkah:**\n1. Urus surat kehilangan di polsek (jika hilang) (30 menit)\n2. Siapkan semua dokumen persyaratan (15 menit)\n3. Datang ke Disdukcapil dengan dokumen lengkap (10 menit)\n4. Mengisi formulir permohonan penggantian (10 menit)\n5. Verifikasi dokumen dan data di sistem (15 menit)\n6. Dapat tanda terima dan nomor registrasi (5 menit)\n7. Ambil akta kelahiran pengganti sesuai jadwal (5 menit)\n\n⏱️ **Waktu:** 7 hari kerja | 💰 **Biaya:** Gratis | 🕐 **Jam:** 08:00-15:00 WIB (Senin-Jumat)\n\n📌 **Catatan Penting:**\n• Akta pengganti memiliki keterangan \"PENGGANTI\"\n• Data harus sesuai dengan register asli\n• Jika ada perubahan data, harus melalui proses koreksi terlebih dahulu\n• Bawa dokumen asli untuk verifikasi\n\nIni situasi akta hilang/rusak ya kak? SELLY siap bantu proses penggantian! Hubungi WhatsApp +62-851-8304-3205 untuk info tambahan. 🔄",
+      "accuracyScore": 0.75,
+      "scenarioDetected": "C"
+    },
+    {
+      "query": "aku mau bikin akta kelahiran",
+      "response": "👶 **Layanan Akta Kelahiran - Penilaian Situasi Kak**\n\nHalo kak! 😊 Saya SELLY akan membantu kak dengan layanan Akta Kelahiran. Untuk memberikan panduan yang tepat sesuai situasi kak, saya perlu mengetahui kondisi kelahiran yang akan didaftarkan.\n\n🤔 **Mari kita mulai dengan pertanyaan pertama:**\n\n**Apa situasi kelahiran yang akan kak urus?**\n\n📋 **Pilihan jawaban:**\n• **A** - Bayi baru lahir (kurang dari 60 hari)\n• **B** - Anak sudah lahir lama tapi belum punya akta kelahiran (terlambat daftar)\n• **C** - Akta kelahiran hilang/rusak dan perlu penggantian\n• **D** - Ada kesalahan data di akta kelahiran yang perlu dikoreksi\n• **E** - Kelahiran di luar negeri (WNI di luar negeri)\n\n💡 **Kenapa saya tanya ini?**\nSetiap situasi kelahiran memiliki persyaratan dan prosedur yang berbeda, kak. Kelahiran baru (kurang dari 60 hari) prosesnya lebih mudah dibanding terlambat daftar. Dengan mengetahui kondisi kak, saya bisa memberikan panduan yang lebih akurat dan menghemat waktu kak.\n\n🎯 **Silakan jawab dengan huruf (A, B, C, D, atau E) atau jelaskan situasi kelahiran kak dengan kata-kata.**\n\nSaya siap membantu kak mendapatkan panduan Akta Kelahiran yang tepat! 🤝",
+      "accuracyScore": 0.75,
+      "scenarioDetected": "Interactive Assessment"
+    },
+    {
+      "query": "akta kelahiran bayi",
+      "response": "👶 **Layanan Akta Kelahiran - Penilaian Situasi Kak**\n\nHalo kak! 😊 Saya SELLY akan membantu kak dengan layanan Akta Kelahiran. Untuk memberikan panduan yang tepat sesuai situasi kak, saya perlu mengetahui kondisi kelahiran yang akan didaftarkan.\n\n🤔 **Mari kita mulai dengan pertanyaan pertama:**\n\n**Apa situasi kelahiran yang akan kak urus?**\n\n📋 **Pilihan jawaban:**\n• **A** - Bayi baru lahir (kurang dari 60 hari)\n• **B** - Anak sudah lahir lama tapi belum punya akta kelahiran (terlambat daftar)\n• **C** - Akta kelahiran hilang/rusak dan perlu penggantian\n• **D** - Ada kesalahan data di akta kelahiran yang perlu dikoreksi\n• **E** - Kelahiran di luar negeri (WNI di luar negeri)\n\n💡 **Kenapa saya tanya ini?**\nSetiap situasi kelahiran memiliki persyaratan dan prosedur yang berbeda, kak. Kelahiran baru (kurang dari 60 hari) prosesnya lebih mudah dibanding terlambat daftar. Dengan mengetahui kondisi kak, saya bisa memberikan panduan yang lebih akurat dan menghemat waktu kak.\n\n🎯 **Silakan jawab dengan huruf (A, B, C, D, atau E) atau jelaskan situasi kelahiran kak dengan kata-kata.**\n\nSaya siap membantu kak mendapatkan panduan Akta Kelahiran yang tepat! 🤝",
+      "accuracyScore": 0.75,
+      "scenarioDetected": "A"
+    },
+    {
+      "query": "akta kelahiran anak terlambat",
+      "response": "👶 **Layanan Akta Kelahiran - Penilaian Situasi Kak**\n\nHalo kak! 😊 Saya SELLY akan membantu kak dengan layanan Akta Kelahiran. Untuk memberikan panduan yang tepat sesuai situasi kak, saya perlu mengetahui kondisi kelahiran yang akan didaftarkan.\n\n🤔 **Mari kita mulai dengan pertanyaan pertama:**\n\n**Apa situasi kelahiran yang akan kak urus?**\n\n📋 **Pilihan jawaban:**\n• **A** - Bayi baru lahir (kurang dari 60 hari)\n• **B** - Anak sudah lahir lama tapi belum punya akta kelahiran (terlambat daftar)\n• **C** - Akta kelahiran hilang/rusak dan perlu penggantian\n• **D** - Ada kesalahan data di akta kelahiran yang perlu dikoreksi\n• **E** - Kelahiran di luar negeri (WNI di luar negeri)\n\n💡 **Kenapa saya tanya ini?**\nSetiap situasi kelahiran memiliki persyaratan dan prosedur yang berbeda, kak. Kelahiran baru (kurang dari 60 hari) prosesnya lebih mudah dibanding terlambat daftar. Dengan mengetahui kondisi kak, saya bisa memberikan panduan yang lebih akurat dan menghemat waktu kak.\n\n🎯 **Silakan jawab dengan huruf (A, B, C, D, atau E) atau jelaskan situasi kelahiran kak dengan kata-kata.**\n\nSaya siap membantu kak mendapatkan panduan Akta Kelahiran yang tepat! 🤝",
+      "accuracyScore": 0.75,
+      "scenarioDetected": "B"
+    },
+    {
+      "query": "data di akta kelahiran salah",
+      "response": "📋 **Pembuatan Akta Kelahiran**\n\n**Persyaratan yang diperlukan:**\n1. Surat keterangan lahir dari RS/klinik/bidan atau SPTJM (form F-2.03 dengan 2 saksi)\n2. Fotokopi KTP-el orang tua & saksi (2 orang)\n3. KK\n4. Buku nikah/akta perkawinan atau SPTJM pasangan (F-2.04 dengan 2 saksi)\n\n⏱️ **Waktu penyelesaian:** Gratis, bisa online via aplikasi Alpukat Betawi (Jakarta) atau IKD\n💰 **Biaya:** Gratis\n🕐 **Jam pelayanan:** 08:00-15:00 WIB (Senin-Jumat)\n\n\n🌐 **Layanan Digital 2025:**\n✅ **IKD (Identitas Kependudukan Digital)** - Wajib diaktivasi untuk akses online\n✅ **Aplikasi Online** - Bisa diurus via situs Dukcapil daerah\n✅ **Verifikasi QR Code** - Semua dokumen dilengkapi QR code\n✅ **Tanda Tangan Elektronik (TTE)** - Proses digital terintegrasi\n\n\n📄 **Format Dokumen 2025:**\n📋 **Kertas:** HVS A4 80 gram\n🖨️ **Cetak:** Cetak mandiri dengan verifikasi QR code\n💻 **Digital:** Aplikasi Alpukat Betawi (Jakarta) atau IKD\n🔍 **QR Code:** Wajib untuk verifikasi\n\n\n📜 **Dasar Hukum:**\n1. UU No. 24/2013 tentang Administrasi Kependudukan\n2. Permendagri No. 73/2022 tentang Pencatatan Nama\n3. Permendagri No. 4/2024 tentang IKD\n\n\n🔄 **Kasus Khusus:**\n**ANAK LUAR NIKAH:**\n1. Tambah pengakuan anak\n\n\n📄 **Dokumen yang Dihasilkan:**\n1. Akta\n2. KK baru\n3. KIA\n\n📌 **Catatan penting:**\n• Pendaftaran maksimal 60 hari setelah kelahiran\n• Kedua orang tua atau salah satu harus hadir\n• Nama harus huruf Latin, minimal 2 kata, maksimal 60 huruf (termasuk spasi)\n• Tidak disingkat kecuali gelar, tanpa angka/tanda baca\n• Tidak bermakna negatif\n• Cetak mandiri menggunakan kertas HVS A4 80 gram dan verifikasi QR code\n• Proses gratis, bisa online via aplikasi IKD atau situs Dukcapil daerah\n\n📅 **Informasi Versi:** v2.0 (Update: 2025-02-02)\n\n📞 **Untuk informasi lebih lanjut:**\nWhatsApp: +62-851-8304-3205\n\nApakah ada yang ingin kak tanyakan lebih lanjut mengenai pembuatan akta kelahiran? 🤔",
+      "accuracyScore": 0.75,
+      "scenarioDetected": "D"
+    },
+    {
+      "query": "kelahiran di luar negeri",
+      "response": "**E - Kelahiran di Luar Negeri (WNI di Luar Negeri)**\n\nSituasi ini untuk WNI yang melahirkan di luar negeri dan perlu akta kelahiran Indonesia. Prosesnya melibatkan konsulat dan Kemendagri.\n\n📋 **Persyaratan:**\n• Surat keterangan kelahiran dari rumah sakit/dokter di luar negeri (legalisir)\n• Birth certificate dari negara tempat kelahiran (legalisir)\n• Fotokopi paspor kedua orang tua\n• Fotokopi KTP kedua orang tua (jika masih berlaku)\n• Fotokopi akta nikah/buku nikah orang tua (legalisir)\n• Surat keterangan dari KJRI/Konsulat Indonesia\n• Dokumen imigrasi (visa, permit, dll)\n• Terjemahan resmi dokumen asing ke bahasa Indonesia\n\n🔄 **Langkah-langkah:**\n1. Urus dokumen di KJRI/Konsulat Indonesia di negara tempat kelahiran (7-14 hari)\n2. Legalisir semua dokumen asing (3-7 hari)\n3. Terjemahkan dokumen ke bahasa Indonesia oleh penerjemah tersumpah (2-3 hari)\n4. Kembali ke Indonesia dan datang ke Disdukcapil Garut (jika domisili Garut)\n5. Mengisi formulir permohonan akta kelahiran WNI (20 menit)\n6. Verifikasi dokumen dan koordinasi dengan Kemendagri (30-45 hari kerja)\n7. Ambil akta kelahiran sesuai jadwal (5 menit)\n\n⏱️ **Waktu:** 45-60 hari kerja | 💰 **Biaya:** Gratis (biaya legalisir dan terjemahan terpisah) | 🕐 **Jam:** 08:00-15:00 WIB (Senin-Jumat)\n\n📌 **Catatan Penting:**\n• Proses paling kompleks dan memakan waktu lama\n• Semua dokumen asing harus dilegalisir dan diterjemahkan\n• Koordinasi dengan KJRI dan Kemendagri diperlukan\n• Anak tetap berkewarganegaraan Indonesia (jus sanguinis)\n\nIni situasi kelahiran di luar negeri ya kak? SELLY siap bantu proses yang kompleks ini! Hubungi WhatsApp +62-851-8304-3205 untuk panduan detail dan koordinasi. 🌍",
+      "accuracyScore": 0.75,
+      "scenarioDetected": "E"
+    },
+    {
+      "query": "akta kelahiran kembar",
+      "response": "📋 **Pembuatan Akta Kelahiran**\n\n**Persyaratan yang diperlukan:**\n1. Surat keterangan lahir dari RS/klinik/bidan atau SPTJM (form F-2.03 dengan 2 saksi)\n2. Fotokopi KTP-el orang tua & saksi (2 orang)\n3. KK\n4. Buku nikah/akta perkawinan atau SPTJM pasangan (F-2.04 dengan 2 saksi)\n\n⏱️ **Waktu penyelesaian:** Gratis, bisa online via aplikasi Alpukat Betawi (Jakarta) atau IKD\n💰 **Biaya:** Gratis\n🕐 **Jam pelayanan:** 08:00-15:00 WIB (Senin-Jumat)\n\n\n🌐 **Layanan Digital 2025:**\n✅ **IKD (Identitas Kependudukan Digital)** - Wajib diaktivasi untuk akses online\n✅ **Aplikasi Online** - Bisa diurus via situs Dukcapil daerah\n✅ **Verifikasi QR Code** - Semua dokumen dilengkapi QR code\n✅ **Tanda Tangan Elektronik (TTE)** - Proses digital terintegrasi\n\n\n📄 **Format Dokumen 2025:**\n📋 **Kertas:** HVS A4 80 gram\n🖨️ **Cetak:** Cetak mandiri dengan verifikasi QR code\n💻 **Digital:** Aplikasi Alpukat Betawi (Jakarta) atau IKD\n🔍 **QR Code:** Wajib untuk verifikasi\n\n\n📜 **Dasar Hukum:**\n1. UU No. 24/2013 tentang Administrasi Kependudukan\n2. Permendagri No. 73/2022 tentang Pencatatan Nama\n3. Permendagri No. 4/2024 tentang IKD\n\n\n🔄 **Kasus Khusus:**\n**ANAK LUAR NIKAH:**\n1. Tambah pengakuan anak\n\n\n📄 **Dokumen yang Dihasilkan:**\n1. Akta\n2. KK baru\n3. KIA\n\n📌 **Catatan penting:**\n• Pendaftaran maksimal 60 hari setelah kelahiran\n• Kedua orang tua atau salah satu harus hadir\n• Nama harus huruf Latin, minimal 2 kata, maksimal 60 huruf (termasuk spasi)\n• Tidak disingkat kecuali gelar, tanpa angka/tanda baca\n• Tidak bermakna negatif\n• Cetak mandiri menggunakan kertas HVS A4 80 gram dan verifikasi QR code\n• Proses gratis, bisa online via aplikasi IKD atau situs Dukcapil daerah\n\n📅 **Informasi Versi:** v2.0 (Update: 2025-02-02)\n\n📞 **Untuk informasi lebih lanjut:**\nWhatsApp: +62-851-8304-3205\n\nApakah ada yang ingin kak tanyakan lebih lanjut mengenai pembuatan akta kelahiran? 🤔",
+      "accuracyScore": 0.75
+    }
+  ],
+  "nextSteps": [
+    "Monitor user interactions for 48 hours",
+    "Collect feedback for continuous improvement",
+    "Prepare Akta Kematian training next",
+    "Analyze performance metrics and optimize"
+  ],
+  "performanceMetrics": {
+    "averageTestAccuracy": 0.75,
+    "scenarioDetectionRate": 0.9,
+    "trainingEfficiency": 21.426206988064965
+  }
+}

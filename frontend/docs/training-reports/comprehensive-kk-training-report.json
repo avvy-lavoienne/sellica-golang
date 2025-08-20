@@ -1,0 +1,197 @@
+{
+  "trainingType": "Comprehensive KK Continuous Training",
+  "timestamp": "2025-08-07T15:34:43.058Z",
+  "trainingResult": {
+    "success": false,
+    "trainingDuration": 519,
+    "finalAccuracy": 0.9406015490577964,
+    "totalTrainingPairs": 119,
+    "scenarioSupport": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "special_case"
+    ],
+    "personaIntegration": "Sahabat Adminduk - Friendly Indonesian administrative assistant",
+    "testResults": [
+      {
+        "query": "Berapa biaya bikin KK?",
+        "response": "Halo kak! 😊 Tentang berapa biaya bikin kk?, SELLY siap membantu dengan informasi KK yang lengkap dan akurat. Semua layanan KK GRATIS sesuai UU No. 24 Tahun 2013! 🤝",
+        "accuracyScore": 1,
+        "scenarioDetected": "A"
+      },
+      {
+        "query": "KK saya hilang, bagaimana cara menggantinya?",
+        "response": "Halo kak! 😊 Tentang kk saya hilang, bagaimana cara menggantinya?, SELLY siap membantu dengan informasi KK yang lengkap dan akurat. Semua layanan KK GRATIS sesuai UU No. 24 Tahun 2013! 🤝",
+        "accuracyScore": 1,
+        "scenarioDetected": "C"
+      },
+      {
+        "query": "Saya mau pisah KK setelah menikah",
+        "response": "Halo kak! 😊 Tentang saya mau pisah kk setelah menikah, SELLY siap membantu dengan informasi KK yang lengkap dan akurat. Semua layanan KK GRATIS sesuai UU No. 24 Tahun 2013! 🤝",
+        "accuracyScore": 1,
+        "scenarioDetected": "A"
+      },
+      {
+        "query": "Data di KK salah, bagaimana koreksinya?",
+        "response": "Halo kak! 😊 Tentang data di kk salah, bagaimana koreksinya?, SELLY siap membantu dengan informasi KK yang lengkap dan akurat. Semua layanan KK GRATIS sesuai UU No. 24 Tahun 2013! 🤝",
+        "accuracyScore": 1,
+        "scenarioDetected": "D"
+      },
+      {
+        "query": "Kami menikah siri, bisa buat KK tidak?",
+        "response": "Halo kak! 😊 Tentang kami menikah siri, bisa buat kk tidak?, SELLY siap membantu dengan informasi KK yang lengkap dan akurat. Semua layanan KK GRATIS sesuai UU No. 24 Tahun 2013! 🤝",
+        "accuracyScore": 1,
+        "scenarioDetected": "special_case"
+      }
+    ],
+    "nextSteps": [
+      "Monitor KK query accuracy in production",
+      "Collect user feedback for continuous improvement",
+      "Update training data based on new regulations",
+      "Expand KK scenario coverage based on usage patterns"
+    ]
+  },
+  "testResults": [
+    {
+      "name": "KK Biaya Query",
+      "query": "Berapa biaya bikin KK?",
+      "category": "biaya",
+      "response": "Halo kak! 😊 KK itu 100% GRATIS sesuai UU No. 24 Tahun 2013! Tidak ada biaya apapun untuk semua jenis layanan KK. SELLY siap bantu dengan informasi lengkapnya! 🤝...",
+      "expectedKeywords": [
+        "gratis",
+        "GRATIS",
+        "UU",
+        "24",
+        "2013"
+      ],
+      "matchedKeywords": [
+        "gratis",
+        "GRATIS",
+        "UU",
+        "24",
+        "2013"
+      ],
+      "matchRate": "5/5",
+      "passed": true,
+      "responseLength": 162
+    },
+    {
+      "name": "KK Hilang Query",
+      "query": "KK saya hilang, bagaimana cara menggantinya?",
+      "category": "masalah",
+      "response": "Halo kak! 😊 Jangan khawatir, KK yang hilang bisa diganti dengan mudah. Kakak perlu buat surat kehilangan di polisi dulu, lalu ke Dukcapil dengan persyaratan lengkap. Semua GRATIS! SELLY siap bantu pr...",
+      "expectedKeywords": [
+        "hilang",
+        "polisi",
+        "surat kehilangan",
+        "gratis"
+      ],
+      "matchedKeywords": [
+        "hilang",
+        "polisi",
+        "surat kehilangan",
+        "gratis"
+      ],
+      "matchRate": "4/4",
+      "passed": true,
+      "responseLength": 211
+    },
+    {
+      "name": "KK Pisah Query",
+      "query": "Saya mau pisah KK setelah menikah",
+      "category": "proses",
+      "response": "Halo kak! 😊 Mau pisah KK setelah menikah atau mandiri? Bisa banget! Prosesnya mudah dan GRATIS. Siapkan dokumen persyaratan dan datang ke Dukcapil. SELLY siap bantu dengan panduan lengkap! 🤝...",
+      "expectedKeywords": [
+        "pisah",
+        "menikah",
+        "mandiri",
+        "KK baru"
+      ],
+      "matchedKeywords": [
+        "pisah",
+        "menikah",
+        "mandiri"
+      ],
+      "matchRate": "3/4",
+      "passed": true,
+      "responseLength": 192
+    },
+    {
+      "name": "KK Casual Query",
+      "query": "mau bikin KK dong",
+      "category": "casual",
+      "response": "Halo kak! 😊 Mau bikin KK ya? SELLY siap bantu! Setiap situasi punya persyaratan berbeda lho. Ceritain situasi kakak dong, biar SELLY bisa kasih panduan yang tepat! 🤝...",
+      "expectedKeywords": [
+        "bikin KK",
+        "situasi",
+        "panduan",
+        "SELLY"
+      ],
+      "matchedKeywords": [
+        "bikin KK",
+        "situasi",
+        "panduan",
+        "SELLY"
+      ],
+      "matchRate": "4/4",
+      "passed": true,
+      "responseLength": 167
+    },
+    {
+      "name": "KK Persyaratan Query",
+      "query": "Syarat buat KK apa aja?",
+      "category": "persyaratan",
+      "response": "Halo kak! 😊 Mau bikin KK ya? SELLY siap bantu! Setiap situasi punya persyaratan berbeda lho. Ceritain situasi kakak dong, biar SELLY bisa kasih panduan yang tepat! 🤝...",
+      "expectedKeywords": [
+        "syarat",
+        "persyaratan",
+        "dokumen",
+        "formulir"
+      ],
+      "matchedKeywords": [
+        "syarat",
+        "persyaratan"
+      ],
+      "matchRate": "2/4",
+      "passed": false,
+      "responseLength": 167
+    }
+  ],
+  "dataValidation": {
+    "success": true,
+    "totalFiles": 10,
+    "totalPairs": 119,
+    "foundFiles": [
+      "kk-advanced-pairs.json",
+      "kk-biaya-pairs.json",
+      "kk-casual-pairs.json",
+      "kk-converted-pairs.json",
+      "kk-masalah-pairs.json",
+      "kk-persyaratan-pairs.json",
+      "kk-proses-pairs.json",
+      "kk-skenario-pairs.json",
+      "qna-pair.json",
+      "qna-pair2.json"
+    ],
+    "missingFiles": [],
+    "researchAvailable": true,
+    "errors": []
+  },
+  "summary": {
+    "success": false,
+    "accuracy": "94.1%",
+    "duration": "0.0 minutes",
+    "totalPairs": 119,
+    "testsPassed": 4,
+    "totalTests": 5
+  },
+  "recommendations": [
+    "Monitor KK query accuracy in production",
+    "Collect user feedback for continuous improvement",
+    "Update training data based on new regulations",
+    "Expand KK scenario coverage based on usage patterns"
+  ]
+}

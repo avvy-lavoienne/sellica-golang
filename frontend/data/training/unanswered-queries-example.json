@@ -1,0 +1,115 @@
+[
+  {
+    "id": "query_1706634480000_abc123def",
+    "timestamp": "2025-01-30T14:08:00.000Z",
+    "userId": "firmanfird23@gmail.com",
+    "query": "saya ingin mengajukan akta kelahiran",
+    "detectedServiceType": "akta kelahiran",
+    "conversationContext": {
+      "previousMessages": [
+        "halo selly",
+        "Halo juga, Bapak/Ibu! Selamat malam. Saya SELLY, siap membantu Anda dengan layanan administrasi kependudukan Kabupaten Garut. Ada yang bisa saya bantu?"
+      ],
+      "timeOfDay": "night",
+      "isFirstInteraction": false
+    },
+    "responseGiven": "Saya SELLY dari Dinas Kependudukan dan Pencatatan Sipil Kabupaten Garut. Halo! Saya telah selesai memproses teks Anda menggunakan IndoBERT. Jika Anda membutuhkan bantuan lebih lanjut, silakan beritahu saya. Proses analisis ini menggunakan model indobert-ner, jadi jika Anda memiliki pertanyaan tentang hasilnya atau ingin tahu lebih lanjut tentang model ini, saya siap membantu.",
+    "responseType": "generic_ai",
+    "priority": "high",
+    "status": "pending",
+    "metadata": {
+      "confidence": 0.9,
+      "complexity": "simple",
+      "category": "akta_services",
+      "tags": ["application"]
+    }
+  },
+  {
+    "id": "query_1706634900000_def456ghi",
+    "timestamp": "2025-01-30T14:15:00.000Z",
+    "userId": "firmanfird23@gmail.com",
+    "query": "bagaimana cara membuat KTP baru?",
+    "detectedServiceType": "KTP",
+    "conversationContext": {
+      "previousMessages": [],
+      "timeOfDay": "night",
+      "isFirstInteraction": true
+    },
+    "responseGiven": "Mohon maaf, Bapak/Ibu. Saya SELLY dari Dinas Kependudukan dan Pencatatan Sipil Kabupaten Garut. Saat ini saya masih dalam tahap pembelajaran untuk layanan KTP yang Anda tanyakan...",
+    "responseType": "fallback",
+    "priority": "high",
+    "status": "pending",
+    "metadata": {
+      "confidence": 0.9,
+      "complexity": "simple",
+      "category": "ktp_services",
+      "tags": ["procedure"]
+    }
+  },
+  {
+    "id": "query_1706635200000_ghi789jkl",
+    "timestamp": "2025-01-30T14:20:00.000Z",
+    "userId": "user123@example.com",
+    "query": "syarat buat kartu keluarga apa saja?",
+    "detectedServiceType": "Kartu Keluarga",
+    "conversationContext": {
+      "previousMessages": [],
+      "timeOfDay": "night",
+      "isFirstInteraction": true
+    },
+    "responseGiven": "Mohon maaf, Bapak/Ibu. Saya SELLY dari Dinas Kependudukan dan Pencatatan Sipil Kabupaten Garut. Saat ini saya masih dalam tahap pembelajaran untuk layanan Kartu Keluarga yang Anda tanyakan...",
+    "responseType": "fallback",
+    "priority": "high",
+    "status": "pending",
+    "metadata": {
+      "confidence": 0.9,
+      "complexity": "simple",
+      "category": "kk_services",
+      "tags": ["requirements"]
+    }
+  },
+  {
+    "id": "query_1706635500000_jkl012mno",
+    "timestamp": "2025-01-30T14:25:00.000Z",
+    "userId": "user456@example.com",
+    "query": "berapa lama proses legalisir dokumen?",
+    "detectedServiceType": "legalisir dokumen",
+    "conversationContext": {
+      "previousMessages": [],
+      "timeOfDay": "night",
+      "isFirstInteraction": true
+    },
+    "responseGiven": "Mohon maaf, Bapak/Ibu. Saya SELLY dari Dinas Kependudukan dan Pencatatan Sipil Kabupaten Garut. Saat ini saya masih dalam tahap pembelajaran untuk layanan legalisir dokumen yang Anda tanyakan...",
+    "responseType": "fallback",
+    "priority": "medium",
+    "status": "pending",
+    "metadata": {
+      "confidence": 0.9,
+      "complexity": "simple",
+      "category": "legalization_services",
+      "tags": ["duration"]
+    }
+  },
+  {
+    "id": "query_1706635800000_mno345pqr",
+    "timestamp": "2025-01-30T14:30:00.000Z",
+    "userId": "user789@example.com",
+    "query": "biaya pembuatan akta kematian berapa?",
+    "detectedServiceType": "akta kematian",
+    "conversationContext": {
+      "previousMessages": [],
+      "timeOfDay": "night",
+      "isFirstInteraction": true
+    },
+    "responseGiven": "Mohon maaf, Bapak/Ibu. Saya SELLY dari Dinas Kependudukan dan Pencatatan Sipil Kabupaten Garut. Saat ini saya masih dalam tahap pembelajaran untuk layanan akta kematian yang Anda tanyakan...",
+    "responseType": "fallback",
+    "priority": "medium",
+    "status": "pending",
+    "metadata": {
+      "confidence": 0.9,
+      "complexity": "simple",
+      "category": "akta_services",
+      "tags": ["cost"]
+    }
+  }
+]

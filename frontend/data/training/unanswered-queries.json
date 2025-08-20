@@ -1,0 +1,92 @@
+[
+  {
+    "id": "query_1754220386654_u1hb0ijpa",
+    "timestamp": "2025-08-03T11:26:26.654Z",
+    "userId": "firmanfird23@gmail.com",
+    "query": "saya ingin mengajukan akte kelahiran",
+    "detectedServiceType": "administrasi_kependudukan",
+    "conversationContext": {
+      "previousMessages": [],
+      "timeOfDay": "evening",
+      "isFirstInteraction": true
+    },
+    "responseGiven": "Maaf kak, saya belum memahami pertanyaan \"saya ingin mengajukan akte kelahiran\". 😅\n\n🤔 **Coba tanya dengan cara lain, kak:**\n• \"syarat buat KTP\"\n• \"cara bikin KK\"\n• \"dokumen akta kelahiran\"\n• \"layanan apa saja yang ada\"\n\n📞 **Atau hubungi langsung:**\nWhatsApp: +62-851-8304-3205\n\n💡 Saya akan terus belajar untuk melayani kak lebih baik! 🤝",
+    "responseType": "error",
+    "priority": "low",
+    "status": "pending",
+    "metadata": {
+      "confidence": 0.6,
+      "complexity": "simple",
+      "category": "general_inquiry",
+      "tags": [
+        "application"
+      ]
+    }
+  },
+  {
+    "id": "query_1754294215210_1cmav0epe",
+    "timestamp": "2025-08-04T07:56:55.210Z",
+    "userId": "firmanfird23@gmail.com",
+    "query": "Bayi baru lahir (kurang dari 60 hari)",
+    "detectedServiceType": "administrasi_kependudukan",
+    "conversationContext": {
+      "previousMessages": [],
+      "timeOfDay": "afternoon",
+      "isFirstInteraction": true
+    },
+    "responseGiven": "Halo kak! 😊 Maaf kak, saya belum memahami pertanyaan \"Bayi baru lahir (kurang dari 60 hari)\". 😅\n\n🤔 **Coba tanya dengan cara lain, kak:**\n• \"syarat buat KTP\"\n• \"cara bikin KK\"\n• \"dokumen akta kelahiran\"\n• \"layanan apa saja yang ada\"\n\n📞 **Atau hubungi langsung:**\nWhatsApp: +62-851-8304-3205\n\n💡 Saya akan terus belajar untuk melayani kak lebih baik! 🤝",
+    "responseType": "error",
+    "priority": "low",
+    "status": "pending",
+    "metadata": {
+      "confidence": 0.9,
+      "complexity": "simple",
+      "category": "general_inquiry",
+      "tags": []
+    }
+  },
+  {
+    "id": "query_1754382816927_uc3sxs8cw",
+    "timestamp": "2025-08-05T08:33:36.927Z",
+    "userId": "test-training-validation",
+    "query": "akta kelahiran terlambat lebih dari 60 hari",
+    "detectedServiceType": "akta_kelahiran",
+    "conversationContext": {
+      "previousMessages": [],
+      "timeOfDay": "morning",
+      "isFirstInteraction": true
+    },
+    "responseGiven": "Halo kak! 😊 Maaf kak, saya belum memahami pertanyaan \"akta kelahiran terlambat lebih dari 60 hari\". 😅\n\n🤔 **Coba tanya dengan cara lain, kak:**\n• \"syarat buat KTP\"\n• \"cara bikin KK\"\n• \"dokumen akta kelahiran\"\n• \"layanan apa saja yang ada\"\n\n📞 **Atau hubungi langsung:**\nWhatsApp: +62-851-8304-3205\n\n💡 Saya akan terus belajar untuk melayani kak lebih baik! 🤝",
+    "responseType": "error",
+    "priority": "low",
+    "status": "pending",
+    "metadata": {
+      "confidence": 0.9,
+      "complexity": "simple",
+      "category": "akta_services",
+      "tags": []
+    }
+  },
+  {
+    "id": "query_1754384907647_s9rf9px9j",
+    "timestamp": "2025-08-05T09:08:27.647Z",
+    "userId": "anonymous",
+    "query": "Apakah SPTJM bisa dianggap sebagai pengganti buku nikah?",
+    "detectedServiceType": "administrasi_kependudukan",
+    "conversationContext": {
+      "previousMessages": [],
+      "timeOfDay": "morning",
+      "isFirstInteraction": true
+    },
+    "responseGiven": "Halo kak! 😊 Maaf kak, saya belum memahami pertanyaan \"Apakah SPTJM bisa dianggap sebagai pengganti buku nikah?\". 😅\n\n🤔 **Coba tanya dengan cara lain, kak:**\n• \"syarat buat KTP\"\n• \"cara bikin KK\"\n• \"dokumen akta kelahiran\"\n• \"layanan apa saja yang ada\"\n\n📞 **Atau hubungi langsung:**\nWhatsApp: +62-851-8304-3205\n\n💡 Saya akan terus belajar untuk melayani kak lebih baik! 🤝",
+    "responseType": "error",
+    "priority": "low",
+    "status": "pending",
+    "metadata": {
+      "confidence": 0.9,
+      "complexity": "simple",
+      "category": "general_inquiry",
+      "tags": []
+    }
+  }
+]

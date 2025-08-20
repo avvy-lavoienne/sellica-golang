@@ -1,0 +1,46 @@
+{
+  "name": "sellica-tensorflow-dependencies",
+  "description": "TensorFlow dependencies untuk SELLY integration",
+  "dependencies": {
+    "@tensorflow/tfjs": "^4.15.0",
+    "@tensorflow/tfjs-node": "^4.15.0",
+    "@tensorflow/tfjs-backend-webgl": "^4.15.0",
+    "@tensorflow/tfjs-backend-cpu": "^4.15.0"
+  },
+  "devDependencies": {
+    "@types/tensorflow__tfjs": "^4.2.0"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "next": ">=14.0.0"
+  },
+  "installationInstructions": {
+    "step1": "npm install @tensorflow/tfjs @tensorflow/tfjs-node @tensorflow/tfjs-backend-webgl @tensorflow/tfjs-backend-cpu",
+    "step2": "npm install --save-dev @types/tensorflow__tfjs",
+    "step3": "Add NEXT_PUBLIC_ENABLE_TENSORFLOW=true to .env.local",
+    "step4": "Add NEXT_PUBLIC_TENSORFLOW_SERVING_URL=http://localhost:8501 to .env.local"
+  },
+  "environmentVariables": {
+    "NEXT_PUBLIC_ENABLE_TENSORFLOW": "true/false - Enable TensorFlow integration",
+    "NEXT_PUBLIC_TENSORFLOW_SERVING_URL": "URL for TensorFlow Serving API",
+    "TENSORFLOW_MODEL_PATH": "Path to TensorFlow.js models",
+    "INDOBERT_MODEL_NAME": "Name of IndoBERT model in TensorFlow Serving"
+  },
+  "modelRequirements": {
+    "tensorflowJS": {
+      "path": "/public/models/indonesian-nlp-v1.json",
+      "size": "~50MB",
+      "description": "Indonesian NLP model for client-side inference"
+    },
+    "indoBERT": {
+      "servingEndpoint": "/v1/models/indobert:predict",
+      "description": "IndoBERT model for semantic understanding via TensorFlow Serving"
+    }
+  },
+  "performanceConsiderations": {
+    "clientSide": "TensorFlow.js models will increase initial bundle size",
+    "serverSide": "TensorFlow Serving requires separate deployment",
+    "fallback": "System gracefully falls back to legacy NLP if TensorFlow unavailable",
+    "caching": "Models and results are cached for optimal performance"
+  }
+}

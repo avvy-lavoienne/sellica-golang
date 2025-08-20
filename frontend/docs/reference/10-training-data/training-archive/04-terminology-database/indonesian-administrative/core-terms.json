@@ -1,0 +1,237 @@
+{
+  "terminology_database": "Indonesian Administrative Terms",
+  "version": "1.0",
+  "last_updated": "2025-01-30",
+  "scope": "Civil Registration and Population Administration",
+  "terms": {
+    "ktp": {
+      "full_form": "Kartu Tanda Penduduk",
+      "english": "Identity Card",
+      "description": "Dokumen identitas resmi warga negara Indonesia yang wajib dimiliki oleh setiap penduduk berusia 17 tahun ke atas",
+      "synonyms": ["kartu identitas", "e-KTP", "kartu penduduk", "KTP elektronik"],
+      "related_terms": ["NIK", "identitas", "kependudukan", "biometrik"],
+      "common_phrases": [
+        "buat KTP",
+        "perpanjang KTP",
+        "ganti KTP",
+        "KTP hilang",
+        "KTP rusak"
+      ],
+      "service_codes": ["KTP-001", "KTP-002", "KTP-003"]
+    },
+    "kk": {
+      "full_form": "Kartu Keluarga",
+      "english": "Family Card",
+      "description": "Dokumen yang memuat data tentang susunan keluarga, hubungan keluarga, dan keterangan anggota keluarga",
+      "synonyms": ["kartu keluarga"],
+      "related_terms": ["kepala keluarga", "anggota keluarga", "susunan keluarga", "hubungan keluarga"],
+      "common_phrases": [
+        "buat KK",
+        "tambah anggota keluarga",
+        "pisah KK",
+        "gabung KK",
+        "pindah KK"
+      ],
+      "service_codes": ["KK-001", "KK-002", "KK-003"]
+    },
+    "nik": {
+      "full_form": "Nomor Induk Kependudukan",
+      "english": "Population Identification Number",
+      "description": "Nomor identitas tunggal setiap penduduk Indonesia yang terdiri dari 16 digit",
+      "synonyms": ["nomor identitas", "nomor KTP", "nomor induk"],
+      "related_terms": ["identitas", "kependudukan", "database penduduk", "SIAK"],
+      "format": "16 digit angka",
+      "example": "3205XXXXXXXXXX",
+      "common_phrases": [
+        "cek NIK",
+        "NIK tidak valid",
+        "NIK ganda",
+        "verifikasi NIK"
+      ]
+    },
+    "akta_kelahiran": {
+      "full_form": "Akta Kelahiran",
+      "english": "Birth Certificate",
+      "description": "Dokumen resmi yang mencatat peristiwa kelahiran seseorang",
+      "synonyms": ["surat kelahiran", "akta lahir"],
+      "related_terms": ["kelahiran", "bayi", "orang tua", "rumah sakit", "bidan"],
+      "common_phrases": [
+        "buat akta kelahiran",
+        "akta kelahiran terlambat",
+        "legalisir akta",
+        "perbaikan akta"
+      ],
+      "service_codes": ["AK-001", "AK-002", "AK-003"]
+    },
+    "akta_kematian": {
+      "full_form": "Akta Kematian",
+      "english": "Death Certificate",
+      "description": "Dokumen resmi yang mencatat peristiwa kematian seseorang",
+      "synonyms": ["surat kematian"],
+      "related_terms": ["kematian", "meninggal", "pemakaman", "ahli waris"],
+      "common_phrases": [
+        "buat akta kematian",
+        "surat kematian",
+        "keterangan meninggal"
+      ],
+      "service_codes": ["AM-001"]
+    },
+    "akta_perkawinan": {
+      "full_form": "Akta Perkawinan",
+      "english": "Marriage Certificate",
+      "description": "Dokumen resmi yang mencatat peristiwa perkawinan",
+      "synonyms": ["surat nikah", "akta nikah"],
+      "related_terms": ["perkawinan", "nikah", "suami", "istri", "KUA", "catatan sipil"],
+      "common_phrases": [
+        "daftar nikah",
+        "akta perkawinan",
+        "legalisir nikah"
+      ],
+      "service_codes": ["AP-001", "AP-002"]
+    },
+    "akta_perceraian": {
+      "full_form": "Akta Perceraian",
+      "english": "Divorce Certificate",
+      "description": "Dokumen resmi yang mencatat peristiwa perceraian",
+      "synonyms": ["surat cerai"],
+      "related_terms": ["perceraian", "cerai", "pengadilan", "putusan hakim"],
+      "common_phrases": [
+        "akta perceraian",
+        "surat cerai",
+        "legalisir cerai"
+      ],
+      "service_codes": ["AC-001"]
+    },
+    "surat_pindah": {
+      "full_form": "Surat Pindah Datang",
+      "english": "Migration Certificate",
+      "description": "Dokumen yang mengatur perpindahan penduduk antar daerah",
+      "synonyms": ["pindah datang", "mutasi penduduk"],
+      "related_terms": ["pindah", "datang", "domisili", "alamat", "mutasi"],
+      "common_phrases": [
+        "pindah alamat",
+        "pindah domisili",
+        "surat pindah",
+        "mutasi data"
+      ],
+      "service_codes": ["SP-001", "SP-002"]
+    },
+    "legalisir": {
+      "full_form": "Legalisasi Dokumen",
+      "english": "Document Legalization",
+      "description": "Proses pengesahan dokumen oleh pejabat yang berwenang",
+      "synonyms": ["pengesahan", "validasi dokumen"],
+      "related_terms": ["dokumen", "pengesahan", "cap", "tanda tangan"],
+      "common_phrases": [
+        "legalisir akta",
+        "legalisir KK",
+        "pengesahan dokumen"
+      ],
+      "service_codes": ["LG-001"]
+    },
+    "disdukcapil": {
+      "full_form": "Dinas Kependudukan dan Pencatatan Sipil",
+      "english": "Department of Population and Civil Registration",
+      "description": "Instansi pemerintah yang menangani administrasi kependudukan dan pencatatan sipil",
+      "synonyms": ["dinas kependudukan", "catatan sipil"],
+      "related_terms": ["pemerintah", "administrasi", "pelayanan publik"],
+      "common_phrases": [
+        "kantor disdukcapil",
+        "pelayanan disdukcapil",
+        "jam buka disdukcapil"
+      ]
+    },
+    "siak": {
+      "full_form": "Sistem Informasi Administrasi Kependudukan",
+      "english": "Population Administration Information System",
+      "description": "Sistem database terpusat untuk administrasi kependudukan di Indonesia",
+      "synonyms": ["database kependudukan", "sistem kependudukan"],
+      "related_terms": ["database", "sistem", "online", "digital"],
+      "common_phrases": [
+        "data SIAK",
+        "sistem SIAK",
+        "update SIAK"
+      ]
+    }
+  },
+  "administrative_levels": {
+    "rt": {
+      "full_form": "Rukun Tetangga",
+      "description": "Unit administrasi terkecil dalam pemerintahan Indonesia",
+      "role": "Memberikan surat pengantar untuk berbagai keperluan administrasi"
+    },
+    "rw": {
+      "full_form": "Rukun Warga",
+      "description": "Unit administrasi yang terdiri dari beberapa RT",
+      "role": "Memberikan surat pengantar dan verifikasi data penduduk"
+    },
+    "kelurahan": {
+      "full_form": "Kelurahan/Desa",
+      "description": "Unit administrasi setingkat desa dalam pemerintahan",
+      "role": "Memberikan surat keterangan dan verifikasi administrasi"
+    },
+    "kecamatan": {
+      "full_form": "Kecamatan",
+      "description": "Unit administrasi yang membawahi beberapa kelurahan/desa",
+      "role": "Koordinasi administrasi dan pelayanan publik"
+    }
+  },
+  "document_status": {
+    "berlaku": {
+      "meaning": "Valid/Active",
+      "description": "Dokumen masih dalam masa berlaku dan dapat digunakan"
+    },
+    "kadaluarsa": {
+      "meaning": "Expired",
+      "description": "Dokumen sudah melewati masa berlaku"
+    },
+    "rusak": {
+      "meaning": "Damaged",
+      "description": "Dokumen mengalami kerusakan fisik"
+    },
+    "hilang": {
+      "meaning": "Lost",
+      "description": "Dokumen tidak dapat ditemukan"
+    },
+    "proses": {
+      "meaning": "In Process",
+      "description": "Dokumen sedang dalam tahap pembuatan/pengurusan"
+    }
+  },
+  "common_abbreviations": {
+    "WNI": "Warga Negara Indonesia",
+    "WNA": "Warga Negara Asing",
+    "KUA": "Kantor Urusan Agama",
+    "RS": "Rumah Sakit",
+    "PUSKESMAS": "Pusat Kesehatan Masyarakat",
+    "POLSEK": "Kepolisian Sektor",
+    "POLRES": "Kepolisian Resort",
+    "PEMDA": "Pemerintah Daerah",
+    "KEMENDAGRI": "Kementerian Dalam Negeri"
+  },
+  "query_patterns": {
+    "information_seeking": [
+      "bagaimana cara",
+      "apa saja syarat",
+      "berapa lama",
+      "dimana bisa",
+      "kapan buka",
+      "berapa biaya"
+    ],
+    "problem_solving": [
+      "dokumen hilang",
+      "dokumen rusak",
+      "data salah",
+      "tidak bisa",
+      "ditolak",
+      "bermasalah"
+    ],
+    "status_checking": [
+      "sudah jadi",
+      "status dokumen",
+      "kapan selesai",
+      "sudah siap",
+      "bisa diambil"
+    ]
+  }
+}

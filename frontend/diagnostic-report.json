@@ -1,0 +1,85 @@
+{
+  "timestamp": "2025-08-17T14:07:48.741Z",
+  "version": "1.0.0",
+  "summary": {
+    "environmentVariables": 7,
+    "connectionTests": 2,
+    "performanceTests": 3,
+    "recommendations": 0
+  },
+  "results": {
+    "environmentVariables": {
+      "NEXT_PUBLIC_SUPABASE_URL": {
+        "present": true,
+        "length": 40,
+        "critical": true
+      },
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": {
+        "present": true,
+        "length": 208,
+        "critical": true
+      },
+      "SUPABASE_SERVICE_ROLE_KEY": {
+        "present": true,
+        "length": 219,
+        "critical": true
+      },
+      "SUPABASE_CONNECTION_TIMEOUT": {
+        "value": 3000,
+        "isDefault": false,
+        "recommended": 1500
+      },
+      "SUPABASE_MAX_CONNECTIONS": {
+        "value": 3,
+        "isDefault": false,
+        "recommended": 5
+      },
+      "SUPABASE_CIRCUIT_BREAKER_THRESHOLD": {
+        "value": 5,
+        "isDefault": false,
+        "recommended": 3
+      },
+      "SUPABASE_CIRCUIT_BREAKER_TIMEOUT": {
+        "value": 30000,
+        "isDefault": false,
+        "recommended": 15000
+      }
+    },
+    "connectionTests": {
+      "anon": {
+        "status": "success",
+        "duration": 336,
+        "performance": "excellent"
+      },
+      "service": {
+        "status": "success",
+        "duration": 119,
+        "performance": "excellent"
+      }
+    },
+    "performanceTests": {
+      "simple_query": {
+        "duration": 113,
+        "performance": "excellent",
+        "status": "success"
+      },
+      "table_list": {
+        "duration": 113,
+        "performance": "excellent",
+        "status": "success"
+      },
+      "session_query": {
+        "duration": 143,
+        "performance": "excellent",
+        "status": "success"
+      }
+    },
+    "circuitBreakerStatus": {
+      "threshold": 5,
+      "timeout": 30000,
+      "connectionTimeout": 3000,
+      "issues": []
+    },
+    "recommendations": []
+  }
+}

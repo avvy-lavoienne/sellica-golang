@@ -1,0 +1,23 @@
+{
+  "name": "indonesian-ner",
+  "version": "1.0.0",
+  "description": "Production indonesian-ner model for SELLY",
+  "type": "ner",
+  "tasks": [
+    "named-entity-recognition"
+  ],
+  "language": "Indonesian",
+  "size": "400MB",
+  "source": "huggingface",
+  "model_id": "cahya/bert-base-indonesian-NER",
+  "created_at": "D:\\Journey Code\\Project\\lab\\sellica-prop",
+  "tensorflow_js": {
+    "model_url": "/models/indonesian-ner/model.json",
+    "weights_url": "/models/indonesian-ner/weights.bin"
+  },
+  "tensorflow_serving": {
+    "model_name": "indonesian-ner",
+    "version": 1,
+    "signature_name": "serving_default"
+  }
+}

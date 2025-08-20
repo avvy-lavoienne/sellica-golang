@@ -1,0 +1,54 @@
+services:
+  # Main SELLY Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5678:5678"
+    environment:
+      - NODE_ENV=production
+      - PORT=5678
+      - NEXT_PUBLIC_SUPABASE_URL=https://yrssspoimsxpibcbeaca.supabase.co
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlyc3NzcG9pbXN4cGliY2JlYWNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ0NTA0NzIsImV4cCI6MjA2MDAyNjQ3Mn0.IAHcNQgy86F7DihpFKjPJ19SgLgzQgal-VhejfdycMU
+      - NEXT_PUBLIC_ENABLE_TENSORFLOW=true
+      - NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING=true
+      - TENSORFLOW_SERVING_URL=http://tensorflow-serving:8501
+    restart: unless-stopped
+    volumes:
+      - ./public:/app/public
+    depends_on:
+      - tensorflow-serving
+    networks:
+      - sellica-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5678/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # TensorFlow Serving for AI Models
+  tensorflow-serving:
+    image: tensorflow/serving:latest
+    ports:
+      - "8501:8501"  # REST API
+      - "8500:8500"  # gRPC API
+    environment:
+      - MODEL_NAME=basic-nlp
+      - MODEL_BASE_PATH=/models
+    volumes:
+      - ./public/models:/models
+    networks:
+      - sellica-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/v1/models/basic-nlp"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+networks:
+  sellica-network:
+    driver: bridge

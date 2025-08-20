@@ -1,0 +1,146 @@
+{
+  "name": "sellica",
+  "version": "2.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:performance": "jest src/services/chatbot/__tests__/performance-optimization.test.ts",
+    "discover-schema": "node scripts/simple-discovery.js",
+    "discover-schema-advanced": "npx tsx scripts/discover-database-schema.ts",
+    "pkg:build": "node build.js",
+    "pkg": "pkg . --targets node16-win-x64 --output server.exe --public"
+  },
+  "bin": "server.js",
+  "pkg": {
+    "assets": [
+      ".next/**/*",
+      "public/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "scripts": [
+      "server.js"
+    ],
+    "targets": [
+      "node16-win-x64"
+    ],
+    "outputPath": "dist"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@headlessui/react": "^2.2.7",
+    "@heroicons/react": "^2.2.0",
+    "@huggingface/inference": "^4.5.3",
+    "@jest/globals": "^30.0.5",
+    "@mui/icons-material": "^7.2.0",
+    "@mui/material": "^7.2.0",
+    "@mui/x-charts": "^8.9.0",
+    "@mui/x-date-pickers": "^8.9.0",
+    "@radix-ui/react-alert-dialog": "^1.1.14",
+    "@radix-ui/react-avatar": "^1.1.10",
+    "@radix-ui/react-checkbox": "^1.3.2",
+    "@radix-ui/react-collapsible": "^1.1.11",
+    "@radix-ui/react-dialog": "^1.1.14",
+    "@radix-ui/react-dropdown-menu": "^2.1.15",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-progress": "^1.1.7",
+    "@radix-ui/react-select": "^2.2.5",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-switch": "^1.2.5",
+    "@radix-ui/react-tabs": "^1.1.12",
+    "@radix-ui/react-tooltip": "^1.2.7",
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.52.1",
+    "@tailwindcss/typography": "^0.5.16",
+    "@tensorflow/tfjs": "^4.22.0",
+    "@tensorflow/tfjs-backend-cpu": "^4.22.0",
+    "@tensorflow/tfjs-backend-webgl": "^4.22.0",
+    "apexcharts": "^5.3.1",
+    "autoprefixer": "^10.4.21",
+    "browser-image-compression": "^2.0.2",
+    "canvas": "^3.1.2",
+    "chart.js": "^4.5.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "compression": "^1.8.1",
+    "compressorjs": "^1.2.1",
+    "critters": "^0.0.25",
+    "date-fns": "^4.1.0",
+    "dayjs": "^1.11.13",
+    "framer-motion": "^12.23.9",
+    "helmet": "^8.1.0",
+    "html2canvas": "^1.4.1",
+    "jest-canvas-mock": "^2.5.2",
+    "jest-webgl-canvas-mock": "^2.5.3",
+    "jspdf": "^3.0.1",
+    "lucide-react": "^0.526.0",
+    "next": "^15.4.4",
+    "next-themes": "^0.4.6",
+    "nextjs-toploader": "^3.8.16",
+    "papaparse": "^5.5.3",
+    "postcss": "^8.5.6",
+    "react": "19.1.0",
+    "react-apexcharts": "^1.7.0",
+    "react-chartjs-2": "^5.3.0",
+    "react-dom": "19.1.0",
+    "react-markdown": "^10.1.0",
+    "react-toastify": "^11.0.5",
+    "recharts": "^3.1.0",
+    "tailwind-merge": "^3.3.1",
+    "tailwindcss-animate": "^1.0.7",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.4",
+    "@testing-library/react": "^16.3.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "24.1.0",
+    "@types/papaparse": "^5.3.16",
+    "@types/react": "19.1.8",
+    "@types/react-dom": "19.1.6",
+    "@types/uuid": "^10.0.0",
+    "dotenv": "^17.2.1",
+    "eslint": "^9.32.0",
+    "eslint-config-next": "15.4.4",
+    "jest": "^30.0.5",
+    "jest-environment-jsdom": "^30.0.5",
+    "tailwindcss": "3.4.0",
+    "ts-jest": "^29.4.0",
+    "typescript": "^5.8.3"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest.setup.js",
+      "<rootDir>/jest.canvas.setup.js"
+    ],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1"
+    },
+    "testMatch": [
+      "**/__tests__/**/*.test.ts",
+      "**/__tests__/**/*.test.tsx"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!(@tensorflow|@supabase)/)"
+    ],
+    "testTimeout": 30000,
+    "collectCoverageFrom": [
+      "src/**/*.{ts,tsx}",
+      "!src/**/*.d.ts",
+      "!src/**/*.stories.{ts,tsx}"
+    ]
+  }
+}

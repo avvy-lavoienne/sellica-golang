@@ -1,0 +1,295 @@
+# SELLY AI Staging Load Testing Configuration
+# Artillery.js configuration for comprehensive performance testing
+# Version: 1.0
+# Date: 2025-01-27
+
+config:
+  target: 'http://localhost:3000'  # Change to https://staging.sellica.com for staging
+  phases:
+    # Warm-up phase - Start slowly
+    - duration: 60
+      arrivalRate: 1
+      name: "Warm-up Phase"
+    
+    # Ramp-up phase - Gradually increase load
+    - duration: 120
+      arrivalRate: 1
+      rampTo: 10
+      name: "Ramp-up Phase"
+    
+    # Sustained load - Normal operation
+    - duration: 300
+      arrivalRate: 10
+      name: "Sustained Load Phase"
+    
+    # Peak load - Test maximum capacity
+    - duration: 120
+      arrivalRate: 10
+      rampTo: 25
+      name: "Peak Load Phase"
+    
+    # Stress test - Push beyond normal limits
+    - duration: 60
+      arrivalRate: 25
+      rampTo: 50
+      name: "Stress Test Phase"
+    
+    # Cool-down - Return to normal
+    - duration: 60
+      arrivalRate: 50
+      rampTo: 1
+      name: "Cool-down Phase"
+  
+  # Performance thresholds and expectations
+  ensure:
+    maxErrorRate: 5          # Maximum 5% error rate
+    maxResponseTime: 2000    # Maximum 2 second response time
+    minResponseRate: 95      # Minimum 95% response rate
+  
+  # HTTP configuration
+  http:
+    timeout: 30              # 30 second timeout
+    pool: 50                 # Connection pool size
+    maxSockets: 50           # Maximum concurrent connections
+  
+  # Processor for custom logic
+  processor: "./scripts/artillery-processor.js"
+  
+  # Variables for dynamic testing
+  variables:
+    # Indonesian test queries for SELLY AI
+    testQueries:
+      - "Berapa jumlah pengajuan hari ini?"
+      - "Siapa yang paling aktif minggu ini?"
+      - "Bagaimana trend aktivitas bulan ini?"
+      - "Berapa rata-rata waktu pemrosesan?"
+      - "Analisis data pengajuan bulanan"
+      - "Tampilkan statistik pengguna aktif"
+      - "Berapa total dokumentasi yang sudah diproses?"
+      - "Siapa operator dengan performa terbaik?"
+      - "Bagaimana distribusi data per wilayah?"
+      - "Analisis error rate sistem"
+    
+    # Test user contexts
+    testUsers:
+      - "load-test-user-1"
+      - "load-test-user-2"
+      - "load-test-user-3"
+      - "load-test-user-4"
+      - "load-test-user-5"
+    
+    # Test session types
+    sessionTypes:
+      - "performance-test"
+      - "load-test"
+      - "stress-test"
+
+# Test scenarios with different weights
+scenarios:
+  # Homepage and basic navigation (30% of traffic)
+  - name: "Homepage Load Test"
+    weight: 30
+    flow:
+      - get:
+          url: "/"
+          capture:
+            - header: "x-response-time"
+              as: "responseTime"
+            - header: "x-server-id"
+              as: "serverId"
+          expect:
+            - statusCode: 200
+            - contentType: "text/html"
+      - think: 2  # 2 second pause
+      
+      # Navigate to dashboard
+      - get:
+          url: "/dashboard"
+          expect:
+            - statusCode: 200
+      - think: 3
+  
+  # Health check monitoring (20% of traffic)
+  - name: "Health Check Test"
+    weight: 20
+    flow:
+      - get:
+          url: "/api/health"
+          capture:
+            - json: "$.status"
+              as: "healthStatus"
+            - json: "$.responseTime"
+              as: "healthResponseTime"
+            - json: "$.services.tensorflow.status"
+              as: "tensorflowStatus"
+          expect:
+            - statusCode: [200, 503]  # Accept both healthy and degraded
+            - hasProperty: "status"
+            - contentType: json
+      - think: 1
+  
+  # AI Chat Performance Testing (40% of traffic - main feature)
+  - name: "AI Chat Load Test"
+    weight: 40
+    flow:
+      - post:
+          url: "/api/chat"
+          headers:
+            Content-Type: "application/json"
+          json:
+            message: "{{ testQueries }}"
+            context:
+              userId: "{{ testUsers }}"
+              sessionId: "{{ sessionTypes }}-{{ $uuid }}"
+              timestamp: "{{ $timestamp }}"
+          capture:
+            - json: "$.metadata.processingTime"
+              as: "aiProcessingTime"
+            - json: "$.metadata.strategy"
+              as: "aiStrategy"
+            - json: "$.metadata.accuracy"
+              as: "aiAccuracy"
+            - json: "$.success"
+              as: "chatSuccess"
+          expect:
+            - statusCode: 200
+            - hasProperty: "success"
+            - contentType: json
+      - think: 3  # 3 second pause between chat messages
+      
+      # Follow-up question (simulate conversation)
+      - post:
+          url: "/api/chat"
+          headers:
+            Content-Type: "application/json"
+          json:
+            message: "Bisa dijelaskan lebih detail?"
+            context:
+              userId: "{{ testUsers }}"
+              sessionId: "{{ sessionTypes }}-{{ $uuid }}"
+              previousQuery: "{{ testQueries }}"
+          expect:
+            - statusCode: 200
+      - think: 5
+  
+  # Metrics endpoint testing (10% of traffic)
+  - name: "Metrics API Test"
+    weight: 10
+    flow:
+      - get:
+          url: "/api/metrics?timeRange=5m"
+          headers:
+            X-Internal-Request: "true"
+          capture:
+            - json: "$.summary.averageResponseTime"
+              as: "metricsAvgResponseTime"
+            - json: "$.summary.accuracyRate"
+              as: "metricsAccuracyRate"
+            - json: "$.realTime.activeQueries"
+              as: "activeQueries"
+          expect:
+            - statusCode: 200
+            - hasProperty: "summary"
+            - contentType: json
+      - think: 5
+      
+      # Test different time ranges
+      - get:
+          url: "/api/metrics?timeRange=1h"
+          expect:
+            - statusCode: 200
+      - think: 2
+
+# Plugins for enhanced metrics collection
+plugins:
+  # Metrics by endpoint
+  metrics-by-endpoint:
+    useOnlyRequestNames: true
+    stripQueryString: true
+  
+  # Custom metrics publishing
+  publish-metrics:
+    - type: "statsd"
+      host: "localhost"
+      port: 8125
+      prefix: "selly.staging.artillery"
+    
+    # CloudWatch metrics (if AWS is used)
+    - type: "cloudwatch"
+      region: "us-east-1"
+      namespace: "SELLY/LoadTesting"
+      dimensions:
+        Environment: "staging"
+        TestType: "artillery"
+  
+  # Slack notifications
+  slack:
+    webhookUrl: "{{ $processEnvironment.SLACK_WEBHOOK_URL }}"
+    channel: "#staging-alerts"
+    username: "Artillery Load Tester"
+    reportTrigger: "always"
+
+# Custom functions and post-processing
+before:
+  flow:
+    - log: "Starting SELLY AI load testing..."
+    - log: "Target: {{ target }}"
+    - log: "Test duration: ~13 minutes"
+
+after:
+  flow:
+    - log: "Load testing completed"
+    - get:
+        url: "/api/metrics?timeRange=1h"
+        capture:
+          - json: "$.summary.averageResponseTime"
+            as: "finalAvgResponseTime"
+          - json: "$.summary.accuracyRate"
+            as: "finalAccuracyRate"
+          - json: "$.summary.errorRate"
+            as: "finalErrorRate"
+    - log: "Final Performance Metrics:"
+    - log: "  Average Response Time: {{ finalAvgResponseTime }}ms"
+    - log: "  Accuracy Rate: {{ finalAccuracyRate }}%"
+    - log: "  Error Rate: {{ finalErrorRate }}%"
+
+# Environment-specific configurations
+environments:
+  local:
+    target: 'http://localhost:3000'
+    phases:
+      - duration: 30
+        arrivalRate: 1
+        name: "Local Test"
+  
+  staging:
+    target: 'https://staging.sellica.com'
+    phases:
+      - duration: 60
+        arrivalRate: 1
+        name: "Staging Warm-up"
+      - duration: 120
+        arrivalRate: 1
+        rampTo: 10
+        name: "Staging Ramp-up"
+      - duration: 300
+        arrivalRate: 10
+        name: "Staging Sustained"
+      - duration: 120
+        arrivalRate: 10
+        rampTo: 25
+        name: "Staging Peak"
+      - duration: 60
+        arrivalRate: 25
+        rampTo: 1
+        name: "Staging Cool-down"
+  
+  production:
+    target: 'https://sellica.com'
+    phases:
+      - duration: 300
+        arrivalRate: 5
+        name: "Production Light Load"
+    ensure:
+      maxErrorRate: 1
+      maxResponseTime: 1000

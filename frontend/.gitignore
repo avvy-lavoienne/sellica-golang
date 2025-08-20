@@ -1,0 +1,61 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+dist
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# #supabase
+# src/lib/supabaseClient.ts
+
+#server
+/dist.
+
+#git
+.git
+
+#backend
+/backend/node_modules
+/backend/.env
+/python-ai-service/venv
+/python-ai-service/__pycache__
+/python-ai-service/*.pyc
+/python-ai-service/.pytest_cache
+
+# Heroku
+.heroku
+
+#node exe
+server-linux
+server-macos
+server-win.exe
+server.exe
+

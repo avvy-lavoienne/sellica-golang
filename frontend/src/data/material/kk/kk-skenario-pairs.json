@@ -1,0 +1,58 @@
+[
+  {
+    "query": "aku mau bikin KK",
+    "expectedResponse": "Halo kak! 😊 Saya SELLY akan membantu kak dengan layanan Kartu Keluarga (KK). Untuk memberikan panduan yang tepat sesuai situasi kak, saya perlu mengetahui kondisi yang akan diurus.\n\n🤔 **Mari kita mulai dengan pertanyaan pertama:**\n\n**Apa situasi KK yang akan kak urus?**\n\n📋 **Pilihan jawaban:**\n• **A** - Buat KK baru setelah menikah\n• **B** - Tambah anggota keluarga (kelahiran/adopsi)\n• **C** - Pisah KK (anak dewasa/perceraian)\n• **D** - KK hilang/rusak dan perlu penggantian\n• **E** - Pindah alamat/domisili\n• **F** - Koreksi data di KK\n• **G** - Numpang KK (tinggal di rumah kerabat/orang lain)\n\n💡 **Kenapa saya tanya ini?**\nSetiap situasi KK memiliki persyaratan dan prosedur yang berbeda, kak. Dengan mengetahui kondisi kak, saya bisa memberikan panduan yang lebih akurat dan menghemat waktu kak.\n\n🎯 Silakan pilih huruf yang sesuai dengan situasi kak, nanti saya akan berikan panduan lengkap sesuai kebutuhan! 🤝",
+    "serviceType": "kartu_keluarga",
+    "category": "skenario_assessment",
+    "priority": "high"
+  },
+  {
+    "query": "A",
+    "expectedResponse": "💒 **Skenario A: KK Baru Setelah Menikah**\n\nSelamat atas pernikahan kak! 🎉 Ini adalah langkah penting untuk tertib administrasi keluarga baru.\n\n📋 **Dokumen yang Perlu Disiapkan:**\n1. **Formulir Pendaftaran** (F-1.02 atau F-1.01)\n2. **KK asli** dari keluarga masing-masing pihak (suami & istri)\n3. **Fotokopi Buku Nikah** (Muslim) atau **Kutipan Akta Perkawinan** (Non-Muslim)\n4. **SKPWNI** jika salah satu/kedua dari luar kabupaten/kota\n5. **Dokumen pendukung** lainnya jika ada perubahan data\n\n⏱️ **Waktu Penyelesaian:** 1-3 hari kerja\n💰 **Biaya:** GRATIS 100%\n📍 **Lokasi:** Disdukcapil sesuai domisili baru\n\n🎯 **Tips Sukses:**\n• Tentukan alamat domisili baru dengan pasti\n• Siapkan fotokopi semua dokumen\n• Datang bersama pasangan untuk verifikasi\n\n📋 **Output yang Diterima:**\n• 1 KK baru untuk pasangan\n• 2 KK yang diperbarui untuk masing-masing orang tua\n\nKak sudah tentukan mau tinggal di alamat mana? 😊",
+    "serviceType": "kartu_keluarga",
+    "category": "skenario_A",
+    "priority": "high"
+  },
+  {
+    "query": "B",
+    "expectedResponse": "👶 **Skenario B: Tambah Anggota Keluarga**\n\nBagus kak! Menambah anggota keluarga karena kelahiran atau adopsi.\n\n📋 **Untuk Kelahiran (Layanan Terpadu 3-in-1):**\n1. **KK asli** orang tua\n2. **Surat Keterangan Kelahiran** dari dokter/bidan/RS\n3. **Fotokopi Buku Nikah/Akta Perkawinan** orang tua\n4. **Fotokopi KTP-el** kedua orang tua\n\n📋 **Jika Tidak Ada Surat Keterangan Kelahiran:**\n5. **SPTJM Kebenaran Data Kelahiran** (F-2.03) bermaterai\n6. **2 orang saksi** dengan KTP-el\n\n⏱️ **Waktu Penyelesaian:** 1 hari kerja (layanan terpadu)\n💰 **Biaya:** GRATIS\n\n🎯 **Keunggulan Layanan Terpadu:**\n• Sekali datang dapat 3 dokumen: Akta Kelahiran + KK baru + KIA\n• Hemat waktu dan tenaga\n• Data terintegrasi otomatis\n\n📋 **Untuk Adopsi:**\n• Tambahan: Penetapan Pengadilan tentang Pengangkatan Anak\n\nIni untuk kelahiran atau adopsi kak?",
+    "serviceType": "kartu_keluarga",
+    "category": "skenario_B",
+    "priority": "high"
+  },
+  {
+    "query": "C",
+    "expectedResponse": "🏠 **Skenario C: Pisah KK**\n\nAda beberapa situasi pisah KK nih kak. Mari kita tentukan yang mana:\n\n📋 **Jenis Pisah KK:**\n\n**C1 - Pisah KK Karena Perceraian:**\n• Syarat: KK asli + Kutipan Akta Perceraian\n• Hasil: 2 KK terpisah untuk masing-masing pihak\n• Anak masuk KK sesuai hak asuh\n\n**C2 - Pisah KK Anak Dewasa (Alamat Sama):**\n• Syarat: KK asli + KTP-el (minimal 17 tahun/pernah kawin)\n• Hasil: KK baru atas nama anak sebagai Kepala Keluarga\n• Alamat tetap sama dengan orang tua\n\n**C3 - Pisah KK Karena Pindah Alamat:**\n• Syarat: KK asli + bukti alamat baru\n• Hasil: KK baru dengan alamat berbeda\n\n⏱️ **Waktu:** 1-3 hari kerja\n💰 **Biaya:** GRATIS\n\n🤔 **Yang mana situasi kak?**\n• Ketik **C1** untuk perceraian\n• Ketik **C2** untuk anak dewasa pisah\n• Ketik **C3** untuk pindah alamat",
+    "serviceType": "kartu_keluarga",
+    "category": "skenario_C",
+    "priority": "high"
+  },
+  {
+    "query": "D",
+    "expectedResponse": "📄 **Skenario D: Penggantian KK Hilang/Rusak**\n\nJangan khawatir kak! KK yang hilang/rusak bisa diganti dengan mudah.\n\n📋 **Untuk KK Hilang:**\n1. **Surat kehilangan** dari polisi\n2. **KTP-el** Kepala Keluarga atau anggota keluarga\n3. **Surat pernyataan kehilangan** bermaterai Rp 10.000\n4. **Dokumen pendukung** (akta nikah, akta kelahiran, dll) jika ada\n\n📋 **Untuk KK Rusak:**\n1. **KK lama yang rusak** (bawa jika masih ada)\n2. **KTP-el** Kepala Keluarga atau anggota keluarga\n3. **Surat pernyataan kerusakan** bermaterai Rp 10.000\n\n⏱️ **Waktu Penyelesaian:** 1-3 hari kerja\n💰 **Biaya:** GRATIS (hanya biaya surat kehilangan Rp 10.000-30.000 dan materai)\n\n💡 **Tips Penting:**\n• Data KK biasanya masih tersimpan di sistem\n• Proses duplikat lebih cepat jika NIK masih aktif\n• Simpan scan/foto KK sebagai backup\n• Jangan buang KK rusak, bawa sebagai bukti\n\n📋 **Output:** KK pengganti dengan keterangan \"DUPLIKAT\"\n\nKK kak hilang atau rusak?",
+    "serviceType": "kartu_keluarga",
+    "category": "skenario_D",
+    "priority": "high"
+  },
+  {
+    "query": "E",
+    "expectedResponse": "🚚 **Skenario E: Pindah Alamat/Domisili**\n\nAda beberapa jenis pindah alamat nih kak:\n\n📋 **E1 - Pindah Dalam Satu RT/RW:**\n• Syarat: KK lama + surat keterangan pindah dari RT/RW\n• Proses: Update alamat di KK yang sama\n\n📋 **E2 - Pindah Antar Kelurahan/Kecamatan (Satu Kabupaten):**\n• Syarat: KK lama + surat keterangan pindah\n• Proses: KK baru dengan alamat baru\n\n📋 **E3 - Pindah Antar Kabupaten/Kota:**\n• Syarat: **SKPWNI** + KK lama + KTP-el\n• Proses: Daftar di Disdukcapil tujuan\n• Waktu: Maksimal 30 hari setelah pindah\n\n⏱️ **Waktu:** 1-3 hari kerja\n💰 **Biaya:** GRATIS\n\n💡 **Catatan Penting:**\n• SKPWNI wajib untuk pindah antar kabupaten/kota\n• Lapor pindah maksimal 30 hari\n• Data terintegrasi dengan sistem nasional\n\n🤔 **Kak pindah dari mana ke mana?**\n• **E1** - Dalam satu RT/RW\n• **E2** - Antar kelurahan (satu kabupaten)\n• **E3** - Antar kabupaten/kota",
+    "serviceType": "kartu_keluarga",
+    "category": "skenario_E",
+    "priority": "high"
+  },
+  {
+    "query": "F",
+    "expectedResponse": "✏️ **Skenario F: Koreksi Data di KK**\n\nTidak masalah kak! Data di KK bisa dikoreksi jika ada kesalahan.\n\n📋 **Jenis Koreksi yang Bisa Dilakukan:**\n• **Nama** (salah tulis/ejaan)\n• **Tanggal lahir** (salah input)\n• **Status perkawinan** (belum update)\n• **Pekerjaan** (sudah berubah)\n• **Pendidikan** (sudah lulus)\n• **Hubungan keluarga** (salah status)\n\n📋 **Dokumen yang Diperlukan:**\n1. **KK asli** yang akan dikoreksi\n2. **KTP-el** yang bersangkutan\n3. **Dokumen pendukung** yang benar:\n   - Ijazah (untuk pendidikan)\n   - Akta kelahiran (untuk tanggal lahir)\n   - Akta nikah/cerai (untuk status perkawinan)\n   - Surat keterangan kerja (untuk pekerjaan)\n4. **Surat pernyataan koreksi** bermaterai Rp 10.000\n\n⏱️ **Waktu Penyelesaian:** 3-7 hari kerja\n💰 **Biaya:** GRATIS (hanya materai)\n\n⚠️ **Catatan:** Koreksi hanya untuk kesalahan tulis, bukan perubahan data yang memerlukan dokumen baru.\n\nData apa yang perlu dikoreksi kak?",
+    "serviceType": "kartu_keluarga",
+    "category": "skenario_F",
+    "priority": "medium"
+  },
+  {
+    "query": "G",
+    "expectedResponse": "🏡 **Skenario G: Numpang KK**\n\nBaik kak! Numpang KK untuk tinggal di rumah kerabat/orang lain.\n\n📋 **Dokumen yang Diperlukan:**\n1. **KK asli** dari keluarga yang akan ditumpangi\n2. **KK lama** atau **KTP-el** dari yang akan numpang\n3. **SKPWNI** jika berasal dari luar kabupaten/kota\n4. **Surat Pernyataan Tidak Keberatan** dari Kepala Keluarga yang ditumpangi\n\n📋 **Jika Yang Numpang Anak di Bawah 17 Tahun:**\n5. **Surat Kuasa Pengasuhan Anak** dari orang tua kandung\n\n⏱️ **Waktu Penyelesaian:** 1-3 hari kerja\n💰 **Biaya:** GRATIS\n\n📋 **Status dalam KK:** \"Famili Lain\" atau sesuai hubungan keluarga\n\n💡 **Contoh Situasi:**\n• Anak kos/kontrak\n• Kerabat yang tinggal sementara\n• Anak yang diasuh saudara\n• Pekerja yang tinggal di rumah majikan\n\n⚠️ **Penting:** Surat pernyataan tidak keberatan dari Kepala Keluarga wajib ya kak!\n\n🤔 **Kak mau numpang sebagai apa? Kerabat atau famili lain?**",
+    "serviceType": "kartu_keluarga",
+    "category": "skenario_G",
+    "priority": "medium"
+  }
+]

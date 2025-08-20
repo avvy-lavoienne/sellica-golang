@@ -1,0 +1,55 @@
+  /**
+   * Format complete service overview for Disdukcapil
+   */
+  public formatCompleteServiceOverview(): string {
+    return `📋 **Layanan Lengkap Dinas Kependudukan dan Pencatatan Sipil Kabupaten Garut**
+
+Halo kak! 😊 Berikut adalah **daftar lengkap semua dokumen dan layanan** yang tersedia di Disdukcapil Kabupaten Garut, dikelompokkan berdasarkan bidang:
+
+## 🏠 **Dokumen Pendaftaran Penduduk (7 Layanan)**
+1. **Kartu Tanda Penduduk elektronik (KTP-el)** - Identitas resmi warga negara
+2. **Kartu Keluarga (KK)** - Dokumen keanggotaan keluarga
+3. **Kartu Identitas Anak (KIA)** - Identitas untuk anak usia 0-17 tahun
+4. **Surat Keterangan Pindah WNI (SKPWNI)** - Pindah dalam negeri
+5. **Surat Kedatangan Pindah WNI (SKDWNI)** - Kedatangan dari daerah lain
+6. **Surat Keterangan Pindah ke Luar Negeri (SKPLN)** - Pindah ke luar negeri
+7. **Surat Keterangan Perubahan Elemen Data** - Perubahan data penduduk
+
+## 📝 **Dokumen Pencatatan Sipil (8 Layanan)**
+8. **Akta Kelahiran** - Bukti kelahiran resmi
+9. **Akta Perkawinan** - Bukti perkawinan resmi
+10. **Akta Perceraian** - Bukti perceraian resmi
+11. **Akta Kematian** - Bukti kematian resmi
+12. **Akta Pengakuan Anak** - Pengakuan anak oleh ayah
+13. **Akta Pengesahan Anak** - Pengesahan anak setelah perkawinan orang tua
+14. **Surat Keterangan Pembatalan Perkawinan** - Pembatalan perkawinan
+15. **Surat Keterangan Pembatalan Perceraian** - Pembatalan perceraian
+
+## 🛠️ **Layanan Lainnya (9 Layanan)**
+16. **Surat Keterangan Pindah Orang Asing (SKPOA)** - Pindah untuk WNA
+17. **Surat Keterangan Tempat Tinggal (SKTT) WNA** - Tempat tinggal untuk WNA
+18. **Surat Keterangan Lahir Mati** - Kelahiran dalam keadaan meninggal
+19. **Biodata Penduduk** - Data lengkap penduduk
+20. **Kutipan Akta Pencatatan Sipil (Duplikat)** - Pengganti akta hilang/rusak
+21. **Salinan Lengkap Akta Pencatatan Sipil** - Salinan resmi akta
+22. **Surat Keterangan Keabsahan Dokumen** - Verifikasi keaslian dokumen
+23. **Surat Keterangan Pendaftaran Penduduk WNI/WNA ITAP (SKDLN)** - Pendaftaran dari luar negeri
+24. **Surat Keterangan Perubahan Status (WNA ITAS→ITAP)** - Perubahan status WNA
+
+## ℹ️ **Informasi Umum**
+⏱️ **Waktu penyelesaian:** 1-14 hari kerja (tergantung jenis dokumen)
+💰 **Biaya:** Sebagian besar layanan **GRATIS**
+🕐 **Jam pelayanan:** 08:00-15:00 WIB (Senin-Jumat)
+📍 **Lokasi:** Kantor Disdukcapil Kabupaten Garut
+
+## 🤝 **Bantuan Lebih Lanjut**
+📞 **WhatsApp:** +62-851-8304-3205
+
+💡 **Ingin tahu persyaratan spesifik?** 
+Tanyakan saja kepada SELLY, misalnya:
+• "Persyaratan KTP baru apa saja kak?"
+• "Cara mengurus akta kelahiran gimana?"
+• "Syarat kartu keluarga apa aja?"
+
+Apakah ada dokumen tertentu yang ingin kak tanyakan lebih detail? SELLY siap membantu! 😊`;
+  }

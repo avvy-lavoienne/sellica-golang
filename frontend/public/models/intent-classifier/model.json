@@ -1,0 +1,113 @@
+{
+  "modelTopology": {
+    "class_name": "Sequential",
+    "config": {
+      "name": "intent-classifier",
+      "layers": [
+        {
+          "class_name": "Embedding",
+          "config": {
+            "input_dim": 8000,
+            "output_dim": 96,
+            "input_length": 50,
+            "name": "embedding",
+            "trainable": true
+          }
+        },
+        {
+          "class_name": "GlobalAveragePooling1D",
+          "config": {
+            "name": "global_average_pooling1d"
+          }
+        },
+        {
+          "class_name": "Dense",
+          "config": {
+            "units": 64,
+            "activation": "relu",
+            "name": "dense_1"
+          }
+        },
+        {
+          "class_name": "Dropout",
+          "config": {
+            "rate": 0.2,
+            "name": "dropout"
+          }
+        },
+        {
+          "class_name": "Dense",
+          "config": {
+            "units": 16,
+            "activation": "softmax",
+            "name": "predictions"
+          }
+        }
+      ]
+    }
+  },
+  "weightsManifest": [
+    {
+      "paths": [
+        "intent-classifier_weights.bin"
+      ],
+      "weights": [
+        {
+          "name": "embedding/embeddings",
+          "shape": [
+            8000,
+            96
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "dense_1/kernel",
+          "shape": [
+            96,
+            64
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "dense_1/bias",
+          "shape": [
+            64
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "predictions/kernel",
+          "shape": [
+            64,
+            16
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "predictions/bias",
+          "shape": [
+            16
+          ],
+          "dtype": "float32"
+        }
+      ]
+    }
+  ],
+  "format": "layers-model",
+  "generatedBy": "SELLY Simple Model Generator v1.0.0",
+  "convertedBy": "SELLY Model Converter",
+  "signature": null,
+  "userDefinedMetadata": {
+    "name": "intent-classifier",
+    "description": "Indonesian intent classification",
+    "version": "1.0.0",
+    "language": "Indonesian",
+    "tasks": [
+      "intent-classification"
+    ],
+    "vocab_size": 8000,
+    "embedding_dim": 96,
+    "max_length": 50,
+    "created_by": "SELLY Simple Setup"
+  }
+}

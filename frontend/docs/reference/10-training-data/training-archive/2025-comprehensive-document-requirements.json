@@ -1,0 +1,359 @@
+{
+  "metadata": {
+    "title": "Comprehensive 2025 Civil Registration Document Requirements",
+    "version": "2.0",
+    "lastUpdated": "2025-02-02",
+    "regulationBasis": [
+      "UU No. 24/2013 tentang Administrasi Kependudukan",
+      "Permendagri No. 73/2022 tentang Pencatatan Nama",
+      "Permendagri No. 4/2024 tentang IKD"
+    ],
+    "digitalServices": {
+      "ikd": "Identitas Kependudukan Digital - wajib diaktivasi untuk akses online",
+      "tte": "Tanda Tangan Elektronik",
+      "qrVerification": "Verifikasi QR code untuk semua dokumen",
+      "onlineApplication": "Aplikasi online via situs Dukcapil daerah"
+    },
+    "generalRequirements": {
+      "documentFormat": "Dokumen asli/fotokopi",
+      "powerOfAttorney": "Surat kuasa jika diwakilkan",
+      "nameRequirements": {
+        "script": "Huruf Latin",
+        "minWords": 2,
+        "maxCharacters": 60,
+        "restrictions": [
+          "Tidak disingkat kecuali gelar",
+          "Tanpa angka/tanda baca",
+          "Tidak bermakna negatif"
+        ]
+      },
+      "printRequirements": {
+        "paperType": "HVS A4 80 gram",
+        "verification": "QR code verification",
+        "cost": "Gratis"
+      }
+    }
+  },
+  "documentCategories": {
+    "kartu": {
+      "description": "Dokumen Kependudukan dalam Bentuk Kartu",
+      "count": 3,
+      "documents": {
+        "ktp_el": {
+          "name": "Kartu Tanda Penduduk elektronik (KTP-el)",
+          "scenarios": {
+            "baru": {
+              "targetAge": "WNI usia 17 tahun/sudah kawin",
+              "requirements": [
+                "Fotokopi KK",
+                "Akta kelahiran/ijazah terakhir asli",
+                "Bukti umur 17 tahun atau buku nikah/akta perkawinan jika sudah kawin"
+              ]
+            },
+            "pergantian_rusak": {
+              "requirements": [
+                "Fotokopi KK",
+                "KTP-el rusak"
+              ]
+            },
+            "hilang": {
+              "requirements": [
+                "Fotokopi KK",
+                "Surat keterangan hilang dari kepolisian asli",
+                "Foto/scan KTP-el lama (jika ada)"
+              ]
+            },
+            "ikd_digital": {
+              "requirements": [
+                "Sudah punya e-KTP",
+                "Ponsel dengan internet",
+                "NIK",
+                "Email/nomor HP aktif"
+              ],
+              "activationProcess": [
+                "Scan QR di Dukcapil",
+                "Verifikasi wajah"
+              ]
+            }
+          }
+        },
+        "kia": {
+          "name": "Kartu Identitas Anak (KIA)",
+          "scenarios": {
+            "usia_0_5": {
+              "requirements": [
+                "Fotokopi akta kelahiran",
+                "KK orang tua",
+                "KTP-el orang tua",
+                "Pas foto berwarna (jika >5 tahun)"
+              ]
+            },
+            "usia_5_17": {
+              "requirements": [
+                "Fotokopi akta kelahiran",
+                "KK orang tua",
+                "KTP-el orang tua",
+                "Pas foto berwarna ukuran 4x6"
+              ]
+            },
+            "hilang_rusak": {
+              "requirements": [
+                "Surat keterangan hilang/rusak",
+                "Fotokopi KK",
+                "KTP-el orang tua"
+              ]
+            }
+          }
+        },
+        "kk": {
+          "name": "Kartu Keluarga (KK)",
+          "scenarios": {
+            "baru_perkawinan": {
+              "requirements": [
+                "Fotokopi buku nikah/akta perkawinan",
+                "SPTJM perkawinan jika belum tercatat",
+                "Pengantar RT/RW"
+              ]
+            },
+            "penggantian_kematian_kepala": {
+              "requirements": [
+                "Fotokopi akta kematian",
+                "KK lama"
+              ]
+            },
+            "pisah_kk_satu_alamat": {
+              "requirements": [
+                "Fotokopi KK lama",
+                "Bukti umur ≥17 tahun atau sudah kawin (KTP-el)"
+              ]
+            },
+            "perubahan_data": {
+              "requirements": [
+                "KK lama",
+                "Fotokopi surat keterangan/bukti perubahan (misalnya ijazah, akta kelahiran)"
+              ]
+            },
+            "hilang_rusak": {
+              "requirements": [
+                "Surat keterangan hilang dari kepolisian atau KK rusak",
+                "Fotokopi KTP-el",
+                "KITAS untuk WNA"
+              ]
+            },
+            "penambahan_anggota": {
+              "requirements": [
+                "Fotokopi akta kelahiran/surat keterangan kelahiran",
+                "KK lama",
+                "Surat keterangan pindah datang jika pindah"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "surat": {
+      "description": "Dokumen Kependudukan dalam Bentuk Surat",
+      "count": 15,
+      "documents": {
+        "biodata_penduduk": {
+          "name": "Biodata Penduduk",
+          "requirements": [
+            "Fotokopi KTP-el",
+            "KK",
+            "Surat pengantar dari kelurahan"
+          ],
+          "supportingDocuments": [
+            "Fotokopi akta kelahiran",
+            "Ijazah/STTB",
+            "KK",
+            "KTP-el",
+            "Akta nikah"
+          ]
+        },
+        "surat_keterangan_pindah": {
+          "name": "Surat Keterangan Pindah",
+          "requirements": [
+            "Fotokopi KTP-el",
+            "KK",
+            "Selfie pemohon memegang dokumen",
+            "Mengisi formulir F-1.03"
+          ],
+          "specialCases": {
+            "hilang_dokumen": ["Surat kehilangan dari kepolisian"],
+            "anak_under_17": ["Akta kelahiran", "Bukti perekaman KTP-el jika >17 tahun"]
+          }
+        },
+        "surat_keterangan_pindah_datang": {
+          "name": "Surat Keterangan Pindah Datang",
+          "requirements": [
+            "Fotokopi surat keterangan pindah dari daerah asal",
+            "KTP-el",
+            "KK lama",
+            "Bukti alamat baru (misalnya surat domisili)"
+          ],
+          "specialCases": {
+            "dari_luar_negeri": ["Tambah paspor/ITAS"]
+          },
+          "forms": ["Formulir F-1.16", "Pengantar RT/RW/kelurahan/kecamatan"]
+        },
+        "surat_keterangan_tempat_tinggal": {
+          "name": "Surat Keterangan Tempat Tinggal",
+          "requirements": [
+            "Fotokopi KTP-el",
+            "KK",
+            "Surat pernyataan tempat tinggal dari RT/RW",
+            "Bukti kepemilikan/sewa rumah"
+          ]
+        },
+        "surat_keterangan_kelahiran": {
+          "name": "Surat Keterangan Kelahiran",
+          "requirements": [
+            "Surat keterangan lahir dari RS/klinik/bidan",
+            "SPTJM kebenaran kelahiran",
+            "Fotokopi KTP-el orang tua/saksi",
+            "KK",
+            "Buku nikah/akta perkawinan"
+          ]
+        },
+        "surat_keterangan_kematian": {
+          "name": "Surat Keterangan Kematian",
+          "requirements": [
+            "Surat keterangan kematian dari RS/dokter/kepolisian",
+            "Fotokopi KTP-el almarhum & pelapor",
+            "KK",
+            "KTP-el saksi"
+          ]
+        }
+      }
+    },
+    "akta": {
+      "description": "Dokumen Kependudukan dalam Bentuk Akta",
+      "count": 6,
+      "documents": {
+        "akta_kelahiran": {
+          "name": "Akta Kelahiran",
+          "requirements": [
+            "Surat keterangan lahir dari RS/klinik/bidan atau SPTJM (form F-2.03 dengan 2 saksi)",
+            "Fotokopi KTP-el orang tua & saksi (2 orang)",
+            "KK",
+            "Buku nikah/akta perkawinan atau SPTJM pasangan (F-2.04 dengan 2 saksi)"
+          ],
+          "specialCases": {
+            "anak_luar_nikah": ["Tambah pengakuan anak"]
+          },
+          "output": ["Akta", "KK baru", "KIA"],
+          "onlineServices": ["Aplikasi Alpukat Betawi (Jakarta)", "IKD"]
+        },
+        "akta_kematian": {
+          "name": "Akta Kematian",
+          "requirements": [
+            "Surat keterangan kematian dari RS/dokter/kepolisian",
+            "Fotokopi KTP-el almarhum & pelapor",
+            "KK",
+            "KTP-el saksi",
+            "SPTJM jika diperlukan (form F-2.01 dengan NIK saksi)"
+          ],
+          "output": ["Akta", "KK baru", "KTP-el pasangan (jika ada)"]
+        },
+        "akta_perkawinan": {
+          "name": "Akta Perkawinan",
+          "requirements": [
+            "Fotokopi surat keterangan/pemberkatan dari pemuka agama",
+            "Pas foto berwarna 4x6 (3 lembar) suami-istri",
+            "KTP-el asli",
+            "KK asli"
+          ],
+          "specialCases": {
+            "janda_duda_cerai_mati": ["Akta kematian pasangan"],
+            "janda_duda_cerai_hidup": ["Akta perceraian"]
+          },
+          "notes": [
+            "Untuk non-Muslim: Dari catatan sipil",
+            "Muslim: Dari KUA",
+            "Proses di rumah ibadah jika di daerah tertentu"
+          ]
+        },
+        "akta_perceraian": {
+          "name": "Akta Perceraian",
+          "requirements": [
+            "Fotokopi putusan pengadilan negeri yang inkrah",
+            "Akta perkawinan asli",
+            "Fotokopi KK & KTP-el pasangan",
+            "Surat pernyataan"
+          ]
+        },
+        "akta_pengakuan_anak": {
+          "name": "Akta Pengakuan Anak",
+          "requirements": [
+            "Surat pernyataan pengakuan dari ayah biologis",
+            "Fotokopi akta kelahiran anak",
+            "KK",
+            "KTP-el orang tua",
+            "Putusan pengadilan jika diperlukan"
+          ]
+        },
+        "akta_pengesahan_anak": {
+          "name": "Akta Pengesahan Anak",
+          "requirements": [
+            "Fotokopi putusan pengadilan tentang pengesahan anak",
+            "Akta kelahiran anak",
+            "KK",
+            "KTP-el orang tua",
+            "Surat pernyataan kedua orang tua"
+          ]
+        }
+      }
+    }
+  },
+  "commonPatterns": {
+    "hilang_rusak_duplikat": {
+      "additionalRequirements": [
+        "Surat kehilangan atau dokumen rusak",
+        "Fotokopi dari daerah asal jika luar wilayah"
+      ]
+    },
+    "legalisasi": {
+      "requirements": [
+        "Fotokopi KK",
+        "KTP-el",
+        "Akta asli",
+        "Surat permohonan"
+      ]
+    },
+    "update_data": {
+      "note": "Update data melalui Dukcapil untuk akurasi database nasional, terutama dengan IKD yang wajib mulai 2025 untuk akses digital"
+    }
+  },
+  "trainingQueries": {
+    "ktp_digital": [
+      "cara aktivasi ikd",
+      "syarat ktp digital 2025",
+      "ikd garut gimana",
+      "ktp online aplikasi"
+    ],
+    "kia_scenarios": [
+      "kia anak 3 tahun",
+      "kartu identitas anak 10 tahun",
+      "kia hilang gimana",
+      "syarat kia baru"
+    ],
+    "kk_comprehensive": [
+      "kk baru nikah",
+      "kartu keluarga hilang",
+      "pisah kk anak menikah",
+      "tambah anggota keluarga"
+    ],
+    "akta_services": [
+      "akta kelahiran online",
+      "syarat akta lahir 2025",
+      "akta nikah gimana",
+      "akta cerai persyaratan"
+    ],
+    "surat_services": [
+      "biodata penduduk",
+      "surat pindah domisili",
+      "keterangan tempat tinggal",
+      "surat kematian"
+    ]
+  }
+}

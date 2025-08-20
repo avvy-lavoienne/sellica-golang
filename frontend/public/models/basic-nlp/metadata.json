@@ -1,0 +1,16 @@
+{
+  "name": "basic-nlp",
+  "description": "Basic Indonesian NLP for intent classification",
+  "version": "1.0.0",
+  "size": "2.5MB",
+  "tasks": [
+    "intent-classification",
+    "basic-tokenization"
+  ],
+  "language": "Indonesian",
+  "vocab_size": 10000,
+  "embedding_dim": 128,
+  "max_length": 100,
+  "created_at": "D:\\Journey Code\\Project\\lab\\sellica-prop",
+  "status": "ready"
+}

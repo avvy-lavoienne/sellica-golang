@@ -1,0 +1,23 @@
+{
+  "name": "indonesian-sentiment",
+  "version": "1.0.0",
+  "description": "Production indonesian-sentiment model for SELLY",
+  "type": "sentiment",
+  "tasks": [
+    "sentiment-analysis"
+  ],
+  "language": "Indonesian",
+  "size": "400MB",
+  "source": "huggingface",
+  "model_id": "ayameRushia/bert-base-indonesian-1.5G-sentiment-analysis-smsa",
+  "created_at": "D:\\Journey Code\\Project\\lab\\sellica-prop",
+  "tensorflow_js": {
+    "model_url": "/models/indonesian-sentiment/model.json",
+    "weights_url": "/models/indonesian-sentiment/weights.bin"
+  },
+  "tensorflow_serving": {
+    "model_name": "indonesian-sentiment",
+    "version": 1,
+    "signature_name": "serving_default"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "timestamp": "2025-07-28T07:00:11.410Z",
+  "overallScore": 77,
+  "scores": {
+    "componentScore": 100,
+    "integrationScore": 19,
+    "databaseScore": 63,
+    "typeScore": 100,
+    "queryScore": 100,
+    "configScore": 80
+  },
+  "recommendations": [
+    "🚨 CRITICAL: Main service lacks administrative integration",
+    "⚠️ WARNING: Database integration incomplete"
+  ],
+  "status": "GOOD"
+}

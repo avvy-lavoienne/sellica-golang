@@ -1,0 +1,1061 @@
+openapi: 3.0.3
+info:
+  title: SELLY - Indonesian Government Civil Registration AI Assistant API
+  description: |
+    Comprehensive API for SELLY (Sistem Elektronik Layanan Layanan Yudisial), 
+    an AI-powered assistant for Indonesian civil registration services.
+    
+    This API provides government-grade security, compliance with UU No. 27 Tahun 2022,
+    and comprehensive audit logging for all interactions.
+    
+    **Security Features:**
+    - Government-grade encryption (AES-256-GCM)
+    - Digital signatures (RSA-4096)
+    - Tamper-proof audit trails
+    - Real-time compliance validation
+    - Indonesian data sovereignty compliance
+    
+    **Compliance Standards:**
+    - UU No. 27 Tahun 2022 (Personal Data Protection Law)
+    - ISO 27001 Information Security Management
+    - BSSN (Badan Siber dan Sandi Negara) standards
+    - Indonesian Government API Guidelines
+  version: 2.0.0
+  contact:
+    name: SELLY Development Team
+    email: admin@disdukcapil-garut.go.id
+    url: https://disdukcapil-garut.go.id
+  license:
+    name: Indonesian Government License
+    url: https://disdukcapil-garut.go.id/license
+  termsOfService: https://disdukcapil-garut.go.id/terms
+
+servers:
+  - url: https://api.selly.disdukcapil-garut.go.id/v2
+    description: Production server (Indonesian Government)
+  - url: https://staging-api.selly.disdukcapil-garut.go.id/v2
+    description: Staging server
+  - url: http://localhost:4000/api
+    description: Development server
+
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []
+
+paths:
+  # Authentication Endpoints
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User authentication
+      description: |
+        Authenticate user with email and password.
+        Implements government-grade security with audit logging.
+      operationId: authenticateUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      x-compliance:
+        dataClassification: confidential
+        legalBasis: legitimate_interest
+        auditRequired: true
+        retentionPeriod: 2555 # 7 years
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: User registration
+      description: |
+        Register new user account with government compliance validation.
+        Requires admin approval for government access.
+      operationId: registerUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      x-compliance:
+        dataClassification: confidential
+        legalBasis: consent
+        auditRequired: true
+        retentionPeriod: 2555
+
+  # Chat Endpoints
+  /chat:
+    post:
+      tags:
+        - Chat
+      summary: Send message to SELLY AI
+      description: |
+        Send message to SELLY AI assistant with government-grade security.
+        Includes sensitive data detection and compliance validation.
+      operationId: sendChatMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: Chat response generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      x-compliance:
+        dataClassification: internal
+        legalBasis: legitimate_interest
+        auditRequired: true
+        retentionPeriod: 1095 # 3 years
+        sensitiveDataDetection: true
+
+  /chat/session:
+    get:
+      tags:
+        - Chat
+      summary: Get chat session history
+      description: |
+        Retrieve chat session history with privacy protection.
+        Sensitive data is encrypted and access is audited.
+      operationId: getChatSession
+      parameters:
+        - name: sessionId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Specific session ID to retrieve
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Maximum number of messages to return
+      responses:
+        '200':
+          description: Session history retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      x-compliance:
+        dataClassification: confidential
+        legalBasis: legitimate_interest
+        auditRequired: true
+        retentionPeriod: 1095
+
+  # Compliance Endpoints
+  /compliance/indonesian-data-protection:
+    get:
+      tags:
+        - Compliance
+      summary: Get data protection compliance status
+      description: |
+        Retrieve current compliance status with UU No. 27 Tahun 2022.
+        Includes violation reports and recommendations.
+      operationId: getComplianceStatus
+      responses:
+        '200':
+          description: Compliance status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceStatusResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      x-compliance:
+        dataClassification: internal
+        legalBasis: legal_obligation
+        auditRequired: true
+        retentionPeriod: 2555
+
+  # Security Endpoints
+  /security/government-grade-encryption:
+    get:
+      tags:
+        - Security
+      summary: Get encryption service status
+      description: |
+        Retrieve status of government-grade encryption services.
+        Includes key rotation status and security metrics.
+      operationId: getEncryptionStatus
+      responses:
+        '200':
+          description: Encryption status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EncryptionStatusResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      x-compliance:
+        dataClassification: secret
+        legalBasis: legal_obligation
+        auditRequired: true
+        retentionPeriod: 2555
+
+  # Monitoring Endpoints
+  /monitoring/dashboard:
+    get:
+      tags:
+        - Monitoring
+      summary: Get system monitoring dashboard
+      description: |
+        Retrieve comprehensive system monitoring data.
+        Includes performance metrics and security status.
+      operationId: getMonitoringDashboard
+      responses:
+        '200':
+          description: Monitoring data retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonitoringDashboardResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      x-compliance:
+        dataClassification: internal
+        legalBasis: legitimate_interest
+        auditRequired: true
+        retentionPeriod: 365
+
+  # Health Check
+  /health:
+    get:
+      tags:
+        - System
+      summary: System health check
+      description: |
+        Basic health check endpoint for system monitoring.
+        Returns system status and basic metrics.
+      operationId: healthCheck
+      security: []
+      responses:
+        '200':
+          description: System is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: System is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+      x-compliance:
+        dataClassification: public
+        legalBasis: legitimate_interest
+        auditRequired: false
+        retentionPeriod: 30
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token obtained from authentication endpoint.
+        Includes user identity and permissions.
+    
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: |
+        API key for service-to-service authentication.
+        Required for administrative operations.
+
+  schemas:
+    # Authentication Schemas
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: user@disdukcapil-garut.go.id
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: User password (minimum 8 characters)
+        rememberMe:
+          type: boolean
+          default: false
+          description: Extended session duration
+      x-compliance:
+        sensitiveFields: [password]
+        encryptionRequired: true
+
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            token:
+              type: string
+              description: JWT authentication token
+            user:
+              $ref: '#/components/schemas/UserProfile'
+            expiresAt:
+              type: string
+              format: date-time
+              description: Token expiration time
+        metadata:
+          $ref: '#/components/schemas/ResponseMetadata'
+
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - fullName
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: User password
+        fullName:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Full name
+        role:
+          type: string
+          enum: [operator, admin, viewer]
+          description: User role
+        department:
+          type: string
+          description: Government department
+      x-compliance:
+        sensitiveFields: [password, fullName]
+        encryptionRequired: true
+
+    RegisterResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            userId:
+              type: string
+              format: uuid
+              description: Generated user ID
+            status:
+              type: string
+              enum: [pending_approval, active]
+              description: Account status
+            message:
+              type: string
+              description: Registration status message
+        metadata:
+          $ref: '#/components/schemas/ResponseMetadata'
+
+    # Chat Schemas
+    ChatRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: User message to SELLY AI
+          example: "Bagaimana cara mengurus KTP yang hilang?"
+        sessionId:
+          type: string
+          format: uuid
+          description: Chat session ID (optional)
+        context:
+          type: object
+          description: Additional context for the conversation
+          properties:
+            enhancedMode:
+              type: boolean
+              default: false
+              description: Enable enhanced AI processing
+            enablePersonalization:
+              type: boolean
+              default: true
+              description: Enable personalized responses
+            performanceMode:
+              type: string
+              enum: [fast, balanced, comprehensive]
+              default: balanced
+              description: Response generation mode
+      x-compliance:
+        sensitiveDataDetection: true
+        encryptionRequired: true
+
+    ChatResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            content:
+              type: string
+              description: SELLY AI response
+            type:
+              type: string
+              enum: [administrative, informational, procedural]
+              description: Response type
+            sessionId:
+              type: string
+              format: uuid
+              description: Chat session ID
+            suggestions:
+              type: array
+              items:
+                type: string
+              description: Follow-up suggestions
+            metadata:
+              type: object
+              properties:
+                confidence:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+                  description: Response confidence score
+                processingTime:
+                  type: number
+                  description: Processing time in milliseconds
+                model:
+                  type: string
+                  description: AI model used
+                knowledgeUsed:
+                  type: boolean
+                  description: Whether knowledge base was used
+        metadata:
+          $ref: '#/components/schemas/ResponseMetadata'
+
+    SessionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            sessionId:
+              type: string
+              format: uuid
+              description: Session ID
+            messages:
+              type: array
+              items:
+                $ref: '#/components/schemas/ChatMessage'
+            totalMessages:
+              type: integer
+              description: Total messages in session
+            createdAt:
+              type: string
+              format: date-time
+              description: Session creation time
+            lastActivity:
+              type: string
+              format: date-time
+              description: Last activity time
+        metadata:
+          $ref: '#/components/schemas/ResponseMetadata'
+
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Message ID
+        role:
+          type: string
+          enum: [user, assistant]
+          description: Message sender
+        content:
+          type: string
+          description: Message content
+        timestamp:
+          type: string
+          format: date-time
+          description: Message timestamp
+        metadata:
+          type: object
+          description: Message metadata
+
+    # User Schemas
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: User ID
+        email:
+          type: string
+          format: email
+          description: User email
+        fullName:
+          type: string
+          description: Full name
+        role:
+          type: string
+          enum: [operator, admin, viewer]
+          description: User role
+        department:
+          type: string
+          description: Government department
+        status:
+          type: string
+          enum: [active, pending, suspended]
+          description: Account status
+        lastLogin:
+          type: string
+          format: date-time
+          description: Last login time
+        createdAt:
+          type: string
+          format: date-time
+          description: Account creation time
+      x-compliance:
+        sensitiveFields: [fullName, email]
+        encryptionRequired: true
+
+    # Compliance Schemas
+    ComplianceStatusResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            overallCompliance:
+              type: number
+              minimum: 0
+              maximum: 100
+              description: Overall compliance score
+            standards:
+              type: object
+              properties:
+                uu_27_2022:
+                  $ref: '#/components/schemas/ComplianceStandard'
+                iso_27001:
+                  $ref: '#/components/schemas/ComplianceStandard'
+                bssn:
+                  $ref: '#/components/schemas/ComplianceStandard'
+            violations:
+              type: array
+              items:
+                $ref: '#/components/schemas/ComplianceViolation'
+            lastAudit:
+              type: string
+              format: date-time
+              description: Last compliance audit
+            nextAudit:
+              type: string
+              format: date-time
+              description: Next scheduled audit
+        metadata:
+          $ref: '#/components/schemas/ResponseMetadata'
+
+    ComplianceStandard:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Standard name
+        compliant:
+          type: boolean
+          description: Compliance status
+        score:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Compliance score
+        violations:
+          type: integer
+          description: Number of violations
+        lastCheck:
+          type: string
+          format: date-time
+          description: Last compliance check
+
+    ComplianceViolation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Violation ID
+        type:
+          type: string
+          description: Violation type
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+          description: Violation severity
+        description:
+          type: string
+          description: Violation description
+        timestamp:
+          type: string
+          format: date-time
+          description: When violation occurred
+        status:
+          type: string
+          enum: [open, in_progress, resolved]
+          description: Violation status
+        remediation:
+          type: array
+          items:
+            type: string
+          description: Remediation steps
+
+    # Security Schemas
+    EncryptionStatusResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            status:
+              type: string
+              enum: [active, degraded, offline]
+              description: Encryption service status
+            algorithm:
+              type: string
+              example: AES-256-GCM
+              description: Current encryption algorithm
+            keyRotation:
+              type: object
+              properties:
+                lastRotation:
+                  type: string
+                  format: date-time
+                  description: Last key rotation
+                nextRotation:
+                  type: string
+                  format: date-time
+                  description: Next scheduled rotation
+                rotationInterval:
+                  type: integer
+                  description: Rotation interval in hours
+            metrics:
+              type: object
+              properties:
+                encryptionOperations:
+                  type: integer
+                  description: Total encryption operations
+                decryptionOperations:
+                  type: integer
+                  description: Total decryption operations
+                averageLatency:
+                  type: number
+                  description: Average operation latency (ms)
+        metadata:
+          $ref: '#/components/schemas/ResponseMetadata'
+
+    # Monitoring Schemas
+    MonitoringDashboardResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            system:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [healthy, warning, critical]
+                  description: Overall system status
+                uptime:
+                  type: number
+                  description: System uptime in seconds
+                version:
+                  type: string
+                  description: System version
+            performance:
+              type: object
+              properties:
+                responseTime:
+                  type: number
+                  description: Average response time (ms)
+                throughput:
+                  type: number
+                  description: Requests per second
+                errorRate:
+                  type: number
+                  description: Error rate percentage
+            security:
+              type: object
+              properties:
+                auditEvents:
+                  type: integer
+                  description: Audit events in last 24h
+                securityViolations:
+                  type: integer
+                  description: Security violations in last 24h
+                encryptionStatus:
+                  type: string
+                  enum: [active, degraded, offline]
+                  description: Encryption service status
+        metadata:
+          $ref: '#/components/schemas/ResponseMetadata'
+
+    # System Schemas
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+          description: System health status
+        timestamp:
+          type: string
+          format: date-time
+          description: Health check timestamp
+        version:
+          type: string
+          description: System version
+        services:
+          type: object
+          description: Individual service status
+          additionalProperties:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [up, down, degraded]
+              responseTime:
+                type: number
+                description: Service response time (ms)
+              lastCheck:
+                type: string
+                format: date-time
+
+    # Common Schemas
+    ResponseMetadata:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Response timestamp
+        requestId:
+          type: string
+          format: uuid
+          description: Unique request identifier
+        version:
+          type: string
+          description: API version
+        compliance:
+          type: object
+          properties:
+            dataClassification:
+              type: string
+              enum: [public, internal, confidential, secret]
+              description: Data classification level
+            auditLogged:
+              type: boolean
+              description: Whether request was audit logged
+            encryptionApplied:
+              type: boolean
+              description: Whether encryption was applied
+        performance:
+          type: object
+          properties:
+            processingTime:
+              type: number
+              description: Processing time in milliseconds
+            cacheHit:
+              type: boolean
+              description: Whether response was cached
+
+    # Error Schemas
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              description: Error code
+            message:
+              type: string
+              description: Human-readable error message
+            details:
+              type: string
+              description: Detailed error information
+            timestamp:
+              type: string
+              format: date-time
+              description: Error timestamp
+        metadata:
+          $ref: '#/components/schemas/ResponseMetadata'
+
+    ValidationErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: Request validation failed
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                    description: Field name
+                  message:
+                    type: string
+                    description: Validation error message
+                  value:
+                    description: Invalid value
+        metadata:
+          $ref: '#/components/schemas/ResponseMetadata'
+
+  responses:
+    # Success Responses
+    SuccessResponse:
+      description: Operation successful
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              data:
+                type: object
+                description: Response data
+              metadata:
+                $ref: '#/components/schemas/ResponseMetadata'
+
+    # Error Responses
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorResponse'
+
+    UnauthorizedError:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: UNAUTHORIZED
+              message: Authentication required
+              details: Valid JWT token must be provided
+              timestamp: "2025-08-19T12:00:00Z"
+
+    ForbiddenError:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: FORBIDDEN
+              message: Insufficient permissions
+              details: Admin role required for this operation
+              timestamp: "2025-08-19T12:00:00Z"
+
+    ConflictError:
+      description: Resource conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: CONFLICT
+              message: Resource already exists
+              details: User with this email already exists
+              timestamp: "2025-08-19T12:00:00Z"
+
+    RateLimitError:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: RATE_LIMIT_EXCEEDED
+              message: Too many requests
+              details: Rate limit of 100 requests per minute exceeded
+              timestamp: "2025-08-19T12:00:00Z"
+      headers:
+        X-RateLimit-Limit:
+          description: Request limit per time window
+          schema:
+            type: integer
+        X-RateLimit-Remaining:
+          description: Remaining requests in current window
+          schema:
+            type: integer
+        X-RateLimit-Reset:
+          description: Time when rate limit resets
+          schema:
+            type: integer
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: INTERNAL_SERVER_ERROR
+              message: An unexpected error occurred
+              details: Please contact support if the problem persists
+              timestamp: "2025-08-19T12:00:00Z"
+
+# Indonesian Government Compliance Extensions
+x-compliance:
+  standards:
+    - UU No. 27 Tahun 2022 (Personal Data Protection Law)
+    - ISO 27001 Information Security Management
+    - BSSN (Badan Siber dan Sandi Negara) Standards
+    - Indonesian Government API Guidelines
+
+  dataClassifications:
+    public: "Data that can be freely shared"
+    internal: "Data for internal government use"
+    confidential: "Sensitive government data requiring protection"
+    secret: "Classified government data requiring highest protection"
+
+  auditRequirements:
+    allEndpoints: "All API interactions must be audit logged"
+    retentionPeriod: "Minimum 7 years for government data"
+    digitalSignatures: "Critical operations require digital signatures"
+    realTimeValidation: "Compliance validation in real-time"
+
+  securityRequirements:
+    encryption: "AES-256-GCM for data at rest and in transit"
+    authentication: "Multi-factor authentication for admin operations"
+    authorization: "Role-based access control (RBAC)"
+    rateLimit: "Rate limiting to prevent abuse"
+    headers: "Security headers on all responses"

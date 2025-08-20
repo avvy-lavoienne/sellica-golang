@@ -1,0 +1,1627 @@
+{
+  "metadata": {
+    "integrationDate": "2025-08-05T11:16:46.626Z",
+    "source": "comprehensive_qa_training",
+    "version": "2.0",
+    "totalCategories": 96,
+    "totalScenarios": 6
+  },
+  "specialCases": {
+    "nikah_siri_comprehensive": {
+      "title": "Panduan Lengkap Akta Kelahiran untuk Nikah Siri",
+      "content": "Halo kak! 😊 Saya memahami situasi kakak dan siap membantu dengan informasi yang tepat.\n\n**Untuk pasangan nikah siri yang ingin membuat akta kelahiran anak:**\n\n✅ **Bisa menggunakan SPTJM (Formulir F-2.04)**\n• Surat Pernyataan Tanggung Jawab Mutlak Kebenaran Sebagai Pasangan Suami-Istri\n• Nama ayah dan ibu akan tercantum di akta kelahiran\n• Prosedur sama dengan perkawinan tercatat\n\n⚠️ **Konsekuensi Hukum yang Perlu Dipahami:**\n• Anak hanya memiliki hubungan perdata dengan ibu\n• Tidak berhak atas warisan dari ayah\n• Jika anak perempuan menikah, walinya adalah wali hakim (bukan ayah)\n\n🎯 **Solusi Terbaik: Isbat Nikah**\n• Ajukan ke Pengadilan Agama\n• Setelah dapat penetapan, terbitkan buku nikah di KUA\n• Ajukan pembetulan data akta kelahiran di Dukcapil\n\n📋 **Persyaratan SPTJM:**\n• Formulir F-2.01 (Pelaporan Pencatatan Sipil)\n• Formulir F-2.04 (SPTJM Pasangan Suami-Istri)\n• Surat Keterangan Kelahiran dari bidan/dokter/rumah sakit\n• KTP-el kedua orang tua\n• Kartu Keluarga\n• KTP-el dua orang saksi\n\nSemoga informasi ini membantu ya kak! SELLY siap bantu dengan pertanyaan lain! 🤝",
+      "patterns": [
+        "nikah siri",
+        "menikah siri",
+        "tidak punya buku nikah",
+        "belum punya buku nikah",
+        "kawin siri",
+        "pernikahan siri",
+        "SPTJM",
+        "F-2.04"
+      ],
+      "scenario": "special_case",
+      "confidence": 0.98
+    },
+    "ibu_tunggal_comprehensive": {
+      "title": "Panduan Akta Kelahiran untuk Ibu Tunggal",
+      "content": "Halo kak! 😊 Saya siap membantu kakak yang sedang mengurus akta kelahiran sebagai ibu tunggal.\n\n**Persyaratan untuk Anak Seorang Ibu:**\n\n📋 **Dokumen yang Diperlukan:**\n• Formulir pelaporan (F-2.01)\n• Surat Keterangan Kelahiran dari bidan/dokter/rumah sakit\n• KTP-el ibu\n• Kartu Keluarga (KK) ibu\n• KTP-el dua orang saksi\n\n✅ **Yang Akan Tercantum di Akta:**\n• Frasa: \"Anak seorang ibu, [Nama Ibu]\"\n• Kolom data ayah akan dikosongkan\n• Status hukum anak jelas dan sah\n\n🎯 **Keuntungan:**\n• Prosedur lebih sederhana\n• Tidak perlu SPTJM\n• Anak tetap mendapat perlindungan hukum penuh dari ibu\n• Bisa mengurus sendiri tanpa persetujuan pihak lain\n\n👥 **Tentang Saksi:**\n• Dua orang yang mengetahui peristiwa kelahiran\n• Harus dewasa dan punya KTP-el\n• Bisa keluarga, tetangga, atau teman\n\n💰 **Biaya:** GRATIS sesuai UU No. 24 Tahun 2013\n\nKakak sangat kuat dan hebat! SELLY mendukung kakak sepenuhnya! 🤝💪",
+      "patterns": [
+        "ibu tunggal",
+        "single mother",
+        "anak seorang ibu",
+        "tidak ada ayah",
+        "ibu sendiri",
+        "tanpa ayah",
+        "single parent"
+      ],
+      "scenario": "special_case",
+      "confidence": 0.97
+    },
+    "wna_comprehensive": {
+      "title": "Akta Kelahiran untuk Anak WNA-WNI",
+      "content": "Halo kak! 😊 Saya siap membantu kakak yang merupakan WNA atau menikah dengan WNA.\n\n**Untuk WNA yang menikah dengan WNI:**\n\n✅ **Anak Berhak Mendapat Akta Kelahiran Indonesia**\n• Prosedur mirip dengan WNI\n• Anak otomatis mendapat kewarganegaraan Indonesia (jika salah satu orang tua WNI)\n\n📋 **Dokumen Tambahan untuk WNA:**\n• Paspor WNA yang masih berlaku\n• Dokumen keimigrasian (ITAS/ITAP)\n• Surat Keterangan dari Kedutaan/Konsulat (jika diperlukan)\n• Akta perkawinan yang telah diterjemahkan dan dilegalisir\n\n🌍 **Jika Anak Lahir di Luar Negeri:**\n• Laporkan ke KJRI/Konsulat Indonesia terdekat\n• Dapatkan Laporan Kelahiran dari KJRI\n• Urus akta kelahiran Indonesia setelah kembali ke Indonesia\n\n⚖️ **Status Kewarganegaraan:**\n• Anak bisa memiliki kewarganegaraan ganda sampai usia 18 tahun\n• Setelah 18 tahun harus memilih salah satu kewarganegaraan\n\n📞 **Bantuan Tambahan:**\n• Hubungi Dinas Dukcapil setempat\n• Konsultasi dengan KJRI jika di luar negeri\n\nSemoga membantu ya kak! SELLY siap bantu dengan pertanyaan lain! 🤝🌍",
+      "patterns": [
+        "WNA",
+        "warga negara asing",
+        "foreigner",
+        "bule",
+        "luar negeri",
+        "ITAS",
+        "ITAP",
+        "paspor",
+        "mixed marriage",
+        "kawin campur"
+      ],
+      "scenario": "E",
+      "confidence": 0.96
+    }
+  },
+  "enhancedPatterns": {
+    "legal_documents": [
+      "SPTJM",
+      "F-2.01",
+      "F-2.02",
+      "F-2.03",
+      "F-2.04",
+      "UU 24/2013",
+      "UU No. 24 Tahun 2013",
+      "Pasal 79A",
+      "Permendagri",
+      "Perpres",
+      "buku nikah",
+      "akta perkawinan"
+    ],
+    "processes": [
+      "Isbat Nikah",
+      "Pengadilan Agama",
+      "penetapan pengadilan",
+      "pembetulan data",
+      "koreksi akta",
+      "catatan pinggir",
+      "kutipan kedua",
+      "penggantian akta",
+      "surat kehilangan"
+    ],
+    "status_patterns": [
+      "Kawin Tercatat",
+      "Kawin Belum Tercatat",
+      "Kawin Tidak Tercatat",
+      "anak seorang ibu",
+      "anak sah",
+      "anak luar nikah",
+      "wali hakim",
+      "wali nasab",
+      "hubungan perdata"
+    ],
+    "service_patterns": [
+      "gratis",
+      "tidak ada biaya",
+      "tanpa biaya",
+      "free",
+      "online",
+      "website",
+      "aplikasi",
+      "digital",
+      "jemput bola",
+      "layanan keliling",
+      "daerah terpencil"
+    ],
+    "problem_patterns": [
+      "hilang",
+      "rusak",
+      "sobek",
+      "basah",
+      "terbakar",
+      "salah ketik",
+      "data salah",
+      "nama salah",
+      "tanggal salah",
+      "terlambat",
+      "telat",
+      "sudah lama",
+      "belum punya"
+    ]
+  },
+  "categoryMappings": {
+    "nikah_siri": {
+      "keywords": [
+        "nikah siri",
+        "sptjm",
+        "f-2.04",
+        "buku nikah",
+        "status hukum anak"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "ibu_tunggal": {
+      "keywords": [
+        "ibu tunggal",
+        "anak seorang ibu",
+        "persyaratan",
+        "saksi"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "biaya": {
+      "keywords": [
+        "gratis",
+        "uu 24/2013",
+        "biaya",
+        "pungutan liar"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "implikasi_hukum": {
+      "keywords": [
+        "implikasi hukum",
+        "sptjm",
+        "hubungan perdata",
+        "warisan",
+        "wali hakim"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "sptjm_vs_buku_nikah": {
+      "keywords": [
+        "sptjm",
+        "buku nikah",
+        "alat administratif",
+        "hukum negara"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "asas_domisili": {
+      "keywords": [
+        "asas domisili",
+        "tempat lahir",
+        "alamat ktp",
+        "uu 24/2013"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "dokumen_hilang": {
+      "keywords": [
+        "surat keterangan lahir hilang",
+        "sptjm",
+        "f-2.03",
+        "saksi"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "B"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "isbat_nikah": {
+      "keywords": [
+        "isbat nikah",
+        "pengadilan agama",
+        "pembetulan data",
+        "anak sah"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "D"
+      ],
+      "confidence": 0.95
+    },
+    "anak_luar_nikah": {
+      "keywords": [
+        "anak luar nikah",
+        "anak seorang ibu",
+        "kolom ayah kosong"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.95
+    },
+    "pengakuan_anak": {
+      "keywords": [
+        "pengakuan anak",
+        "penetapan pengadilan",
+        "catatan pinggir",
+        "ayah biologis"
+      ],
+      "pairCount": 9,
+      "scenarios": [
+        "D"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "formulir": {
+      "keywords": [
+        "f-2.01",
+        "formulir induk",
+        "pencatatan sipil",
+        "kelahiran"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "status_perkawinan": {
+      "keywords": [
+        "kawin tercatat",
+        "catatan administratif",
+        "buku nikah",
+        "akta perkawinan"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "cetak_mandiri": {
+      "keywords": [
+        "cetak mandiri",
+        "hvs a4 80 gram",
+        "qr code",
+        "kekuatan hukum"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "saksi": {
+      "keywords": [
+        "saksi",
+        "dua orang",
+        "dewasa",
+        "ktp-el",
+        "keluarga",
+        "tetangga"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.95
+    },
+    "keterlambatan": {
+      "keywords": [
+        "terlambat",
+        "tidak ada denda",
+        "uu 24/2013",
+        "kepala dinas"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "B"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "landasan_hukum": {
+      "keywords": [
+        "uu 24/2013",
+        "uu 23/2006",
+        "layanan gratis",
+        "asas domisili",
+        "stelsel aktif"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.95
+    },
+    "akta_hilang": {
+      "keywords": [
+        "akta hilang",
+        "kutipan kedua",
+        "surat kehilangan",
+        "kepolisian"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "C"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "stelsel_aktif": {
+      "keywords": [
+        "stelsel aktif",
+        "kewajiban melapor",
+        "pemerintah",
+        "ketua rt"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.95
+    },
+    "sanksi_hukum": {
+      "keywords": [
+        "sanksi hukum",
+        "pasal 94",
+        "manipulasi data",
+        "6 tahun penjara",
+        "denda 75 juta"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.95
+    },
+    "hak_waris": {
+      "keywords": [
+        "hak waris",
+        "nikah siri",
+        "hubungan perdata",
+        "tidak tercatat"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "wali_nikah": {
+      "keywords": [
+        "wali hakim",
+        "pengadilan agama",
+        "wali nasab",
+        "perkawinan tidak tercatat"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.95
+    },
+    "kuasa": {
+      "keywords": [
+        "surat kuasa",
+        "meterai",
+        "diwakilkan",
+        "pemberi kuasa"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "peraturan_turunan": {
+      "keywords": [
+        "perpres 96/2018",
+        "permendagri 108/2019",
+        "permendagri 109/2019",
+        "standardisasi formulir"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.95
+    },
+    "pembetulan_data": {
+      "keywords": [
+        "kesalahan tulis",
+        "pembetulan akta",
+        "substantif",
+        "pengadilan negeri"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "D"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "akses_pendidikan": {
+      "keywords": [
+        "sekolah",
+        "syarat administrasi",
+        "hak dasar",
+        "pendidikan",
+        "layanan kesehatan"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "B"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "permendagri_9_2016": {
+      "keywords": [
+        "permendagri 9/2016",
+        "percepatan",
+        "cakupan kepemilikan",
+        "komitmen pemerintah"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.95
+    },
+    "kerahasiaan_data": {
+      "keywords": [
+        "kerahasiaan data",
+        "uu 24/2013",
+        "instansi pelaksana",
+        "data perseorangan"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "anak_temuan": {
+      "keywords": [
+        "anak temuan",
+        "bap",
+        "kepolisian",
+        "wali",
+        "penanggung jawab"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "perbedaan_status": {
+      "keywords": [
+        "kepastian hukum",
+        "hubungan perdata",
+        "hak waris",
+        "perwalian",
+        "hukum negara"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.95
+    },
+    "update_kk": {
+      "keywords": [
+        "update kk",
+        "nama anak",
+        "syarat daerah",
+        "mencantumkan nama"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "batas_waktu": {
+      "keywords": [
+        "batas waktu",
+        "60 hari",
+        "peraturan baru",
+        "penetapan pengadilan"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "B"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "jangkauan_layanan": {
+      "keywords": [
+        "daerah terpencil",
+        "stelsel aktif",
+        "layanan keliling",
+        "jemput bola"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "wna": {
+      "keywords": [
+        "wna",
+        "wni",
+        "paspor",
+        "itas",
+        "itap",
+        "dokumen keimigrasian"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "E"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "formulir_f204": {
+      "keywords": [
+        "f-2.04",
+        "sptjm",
+        "pasangan suami-istri",
+        "belum punya buku nikah"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.95
+    },
+    "status_kk": {
+      "keywords": [
+        "kawin belum tercatat",
+        "kawin tidak tercatat",
+        "penanda administratif",
+        "belum disahkan"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "proses_isbat": {
+      "keywords": [
+        "isbat nikah",
+        "pengadilan agama",
+        "jalur hukum",
+        "mengesahkan pernikahan siri"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "D"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "filosofi_sptjm": {
+      "keywords": [
+        "solusi pragmatis",
+        "hak fundamental",
+        "identitas hukum",
+        "perlindungan dasar"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.95
+    },
+    "langkah_setelah_isbat": {
+      "keywords": [
+        "penetapan isbat",
+        "buku nikah",
+        "kua",
+        "perubahan data",
+        "dasar hukum"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "D"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "akta_lama": {
+      "keywords": [
+        "akta lama",
+        "uu 24/2013",
+        "tetap berlaku",
+        "diterbitkan sah"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "dewasa_belum_akta": {
+      "keywords": [
+        "dewasa",
+        "30 tahun",
+        "ijazah",
+        "bukti pendukung",
+        "verifikasi data"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "B"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "blangko_baru": {
+      "keywords": [
+        "blangko",
+        "security printing",
+        "hvs putih a4",
+        "tte",
+        "qr code"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "tujuan_reformasi": {
+      "keywords": [
+        "tertib administrasi",
+        "perlindungan",
+        "status hukum",
+        "pelayanan publik",
+        "tidak diskriminatif"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "penolakan_permohonan": {
+      "keywords": [
+        "penolakan",
+        "penjelasan tertulis",
+        "kepala dinas",
+        "kanal pengaduan"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "beda_agama": {
+      "keywords": [
+        "beda agama",
+        "dicatatkan",
+        "penetapan pengadilan",
+        "prosedur normal"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "akta_rusak": {
+      "keywords": [
+        "akta rusak",
+        "basah",
+        "kutipan kedua",
+        "dokumen pendukung"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "C"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "nik": {
+      "keywords": [
+        "nik",
+        "otomatis terdaftar",
+        "dimasukkan kk",
+        "seumur hidup"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "layanan_online": {
+      "keywords": [
+        "online",
+        "website",
+        "aplikasi khusus",
+        "mempermudah masyarakat"
+      ],
+      "pairCount": 8,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "perbedaan_akta_kutipan": {
+      "keywords": [
+        "register akta",
+        "buku catatan asli",
+        "arsip negara",
+        "salinan otentik",
+        "bukti hukum"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.95
+    },
+    "sanksi_petugas": {
+      "keywords": [
+        "sanksi hukum",
+        "pungutan liar",
+        "pasal 95b",
+        "6 tahun penjara",
+        "denda 75 juta",
+        "petugas korup"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.95
+    },
+    "bayi_terlantar": {
+      "keywords": [
+        "bayi terlantar",
+        "anak temuan",
+        "bap kepolisian",
+        "sptjm",
+        "wali",
+        "penanggung jawab"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "pengesahan_anak": {
+      "keywords": [
+        "pengesahan anak",
+        "uu 24/2013",
+        "akta pengesahan anak",
+        "catatan pinggir",
+        "sah agama"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "D"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "status_kk_detail": {
+      "keywords": [
+        "kawin belum tercatat",
+        "tidak diakui negara",
+        "catatan administratif",
+        "tidak mengikat",
+        "akta otentik"
+      ],
+      "pairCount": 8,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "layanan_online_detail": {
+      "keywords": [
+        "online tanpa email",
+        "tidak ada",
+        "unduh pdf",
+        "whatsapp",
+        "sistem layanan"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "formulir_f107": {
+      "keywords": [
+        "f-1.07",
+        "surat kuasa",
+        "tidak mampu mengurus",
+        "kuasa orang lain"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.95
+    },
+    "blangko_lama": {
+      "keywords": [
+        "blangko lama",
+        "hvs 100 gram",
+        "biru muda",
+        "tanda pengaman",
+        "permendagri 9/2016"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.95
+    },
+    "kewajiban_dukcapil": {
+      "keywords": [
+        "kewajiban dukcapil",
+        "peristiwa kependudukan",
+        "pelayanan profesional",
+        "kerahasiaan data"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.95
+    },
+    "wna_detail": {
+      "keywords": [
+        "wna detail",
+        "izin tinggal tetap",
+        "stmd",
+        "kepolisian",
+        "dokumen keimigrasian"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "E"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "catatan_pinggir": {
+      "keywords": [
+        "catatan pinggir",
+        "pengakuan anak",
+        "pengangkatan anak",
+        "perubahan nama",
+        "kewarganegaraan"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "D"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "kehadiran_saksi": {
+      "keywords": [
+        "tidak harus datang",
+        "fotokopi ktp saksi",
+        "kehadiran fisik",
+        "data valid"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "petugas_registrasi": {
+      "keywords": [
+        "petugas registrasi",
+        "bupati/walikota",
+        "kepala desa",
+        "stelsel aktif"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.95
+    },
+    "orang_tua_meninggal": {
+      "keywords": [
+        "orang tua meninggal",
+        "wali",
+        "penanggung jawab",
+        "surat kematian",
+        "dokumen perwalian"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.95
+    },
+    "anak_pertama_kedua": {
+      "keywords": [
+        "tidak ada perbedaan",
+        "anak ke-",
+        "prosedur sama",
+        "formulir pelaporan"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "keamanan_data": {
+      "keywords": [
+        "keamanan data",
+        "kerahasiaan",
+        "sanksi pidana",
+        "penyebarluasan tanpa hak"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "siak": {
+      "keywords": [
+        "siak",
+        "sistem informasi",
+        "terintegrasi nasional",
+        "pengelolaan data"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.95
+    },
+    "nikah_sebelum_1974": {
+      "keywords": [
+        "sebelum 1974",
+        "uu perkawinan",
+        "surat keterangan kawin",
+        "kepala desa",
+        "camat"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "beda_agama_detail": {
+      "keywords": [
+        "beda agama",
+        "pengadilan negeri",
+        "dicatatkan dukcapil",
+        "nama kedua orang tua"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "ktp_seumur_hidup": {
+      "keywords": [
+        "ktp-el seumur hidup",
+        "pasal 64",
+        "uu 24/2013"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "permendagri_109_2019": {
+      "keywords": [
+        "permendagri 109/2019",
+        "standardisasi formulir",
+        "keseragaman pelayanan",
+        "f-2.01",
+        "f-2.03",
+        "f-2.04"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.95
+    },
+    "isbat_nikah_detail": {
+      "keywords": [
+        "tidak otomatis",
+        "penetapan isbat",
+        "pembetulan data",
+        "buku nikah",
+        "dasar hukum"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "D"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "nik_otomatis": {
+      "keywords": [
+        "nik otomatis",
+        "terdaftar sistem",
+        "dimasukkan kk",
+        "seumur hidup"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "register_vs_kutipan": {
+      "keywords": [
+        "register akta",
+        "buku catatan asli",
+        "data otentik",
+        "arsip negara",
+        "salinan otentik"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.95
+    },
+    "gelar_pendidikan": {
+      "keywords": [
+        "gelar pendidikan",
+        "nama sesuai ktp",
+        "tidak dicantumkan",
+        "kebijakan daerah"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "data_tidak_sinkron": {
+      "keywords": [
+        "data berbeda",
+        "pembetulan data",
+        "dokumen pendukung",
+        "sinkronisasi"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "D"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "anak_adopsi": {
+      "keywords": [
+        "anak adopsi",
+        "akta asli",
+        "penetapan pengadilan",
+        "catatan pinggir",
+        "status pengangkatan"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "D"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "permendagri_108_2019": {
+      "keywords": [
+        "permendagri 108/2019",
+        "perpres 96/2018",
+        "tata cara teknis",
+        "prosedur pelayanan"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.95
+    },
+    "orang_tua_cerai": {
+      "keywords": [
+        "orang tua cerai",
+        "tidak berubah",
+        "saat dilahirkan",
+        "akta perceraian terpisah"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.95
+    },
+    "metode_persalinan": {
+      "keywords": [
+        "tidak ada perbedaan",
+        "normal vs caesar",
+        "surat keterangan sah",
+        "tenaga medis"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "perbatasan_negara": {
+      "keywords": [
+        "perbatasan negara",
+        "pelintas batas",
+        "pas lintas batas",
+        "perjanjian antarnegara"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "duplikat_cadangan": {
+      "keywords": [
+        "tidak bisa duplikat",
+        "kutipan kedua",
+        "hilang atau rusak",
+        "surat keterangan polisi"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "C"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "buku_harian": {
+      "keywords": [
+        "buku harian",
+        "desa/kelurahan",
+        "peristiwa kependudukan",
+        "peristiwa penting"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.95
+    },
+    "ibu_pengganti": {
+      "keywords": [
+        "ibu pengganti",
+        "surrogate mother",
+        "belum diatur",
+        "ibu biologis",
+        "konsultasi hukum"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "nama_berbeda": {
+      "keywords": [
+        "nama berbeda",
+        "ejaan lama",
+        "penyesuaian data",
+        "putusan pengadilan",
+        "ijazah"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "D"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "inseminasi_bayi_tabung": {
+      "keywords": [
+        "inseminasi buatan",
+        "bayi tabung",
+        "prosedur sama",
+        "pasangan sah",
+        "rumah sakit"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "verifikasi_validasi": {
+      "keywords": [
+        "verifikasi validasi",
+        "pengecekan kebenaran",
+        "keabsahan dokumen",
+        "konsisten",
+        "input sistem"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "pengaduan_layanan": {
+      "keywords": [
+        "tidak puas",
+        "mengadu",
+        "kepala dinas",
+        "kanal pengaduan",
+        "lapor!"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "jaminan_pinjaman": {
+      "keywords": [
+        "tidak bisa jaminan",
+        "hak sipil",
+        "bukan aset",
+        "tidak sah",
+        "lembaga keuangan"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "anak_kembar": {
+      "keywords": [
+        "anak kembar",
+        "individu terpisah",
+        "akta sendiri",
+        "nomor berbeda",
+        "pelaporan individual"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "mpp": {
+      "keywords": [
+        "mpp",
+        "mal pelayanan publik",
+        "terintegrasi",
+        "mempermudah",
+        "mempercepat"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "peran_provinsi": {
+      "keywords": [
+        "pemerintah provinsi",
+        "gubernur",
+        "koordinasi",
+        "bimbingan",
+        "supervisi",
+        "konsultasi"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.95
+    },
+    "batasan_nama": {
+      "keywords": [
+        "60 huruf",
+        "permendagri 73/2022",
+        "mudah dibaca",
+        "tidak negatif",
+        "tidak multitafsir"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "wni_lahir_luar_negeri": {
+      "keywords": [
+        "wni luar negeri",
+        "kbri/kjri",
+        "bukti pelaporan",
+        "domisili indonesia"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "E"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "tidak_cantumkan_ayah": {
+      "keywords": [
+        "tidak bisa pilih",
+        "perkawinan sah",
+        "status hukum",
+        "nama ayah ibu"
+      ],
+      "pairCount": 8,
+      "scenarios": [
+        "special_case"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "buku_induk_penduduk": {
+      "keywords": [
+        "buku induk penduduk",
+        "data keluarga",
+        "pencatatan manual",
+        "tertib administrasi"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.95
+    },
+    "qr_code_kedaluwarsa": {
+      "keywords": [
+        "qr code tidak kedaluwarsa",
+        "data terenkripsi",
+        "database nasional",
+        "verifikasi keaslian"
+      ],
+      "pairCount": 6,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "akta_lama_tulis_tangan": {
+      "keywords": [
+        "tidak wajib ganti",
+        "tetap sah",
+        "format digital",
+        "qr code",
+        "pencetakan ulang"
+      ],
+      "pairCount": 7,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.9500000000000001
+    },
+    "peristiwa_penting": {
+      "keywords": [
+        "peristiwa penting",
+        "kelahiran",
+        "kematian",
+        "perkawinan",
+        "perceraian",
+        "pengakuan anak",
+        "pengesahan anak",
+        "pengangkatan anak",
+        "perubahan nama",
+        "kewarganegaraan"
+      ],
+      "pairCount": 5,
+      "scenarios": [
+        "A"
+      ],
+      "confidence": 0.95
+    }
+  },
+  "scenarioEnhancements": {
+    "special_case": {
+      "description": "Kasus Khusus (Nikah Siri, Ibu Tunggal, dll)",
+      "pairCount": 144,
+      "categories": [
+        "nikah_siri",
+        "ibu_tunggal",
+        "implikasi_hukum",
+        "sptjm_vs_buku_nikah",
+        "anak_luar_nikah",
+        "status_perkawinan",
+        "sanksi_hukum",
+        "hak_waris",
+        "wali_nikah",
+        "anak_temuan",
+        "perbedaan_status",
+        "formulir_f204",
+        "status_kk",
+        "filosofi_sptjm",
+        "sanksi_petugas",
+        "bayi_terlantar",
+        "status_kk_detail",
+        "orang_tua_meninggal",
+        "nikah_sebelum_1974",
+        "beda_agama_detail",
+        "perbatasan_negara",
+        "ibu_pengganti",
+        "jaminan_pinjaman",
+        "tidak_cantumkan_ayah"
+      ],
+      "commonKeywords": [
+        "sptjm"
+      ],
+      "averageConfidence": 0.9500000000000011
+    },
+    "A": {
+      "description": "Bayi Baru Lahir (Normal Process)",
+      "pairCount": 294,
+      "categories": [
+        "biaya",
+        "asas_domisili",
+        "formulir",
+        "cetak_mandiri",
+        "saksi",
+        "landasan_hukum",
+        "stelsel_aktif",
+        "kuasa",
+        "peraturan_turunan",
+        "permendagri_9_2016",
+        "kerahasiaan_data",
+        "update_kk",
+        "jangkauan_layanan",
+        "akta_lama",
+        "blangko_baru",
+        "tujuan_reformasi",
+        "penolakan_permohonan",
+        "beda_agama",
+        "nik",
+        "layanan_online",
+        "perbedaan_akta_kutipan",
+        "layanan_online_detail",
+        "formulir_f107",
+        "blangko_lama",
+        "kewajiban_dukcapil",
+        "kehadiran_saksi",
+        "petugas_registrasi",
+        "anak_pertama_kedua",
+        "keamanan_data",
+        "siak",
+        "ktp_seumur_hidup",
+        "permendagri_109_2019",
+        "nik_otomatis",
+        "register_vs_kutipan",
+        "gelar_pendidikan",
+        "permendagri_108_2019",
+        "orang_tua_cerai",
+        "metode_persalinan",
+        "buku_harian",
+        "inseminasi_bayi_tabung",
+        "verifikasi_validasi",
+        "pengaduan_layanan",
+        "anak_kembar",
+        "mpp",
+        "peran_provinsi",
+        "batasan_nama",
+        "buku_induk_penduduk",
+        "qr_code_kedaluwarsa",
+        "akta_lama_tulis_tangan",
+        "peristiwa_penting"
+      ],
+      "commonKeywords": [],
+      "averageConfidence": 0.9499999999999948
+    },
+    "B": {
+      "description": "Keterlambatan Pelaporan",
+      "pairCount": 33,
+      "categories": [
+        "dokumen_hilang",
+        "keterlambatan",
+        "akses_pendidikan",
+        "batas_waktu",
+        "dewasa_belum_akta"
+      ],
+      "commonKeywords": [
+        "surat keterangan lahir hilang",
+        "sptjm",
+        "f-2.03",
+        "saksi",
+        "terlambat",
+        "tidak ada denda",
+        "uu 24/2013",
+        "kepala dinas",
+        "sekolah",
+        "syarat administrasi",
+        "hak dasar",
+        "pendidikan",
+        "layanan kesehatan",
+        "batas waktu",
+        "60 hari",
+        "peraturan baru",
+        "penetapan pengadilan",
+        "dewasa",
+        "30 tahun",
+        "ijazah",
+        "bukti pendukung",
+        "verifikasi data"
+      ],
+      "averageConfidence": 0.9499999999999995
+    },
+    "D": {
+      "description": "Pembetulan/Koreksi Data",
+      "pairCount": 71,
+      "categories": [
+        "isbat_nikah",
+        "pengakuan_anak",
+        "pembetulan_data",
+        "proses_isbat",
+        "langkah_setelah_isbat",
+        "pengesahan_anak",
+        "catatan_pinggir",
+        "isbat_nikah_detail",
+        "data_tidak_sinkron",
+        "anak_adopsi",
+        "nama_berbeda"
+      ],
+      "commonKeywords": [
+        "pembetulan data",
+        "pengakuan anak",
+        "penetapan pengadilan",
+        "catatan pinggir"
+      ],
+      "averageConfidence": 0.9500000000000013
+    },
+    "C": {
+      "description": "Dokumen Hilang/Rusak",
+      "pairCount": 21,
+      "categories": [
+        "akta_hilang",
+        "akta_rusak",
+        "duplikat_cadangan"
+      ],
+      "commonKeywords": [
+        "akta hilang",
+        "kutipan kedua",
+        "surat kehilangan",
+        "kepolisian",
+        "akta rusak",
+        "basah",
+        "dokumen pendukung",
+        "tidak bisa duplikat",
+        "hilang atau rusak",
+        "surat keterangan polisi"
+      ],
+      "averageConfidence": 0.9499999999999996
+    },
+    "E": {
+      "description": "Kelahiran di Luar Negeri",
+      "pairCount": 20,
+      "categories": [
+        "wna",
+        "wna_detail",
+        "wni_lahir_luar_negeri"
+      ],
+      "commonKeywords": [
+        "wna",
+        "wni",
+        "paspor",
+        "itas",
+        "itap",
+        "dokumen keimigrasian",
+        "wna detail",
+        "izin tinggal tetap",
+        "stmd",
+        "kepolisian",
+        "wni luar negeri",
+        "kbri/kjri",
+        "bukti pelaporan",
+        "domisili indonesia"
+      ],
+      "averageConfidence": 0.9499999999999996
+    }
+  }
+}

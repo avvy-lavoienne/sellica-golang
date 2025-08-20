@@ -1,0 +1,869 @@
+{
+  "database": {
+    "name": "SELLICA Database",
+    "description": "Sistem administrasi data warga dan pelayanan publik",
+    "version": "2.0",
+    "lastUpdated": "2025-07-28",
+    "discoveredAt": "2025-07-27T14:14:48.453Z",
+    "totalTables": 10,
+    "coreFoundationTables": 4,
+    "expandedTables": 6
+  },
+  "tables": {
+    "profiles": {
+      "displayName": "Profil Pengguna",
+      "description": "Data profil pengguna sistem SELLICA",
+      "businessPurpose": "Menyimpan informasi identitas dan akses pengguna",
+      "type": "BASE TABLE",
+      "primaryKey": "id",
+      "status": "core_foundation",
+      "columns": {
+        "id": {
+          "dataType": "uuid",
+          "type": "uuid",
+          "description": "ID unik pengguna",
+          "businessMeaning": "Identifikasi unik setiap pengguna dalam sistem",
+          "isNullable": false,
+          "isPrimaryKey": true,
+          "searchable": true,
+          "displayInSummary": false
+        },
+        "name": {
+          "dataType": "text",
+          "type": "text",
+          "description": "Nama lengkap pengguna",
+          "businessMeaning": "Nama lengkap pengguna untuk identifikasi",
+          "isNullable": true,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["nama", "nama lengkap", "identitas"]
+        },
+        "nik": {
+          "dataType": "text",
+          "type": "text",
+          "description": "Nomor Induk Kependudukan",
+          "businessMeaning": "NIK 16 digit sesuai KTP untuk verifikasi identitas",
+          "isNullable": true,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "format": "16 digit",
+          "synonyms": ["nik", "nomor ktp", "nomor identitas"]
+        },
+        "email": {
+          "dataType": "text",
+          "type": "email",
+          "description": "Alamat email pengguna",
+          "businessMeaning": "Email untuk komunikasi dan login sistem",
+          "isNullable": true,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": false
+        },
+        "role": {
+          "dataType": "text",
+          "type": "enum",
+          "description": "Peran pengguna dalam sistem",
+          "businessMeaning": "Level akses dan tanggung jawab pengguna",
+          "isNullable": true,
+          "isPrimaryKey": false,
+          "values": ["admin", "operator", "user"],
+          "displayInSummary": true,
+          "synonyms": ["peran", "jabatan", "level akses"]
+        },
+        "status": {
+          "dataType": "text",
+          "type": "enum",
+          "description": "Status aktif pengguna",
+          "businessMeaning": "Apakah pengguna masih aktif menggunakan sistem",
+          "isNullable": true,
+          "isPrimaryKey": false,
+          "values": ["active", "inactive", "pending"],
+          "displayInSummary": true,
+          "synonyms": ["status", "kondisi", "keadaan"]
+        },
+        "created_at": {
+          "dataType": "timestamp with time zone",
+          "type": "timestamp",
+          "description": "Waktu pendaftaran",
+          "businessMeaning": "Kapan pengguna pertama kali mendaftar",
+          "isNullable": true,
+          "isPrimaryKey": false,
+          "searchable": false,
+          "displayInSummary": false
+        }
+      },
+      "relationships": {
+        "pengajuan_bulanan": {
+          "type": "one-to-many",
+          "foreignKey": "user_id",
+          "description": "Satu pengguna bisa memiliki banyak pengajuan"
+        },
+        "aktivitas_user": {
+          "type": "one-to-many",
+          "foreignKey": "user_id",
+          "description": "Satu pengguna bisa memiliki banyak aktivitas"
+        }
+      },
+      "commonQueries": [
+        "Berapa jumlah pengguna?",
+        "Siapa saja admin?",
+        "Pengguna yang belum aktif?",
+        "Berapa kolom di tabel profiles?",
+        "Apa saja kolom profiles?",
+        "Struktur tabel profiles"
+      ],
+      "aggregations": {
+        "total_pengguna": "COUNT(*)",
+        "pengguna_aktif": "COUNT(*) WHERE status = 'active'",
+        "admin_count": "COUNT(*) WHERE role = 'admin'"
+      },
+      "columnCount": 7,
+      "sellyPatterns": {
+        "tableQueries": ["profil", "profiles", "pengguna", "user"],
+        "columnQueries": ["kolom profiles", "field profiles", "struktur profiles"]
+      }
+    },
+    "pengajuan_bulanan": {
+      "displayName": "Pengajuan Bulanan",
+      "description": "Data pengajuan layanan bulanan warga",
+      "businessPurpose": "Mengelola pengajuan layanan administrasi dari warga",
+      "type": "BASE TABLE",
+      "primaryKey": "id",
+      "status": "core_foundation",
+      "columns": {
+        "id": {
+          "dataType": "uuid",
+          "type": "uuid",
+          "description": "ID unik pengajuan",
+          "businessMeaning": "Identifikasi unik setiap pengajuan bulanan dalam sistem",
+          "isNullable": false,
+          "isPrimaryKey": true,
+          "searchable": true,
+          "displayInSummary": false
+        },
+        "user_id": {
+          "dataType": "uuid",
+          "type": "uuid",
+          "description": "ID pengguna yang mengajukan",
+          "businessMeaning": "Referensi ke pengguna yang membuat pengajuan",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": false,
+          "foreignKey": {
+            "table": "users",
+            "column": "id"
+          }
+        },
+        "nik_pengajuan_hapus": {
+          "dataType": "text",
+          "type": "text",
+          "description": "NIK yang akan dihapus dari pengajuan",
+          "businessMeaning": "NIK 16 digit yang diminta untuk dihapus dari sistem",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "format": "16 digit",
+          "synonyms": ["nik", "nomor ktp", "nik pengajuan", "nik hapus", "nomor identitas"]
+        },
+        "nama_pengajuan": {
+          "dataType": "text",
+          "type": "text",
+          "description": "Nama pemilik NIK yang diajukan",
+          "businessMeaning": "Nama lengkap pemilik NIK yang diminta untuk dihapus",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["nama", "nama lengkap", "nama pemilik", "identitas"]
+        },
+        "alasan_pengajuan": {
+          "dataType": "text",
+          "type": "enum",
+          "description": "Alasan pengajuan penghapusan",
+          "businessMeaning": "Kategori alasan mengapa NIK perlu dihapus dari sistem",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["alasan", "sebab", "kategori", "jenis pengajuan"]
+        },
+        "alasan_lainnya": {
+          "dataType": "text",
+          "type": "text",
+          "description": "Penjelasan detail alasan lainnya",
+          "businessMeaning": "Keterangan tambahan jika alasan tidak tersedia dalam kategori standar",
+          "isNullable": true,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": false,
+          "synonyms": ["keterangan", "penjelasan", "detail", "catatan"]
+        },
+        "nik_pengaju": {
+          "dataType": "text",
+          "type": "text",
+          "description": "NIK petugas yang mengajukan",
+          "businessMeaning": "NIK 16 digit petugas yang membuat pengajuan penghapusan",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "format": "16 digit",
+          "synonyms": ["nik pengaju", "nik petugas", "nomor petugas", "identitas pengaju"]
+        },
+        "nama_pengaju": {
+          "dataType": "text",
+          "type": "text",
+          "description": "Nama petugas yang mengajukan",
+          "businessMeaning": "Nama lengkap petugas yang membuat pengajuan penghapusan",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["nama pengaju", "nama petugas", "petugas", "operator"]
+        },
+        "tanggal_pengajuan": {
+          "dataType": "timestamp",
+          "type": "timestamp",
+          "description": "Tanggal dan waktu pengajuan dibuat",
+          "businessMeaning": "Kapan pengajuan penghapusan NIK disubmit ke sistem",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["tanggal", "waktu pengajuan", "submit", "tanggal buat"]
+        },
+        "estimasi_tanggal_perekaman": {
+          "dataType": "timestamp",
+          "type": "timestamp",
+          "description": "Estimasi tanggal perekaman akan dilakukan",
+          "businessMeaning": "Perkiraan kapan proses perekaman ulang akan dilaksanakan",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["estimasi", "perkiraan", "jadwal", "tanggal rekam"]
+        },
+        "is_ready_to_record": {
+          "dataType": "boolean",
+          "type": "boolean",
+          "description": "Status kesiapan untuk perekaman",
+          "businessMeaning": "Apakah pengajuan sudah siap untuk proses perekaman ulang",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["siap rekam", "ready", "status siap", "kesiapan"]
+        },
+        "created_at": {
+          "dataType": "timestamp",
+          "type": "timestamp",
+          "description": "Waktu record dibuat di sistem",
+          "businessMeaning": "Timestamp otomatis saat data pengajuan pertama kali disimpan",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": false,
+          "displayInSummary": false
+        }
+      },
+      "sellyPatterns": {
+        "tableQueries": ["pengajuan", "pengajuan bulanan", "aplikasi"],
+        "columnQueries": ["kolom pengajuan", "field pengajuan", "struktur pengajuan"]
+      }
+    },
+    "salah_rekam": {
+      "displayName": "Salah Rekam",
+      "description": "Data kesalahan perekaman yang perlu diperbaiki",
+      "businessPurpose": "Mengelola koreksi data yang salah input",
+      "type": "BASE TABLE",
+      "primaryKey": "id",
+      "status": "core_foundation",
+      "columns": {
+        "id": {
+          "dataType": "uuid",
+          "type": "uuid",
+          "description": "ID unik record salah rekam",
+          "businessMeaning": "Identifikasi unik setiap kasus kesalahan perekaman",
+          "isNullable": false,
+          "isPrimaryKey": true,
+          "searchable": true,
+          "displayInSummary": false
+        },
+        "user_id": {
+          "dataType": "uuid",
+          "type": "uuid",
+          "description": "ID pengguna yang melaporkan",
+          "businessMeaning": "Referensi ke pengguna yang melaporkan kesalahan perekaman",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": false,
+          "foreignKey": {
+            "table": "users",
+            "column": "id"
+          }
+        },
+        "nik_salah_rekam": {
+          "dataType": "text",
+          "type": "text",
+          "description": "NIK yang mengalami kesalahan perekaman",
+          "businessMeaning": "NIK 16 digit yang datanya salah direkam dan perlu diperbaiki",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "format": "16 digit",
+          "synonyms": ["nik", "nomor ktp", "nik salah", "nomor identitas", "nik error"]
+        },
+        "nama_salah_rekam": {
+          "dataType": "text",
+          "type": "text",
+          "description": "Nama pemilik NIK yang salah rekam",
+          "businessMeaning": "Nama lengkap pemilik NIK yang mengalami kesalahan perekaman",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["nama", "nama lengkap", "nama pemilik", "identitas"]
+        },
+        "nik_pemilik_biometric": {
+          "dataType": "text",
+          "type": "text",
+          "description": "NIK pemilik data biometrik yang benar",
+          "businessMeaning": "NIK 16 digit pemilik sebenarnya dari data biometrik",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "format": "16 digit",
+          "synonyms": ["nik biometric", "nik pemilik", "nik benar", "pemilik biometric"]
+        },
+        "nama_pemilik_biometric": {
+          "dataType": "text",
+          "type": "text",
+          "description": "Nama pemilik data biometrik yang benar",
+          "businessMeaning": "Nama lengkap pemilik sebenarnya dari data biometrik",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["nama biometric", "nama pemilik", "nama benar", "pemilik biometric"]
+        },
+        "nik_pemilik_foto": {
+          "dataType": "text",
+          "type": "text",
+          "description": "NIK pemilik foto yang benar",
+          "businessMeaning": "NIK 16 digit pemilik sebenarnya dari foto yang terekam",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "format": "16 digit",
+          "synonyms": ["nik foto", "nik pemilik foto", "pemilik foto", "nik benar foto"]
+        },
+        "nama_pemilik_foto": {
+          "dataType": "text",
+          "type": "text",
+          "description": "Nama pemilik foto yang benar",
+          "businessMeaning": "Nama lengkap pemilik sebenarnya dari foto yang terekam",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["nama foto", "nama pemilik foto", "pemilik foto", "nama benar foto"]
+        },
+        "nik_petugas_rekam": {
+          "dataType": "text",
+          "type": "text",
+          "description": "NIK petugas yang melakukan perekaman",
+          "businessMeaning": "NIK 16 digit petugas yang bertanggung jawab atas perekaman data",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "format": "16 digit",
+          "synonyms": ["nik petugas", "petugas rekam", "operator rekam", "nik operator"]
+        },
+        "nama_petugas_rekam": {
+          "dataType": "text",
+          "type": "text",
+          "description": "Nama petugas yang melakukan perekaman",
+          "businessMeaning": "Nama lengkap petugas yang bertanggung jawab atas perekaman data",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["nama petugas", "petugas rekam", "operator rekam", "nama operator"]
+        },
+        "tanggal_perekaman": {
+          "dataType": "timestamp",
+          "type": "timestamp",
+          "description": "Tanggal perekaman yang salah dilakukan",
+          "businessMeaning": "Kapan perekaman data yang salah tersebut dilakukan",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["tanggal", "waktu rekam", "tanggal salah", "waktu perekaman"]
+        },
+        "nik_pengaju": {
+          "dataType": "text",
+          "type": "text",
+          "description": "NIK petugas yang mengajukan koreksi",
+          "businessMeaning": "NIK 16 digit petugas yang melaporkan kesalahan perekaman",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "format": "16 digit",
+          "synonyms": ["nik pengaju", "nik pelapor", "pengaju koreksi", "pelapor error"]
+        },
+        "nama_pengaju": {
+          "dataType": "text",
+          "type": "text",
+          "description": "Nama petugas yang mengajukan koreksi",
+          "businessMeaning": "Nama lengkap petugas yang melaporkan kesalahan perekaman",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["nama pengaju", "nama pelapor", "pengaju koreksi", "pelapor error"]
+        },
+        "created_at": {
+          "dataType": "timestamp",
+          "type": "timestamp",
+          "description": "Waktu record dibuat di sistem",
+          "businessMeaning": "Timestamp otomatis saat laporan kesalahan pertama kali disimpan",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": false,
+          "displayInSummary": false
+        },
+        "is_ready_to_record": {
+          "dataType": "boolean",
+          "type": "boolean",
+          "description": "Status kesiapan untuk perekaman ulang",
+          "businessMeaning": "Apakah kasus sudah siap untuk proses perekaman ulang yang benar",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["siap rekam", "ready", "status siap", "kesiapan koreksi"]
+        },
+        "estimasi_tanggal_perekaman": {
+          "dataType": "timestamp",
+          "type": "timestamp",
+          "description": "Estimasi tanggal perekaman ulang",
+          "businessMeaning": "Perkiraan kapan perekaman koreksi akan dilaksanakan",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["estimasi", "perkiraan", "jadwal koreksi", "tanggal rekam ulang"]
+        }
+      },
+      "sellyPatterns": {
+        "tableQueries": ["salah rekam", "kesalahan", "koreksi"],
+        "columnQueries": ["kolom salah rekam", "field salah rekam", "struktur salah rekam"]
+      }
+    },
+    "aktivitas_user": {
+      "displayName": "Aktivitas Pengguna",
+      "description": "Log aktivitas pengguna dalam sistem",
+      "businessPurpose": "Melacak aktivitas dan audit trail pengguna",
+      "type": "BASE TABLE",
+      "primaryKey": "id",
+      "status": "core_foundation",
+      "columnCount": 6,
+      "sellyPatterns": {
+        "tableQueries": ["aktivitas user", "aktivitas pengguna", "log"],
+        "columnQueries": ["kolom aktivitas", "field aktivitas", "struktur aktivitas"]
+      }
+    },
+    "adjudicate_record": {
+      "displayName": "Adjudicate Record",
+      "description": "Data record yang memerlukan adjudikasi",
+      "businessPurpose": "Mengelola proses adjudikasi dan validasi data",
+      "type": "BASE TABLE",
+      "primaryKey": "id",
+      "status": "expansion_ready",
+      "columns": {
+        "id": {
+          "dataType": "uuid",
+          "type": "uuid",
+          "description": "ID unik record adjudikasi",
+          "businessMeaning": "Identifikasi unik setiap record yang perlu adjudikasi",
+          "isNullable": false,
+          "isPrimaryKey": true,
+          "searchable": true,
+          "displayInSummary": false
+        },
+        "user_id": {
+          "dataType": "uuid",
+          "type": "uuid",
+          "description": "ID pengguna yang mengajukan",
+          "businessMeaning": "Referensi ke pengguna yang mengajukan adjudikasi",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": false,
+          "synonyms": ["user", "pengguna", "pengaju"]
+        },
+        "nik_adjudicate": {
+          "dataType": "text",
+          "type": "text",
+          "description": "NIK yang perlu diadjudikasi",
+          "businessMeaning": "Nomor Induk Kependudukan yang memerlukan validasi",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "format": "16 digit",
+          "synonyms": ["nik", "nomor ktp", "nik adjudicate", "nik validasi", "nomor identitas", "nik adjudikasi"]
+        },
+        "nama_adjudicate": {
+          "dataType": "text",
+          "type": "text",
+          "description": "Nama yang perlu diadjudikasi",
+          "businessMeaning": "Nama lengkap yang memerlukan validasi",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["nama", "nama lengkap", "nama adjudicate", "nama validasi", "identitas", "nama adjudikasi"]
+        },
+        "nik_pengaju": {
+          "dataType": "text",
+          "type": "text",
+          "description": "NIK pengaju adjudikasi",
+          "businessMeaning": "NIK pengguna yang mengajukan adjudikasi",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "format": "16 digit",
+          "synonyms": ["nik pengaju", "nik pemohon", "nik pelapor", "pengaju", "pemohon adjudikasi"]
+        },
+        "nama_pengaju": {
+          "dataType": "text",
+          "type": "text",
+          "description": "Nama pengaju adjudikasi",
+          "businessMeaning": "Nama lengkap pengguna yang mengajukan adjudikasi",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["nama pengaju", "nama pemohon", "nama pelapor", "pengaju", "pemohon adjudikasi"]
+        },
+        "jenis_eksepsi": {
+          "dataType": "text",
+          "type": "enum",
+          "description": "Jenis eksepsi adjudikasi",
+          "businessMeaning": "Kategori jenis eksepsi yang diajukan",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "values": ["eksepsi total", "eksepsi parsial"],
+          "displayInSummary": true,
+          "synonyms": ["jenis eksepsi", "tipe eksepsi", "kategori"]
+        },
+        "tanggal_pengajuan": {
+          "dataType": "timestamp",
+          "type": "date",
+          "description": "Tanggal pengajuan adjudikasi",
+          "businessMeaning": "Kapan adjudikasi ini diajukan",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["tanggal pengajuan", "tanggal ajuan"]
+        },
+        "created_at": {
+          "dataType": "timestamp",
+          "type": "timestamp",
+          "description": "Waktu pembuatan record",
+          "businessMeaning": "Kapan record adjudikasi ini dibuat dalam sistem",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": false,
+          "displayInSummary": false
+        },
+        "is_ready_to_record": {
+          "dataType": "boolean",
+          "type": "boolean",
+          "description": "Status kesiapan perekaman",
+          "businessMeaning": "Apakah record sudah siap untuk direkam",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "values": [true, false],
+          "displayInSummary": true,
+          "synonyms": ["siap rekam", "ready to record", "status rekam"]
+        },
+        "estimasi_tanggal_perekaman": {
+          "dataType": "timestamp",
+          "type": "date",
+          "description": "Estimasi tanggal perekaman",
+          "businessMeaning": "Perkiraan kapan record akan direkam",
+          "isNullable": true,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": false,
+          "synonyms": ["estimasi perekaman", "target perekaman"]
+        }
+      },
+      "relationships": {
+        "profiles": {
+          "type": "many-to-one",
+          "foreignKey": "user_id",
+          "description": "Setiap adjudicate record dimiliki oleh satu pengguna"
+        }
+      },
+      "commonQueries": [
+        "Berapa adjudicate record?",
+        "Siapa saja yang mengajukan adjudikasi?",
+        "Record mana yang siap direkam?",
+        "Berapa kolom di tabel adjudicate_record?",
+        "Apa saja kolom adjudicate_record?",
+        "Struktur tabel adjudicate_record"
+      ],
+      "aggregations": {
+        "total_records": "COUNT(*)",
+        "ready_to_record": "COUNT(*) WHERE is_ready_to_record = true",
+        "by_jenis_eksepsi": "COUNT(*) GROUP BY jenis_eksepsi"
+      },
+      "columnCount": 10,
+      "sellyPatterns": {
+        "tableQueries": ["adjudicate", "adjudicate record", "validasi", "adjudikasi"],
+        "columnQueries": ["kolom adjudicate", "field adjudicate", "struktur adjudicate"]
+      }
+    },
+    "aktivitas_siak": {
+      "displayName": "Aktivitas SIAK",
+      "description": "Log aktivitas sistem SIAK",
+      "businessPurpose": "Melacak aktivitas dan integrasi dengan sistem SIAK",
+      "type": "BASE TABLE",
+      "primaryKey": "id",
+      "status": "expansion_ready",
+      "columnCount": 6,
+      "sellyPatterns": {
+        "tableQueries": ["aktivitas siak", "siak", "sistem siak"],
+        "columnQueries": ["kolom siak", "field siak", "struktur siak"]
+      }
+    },
+    "dokumentasi": {
+      "displayName": "Dokumentasi",
+      "description": "Data dokumentasi dan file pendukung",
+      "businessPurpose": "Menyimpan dokumentasi dan file yang terkait dengan layanan",
+      "type": "BASE TABLE",
+      "primaryKey": "id",
+      "status": "expansion_ready",
+      "columnCount": 7,
+      "sellyPatterns": {
+        "tableQueries": ["dokumentasi", "dokumen", "file"],
+        "columnQueries": ["kolom dokumentasi", "field dokumentasi", "struktur dokumentasi"]
+      }
+    },
+    "duplicate_operator": {
+      "displayName": "Duplicate Operator",
+      "description": "Data operator yang terduplikasi",
+      "businessPurpose": "Mengelola dan membersihkan data operator yang duplikat",
+      "type": "BASE TABLE",
+      "primaryKey": "id",
+      "status": "expansion_ready",
+      "columns": {
+        "id": {
+          "dataType": "uuid",
+          "type": "uuid",
+          "description": "ID unik record duplicate operator",
+          "businessMeaning": "Identifikasi unik setiap kasus duplikasi operator",
+          "isNullable": false,
+          "isPrimaryKey": true,
+          "searchable": true,
+          "displayInSummary": false
+        },
+        "user_id": {
+          "dataType": "uuid",
+          "type": "uuid",
+          "description": "ID pengguna yang melaporkan",
+          "businessMeaning": "Referensi ke pengguna yang melaporkan duplikasi operator",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": false,
+          "foreignKey": {
+            "table": "users",
+            "column": "id"
+          }
+        },
+        "nik_duplicate": {
+          "dataType": "text",
+          "type": "text",
+          "description": "NIK yang terduplikasi",
+          "businessMeaning": "NIK 16 digit yang mengalami duplikasi dalam sistem operator",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "format": "16 digit",
+          "synonyms": ["nik", "nomor ktp", "nik duplikat", "nomor identitas", "nik duplicate"]
+        },
+        "nama_duplicate": {
+          "dataType": "text",
+          "type": "text",
+          "description": "Nama pemilik NIK yang terduplikasi",
+          "businessMeaning": "Nama lengkap pemilik NIK yang mengalami duplikasi",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["nama", "nama lengkap", "nama pemilik", "identitas", "nama duplicate"]
+        },
+        "nik_operator": {
+          "dataType": "text",
+          "type": "text",
+          "description": "NIK operator yang menangani",
+          "businessMeaning": "NIK 16 digit operator yang bertanggung jawab menangani kasus duplikasi",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "format": "16 digit",
+          "synonyms": ["nik operator", "operator", "petugas", "nik petugas"]
+        },
+        "nama_operator": {
+          "dataType": "text",
+          "type": "text",
+          "description": "Nama operator yang menangani",
+          "businessMeaning": "Nama lengkap operator yang bertanggung jawab menangani kasus duplikasi",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["nama operator", "operator", "petugas", "nama petugas"]
+        },
+        "nik_pengaju": {
+          "dataType": "text",
+          "type": "text",
+          "description": "NIK petugas yang mengajukan pembersihan",
+          "businessMeaning": "NIK 16 digit petugas yang melaporkan duplikasi operator",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "format": "16 digit",
+          "synonyms": ["nik pengaju", "nik pelapor", "pengaju", "pelapor duplikat"]
+        },
+        "nama_pengaju": {
+          "dataType": "text",
+          "type": "text",
+          "description": "Nama petugas yang mengajukan pembersihan",
+          "businessMeaning": "Nama lengkap petugas yang melaporkan duplikasi operator",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["nama pengaju", "nama pelapor", "pengaju", "pelapor duplikat"]
+        },
+        "tanggal_perekaman": {
+          "dataType": "timestamp",
+          "type": "timestamp",
+          "description": "Tanggal perekaman data duplikat",
+          "businessMeaning": "Kapan data duplikat tersebut pertama kali direkam dalam sistem",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["tanggal", "waktu rekam", "tanggal duplikat", "waktu perekaman"]
+        },
+        "tanggal_pengajuan": {
+          "dataType": "timestamp",
+          "type": "timestamp",
+          "description": "Tanggal pengajuan pembersihan duplikat",
+          "businessMeaning": "Kapan laporan duplikasi operator disubmit untuk pembersihan",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["tanggal pengajuan", "waktu lapor", "submit", "tanggal lapor"]
+        },
+        "is_ready_to_record": {
+          "dataType": "boolean",
+          "type": "boolean",
+          "description": "Status kesiapan untuk pembersihan",
+          "businessMeaning": "Apakah kasus duplikasi sudah siap untuk proses pembersihan data",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": true,
+          "displayInSummary": true,
+          "synonyms": ["siap bersih", "ready", "status siap", "kesiapan pembersihan"]
+        },
+        "created_at": {
+          "dataType": "timestamp",
+          "type": "timestamp",
+          "description": "Waktu record dibuat di sistem",
+          "businessMeaning": "Timestamp otomatis saat laporan duplikasi pertama kali disimpan",
+          "isNullable": false,
+          "isPrimaryKey": false,
+          "searchable": false,
+          "displayInSummary": false
+        }
+      },
+      "sellyPatterns": {
+        "tableQueries": ["duplicate operator", "operator duplikat", "duplikat"],
+        "columnQueries": ["kolom duplicate", "field duplicate", "struktur duplicate"]
+      }
+    },
+    "pending_users": {
+      "displayName": "Pending Users",
+      "description": "Data pengguna yang menunggu persetujuan",
+      "businessPurpose": "Mengelola proses persetujuan registrasi pengguna baru",
+      "type": "BASE TABLE",
+      "primaryKey": "id",
+      "status": "expansion_ready",
+      "columnCount": 6,
+      "sellyPatterns": {
+        "tableQueries": ["pending users", "pengguna pending", "menunggu"],
+        "columnQueries": ["kolom pending", "field pending", "struktur pending"]
+      }
+    },
+    "pengaduan_bulanan": {
+      "displayName": "Pengaduan Bulanan",
+      "description": "Data pengaduan dan keluhan bulanan warga",
+      "businessPurpose": "Mengelola pengaduan dan keluhan dari warga",
+      "type": "BASE TABLE",
+      "primaryKey": "id",
+      "status": "expansion_ready",
+      "columnCount": 7,
+      "sellyPatterns": {
+        "tableQueries": ["pengaduan", "pengaduan bulanan", "keluhan"],
+        "columnQueries": ["kolom pengaduan", "field pengaduan", "struktur pengaduan"]
+      }
+    }
+  },
+  "globalPatterns": {
+    "columnQueries": [
+      "berapa kolom",
+      "jumlah kolom",
+      "apa saja kolom",
+      "kolom apa saja",
+      "struktur tabel",
+      "skema tabel",
+      "field apa saja"
+    ],
+    "tableQueries": [
+      "berapa tabel",
+      "jumlah tabel",
+      "tabel apa saja",
+      "daftar tabel"
+    ]
+  },
+  "statistics": {
+    "totalTables": 10,
+    "coreFoundationTables": 4,
+    "expansionReadyTables": 6,
+    "totalColumns": 64,
+    "averageColumnsPerTable": 6.4
+  }
+}

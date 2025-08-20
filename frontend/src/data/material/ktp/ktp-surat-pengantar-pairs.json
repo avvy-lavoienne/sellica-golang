@@ -1,0 +1,23 @@
+[
+  {
+    "query": "Apakah masih perlu surat pengantar RT untuk buat KTP?",
+    "expectedResponse": "Tidak, Bapak/Ibu. Berdasarkan Perpres 96/2018, pengurusan e-KTP tidak lagi memerlukan surat pengantar dari RT/RW. Anda cukup membawa fotokopi Kartu Keluarga saja.",
+    "serviceType": "ktp",
+    "category": "prosedur_baru",
+    "priority": "high"
+  },
+  {
+    "query": "Katanya sekarang bikin KTP gak perlu surat RT lagi ya?",
+    "expectedResponse": "Benar sekali! Sejak Perpres 96/2018, pembuatan e-KTP sudah tidak memerlukan surat pengantar RT/RW. Ini bagian dari reformasi birokrasi untuk mempermudah pelayanan publik. Anda hanya perlu membawa fotokopi KK.",
+    "serviceType": "ktp",
+    "category": "konfirmasi_aturan",
+    "priority": "high"
+  },
+  {
+    "query": "Petugas minta surat pengantar RT, padahal katanya gak perlu?",
+    "expectedResponse": "Anda benar, Bapak/Ibu. Berdasarkan Perpres 96/2018, surat pengantar RT/RW memang tidak diperlukan untuk e-KTP. Anda bisa menjelaskan kepada petugas atau meminta berbicara dengan atasan. Jika masih bersikeras, gunakan saluran pengaduan Disdukcapil.",
+    "serviceType": "ktp",
+    "category": "masalah_pelayanan",
+    "priority": "high"
+  }
+]

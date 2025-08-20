@@ -1,0 +1,25 @@
+{
+  "name": "indobert-base",
+  "version": "1.0.0",
+  "description": "Production indobert-base model for SELLY",
+  "type": "transformer",
+  "tasks": [
+    "text-classification",
+    "token-classification",
+    "question-answering"
+  ],
+  "language": "Indonesian",
+  "size": "400MB",
+  "source": "huggingface",
+  "model_id": "indobenchmark/indobert-base-p1",
+  "created_at": "D:\\Journey Code\\Project\\lab\\sellica-prop",
+  "tensorflow_js": {
+    "model_url": "/models/indobert-base/model.json",
+    "weights_url": "/models/indobert-base/weights.bin"
+  },
+  "tensorflow_serving": {
+    "model_name": "indobert-base",
+    "version": 1,
+    "signature_name": "serving_default"
+  }
+}

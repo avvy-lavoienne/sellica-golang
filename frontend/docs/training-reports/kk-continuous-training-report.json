@@ -1,0 +1,63 @@
+{
+  "trainingType": "KK Continuous Training",
+  "timestamp": "2025-08-07T15:34:42.606Z",
+  "result": {
+    "success": false,
+    "trainingDuration": 519,
+    "finalAccuracy": 0.9406015490577964,
+    "totalTrainingPairs": 119,
+    "scenarioSupport": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "special_case"
+    ],
+    "personaIntegration": "Sahabat Adminduk - Friendly Indonesian administrative assistant",
+    "testResults": [
+      {
+        "query": "Berapa biaya bikin KK?",
+        "response": "Halo kak! 😊 Tentang berapa biaya bikin kk?, SELLY siap membantu dengan informasi KK yang lengkap dan akurat. Semua layanan KK GRATIS sesuai UU No. 24 Tahun 2013! 🤝",
+        "accuracyScore": 1,
+        "scenarioDetected": "A"
+      },
+      {
+        "query": "KK saya hilang, bagaimana cara menggantinya?",
+        "response": "Halo kak! 😊 Tentang kk saya hilang, bagaimana cara menggantinya?, SELLY siap membantu dengan informasi KK yang lengkap dan akurat. Semua layanan KK GRATIS sesuai UU No. 24 Tahun 2013! 🤝",
+        "accuracyScore": 1,
+        "scenarioDetected": "C"
+      },
+      {
+        "query": "Saya mau pisah KK setelah menikah",
+        "response": "Halo kak! 😊 Tentang saya mau pisah kk setelah menikah, SELLY siap membantu dengan informasi KK yang lengkap dan akurat. Semua layanan KK GRATIS sesuai UU No. 24 Tahun 2013! 🤝",
+        "accuracyScore": 1,
+        "scenarioDetected": "A"
+      },
+      {
+        "query": "Data di KK salah, bagaimana koreksinya?",
+        "response": "Halo kak! 😊 Tentang data di kk salah, bagaimana koreksinya?, SELLY siap membantu dengan informasi KK yang lengkap dan akurat. Semua layanan KK GRATIS sesuai UU No. 24 Tahun 2013! 🤝",
+        "accuracyScore": 1,
+        "scenarioDetected": "D"
+      },
+      {
+        "query": "Kami menikah siri, bisa buat KK tidak?",
+        "response": "Halo kak! 😊 Tentang kami menikah siri, bisa buat kk tidak?, SELLY siap membantu dengan informasi KK yang lengkap dan akurat. Semua layanan KK GRATIS sesuai UU No. 24 Tahun 2013! 🤝",
+        "accuracyScore": 1,
+        "scenarioDetected": "special_case"
+      }
+    ],
+    "nextSteps": [
+      "Monitor KK query accuracy in production",
+      "Collect user feedback for continuous improvement",
+      "Update training data based on new regulations",
+      "Expand KK scenario coverage based on usage patterns"
+    ]
+  },
+  "summary": {
+    "success": false,
+    "accuracy": "94.1%",
+    "duration": "0.0 minutes",
+    "totalPairs": 119
+  }
+}
