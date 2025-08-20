@@ -12,10 +12,11 @@ import {
 } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ChatProvider, useChat } from '@/contexts/ChatContext';
+import { UnifiedChatProvider, useUnifiedChat } from '@/contexts/UnifiedChatContext';
 import { EnhancedChatMessage } from '@/components/chatbot/EnhancedChatMessage';
 import { MobileNavigation } from '@/components/mobile/MobileNavigation';
 import { aiService } from '@/services/chatbot/aiService';
+import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
 import { cn } from '@/lib/conn/utils';
 
 interface MobileChatContentProps {
@@ -34,7 +35,7 @@ function MobileChatContent({ className }: MobileChatContentProps) {
     estimatedTime,
     sendMessage,
     clearMessages,
-  } = useChat();
+  } = useUnifiedChat();
 
   // Mobile-specific state
   const [inputValue, setInputValue] = useState('');
@@ -413,6 +414,9 @@ function MobileChatContent({ className }: MobileChatContentProps) {
  * Mobile Chat Page with Provider
  */
 export default function MobileChatPage() {
+  // Use authenticated user hook to resolve authentication inconsistency
+  const { userId, isAuthenticated, isLoading } = useAuthenticatedUser();
+
   const handleMessageSent = useCallback(async (message: string) => {
     try {
       const response = await aiService.processQuery(message);
@@ -423,9 +427,18 @@ export default function MobileChatPage() {
     }
   }, []);
 
+  // Show loading state while determining user authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="text-white text-lg">Loading Mobile Chat...</div>
+      </div>
+    );
+  }
+
   return (
-    <ChatProvider userId="mobile-user" onMessageSent={handleMessageSent}>
+    <UnifiedChatProvider userId={userId} onMessageSent={handleMessageSent}>
       <MobileChatContent />
-    </ChatProvider>
+    </UnifiedChatProvider>
   );
 }

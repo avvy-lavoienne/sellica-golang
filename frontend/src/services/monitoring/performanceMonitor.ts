@@ -1,18 +1,106 @@
 /**
- * Performance Monitoring Service for Phase 1 Priority 1
- * Real User Data Collection System Monitoring and Optimization
- * 
- * Tracks performance metrics, analyzes system efficiency, and provides
- * optimization recommendations for the enhanced training data collection system
+ * Enhanced Performance Monitoring Service - Week 3 Production Implementation
+ * Comprehensive monitoring, alerting, and optimization for SELLY session management
+ *
+ * Features:
+ * - Real-time performance monitoring with alerting
+ * - Advanced metrics collection and analysis
+ * - Production-ready health checks and diagnostics
+ * - Integration with session management and storage systems
  */
+
+import { aiLogger } from './logger';
 
 export interface PerformanceMetric {
   timestamp: string;
-  metricType: 'response_time' | 'memory_usage' | 'error_rate' | 'throughput' | 'accuracy';
-  service: 'real_time_analyzer' | 'feedback_collector' | 'training_collector' | 'api_endpoint' | 'chat_integration';
+  metricType: 'response_time' | 'memory_usage' | 'error_rate' | 'throughput' | 'accuracy' | 'session_count' | 'cache_hit_ratio' | 'storage_latency' | 'cpu_usage' | 'connection_time' | 'optimization_score';
+  service: 'real_time_analyzer' | 'feedback_collector' | 'training_collector' | 'api_endpoint' | 'chat_integration' | 'session_manager' | 'storage_adapter' | 'cache_layer' | 'ai_service' | 'optimization_manager' | 'intelligence_engine' | 'unified_service';
   value: number;
-  unit: 'ms' | 'mb' | 'percent' | 'count' | 'score';
+  unit: 'ms' | 'mb' | 'percent' | 'count' | 'score' | 'ratio' | 'bytes' | 'ops_per_sec' | 'requests_per_sec';
   metadata?: Record<string, any>;
+  threshold?: PerformanceThreshold;
+}
+
+export interface PerformanceThreshold {
+  warning: number;
+  critical: number;
+  operator: 'gt' | 'lt' | 'eq' | 'gte' | 'lte';
+}
+
+// HIGH-1: Consolidated interfaces from multiple monitoring services
+export interface AIServiceMetrics {
+  serviceName: string;
+  requestCount: number;
+  successCount: number;
+  errorCount: number;
+  averageResponseTime: number;
+  minResponseTime: number;
+  maxResponseTime: number;
+  memoryUsage: number;
+  cpuUsage: number;
+  cacheHitRate: number;
+  lastHealthCheck: Date;
+  isHealthy: boolean;
+  performanceScore: number;
+}
+
+export interface OptimizationMetrics {
+  initializationTime: number;
+  cacheWarmTime: number;
+  memoryUsage: number;
+  duplicateInitializations: number;
+  cacheHitRate: number;
+  averageResponseTime: number;
+  optimizationScore: number;
+  resourceEfficiency: number;
+}
+
+export interface ConsolidatedPerformanceReport {
+  timestamp: Date;
+  overallHealth: 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
+  totalRequests: number;
+  averageResponseTime: number;
+  systemMemoryUsage: number;
+  cpuUsage: number;
+  cacheEfficiency: number;
+  serviceMetrics: AIServiceMetrics[];
+  optimizationMetrics: OptimizationMetrics;
+  recommendations: string[];
+  alerts: string[];
+  consolidatedFrom: string[]; // Track which services were consolidated
+}
+
+export interface OperationTrackingData {
+  operation: string;
+  startTime: number;
+  metadata?: Record<string, any>;
+}
+
+export interface PerformanceAlert {
+  id: string;
+  metric?: PerformanceMetric;
+  type: 'warning' | 'critical';
+  level: 'warning' | 'critical';
+  message: string;
+  timestamp: string;
+  resolved: boolean;
+  resolvedAt?: string;
+  escalated?: boolean;
+}
+
+export interface AlertingConfig {
+  enabled: boolean;
+  channels: AlertChannel[];
+  cooldownPeriod: number; // milliseconds
+  escalationDelay: number; // milliseconds
+  maxAlertsPerHour: number;
+}
+
+export interface AlertChannel {
+  type: 'console' | 'webhook' | 'email' | 'slack' | 'sms';
+  endpoint?: string;
+  enabled: boolean;
+  severity: ('warning' | 'critical')[];
 }
 
 export interface SystemHealthStatus {
@@ -69,6 +157,33 @@ export class PerformanceMonitor {
   private healthStatus: SystemHealthStatus;
   private monitoringInterval: NodeJS.Timeout | null = null;
   private initialized = false;
+  private isMonitoring = false; // HIGH-1: Track consolidated monitoring state
+
+  // HIGH-1: Consolidated monitoring data from multiple services
+  private aiServiceMetrics = new Map<string, AIServiceMetrics>();
+  private optimizationMetrics: OptimizationMetrics;
+  private consolidatedServices: string[] = [];
+  private lastConsolidationReport?: ConsolidatedPerformanceReport;
+  private operationTracking = new Map<string, OperationTrackingData>();
+  private alertHistory: PerformanceAlert[] = [];
+
+  // HIGH-1: Optimized monitoring configuration
+  private readonly CONSOLIDATED_MONITORING_INTERVAL = 60000; // 1 minute (optimized from multiple 5s-30s intervals)
+  private readonly MAX_METRICS_RETENTION = 1000; // Reduced from unlimited retention
+  private readonly SIGNIFICANT_METRIC_THRESHOLD = 0.1; // Only log significant changes
+
+  // AI Service specific tracking (using consolidated operationTracking above)
+  private operationStats: Map<string, {
+    totalRequests: number;
+    successfulRequests: number;
+    failedRequests: number;
+    averageResponseTime: number;
+    minResponseTime: number;
+    maxResponseTime: number;
+    p95ResponseTime: number;
+    errorRate: number;
+    lastUpdated: number;
+  }> = new Map();
 
   // Performance targets from Phase 1 Priority 1 specifications
   private readonly TARGETS = {
@@ -81,6 +196,32 @@ export class PerformanceMonitor {
 
   private constructor() {
     this.healthStatus = this.initializeHealthStatus();
+
+    // HIGH-1: Initialize consolidated optimization metrics
+    this.optimizationMetrics = {
+      initializationTime: 0,
+      cacheWarmTime: 0,
+      memoryUsage: 0,
+      duplicateInitializations: 0,
+      cacheHitRate: 0,
+      averageResponseTime: 0,
+      optimizationScore: 100,
+      resourceEfficiency: 100
+    };
+
+    // HIGH-1: Track consolidated services
+    this.consolidatedServices = [
+      'aiPerformanceMonitor',
+      'performanceOptimizationManager',
+      'performanceOptimizer',
+      'intelligencePerformanceDashboard',
+      'realTimePerformanceDashboard'
+    ];
+
+    aiLogger.performance.info('✅ [HIGH-1] Unified Performance Monitor initialized with consolidated services', {
+      consolidatedServices: this.consolidatedServices,
+      optimizedInterval: this.CONSOLIDATED_MONITORING_INTERVAL
+    });
   }
 
   public static getInstance(): PerformanceMonitor {
@@ -97,7 +238,7 @@ export class PerformanceMonitor {
     if (this.initialized) return;
 
     try {
-      console.log('📊 [PERFORMANCE_MONITOR] Initializing performance monitoring system...');
+      //console.log('📊 [PERFORMANCE_MONITOR] Initializing performance monitoring system...');
       
       // Start continuous monitoring
       this.startContinuousMonitoring();
@@ -106,9 +247,9 @@ export class PerformanceMonitor {
       await this.loadHistoricalMetrics();
       
       this.initialized = true;
-      console.log('✅ [PERFORMANCE_MONITOR] Performance monitoring system initialized');
+      // console.log(
     } catch (error) {
-      console.error('❌ [PERFORMANCE_MONITOR] Failed to initialize:', error);
+      // console.error( [PERFORMANCE_MONITOR] Failed to initialize:', error);
       throw error;
     }
   }
@@ -139,7 +280,7 @@ export class PerformanceMonitor {
     
     // Log only critical metrics (reduced verbosity)
     if (this.isSignificantMetric(metric)) {
-      console.log(`⚠️ [PERFORMANCE_MONITOR] CRITICAL: ${service}:${metricType} = ${value}${unit}`);
+      aiLogger.performance.warn(`CRITICAL: ${service}:${metricType} = ${value}${unit}`, { metric });
     }
 
     // Cleanup old metrics (keep last 24 hours)
@@ -250,7 +391,7 @@ export class PerformanceMonitor {
       this.collectSystemMetrics();
     }, 300000);
 
-    console.log('🔄 [PERFORMANCE_MONITOR] Continuous monitoring started (5min intervals)');
+    //console.log('🔄 [PERFORMANCE_MONITOR] Continuous monitoring started (5min intervals)');
   }
 
   /**
@@ -274,7 +415,9 @@ export class PerformanceMonitor {
       this.updateOverallHealth();
 
     } catch (error) {
-      console.error('❌ [PERFORMANCE_MONITOR] Failed to collect system metrics:', error);
+      aiLogger.performance.error('Failed to collect system metrics', {
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   }
 
@@ -318,7 +461,15 @@ export class PerformanceMonitor {
       'feedback_collector': 'feedbackCollector',
       'training_collector': 'trainingCollector',
       'api_endpoint': 'apiEndpoints',
-      'chat_integration': 'chatIntegration'
+      'chat_integration': 'chatIntegration',
+      'session_manager': 'trainingCollector', // Map to existing service
+      'storage_adapter': 'trainingCollector', // Map to existing service
+      'cache_layer': 'trainingCollector', // Map to existing service
+      // HIGH-1: Add consolidated service mappings
+      'ai_service': 'realTimeAnalyzer',
+      'optimization_manager': 'feedbackCollector',
+      'intelligence_engine': 'realTimeAnalyzer',
+      'unified_service': 'chatIntegration'
     } as const;
 
     return mapping[service] || 'trainingCollector';
@@ -581,11 +732,188 @@ export class PerformanceMonitor {
   }
 
   /**
+   * HIGH-1: Start consolidated AI service operation tracking
+   * Replaces functionality from aiPerformanceMonitor.ts and performanceOptimizationManager.ts
+   */
+  startAIOperation(operation: string, metadata?: Record<string, any>): string {
+    const operationId = `${operation}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const startTime = performance.now();
+
+    this.operationTracking.set(operationId, {
+      operation,
+      startTime,
+      metadata
+    });
+
+    // HIGH-1: Update optimization metrics
+    this.optimizationMetrics.initializationTime = startTime;
+
+    return operationId;
+  }
+
+  /**
+   * Complete tracking an AI service operation
+   */
+  completeAIOperation(operationId: string, success: boolean = true, errorType?: string): void {
+    const operationData = this.operationTracking.get(operationId);
+    if (!operationData) {
+      aiLogger.performance.warn('Operation not found for completion', { operationId });
+      return;
+    }
+
+    const endTime = performance.now();
+    const duration = endTime - operationData.startTime;
+
+    // Record performance metric
+    this.recordMetric(
+      'response_time',
+      'api_endpoint',
+      duration,
+      'ms',
+      {
+        operation: operationData.operation,
+        success,
+        errorType,
+        ...operationData.metadata
+      }
+    );
+
+    // Update operation statistics
+    this.updateAIOperationStats(operationData.operation, duration, success);
+
+    // Clean up tracking data
+    this.operationTracking.delete(operationId);
+
+    // Check for performance alerts
+    this.checkAIPerformanceAlerts(operationData.operation, duration, success);
+  }
+
+  /**
+   * Track an AI operation with automatic completion
+   */
+  async trackAIOperation<T>(
+    operation: string,
+    fn: () => Promise<T> | T,
+    metadata?: Record<string, any>
+  ): Promise<T> {
+    const operationId = this.startAIOperation(operation, metadata);
+
+    try {
+      const result = await fn();
+      this.completeAIOperation(operationId, true);
+      return result;
+    } catch (error) {
+      this.completeAIOperation(operationId, false, error?.constructor?.name || 'Unknown');
+      throw error;
+    }
+  }
+
+  /**
+   * Update AI operation statistics
+   */
+  private updateAIOperationStats(operation: string, duration: number, success: boolean): void {
+    const stats = this.operationStats.get(operation) || {
+      totalRequests: 0,
+      successfulRequests: 0,
+      failedRequests: 0,
+      averageResponseTime: 0,
+      minResponseTime: Infinity,
+      maxResponseTime: 0,
+      p95ResponseTime: 0,
+      errorRate: 0,
+      lastUpdated: Date.now()
+    };
+
+    stats.totalRequests++;
+    if (success) {
+      stats.successfulRequests++;
+    } else {
+      stats.failedRequests++;
+    }
+
+    // Update response time statistics
+    stats.averageResponseTime = (stats.averageResponseTime * (stats.totalRequests - 1) + duration) / stats.totalRequests;
+    stats.minResponseTime = Math.min(stats.minResponseTime, duration);
+    stats.maxResponseTime = Math.max(stats.maxResponseTime, duration);
+    stats.errorRate = stats.failedRequests / stats.totalRequests;
+    stats.lastUpdated = Date.now();
+
+    // Calculate P95 response time (simplified)
+    const recentMetrics = this.metrics
+      .filter(m => m.metadata?.operation === operation && m.metadata?.success)
+      .slice(-100)
+      .map(m => m.value)
+      .sort((a, b) => a - b);
+
+    if (recentMetrics.length > 0) {
+      const p95Index = Math.floor(recentMetrics.length * 0.95);
+      stats.p95ResponseTime = recentMetrics[p95Index] || recentMetrics[recentMetrics.length - 1];
+    }
+
+    this.operationStats.set(operation, stats);
+  }
+
+  /**
+   * Check for AI performance alerts
+   */
+  private checkAIPerformanceAlerts(operation: string, duration: number, success: boolean): void {
+    const stats = this.operationStats.get(operation);
+
+    // Response time alerts
+    if (duration > 5000) { // 5 seconds critical
+      aiLogger.performance.error('Critical AI response time', {
+        operation,
+        duration: `${duration.toFixed(2)}ms`,
+        threshold: '5000ms'
+      });
+    } else if (duration > 2000) { // 2 seconds warning
+      aiLogger.performance.warn('High AI response time', {
+        operation,
+        duration: `${duration.toFixed(2)}ms`,
+        threshold: '2000ms'
+      });
+    }
+
+    // Error rate alerts
+    if (stats && stats.totalRequests >= 10) {
+      if (stats.errorRate > 0.2) { // 20% critical
+        aiLogger.performance.error('Critical AI error rate', {
+          operation,
+          errorRate: `${(stats.errorRate * 100).toFixed(1)}%`,
+          threshold: '20%'
+        });
+      } else if (stats.errorRate > 0.1) { // 10% warning
+        aiLogger.performance.warn('High AI error rate', {
+          operation,
+          errorRate: `${(stats.errorRate * 100).toFixed(1)}%`,
+          threshold: '10%'
+        });
+      }
+    }
+  }
+
+  /**
+   * Get AI operation statistics
+   */
+  getAIOperationStats(): Record<string, any> {
+    return Object.fromEntries(this.operationStats);
+  }
+
+  /**
    * Clean up old metrics to prevent memory leaks
    */
   private cleanupOldMetrics(): void {
     const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago
     this.metrics = this.metrics.filter(metric => new Date(metric.timestamp) > cutoffTime);
+
+    // Also cleanup old operation tracking data (safety measure)
+    const now = performance.now();
+    for (const [operationId, data] of this.operationTracking.entries()) {
+      if (now - data.startTime > 300000) { // 5 minutes timeout
+        this.operationTracking.delete(operationId);
+        aiLogger.performance.warn('Cleaned up stale operation tracking', { operationId, operation: data.operation });
+      }
+    }
   }
 
   /**
@@ -620,10 +948,10 @@ export class PerformanceMonitor {
   private async loadHistoricalMetrics(): Promise<void> {
     try {
       // In a real implementation, this would load from database or file system
-      console.log('📚 [PERFORMANCE_MONITOR] Loading historical metrics...');
+      //console.log('📚 [PERFORMANCE_MONITOR] Loading historical metrics...');
       // Placeholder for loading logic
     } catch (error) {
-      console.warn('⚠️ [PERFORMANCE_MONITOR] Could not load historical metrics:', error);
+      // console.warn(️ [PERFORMANCE_MONITOR] Could not load historical metrics:', error);
     }
   }
 
@@ -637,4 +965,198 @@ export class PerformanceMonitor {
     }
     console.log('🛑 [PERFORMANCE_MONITOR] Performance monitoring stopped');
   }
+
+  /**
+   * HIGH-1: Register AI service metrics (consolidated from aiPerformanceMonitor.ts)
+   */
+  public registerAIService(serviceName: string, metrics: Partial<AIServiceMetrics>): void {
+    const existingMetrics = this.aiServiceMetrics.get(serviceName) || {
+      serviceName,
+      requestCount: 0,
+      successCount: 0,
+      errorCount: 0,
+      averageResponseTime: 0,
+      minResponseTime: Infinity,
+      maxResponseTime: 0,
+      memoryUsage: 0,
+      cpuUsage: 0,
+      cacheHitRate: 0,
+      lastHealthCheck: new Date(),
+      isHealthy: true,
+      performanceScore: 100
+    };
+
+    const updatedMetrics = { ...existingMetrics, ...metrics };
+    this.aiServiceMetrics.set(serviceName, updatedMetrics);
+
+    // Update optimization metrics
+    this.optimizationMetrics.averageResponseTime = updatedMetrics.averageResponseTime;
+    this.optimizationMetrics.cacheHitRate = updatedMetrics.cacheHitRate;
+    this.optimizationMetrics.memoryUsage = updatedMetrics.memoryUsage;
+  }
+
+  /**
+   * HIGH-1: Update optimization metrics (consolidated from performanceOptimizationManager.ts)
+   */
+  public updateOptimizationMetrics(metrics: Partial<OptimizationMetrics>): void {
+    this.optimizationMetrics = { ...this.optimizationMetrics, ...metrics };
+
+    // Calculate optimization score based on multiple factors
+    const responseTimeScore = Math.max(0, 100 - (this.optimizationMetrics.averageResponseTime / 20));
+    const cacheScore = this.optimizationMetrics.cacheHitRate * 100;
+    const memoryScore = Math.max(0, 100 - (this.optimizationMetrics.memoryUsage / 10));
+
+    this.optimizationMetrics.optimizationScore = (responseTimeScore + cacheScore + memoryScore) / 3;
+    this.optimizationMetrics.resourceEfficiency = (cacheScore + memoryScore) / 2;
+  }
+
+  /**
+   * HIGH-1: Start optimized monitoring (replaces multiple monitoring intervals)
+   */
+  public startConsolidatedMonitoring(): void {
+    if (this.isMonitoring) {
+      aiLogger.performance.warn('⚠️ [HIGH-1] Consolidated monitoring already running');
+      return;
+    }
+
+    this.isMonitoring = true;
+
+    // Single optimized monitoring interval instead of multiple 5s-30s intervals
+    this.monitoringInterval = setInterval(() => {
+      this.updateConsolidatedMetrics();
+      this.cleanupOldMetrics();
+    }, this.CONSOLIDATED_MONITORING_INTERVAL);
+
+    aiLogger.performance.info('✅ [HIGH-1] Consolidated performance monitoring started', {
+      interval: this.CONSOLIDATED_MONITORING_INTERVAL,
+      consolidatedServices: this.consolidatedServices.length
+    });
+  }
+
+  /**
+   * HIGH-1: Update consolidated metrics (replaces multiple update methods)
+   */
+  private updateConsolidatedMetrics(): void {
+    // Update AI service health checks
+    for (const [serviceName, metrics] of this.aiServiceMetrics.entries()) {
+      metrics.lastHealthCheck = new Date();
+      metrics.isHealthy = metrics.errorCount / Math.max(1, metrics.requestCount) < 0.05; // 5% error threshold
+    }
+
+    // Update optimization metrics
+    const currentMemory = process.memoryUsage().heapUsed / 1024 / 1024; // MB
+    this.optimizationMetrics.memoryUsage = currentMemory;
+
+    // Generate report if significant changes detected
+    const report = this.generateConsolidatedReport();
+    if (this.isSignificantChange(report)) {
+      aiLogger.performance.info('📊 [HIGH-1] Performance update', {
+        overallHealth: report.overallHealth,
+        averageResponseTime: Math.round(report.averageResponseTime),
+        memoryUsage: Math.round(report.systemMemoryUsage),
+        optimizationScore: Math.round(report.optimizationMetrics.optimizationScore)
+      });
+    }
+  }
+
+  /**
+   * HIGH-1: Generate consolidated performance report
+   */
+  public generateConsolidatedReport(): ConsolidatedPerformanceReport {
+    const timestamp = new Date();
+    const serviceMetrics = Array.from(this.aiServiceMetrics.values());
+
+    // Calculate overall metrics
+    const totalRequests = serviceMetrics.reduce((sum, service) => sum + service.requestCount, 0);
+    const averageResponseTime = serviceMetrics.length > 0
+      ? serviceMetrics.reduce((sum, service) => sum + service.averageResponseTime, 0) / serviceMetrics.length
+      : 0;
+    const systemMemoryUsage = serviceMetrics.reduce((sum, service) => sum + service.memoryUsage, 0);
+    const cpuUsage = serviceMetrics.length > 0
+      ? serviceMetrics.reduce((sum, service) => sum + service.cpuUsage, 0) / serviceMetrics.length
+      : 0;
+    const cacheEfficiency = serviceMetrics.length > 0
+      ? serviceMetrics.reduce((sum, service) => sum + service.cacheHitRate, 0) / serviceMetrics.length
+      : 0;
+
+    // Determine overall health
+    const healthyServices = serviceMetrics.filter(service => service.isHealthy).length;
+    const healthPercentage = serviceMetrics.length > 0 ? (healthyServices / serviceMetrics.length) * 100 : 100;
+
+    let overallHealth: ConsolidatedPerformanceReport['overallHealth'];
+    if (healthPercentage >= 95 && averageResponseTime < 1000) overallHealth = 'excellent';
+    else if (healthPercentage >= 85 && averageResponseTime < 2000) overallHealth = 'good';
+    else if (healthPercentage >= 70 && averageResponseTime < 3000) overallHealth = 'fair';
+    else if (healthPercentage >= 50) overallHealth = 'poor';
+    else overallHealth = 'critical';
+
+    // Generate recommendations
+    const recommendations: string[] = [];
+    if (averageResponseTime > 2000) recommendations.push('Consider optimizing response times');
+    if (cacheEfficiency < 0.8) recommendations.push('Improve cache hit rates');
+    if (systemMemoryUsage > 500) recommendations.push('Monitor memory usage');
+    if (cpuUsage > 80) recommendations.push('CPU usage is high, consider optimization');
+    if (recommendations.length === 0) recommendations.push('System performance is optimal');
+
+    // Generate alerts
+    const alerts: string[] = [];
+    if (overallHealth === 'critical') alerts.push('CRITICAL: System health is severely degraded');
+    if (averageResponseTime > 5000) alerts.push('WARNING: Response times are critically high');
+    if (systemMemoryUsage > 1000) alerts.push('WARNING: Memory usage is critically high');
+
+    const report: ConsolidatedPerformanceReport = {
+      timestamp,
+      overallHealth,
+      totalRequests,
+      averageResponseTime,
+      systemMemoryUsage,
+      cpuUsage,
+      cacheEfficiency,
+      serviceMetrics,
+      optimizationMetrics: this.optimizationMetrics,
+      recommendations,
+      alerts,
+      consolidatedFrom: this.consolidatedServices
+    };
+
+    this.lastConsolidationReport = report;
+    return report;
+  }
+
+  /**
+   * HIGH-1: Check if performance change is significant enough to log
+   */
+  private isSignificantChange(report: ConsolidatedPerformanceReport): boolean {
+    if (!this.lastConsolidationReport) return true;
+
+    const responseTimeDiff = Math.abs(report.averageResponseTime - this.lastConsolidationReport.averageResponseTime);
+    const memoryDiff = Math.abs(report.systemMemoryUsage - this.lastConsolidationReport.systemMemoryUsage);
+    const healthChanged = report.overallHealth !== this.lastConsolidationReport.overallHealth;
+
+    return responseTimeDiff > 500 || memoryDiff > 50 || healthChanged;
+  }
+
+  /**
+   * HIGH-1: Get consolidated service status
+   */
+  public getConsolidatedStatus(): {
+    isMonitoring: boolean;
+    consolidatedServices: string[];
+    activeServices: number;
+    lastReport?: ConsolidatedPerformanceReport;
+    optimizationScore: number;
+  } {
+    return {
+      isMonitoring: this.isMonitoring,
+      consolidatedServices: this.consolidatedServices,
+      activeServices: this.aiServiceMetrics.size,
+      lastReport: this.lastConsolidationReport,
+      optimizationScore: this.optimizationMetrics.optimizationScore
+    };
+  }
 }
+
+// Export singleton instance
+export const performanceMonitor = PerformanceMonitor.getInstance();
+
+export default performanceMonitor;

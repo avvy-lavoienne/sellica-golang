@@ -100,13 +100,7 @@ export class TensorFlowProvider implements AIProvider {
       }
 
       // Initialize hybrid processor
-      this.hybridProcessor = new HybridNLPProcessor(
-        IndonesianNLP.getInstance(),
-        this.tensorflowJS!,
-        this.tensorflowServing!,
-        this.modelManager,
-        this.performanceMonitor
-      );
+      this.hybridProcessor = new HybridNLPProcessor();
 
       // Start background model optimization
       if (this.config.modelOptimization) {
@@ -191,15 +185,15 @@ export class TensorFlowProvider implements AIProvider {
         processingTime,
         metadata: {
           providerId: this.id,
-          modelUsed: nlpResult.modelUsed,
+          modelUsed: 'Enhanced Indonesian NLP',
           fallbackUsed: nlpResult.fallbackUsed,
-          enhancementLevel: this.mapEnhancementLevel(nlpResult.enhancementLevel),
+          enhancementLevel: nlpResult.strategy === 'enhanced' ? 'advanced' : 'basic',
           strategy: nlpResult.strategy,
-          semanticConfidence: nlpResult.semanticConfidence,
+          semanticConfidence: nlpResult.confidence,
           tensorflowMetadata: {
             intentClassification: nlpResult.intentClassification,
             entityExtraction: nlpResult.entityExtraction,
-            sentimentAnalysis: nlpResult.sentimentAnalysis
+            sentimentAnalysis: undefined
           }
         }
       };
@@ -270,19 +264,9 @@ export class TensorFlowProvider implements AIProvider {
       content += '\n';
     }
 
-    // Add sentiment analysis if available
-    if (nlpResult.sentimentAnalysis) {
-      const sentimentEmoji = {
-        positive: '😊',
-        negative: '😔',
-        neutral: '😐'
-      };
-      content += `${sentimentEmoji[nlpResult.sentimentAnalysis.sentiment]} **Sentimen**: ${nlpResult.sentimentAnalysis.sentiment}\n\n`;
-    }
-
     // Add processing strategy information
     content += `⚙️ **Strategi Pemrosesan**: ${nlpResult.strategy}\n`;
-    content += `📊 **Tingkat Enhancement**: ${nlpResult.enhancementLevel}\n`;
+    content += `📊 **Tingkat Enhancement**: ${nlpResult.strategy === 'enhanced' ? 'Lanjutan' : 'Dasar'}\n`;
 
     if (nlpResult.fallbackUsed) {
       content += `🔄 **Fallback**: Menggunakan metode alternatif\n`;

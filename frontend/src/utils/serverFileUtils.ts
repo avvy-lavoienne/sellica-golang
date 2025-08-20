@@ -78,6 +78,41 @@ export function loadQAIntegrationData(): any {
   }
 }
 
+export function loadPerpindahanTrainingData(): any {
+  if (!fs || !path) {
+    return null;
+  }
+
+  try {
+    const perpindahanDataPath = path.join(process.cwd(), 'src/data/material/perpindahan');
+    const trainingFiles = [
+      'perpindahan-comprehensive-qa-pairs.json'
+    ];
+
+    const trainingData: any = {};
+
+    for (const filename of trainingFiles) {
+      try {
+        const filePath = path.join(perpindahanDataPath, filename);
+        if (!fs.existsSync(filePath)) continue;
+
+        const fileContent = fs.readFileSync(filePath, 'utf-8');
+        const trainingPairs = JSON.parse(fileContent);
+
+        const categoryName = filename.replace('.json', '').replace('perpindahan-', '').replace('-pairs', '');
+        trainingData[categoryName] = trainingPairs;
+      } catch (fileError) {
+        console.warn(`⚠️ [SERVER_UTILS] Could not load ${filename}:`, fileError);
+      }
+    }
+
+    return trainingData;
+  } catch (error) {
+    console.error('❌ [SERVER_UTILS] Error loading Perpindahan training data:', error);
+    return null;
+  }
+}
+
 export function isServerEnvironment(): boolean {
   return typeof window === 'undefined' && process.env.NODE_ENV !== 'production';
 }

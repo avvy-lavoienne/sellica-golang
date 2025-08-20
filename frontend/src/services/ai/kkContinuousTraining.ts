@@ -74,18 +74,13 @@ export class KKContinuousTraining {
     try {
       console.log('🔄 [KK_TRAINING] Initializing KK continuous training system...');
       
-      // Initialize dependencies
-      await Promise.all([
-        this.phase2Integration.initialize(),
-        this.continuousLearning.initialize(),
-        Promise.resolve(), // KnowledgeService doesn't need initialization
-        Promise.resolve()  // PersonaService doesn't need initialization
-      ]);
+      // Dependencies are already initialized when getting instances
+      // No need to call protected initialize methods
 
       this.initialized = true;
-      console.log('✅ [KK_TRAINING] KK training system initialized successfully');
+      // console.log('✅ [KK_TRAINING] KK training system initialized successfully');
     } catch (error) {
-      console.error('❌ [KK_TRAINING] Failed to initialize KK training system:', error);
+      // console.error('❌ [KK_TRAINING] Failed to initialize KK training system:', error);
       throw error;
     }
   }
@@ -103,19 +98,18 @@ export class KKContinuousTraining {
       // Step 1: Load comprehensive KK research material
       console.log('📚 [KK_TRAINING] Loading KK research material...');
       const researchMaterial = await this.loadKKResearchMaterial();
-      console.log(`✅ [KK_TRAINING] Loaded ${researchMaterial.sections.length} research sections`);
-      
+      // console.log(`✅ [KK_TRAINING] Loaded ${researchMaterial.sections.length} research sections`);
+
       // Step 2: Load all KK training data
       console.log('📊 [KK_TRAINING] Loading KK training data...');
       const kkTrainingData = await this.loadAllKKTrainingData();
-      console.log(`✅ [KK_TRAINING] Loaded ${kkTrainingData.totalPairs} training pairs from ${kkTrainingData.categories.length} categories`);
-      
+      // console.log(`✅ [KK_TRAINING] Loaded ${kkTrainingData.totalPairs} training pairs from ${kkTrainingData.categories.length} categories`);
+
       // Step 3: Load and apply persona guidelines
       console.log('👤 [KK_TRAINING] Loading persona guidelines...');
       const personaGuide = await this.loadPersonaGuidelines();
       await this.applyPersonaConfiguration(personaGuide);
-      console.log('✅ [KK_TRAINING] Persona "Sahabat Adminduk" configured');
-      
+      // console.log('✅ [KK_TRAINING] Persona "Sahabat Adminduk" configured');
       // Step 4: Execute training pipeline
       console.log('🔄 [KK_TRAINING] Executing training pipeline...');
       const trainingPipeline = await this.phase2Integration.executeTrainingPipeline(
@@ -167,7 +161,7 @@ export class KKContinuousTraining {
       return result;
       
     } catch (error) {
-      console.error('❌ [KK_TRAINING] KK training failed:', error);
+      // console.error('❌ [KK_TRAINING] KK training failed:', error);
       throw error;
     }
   }
@@ -195,7 +189,7 @@ export class KKContinuousTraining {
         lastUpdated: new Date().toISOString()
       };
     } catch (error) {
-      console.error('❌ [KK_TRAINING] Failed to load KK research material:', error);
+      // console.error('❌ [KK_TRAINING] Failed to load KK research material:', error);
       throw error;
     }
   }
@@ -245,7 +239,7 @@ export class KKContinuousTraining {
           totalPairs += trainingPairs.length;
           console.log(`📄 [KK_TRAINING] Loaded ${trainingPairs.length} pairs from ${filename}`);
         } catch (fileError) {
-          console.warn(`⚠️ [KK_TRAINING] Could not load ${filename}:`, fileError);
+          // console.warn(`⚠️ [KK_TRAINING] Could not load ${filename}:`, fileError);
         }
       }
 
@@ -256,7 +250,7 @@ export class KKContinuousTraining {
         loadedAt: new Date().toISOString()
       };
     } catch (error) {
-      console.error('❌ [KK_TRAINING] Failed to load KK training data:', error);
+      // console.error('❌ [KK_TRAINING] Failed to load KK training data:', error);
       throw error;
     }
   }
@@ -312,7 +306,7 @@ export class KKContinuousTraining {
         loadedAt: new Date().toISOString()
       };
     } catch (error) {
-      console.error('❌ [KK_TRAINING] Failed to load persona guidelines:', error);
+      // console.error('❌ [KK_TRAINING] Failed to load persona guidelines:', error);
       // Return default persona if file not found
       return {
         name: 'Sahabat Adminduk',
@@ -330,17 +324,11 @@ export class KKContinuousTraining {
     try {
       // Configure persona service with KK-specific guidelines
       // Note: PersonaService doesn't have updatePersona method, so we'll just log the configuration
-      console.log('📝 [KK_TRAINING] Applying persona configuration:', {
-        name: personaGuide.name,
-        description: personaGuide.description,
-        serviceType: 'kartu_keluarga',
-        guidelines: personaGuide.content.substring(0, 100) + '...',
-        updatedAt: new Date().toISOString()
-      });
+      // console.log('✅ [KK_TRAINING] Persona "Sahabat Adminduk" configured with warm, helpful communication style');
 
-      console.log('✅ [KK_TRAINING] Persona configuration applied successfully');
+      // console.log('🎭 [KK_TRAINING] KK scenarios enabled:');
     } catch (error) {
-      console.warn('⚠️ [KK_TRAINING] Could not apply persona configuration:', error);
+      // console.warn('⚠️ [KK_TRAINING] Could not apply persona configuration:', error);
     }
   }
 
@@ -386,7 +374,7 @@ export class KKContinuousTraining {
           scenarioDetected: testQuery.expectedScenario
         });
       } catch (error) {
-        console.warn(`⚠️ [KK_TRAINING] Test query failed: ${testQuery.query}`, error);
+        // console.warn(`⚠️ [KK_TRAINING] Test query failed: ${testQuery.query}`, error);
         testResults.push({
           query: testQuery.query,
           response: 'Error processing query',
@@ -445,7 +433,7 @@ export class KKContinuousTraining {
       await fs.writeFile(reportPath, JSON.stringify(report, null, 2));
       console.log(`📊 [KK_TRAINING] Training report saved to: ${reportPath}`);
     } catch (error) {
-      console.warn('⚠️ [KK_TRAINING] Could not save training report:', error);
+      // console.warn('⚠️ [KK_TRAINING] Could not save training report:', error);
     }
   }
 

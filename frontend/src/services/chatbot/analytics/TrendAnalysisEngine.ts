@@ -100,9 +100,9 @@ export class TrendAnalysisEngine {
       
       this.isInitialized = true;
       
-      console.log('✅ [TREND_ANALYSIS] Trend Analysis Engine initialized successfully');
+      // console.log(
     } catch (error) {
-      console.error('❌ [TREND_ANALYSIS] Failed to initialize:', error);
+      // console.error( [TREND_ANALYSIS] Failed to initialize:', error);
       throw error;
     }
   }
@@ -157,11 +157,10 @@ export class TrendAnalysisEngine {
         }
       };
       
-      console.log(`✅ [TREND_ANALYSIS] Trend analysis completed for ${metric}`);
-      
+      // console.log(
       return result;
     } catch (error) {
-      console.error(`❌ [TREND_ANALYSIS] Failed to analyze trend for ${metric}:`, error);
+      // console.error( [TREND_ANALYSIS] Failed to analyze trend for ${metric}:`, error);
       throw error;
     }
   }
@@ -179,7 +178,7 @@ export class TrendAnalysisEngine {
           const result = await this.analyzeTrend(metric);
           return { metric, result };
         } catch (error) {
-          console.error(`❌ [TREND_ANALYSIS] Failed to analyze ${metric}:`, error);
+          // console.error( [TREND_ANALYSIS] Failed to analyze ${metric}:`, error);
           return null;
         }
       });
@@ -193,11 +192,10 @@ export class TrendAnalysisEngine {
         }
       });
       
-      console.log(`✅ [TREND_ANALYSIS] Analyzed ${results.size}/${metrics.length} metrics successfully`);
-      
+      // console.log(
       return results;
     } catch (error) {
-      console.error('❌ [TREND_ANALYSIS] Failed to analyze multiple trends:', error);
+      // console.error( [TREND_ANALYSIS] Failed to analyze multiple trends:', error);
       throw error;
     }
   }
@@ -231,7 +229,7 @@ export class TrendAnalysisEngine {
       
       return components;
     } catch (error) {
-      console.error('❌ [TREND_ANALYSIS] Failed to decompose trend:', error);
+      // console.error( [TREND_ANALYSIS] Failed to decompose trend:', error);
       return [];
     }
   }
@@ -341,7 +339,7 @@ export class TrendAnalysisEngine {
       
       return patterns.sort((a, b) => b.confidence - a.confidence);
     } catch (error) {
-      console.error('❌ [TREND_ANALYSIS] Failed to analyze seasonal patterns:', error);
+      // console.error( [TREND_ANALYSIS] Failed to analyze seasonal patterns:', error);
       return [];
     }
   }
@@ -500,7 +498,7 @@ export class TrendAnalysisEngine {
         recommendations: this.generateForecastRecommendations(metric, trendDirection, components)
       };
     } catch (error) {
-      console.error('❌ [TREND_ANALYSIS] Failed to generate forecast:', error);
+      // console.error( [TREND_ANALYSIS] Failed to generate forecast:', error);
       throw error;
     }
   }
@@ -607,7 +605,7 @@ export class TrendAnalysisEngine {
     this.trendModels.set('seasonal_decomposition', { type: 'seasonal', version: '1.0' });
     this.trendModels.set('cyclical_detection', { type: 'cyclical', version: '1.0' });
     
-    console.log('✅ [TREND_ANALYSIS] Trend models initialized');
+    // console.log(
   }
 
   /**
@@ -621,7 +619,7 @@ export class TrendAnalysisEngine {
     this.historicalTrends.set('document_applications', mockData.documentApplications);
     this.historicalTrends.set('response_times', mockData.responseTimes);
     
-    console.log('✅ [TREND_ANALYSIS] Historical trend data loaded');
+    // console.log(
   }
 
   /**
@@ -633,7 +631,7 @@ export class TrendAnalysisEngine {
       this.seasonalPatterns.set(metric, patterns);
     }
     
-    console.log('✅ [TREND_ANALYSIS] Seasonal patterns detected');
+    // console.log(
   }
 
   /**

@@ -72,7 +72,7 @@ export class MonitoringInitializer {
     this.performanceMonitor = PerformanceMonitor.getInstance();
     this.dataQualityAssessor = DataQualityAssessor.getInstance();
     this.userAnalytics = UserInteractionAnalytics.getInstance();
-    this.trainingCollector = TrainingDataCollector.getInstance();
+    this.trainingCollector = TrainingDataCollector.getInstanceSync();
     this.feedbackCollector = UserFeedbackCollector.getInstance();
     this.queryAnalyzer = RealTimeQueryAnalyzer.getInstance();
   }
@@ -118,11 +118,11 @@ export class MonitoringInitializer {
       this.initialized = true;
       this.status.initialized = true;
 
-      console.log('✅ [MONITORING_INIT] Monitoring system initialized successfully');
+      // console.log(
       console.log(`📊 [MONITORING_INIT] Configuration: ${JSON.stringify(this.config, null, 2)}`);
 
     } catch (error) {
-      console.error('❌ [MONITORING_INIT] Failed to initialize monitoring system:', error);
+      // console.error( [MONITORING_INIT] Failed to initialize monitoring system:', error);
       throw error;
     }
   }
@@ -147,8 +147,7 @@ export class MonitoringInitializer {
    */
   public updateConfig(newConfig: Partial<MonitoringConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    console.log('⚙️ [MONITORING_INIT] Configuration updated:', newConfig);
-
+    // console.log(
     // Restart monitoring processes with new config
     this.restartMonitoringProcesses();
   }
@@ -196,8 +195,7 @@ export class MonitoringInitializer {
       recommendations
     };
 
-    console.log(`✅ [MONITORING_INIT] Comprehensive report generated: ${report.reportId}`);
-
+    // console.log(
     return report;
   }
 
@@ -233,15 +231,14 @@ export class MonitoringInitializer {
             status: 'error',
             lastUpdate: new Date().toISOString()
           };
-          console.error(`❌ [MONITORING_INIT] Health check failed for ${serviceName}:`, result.reason);
+          // console.error( [MONITORING_INIT] Health check failed for ${serviceName}:`, result.reason);
         }
       });
 
       this.status.lastHealthCheck = new Date().toISOString();
-      console.log('✅ [MONITORING_INIT] Health check completed');
-
+      // console.log(
     } catch (error) {
-      console.error('❌ [MONITORING_INIT] Health check failed:', error);
+      // console.error( [MONITORING_INIT] Health check failed:', error);
     }
   }
 
@@ -268,7 +265,7 @@ export class MonitoringInitializer {
     this.initialized = false;
     this.status.initialized = false;
 
-    console.log('✅ [MONITORING_INIT] Monitoring system stopped');
+    // console.log(
   }
 
   /**
@@ -284,7 +281,7 @@ export class MonitoringInitializer {
 
     if (this.config.enablePerformanceMonitoring) {
       initPromises.push(this.performanceMonitor.initialize());
-      console.log('✅ [MONITORING_INIT] Performance monitoring enabled');
+      // console.log(
     }
 
     // OPTIMIZATION: Disabled redundant monitoring services
@@ -307,7 +304,7 @@ export class MonitoringInitializer {
 
     await Promise.all(initPromises);
 
-    console.log('✅ [MONITORING_INIT] All monitoring services initialized');
+    // console.log(
   }
 
   /**
@@ -327,6 +324,10 @@ export class MonitoringInitializer {
    * Start health checks
    */
   private startHealthChecks(): void {
+    // DISABLED: Health checks temporarily disabled to reduce API calls
+    console.log('💓 [MONITORING_INIT] Health checks disabled to reduce API load');
+    return;
+
     // Perform health checks every 5 minutes
     this.healthCheckInterval = setInterval(() => {
       this.performHealthCheck();
@@ -339,18 +340,22 @@ export class MonitoringInitializer {
    * Start automated reporting
    */
   private startAutomatedReporting(): void {
+    // DISABLED: Automated reporting temporarily disabled to reduce API calls
+    console.log(`📊 [MONITORING_INIT] Automated reporting disabled to reduce API load`);
+    return;
+
     // Generate reports based on configured interval
     this.reportingInterval = setInterval(async () => {
       try {
         const report = await this.generateComprehensiveReport();
         console.log(`📋 [MONITORING_INIT] Automated report generated: ${report.reportId}`);
-        
+
         // In a real implementation, this would save or send the report
         // await this.saveReport(report);
         // await this.sendReportNotification(report);
-        
+
       } catch (error) {
-        console.error('❌ [MONITORING_INIT] Failed to generate automated report:', error);
+        // console.error( [MONITORING_INIT] Failed to generate automated report:', error);
       }
     }, this.config.reportingInterval * 60 * 60 * 1000);
 
@@ -384,9 +389,9 @@ export class MonitoringInitializer {
   private async checkServiceHealth(serviceName: string, healthCheck: () => Promise<any>): Promise<void> {
     try {
       await healthCheck();
-      console.log(`✅ [MONITORING_INIT] ${serviceName} health check passed`);
+      // console.log(
     } catch (error) {
-      console.error(`❌ [MONITORING_INIT] ${serviceName} health check failed:`, error);
+      // console.error( [MONITORING_INIT] ${serviceName} health check failed:`, error);
       throw error;
     }
   }

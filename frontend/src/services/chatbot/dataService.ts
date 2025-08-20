@@ -1,22 +1,8 @@
-import { createClient } from "@supabase/supabase-js";
+import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/lib/conn/database";
+import { SupabaseManager } from "@/lib/database/supabaseManager";
 import { cacheService } from "./cacheService";
 import { TemporalCondition } from "./temporalIntelligence";
-
-// Create a service role client for chatbot to bypass RLS
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY!;
-
-const supabaseChatbot = createClient<Database>(
-  supabaseUrl,
-  supabaseServiceKey,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  },
-);
 
 // Type definitions for database tables
 type Tables = Database["public"]["Tables"];
@@ -129,12 +115,40 @@ export interface DatabaseOverview {
  */
 export class ChatbotDataService {
   private static instance: ChatbotDataService;
+  private supabaseManager: SupabaseManager | null = null;
 
   public static getInstance(): ChatbotDataService {
     if (!ChatbotDataService.instance) {
       ChatbotDataService.instance = new ChatbotDataService();
     }
     return ChatbotDataService.instance;
+  }
+
+  /**
+   * Initialize the service with pooled connection manager
+   */
+  private async initializeSupabaseManager(): Promise<SupabaseManager> {
+    if (!this.supabaseManager) {
+      this.supabaseManager = await SupabaseManager.getInstance();
+    }
+    return this.supabaseManager;
+  }
+
+  /**
+   * Get service role client from pool
+   */
+  private async getSupabaseClient(): Promise<SupabaseClient<Database> | null> {
+    try {
+      if (typeof window !== 'undefined') {
+        return null; // Client-side safety
+      }
+
+      const manager = await this.initializeSupabaseManager();
+      return await manager.getServiceRoleClient();
+    } catch (error) {
+      console.error('❌ [DATASERVICE] Failed to get Supabase client:', error);
+      return null;
+    }
   }
 
   /**
@@ -157,7 +171,22 @@ export class ChatbotDataService {
    * Internal method to fetch database overview (uncached)
    */
   private async fetchDatabaseOverview(): Promise<DatabaseOverview> {
+    const supabaseChatbot = await this.getSupabaseClient();
+
+    // Return mock data if client not available
+    if (!supabaseChatbot) {
+      return {
+        totalTables: 4,
+        totalRecords: 0,
+        totalUsers: 0,
+        recentActivities: 0,
+        tables: [],
+        systemHealth: "good" as const,
+      };
+    }
+
     try {
+      // Only include tables that actually exist in the database schema
       const tables = [
         {
           name: "profiles",
@@ -170,39 +199,14 @@ export class ChatbotDataService {
           description: "Aktivitas dan operasi sistem SIAK",
         },
         {
-          name: "aktivitas_user",
-          displayName: "Aktivitas Pengguna",
-          description: "Log aktivitas pengguna dalam sistem",
+          name: "pengaduan_bulanan",
+          displayName: "Pengaduan Bulanan",
+          description: "Pengaduan dan masalah bulanan",
         },
         {
           name: "dokumentasi",
           displayName: "Dokumentasi",
           description: "Dokumentasi dan file yang diunggah",
-        },
-        {
-          name: "salah_rekam",
-          displayName: "Kesalahan Perekaman",
-          description: "Data kesalahan dalam perekaman KTP",
-        },
-        {
-          name: "adjudicate_record",
-          displayName: "Adjudicate Record",
-          description: "Proses adjudikasi rekaman data",
-        },
-        {
-          name: "duplicate_operator",
-          displayName: "Operator Duplikat",
-          description: "Penanganan operator duplikat",
-        },
-        {
-          name: "pengajuan_bulanan",
-          displayName: "Pengajuan Bulanan",
-          description: "Pengajuan dan laporan bulanan",
-        },
-        {
-          name: "pengaduan_bulanan",
-          displayName: "Pengaduan Bulanan",
-          description: "Pengaduan dan masalah bulanan",
         },
       ];
 
@@ -265,6 +269,11 @@ export class ChatbotDataService {
     description: string,
   ): Promise<TableSummary> {
     try {
+      const supabaseChatbot = await this.getSupabaseClient();
+      if (!supabaseChatbot) {
+        throw new Error('Supabase chatbot client not available');
+      }
+
       // Get total count
       const { count: totalCount } = await supabaseChatbot
         .from(tableName)
@@ -339,10 +348,15 @@ export class ChatbotDataService {
    * Get recent activities count across all activity tables
    */
   async getRecentActivitiesCount(): Promise<number> {
+    const supabaseChatbot = await this.getSupabaseClient();
+    if (!supabaseChatbot) {
+      return 0;
+    }
+
     try {
+      // Only query tables that actually exist in the database schema
       const activityTables = [
         "aktivitas_siak",
-        "aktivitas_user",
         "dokumentasi",
       ];
       let totalRecentActivities = 0;
@@ -351,12 +365,17 @@ export class ChatbotDataService {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
       for (const table of activityTables) {
-        const { count } = await supabaseChatbot
-          .from(table)
-          .select("*", { count: "exact", head: true })
-          .gte("created_at", sevenDaysAgo.toISOString());
+        try {
+          const { count } = await supabaseChatbot
+            .from(table)
+            .select("*", { count: "exact", head: true })
+            .gte("created_at", sevenDaysAgo.toISOString());
 
-        totalRecentActivities += count || 0;
+          totalRecentActivities += count || 0;
+        } catch (tableError) {
+          console.warn(`Failed to query ${table} for recent activities:`, tableError);
+          // Continue with other tables
+        }
       }
 
       return totalRecentActivities;
@@ -439,6 +458,11 @@ export class ChatbotDataService {
       console.log(`🕐 [DATASERVICE] Executing temporal query on ${tableName}`);
       console.log(`📅 [DATASERVICE] Date range: ${temporalQuery.dateRange?.description || 'None'}`);
       console.log(`⏱️ [DATASERVICE] Conditions: ${temporalQuery.conditions?.length || 0}`);
+
+      const supabaseChatbot = await this.getSupabaseClient();
+      if (!supabaseChatbot) {
+        throw new Error('Supabase chatbot client not available');
+      }
 
       // Build the base query
       let query = supabaseChatbot
@@ -534,12 +558,10 @@ export class ChatbotDataService {
    */
   private getDateColumnForTable(tableName: string): string | null {
     const dateColumnMapping: Record<string, string> = {
-      'adjudicate_record': 'tanggal_pengajuan',
-      'aktivitas_user': 'created_at',
+      'aktivitas_siak': 'created_at',
       'dokumentasi': 'created_at',
-      'pengajuan_bulanan': 'created_at',
-      'salah_rekam': 'created_at',
-      'profiles': 'created_at'
+      'pengaduan_bulanan': 'created_at'
+      // Note: profiles table doesn't have created_at column in actual schema
     };
 
     return dateColumnMapping[tableName] || 'created_at';
@@ -611,6 +633,11 @@ export class ChatbotDataService {
       };
 
       const columnName = columnMapping[identifierType] || identifierType;
+
+      const supabaseChatbot = await this.getSupabaseClient();
+      if (!supabaseChatbot) {
+        throw new Error('Supabase chatbot client not available');
+      }
 
       // Build the query based on table and identifier type
       let query = supabaseChatbot
@@ -735,16 +762,18 @@ export class ChatbotDataService {
    */
   private async performSearch(query: string, limit: number = 10): Promise<any[]> {
     try {
+      const supabaseChatbot = await this.getSupabaseClient();
+      if (!supabaseChatbot) {
+        throw new Error('Supabase chatbot client not available');
+      }
+
       const results: any[] = [];
+      // Only search tables that actually exist in the database schema
       const searchTables = [
         "profiles",
         "aktivitas_siak",
-        "aktivitas_user",
         "dokumentasi",
-        "salah_rekam",
-        "adjudicate_record",
-        "duplicate_operator",
-        "pengajuan_bulanan",
+        "pengaduan_bulanan",
         "pengaduan_bulanan",
       ];
 
@@ -809,6 +838,18 @@ export class ChatbotDataService {
     usersByRole: Record<string, number>;
     usersByStatus: Record<string, number>;
   }> {
+    const supabaseChatbot = await this.getSupabaseClient();
+    if (!supabaseChatbot) {
+      return {
+        totalUsers: 0,
+        activeUsers: 0,
+        pendingUsers: 0,
+        approvedUsers: 0,
+        usersByRole: {},
+        usersByStatus: {},
+      };
+    }
+
     try {
       // Get approved users from profiles table
       const { data: profiles, count: approvedUsers } = await supabaseChatbot
@@ -821,33 +862,34 @@ export class ChatbotDataService {
         usersByRole[role] = (usersByRole[role] || 0) + 1;
       });
 
-      // Get pending users from pending_users table
-      const { data: pendingUsersData, count: pendingUsers } =
-        await supabaseChatbot
-          .from("pending_users")
-          .select("status", { count: "exact" });
-
+      // Since pending_users and aktivitas_user tables don't exist in actual schema,
+      // use mock data or alternative approach
+      const pendingUsers = 0; // No pending_users table in actual schema
       const usersByStatus: Record<string, number> = {};
-      pendingUsersData?.forEach((user) => {
-        const status = user.status || "unknown";
-        usersByStatus[status] = (usersByStatus[status] || 0) + 1;
-      });
 
-      // Get active users (users with recent activity)
+      // Use aktivitas_siak as proxy for user activity since aktivitas_user doesn't exist
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      const { count: activeUsers } = await supabaseChatbot
-        .from("aktivitas_user")
-        .select("user_id", { count: "exact", head: true })
-        .gte("created_at", thirtyDaysAgo.toISOString());
+      let activeUsers = 0;
+      try {
+        const { count } = await supabaseChatbot
+          .from("aktivitas_siak")
+          .select("created_by", { count: "exact", head: true })
+          .gte("created_at", thirtyDaysAgo.toISOString());
+
+        activeUsers = count || 0;
+      } catch (error) {
+        console.warn("Failed to get active users from aktivitas_siak:", error);
+        activeUsers = 0;
+      }
 
       const totalUsers = (approvedUsers || 0) + (pendingUsers || 0);
 
       return {
         totalUsers,
-        activeUsers: activeUsers || 0,
-        pendingUsers: pendingUsers || 0,
+        activeUsers: activeUsers,
+        pendingUsers: pendingUsers,
         approvedUsers: approvedUsers || 0,
         usersByRole,
         usersByStatus,
@@ -879,15 +921,17 @@ export class ChatbotDataService {
     isFutureDate: boolean;
   }> {
     try {
+      const supabaseChatbot = await this.getSupabaseClient();
+      if (!supabaseChatbot) {
+        throw new Error('Supabase chatbot client not available');
+      }
+
       const activityTables = table
         ? [table]
         : [
-            "aktivitas_user",
             "aktivitas_siak",
             "dokumentasi",
             "pengaduan_bulanan",
-            "pengajuan_bulanan",
-            "salah_rekam",
             "adjudicate_record",
             "duplicate_operator",
           ];
@@ -1053,17 +1097,21 @@ export class ChatbotDataService {
     results: Record<string, { count: number; error?: string }>;
     summary: string;
   }> {
+    const supabaseChatbot = await this.getSupabaseClient();
+    if (!supabaseChatbot) {
+      return {
+        success: false,
+        results: {},
+        summary: 'Supabase chatbot client not available'
+      };
+    }
+
+    // Only test tables that actually exist in the database schema
     const testTables = [
       "profiles",
-      "pending_users",
-      "salah_rekam",
-      "pengajuan_bulanan",
       "aktivitas_siak",
-      "aktivitas_user",
       "dokumentasi",
       "pengaduan_bulanan",
-      "adjudicate_record",
-      "duplicate_operator",
     ];
 
     const results: Record<string, { count: number; error?: string }> = {};

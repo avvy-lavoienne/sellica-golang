@@ -90,7 +90,7 @@ export class EnhancedSchemaIntelligence {
   private async initializeDeepKnowledge(): Promise<void> {
     if (this.isInitialized) return;
 
-    console.log('🧠 [ENHANCED_SCHEMA] Initializing deep database knowledge...');
+    //console.log('🧠 [ENHANCED_SCHEMA] Initializing deep database knowledge...');
     
     try {
       const loader = schemaLoader;

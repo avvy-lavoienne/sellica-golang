@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { trainingDataCollector } from '@/services/chatbot/trainingDataCollector';
+import { getTrainingDataCollector } from '@/services/chatbot/trainingDataCollector';
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,6 +7,8 @@ export async function GET(request: NextRequest) {
     const action = searchParams.get('action');
     const service = searchParams.get('service');
     const priority = searchParams.get('priority');
+
+    const trainingDataCollector = await getTrainingDataCollector();
 
     switch (action) {
       case 'stats':
@@ -59,12 +61,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { action, queryId } = body;
 
+    const trainingDataCollector = await getTrainingDataCollector();
+
     switch (action) {
       case 'mark-in-training':
         const inTrainingResult = trainingDataCollector.markAsInTraining(queryId);
-        return NextResponse.json({ 
-          success: inTrainingResult, 
-          message: inTrainingResult ? 'Query marked as in training' : 'Query not found' 
+        return NextResponse.json({
+          success: inTrainingResult,
+          message: inTrainingResult ? 'Query marked as in training' : 'Query not found'
         });
 
       case 'mark-resolved':

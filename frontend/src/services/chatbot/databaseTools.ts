@@ -6,6 +6,7 @@
 import unifiedSchema from '@/data/unified-schema.json';
 import { chatbotDataService } from './dataService';
 import { TemporalIntelligence, TemporalQueryResult } from './temporalIntelligence';
+import { aiLogger } from '../monitoring/logger';
 
 export interface DatabaseTool {
   name: string;
@@ -1223,17 +1224,16 @@ export class DatabaseToolSelector {
     console.log('🕐 [TEMPORAL_ANALYSIS] ==========================================');
 
     // Use temporal intelligence to parse the query
-    console.log('🕐 [TEMPORAL_ANALYSIS] Calling TemporalIntelligence.parseTemporalQuery...');
+    aiLogger.analytics.debug('Calling TemporalIntelligence.parseTemporalQuery...');
     const temporalResult = TemporalIntelligence.parseTemporalQuery(originalQuery);
-    console.log('🕐 [TEMPORAL_ANALYSIS] TemporalIntelligence result:', JSON.stringify(temporalResult, null, 2));
+    aiLogger.analytics.debug('TemporalIntelligence result', { temporalResult });
 
     if (!temporalResult) {
-      console.log('❌ [TEMPORAL_ANALYSIS] No temporal patterns detected by TemporalIntelligence');
-      console.log('🕐 [TEMPORAL_ANALYSIS] ==========================================');
+      aiLogger.analytics.debug('No temporal patterns detected by TemporalIntelligence');
       return null;
     }
 
-    console.log('✅ [TEMPORAL_ANALYSIS] Temporal patterns detected! Processing...');
+    aiLogger.analytics.debug('Temporal patterns detected! Processing...');
 
     // Determine target table with enhanced detection
     let tableName = 'adjudicate_record'; // Default for most temporal queries
@@ -1269,7 +1269,7 @@ export class DatabaseToolSelector {
       if (lowerQuery.includes(pattern)) {
         tableName = 'adjudicate_record';
         adjudicateMatch = true;
-        console.log(`✅ [TEMPORAL_ANALYSIS] Found explicit adjudicate_record pattern: "${pattern}"`);
+        aiLogger.analytics.debug(`Found explicit adjudicate_record pattern: "${pattern}"`);
         break;
       }
     }
@@ -1301,10 +1301,12 @@ export class DatabaseToolSelector {
       }
     }
 
-    console.log(`✅ [TEMPORAL_ANALYSIS] Temporal query detected for table: ${tableName}`);
-    console.log(`🕐 [TEMPORAL_ANALYSIS] Query type: ${temporalResult.queryType}`);
-    console.log(`📅 [TEMPORAL_ANALYSIS] Date range: ${temporalResult.dateRange?.description || 'None'}`);
-    console.log(`⏱️ [TEMPORAL_ANALYSIS] Conditions: ${temporalResult.conditions?.length || 0}`);
+    aiLogger.analytics.debug('Temporal query detected', {
+      tableName,
+      queryType: temporalResult.queryType,
+      dateRange: temporalResult.dateRange?.description || 'None',
+      conditionsCount: temporalResult.conditions?.length || 0
+    });
 
     return {
       params: {
@@ -1319,7 +1321,7 @@ export class DatabaseToolSelector {
    * Analyze individual record queries (status checks, detail requests, etc.)
    */
   private static analyzeIndividualRecordQuery(lowerQuery: string, originalQuery: string): { params: any } | null {
-    console.log('🔍 [INDIVIDUAL_RECORD] Analyzing individual record patterns');
+    aiLogger.analytics.debug('Analyzing individual record patterns');
 
     // Define individual record query patterns - Enhanced and more flexible
     const individualPatterns = {

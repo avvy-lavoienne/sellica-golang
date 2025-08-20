@@ -181,8 +181,7 @@ export class ContextualEntityRecognition {
    * Analyze query for contextual entity recognition
    */
   public static analyzeContextualQuery(query: string): ContextualQuery {
-    console.log('🔍 [CONTEXTUAL_ENTITY] Analyzing query for contextual entities:', query);
-    
+    // console.log(
     const lowerQuery = query.toLowerCase();
     const queryWords = lowerQuery.split(/\s+/);
     
@@ -222,13 +221,7 @@ export class ContextualEntityRecognition {
       ambiguityResolution
     };
     
-    console.log('✅ [CONTEXTUAL_ENTITY] Analysis complete:', {
-      primaryEntity: primaryEntity?.entity,
-      confidence: primaryEntity?.confidence,
-      suggestedTable: primaryEntity?.suggestedTable,
-      hasAmbiguity: !!ambiguityResolution
-    });
-    
+    // console.log(
     return result;
   }
 

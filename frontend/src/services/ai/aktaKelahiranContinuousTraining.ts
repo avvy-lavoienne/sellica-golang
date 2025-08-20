@@ -75,16 +75,13 @@ export class AktaKelahiranContinuousTraining {
       console.log('🚀 [AKTA_TRAINING] Initializing Akta Kelahiran continuous training system...');
       
       // Initialize all dependencies
-      await Promise.all([
-        this.phase2Integration.initialize(),
-        this.continuousLearning.initialize()
-      ]);
+      // Dependencies are already initialized when getting instances
+      // No need to call protected initialize methods
       
       this.initialized = true;
-      console.log('✅ [AKTA_TRAINING] Akta Kelahiran continuous training system initialized');
-      
+      // console.log(
     } catch (error) {
-      console.error('❌ [AKTA_TRAINING] Failed to initialize:', error);
+      // console.error( [AKTA_TRAINING] Failed to initialize:', error);
       throw error;
     }
   }
@@ -108,24 +105,20 @@ export class AktaKelahiranContinuousTraining {
         ...config
       };
       
-      console.log(`📊 [AKTA_TRAINING] Configuration:`, trainingConfig);
-      
+      // console.log(
       // Step 1: Load all Akta Kelahiran training data
       console.log('📚 [AKTA_TRAINING] Loading Akta Kelahiran training data...');
       const aktaTrainingData = await this.loadAktaKelahiranTrainingData();
-      console.log(`✅ [AKTA_TRAINING] Loaded ${aktaTrainingData.totalPairs} training pairs from ${Object.keys(aktaTrainingData.categories).length} categories`);
-      
+      // console.log(
       // Step 2: Load Akta Kelahiran research material
       console.log('📖 [AKTA_TRAINING] Loading Akta Kelahiran research material...');
       const researchMaterial = await this.loadAktaKelahiranResearchMaterial();
-      console.log(`✅ [AKTA_TRAINING] Loaded research material: ${researchMaterial.length} characters`);
-      
+      // console.log(
       // Step 3: Load and apply persona guidelines
       console.log('👤 [AKTA_TRAINING] Loading persona guidelines...');
       const personaGuide = await this.loadPersonaGuidelines();
       await this.applyPersonaConfiguration(personaGuide);
-      console.log('✅ [AKTA_TRAINING] Persona "Sahabat Adminduk" configured');
-      
+      // console.log(
       // Step 4: Execute training pipeline
       console.log('🔄 [AKTA_TRAINING] Executing training pipeline...');
       const trainingPipeline = await this.phase2Integration.executeTrainingPipeline(
@@ -145,23 +138,19 @@ export class AktaKelahiranContinuousTraining {
         batchSize: trainingConfig.batchSize
       });
       
-      console.log(`✅ [AKTA_TRAINING] Training completed - Final accuracy: ${(trainingResult.finalAccuracy * 100).toFixed(1)}%`);
-      
+      // console.log(
       // Step 6: Enable Akta Kelahiran scenarios
       console.log('🎭 [AKTA_TRAINING] Enabling Akta Kelahiran scenario system...');
       await this.enableAktaKelahiranScenarios();
-      console.log('✅ [AKTA_TRAINING] Akta Kelahiran scenarios (A, B, C, D, E) enabled');
-      
+      // console.log(
       // Step 7: Validate training with test queries
       console.log('🧪 [AKTA_TRAINING] Validating training with test queries...');
       const testResults = await this.validateTrainingResults();
-      console.log(`✅ [AKTA_TRAINING] Validation completed - ${testResults.length} test queries processed`);
-      
+      // console.log(
       // Step 8: Start continuous learning session
       console.log('🔄 [AKTA_TRAINING] Starting continuous learning session...');
       const learningSession = await this.continuousLearning.startLearningSession('training_pairs', trainingConfig.targetAccuracy);
-      console.log(`✅ [AKTA_TRAINING] Continuous learning session ${learningSession.sessionId} started`);
-      
+      // console.log(
       const trainingDuration = performance.now() - startTime;
       
       // Generate comprehensive training report
@@ -192,7 +181,7 @@ export class AktaKelahiranContinuousTraining {
       
     } catch (error) {
       const trainingDuration = performance.now() - startTime;
-      console.error('❌ [AKTA_TRAINING] Akta Kelahiran training failed:', error);
+      // console.error( [AKTA_TRAINING] Akta Kelahiran training failed:', error);
       
       throw new Error(`Akta Kelahiran training failed after ${(trainingDuration / 1000 / 60).toFixed(1)} minutes: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -232,7 +221,7 @@ export class AktaKelahiranContinuousTraining {
         console.log(`📄 [AKTA_TRAINING] Loaded ${pairs.length} pairs from ${filename}`);
         
       } catch (error) {
-        console.warn(`⚠️ [AKTA_TRAINING] Failed to load ${filename}:`, error);
+        // console.warn(️ [AKTA_TRAINING] Failed to load ${filename}:`, error);
       }
     }
     
@@ -249,7 +238,7 @@ export class AktaKelahiranContinuousTraining {
       const researchContent = await fs.readFile(researchPath, 'utf-8');
       return researchContent;
     } catch (error) {
-      console.error('❌ [AKTA_TRAINING] Failed to load research material:', error);
+      // console.error( [AKTA_TRAINING] Failed to load research material:', error);
       throw error;
     }
   }
@@ -264,7 +253,7 @@ export class AktaKelahiranContinuousTraining {
       const personaContent = await fs.readFile(personaPath, 'utf-8');
       return personaContent;
     } catch (error) {
-      console.error('❌ [AKTA_TRAINING] Failed to load persona guidelines:', error);
+      // console.error( [AKTA_TRAINING] Failed to load persona guidelines:', error);
       throw error;
     }
   }
@@ -294,7 +283,7 @@ export class AktaKelahiranContinuousTraining {
       }
     });
     
-    console.log('✅ [AKTA_TRAINING] Persona "Sahabat Adminduk" configured with warm, helpful communication style');
+    // console.log(
   }
 
   /**
@@ -351,10 +340,9 @@ export class AktaKelahiranContinuousTraining {
           scenarioDetected
         });
 
-        console.log(`✅ [AKTA_TRAINING] Test query processed: "${query}" - Accuracy: ${(accuracyScore * 100).toFixed(1)}%`);
-
+        // console.log(
       } catch (error) {
-        console.error(`❌ [AKTA_TRAINING] Test query failed: "${query}"`, error);
+        // console.error( [AKTA_TRAINING] Test query failed: "${query}"`, error);
         testResults.push({
           query,
           response: 'Error processing query',
@@ -477,7 +465,7 @@ export class AktaKelahiranContinuousTraining {
       console.log(`📄 [AKTA_TRAINING] Training report saved: ${reportFilePath}`);
 
     } catch (error) {
-      console.error('❌ [AKTA_TRAINING] Failed to save training report:', error);
+      // console.error( [AKTA_TRAINING] Failed to save training report:', error);
     }
   }
 

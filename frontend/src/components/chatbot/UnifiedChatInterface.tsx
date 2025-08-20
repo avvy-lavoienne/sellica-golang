@@ -23,7 +23,8 @@ import { EnhancedChatMessage } from "./EnhancedChatMessage";
 import { SellyAdvancedToggle } from "./SellyAdvancedToggle";
 import { ResponsiveSellyLogo } from "./SellyLogos";
 import { AdaptiveWelcomeScreen } from "./AdaptiveWelcomeScreen";
-import { useChat } from "@/contexts/ChatContext";
+import { GuestConversionTrigger } from "./GuestConversionTrigger";
+import { useUnifiedChat } from "@/contexts/UnifiedChatContext";
 import { isMobile } from "@/utils/mobile";
 
 interface UnifiedChatInterfaceProps {
@@ -53,8 +54,8 @@ export function UnifiedChatInterface({
   onEnhancementModeChange,
   initialEnhancedMode = false,
 }: UnifiedChatInterfaceProps) {
-  // Use ChatContext for state management
-  const chatContext = useChat();
+  // Use UnifiedChatContext for state management
+  const chatContext = useUnifiedChat();
   const {
     messages,
     isTyping,
@@ -108,7 +109,6 @@ export function UnifiedChatInterface({
         const parsed = JSON.parse(savedPosition) as DragPosition;
         // Safety check: if position is too extreme, reset to default
         if (Math.abs(parsed.x) > 400 || Math.abs(parsed.y) > 250) {
-          console.log("Saved position too extreme, resetting:", parsed);
           const defaultPosition = { x: 0, y: 0 };
           setDragPosition(defaultPosition);
           localStorage.setItem("selly-chat-position", JSON.stringify(defaultPosition));
@@ -229,7 +229,6 @@ export function UnifiedChatInterface({
   useEffect(() => {
     const checkPosition = () => {
       if (Math.abs(dragPosition.x) > 500 || Math.abs(dragPosition.y) > 300) {
-        console.log("Resetting extreme position:", dragPosition);
         resetPosition();
       }
     };
@@ -240,8 +239,7 @@ export function UnifiedChatInterface({
   const handleEnhancementModeChange = useCallback((enabled: boolean) => {
     setEnhancedMode(enabled);
     onEnhancementModeChange?.(enabled);
-    console.log(`🔄 [UNIFIED_CHAT] Enhancement mode changed to: ${enabled ? 'Enhanced' : 'Standard'}`);
-  }, [onEnhancementModeChange]);
+    }, [onEnhancementModeChange]);
 
   // Keyboard shortcut to reset position
   useEffect(() => {
@@ -249,13 +247,194 @@ export function UnifiedChatInterface({
       if (e.ctrlKey && e.shiftKey && e.key === 'R') {
         e.preventDefault();
         resetPosition();
-        console.log("Position reset via keyboard shortcut");
-      }
+        }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [resetPosition]);
+
+  // PHASE 2: Chat interface data clearing functions
+  const clearChatInterfaceData = useCallback(() => {
+    try {
+      console.log('🧹 [UNIFIED_CHAT_INTERFACE] Starting chat interface data cleanup...');
+
+      // Clear localStorage SELLY keys
+      const sellyKeys = [
+        'selly_chat_sessions',
+        'selly_current_session',
+        'selly_chat_config',
+        'selly-enhanced-mode',
+        'selly-chat-position'
+      ];
+
+      sellyKeys.forEach(key => {
+        localStorage.removeItem(key);
+        console.log(`🗑️ [UNIFIED_CHAT_INTERFACE] Cleared localStorage key: ${key}`);
+      });
+
+      // Pattern-based clearing
+      const allKeys = Object.keys(localStorage);
+      let patternClearedCount = 0;
+
+      allKeys.forEach(key => {
+        if (key.startsWith('selly_') || key.startsWith('selly-')) {
+          localStorage.removeItem(key);
+          patternClearedCount++;
+          console.log(`🗑️ [UNIFIED_CHAT_INTERFACE] Pattern-cleared key: ${key}`);
+        }
+      });
+
+      // Reset UI state
+      resetPosition();
+      setEnhancedMode(false);
+
+      // Clear messages if clearMessages is available
+      if (clearMessages) {
+        clearMessages();
+      }
+
+      console.log(`✅ [UNIFIED_CHAT_INTERFACE] Chat interface data cleanup completed. Cleared ${sellyKeys.length} specific keys and ${patternClearedCount} pattern-matched keys.`);
+
+    } catch (error) {
+      console.error('❌ [UNIFIED_CHAT_INTERFACE] Error during chat interface data cleanup:', error);
+    }
+  }, [resetPosition, clearMessages]);
+
+  const resetChatInterfaceServices = useCallback(async () => {
+    try {
+      console.log('🔄 [UNIFIED_CHAT_INTERFACE] Resetting chat interface services...');
+
+      // Clear EnhancedChatStorageService cache
+      try {
+        const { EnhancedChatStorageService } = await import('@/services/chatbot/enhancedChatStorageService');
+        const chatStorageService = EnhancedChatStorageService.getInstance();
+        chatStorageService.clearLocalCache();
+        console.log('🧹 [UNIFIED_CHAT_INTERFACE] Cleared EnhancedChatStorageService cache');
+      } catch (cacheError) {
+        console.warn('⚠️ [UNIFIED_CHAT_INTERFACE] Could not clear chat service cache:', cacheError);
+      }
+
+      // Reset dialog states
+      setClearDialogState({ isOpen: false, isClearing: false });
+
+      // Reset position to default
+      resetPosition();
+
+      console.log('✅ [UNIFIED_CHAT_INTERFACE] Chat interface services reset completed');
+
+    } catch (error) {
+      console.error('❌ [UNIFIED_CHAT_INTERFACE] Error resetting chat interface services:', error);
+    }
+  }, [resetPosition]);
+
+  // PHASE 2: Auth state change listener for unified chat interface
+  useEffect(() => {
+    console.log('🔐 [UNIFIED_CHAT_INTERFACE] Setting up unified chat interface auth state change listener...');
+
+    // Import supabase dynamically to avoid SSR issues
+    const setupAuthListener = async () => {
+      try {
+        const { supabase } = await import('@/lib/conn/supabaseClient');
+
+        // Helper function to determine if chat interface data should be cleared
+        const shouldClearChatInterfaceData = (event: string, session: any, previousUserId?: string): boolean => {
+          // Always clear on explicit logout
+          if (event === 'SIGNED_OUT') {
+            return true;
+          }
+
+          // Clear on user switch (different user signing in)
+          if (event === 'SIGNED_IN' && session?.user) {
+            const currentUserId = session.user.id;
+            // Only clear if this is a different user than before
+            if (previousUserId && previousUserId !== currentUserId) {
+              console.log(`🔄 [UNIFIED_CHAT_INTERFACE] User switch detected: ${previousUserId.slice(0, 8)} → ${currentUserId.slice(0, 8)}`);
+              return true;
+            }
+            // Don't clear for same user re-authentication (app switch scenario)
+            return false;
+          }
+
+          // Never clear on token refresh or other events
+          return false;
+        };
+
+        let previousUserId: string | undefined;
+
+        const { data: authListener } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            try {
+              console.log(`🔐 [UNIFIED_CHAT_INTERFACE] Unified chat interface auth state change detected: ${event}`);
+
+              if (shouldClearChatInterfaceData(event, session, previousUserId)) {
+                if (event === 'SIGNED_OUT') {
+                  console.log('👋 [UNIFIED_CHAT_INTERFACE] User signed out - clearing all chat interface data');
+
+                  // Close chat interface
+                  if (contextUIState.isOpen) {
+                    toggleChat();
+                  }
+                } else {
+                  console.log('👤 [UNIFIED_CHAT_INTERFACE] User switch detected - clearing previous user interface data');
+                }
+
+                clearChatInterfaceData();
+                await resetChatInterfaceServices();
+              }
+
+              if (event === 'SIGNED_IN' && session?.user) {
+                const currentUserId = session.user.id;
+                console.log(`👤 [UNIFIED_CHAT_INTERFACE] User authenticated - maintaining interface for user: ${currentUserId.slice(0, 8)}...`);
+
+                // Only reset enhancement mode if this is a new user
+                if (!previousUserId || previousUserId !== currentUserId) {
+                  setEnhancedMode(false);
+                }
+
+                previousUserId = currentUserId;
+
+              } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+                console.log('🔄 [UNIFIED_CHAT_INTERFACE] Token refreshed - maintaining chat interface session');
+                // Don't clear data on token refresh
+
+              } else if (event === 'SIGNED_OUT') {
+                previousUserId = undefined;
+              }
+
+            } catch (error) {
+              console.error('❌ [UNIFIED_CHAT_INTERFACE] Error handling unified chat interface auth state change:', error);
+            }
+          }
+        );
+
+        // Return cleanup function
+        return () => {
+          console.log('🧹 [UNIFIED_CHAT_INTERFACE] Cleaning up unified chat interface auth state listener');
+          if (authListener && authListener.subscription) {
+            authListener.subscription.unsubscribe();
+          }
+        };
+
+      } catch (error) {
+        console.error('❌ [UNIFIED_CHAT_INTERFACE] Error setting up unified chat interface auth listener:', error);
+        return () => {}; // Return empty cleanup function
+      }
+    };
+
+    let cleanup: (() => void) | undefined;
+
+    setupAuthListener().then(cleanupFn => {
+      cleanup = cleanupFn;
+    });
+
+    // Cleanup on unmount
+    return () => {
+      if (cleanup) {
+        cleanup();
+      }
+    };
+  }, [clearChatInterfaceData, resetChatInterfaceServices, contextUIState.isOpen, toggleChat]);
 
   // Message handling
   const handleSendMessage = useCallback(() => {
@@ -275,16 +454,13 @@ export function UnifiedChatInterface({
     [handleSendMessage]
   );
 
-
-
   // Clear chat functionality
   const handleClearChat = useCallback(() => {
     setClearDialogState({ isOpen: false, isClearing: true });
 
     try {
       clearMessages();
-      console.log("Chat history cleared successfully");
-    } catch (error) {
+      } catch (error) {
       console.error("Failed to clear chat:", error);
     } finally {
       setClearDialogState({ isOpen: false, isClearing: false });
@@ -564,8 +740,6 @@ export function UnifiedChatInterface({
                   )}
                 </div>
 
-
-
                 {/* Input Area */}
                 <div className="flex-shrink-0 p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                   <div className="flex space-x-2">
@@ -636,6 +810,9 @@ export function UnifiedChatInterface({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Guest Conversion Trigger */}
+      <GuestConversionTrigger variant="modal" showBenefits={true} />
     </>
   );
 }

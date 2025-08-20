@@ -23,6 +23,7 @@ import { enhancedSchemaIntelligence } from "./enhancedSchemaIntelligence";
 import { administrativeWorkflowIntelligence } from "./administrativeWorkflowIntelligence";
 import type { AdministrativeContext } from "./schemaIntelligence";
 import { PersonaService, ConversationContext } from "./personaService";
+import { aiLogger } from '../monitoring/logger';
 
 // Extended ProcessedQuery interface for enhanced functionality
 export interface EnhancedProcessedQuery extends ProcessedQuery {
@@ -75,8 +76,10 @@ export class EnhancedQueryIntelligence {
     userId?: string,
   ): Promise<EnhancedQueryResult> {
     try {
-      console.log('🚀 [ENHANCED_QUERY] Enhanced Query Intelligence: Processing query:', query);
-      console.log('🚀 [ENHANCED_QUERY] User ID:', userId);
+      aiLogger.enhancedQuery.debug('Enhanced Query Intelligence: Processing query', {
+        query: query.substring(0, 100),
+        userId
+      });
 
       // Step 0: Handle greetings first (highest priority)
       const isGreeting = /halo|hai|hello|selamat|selly/i.test(query.toLowerCase());
@@ -92,7 +95,7 @@ export class EnhancedQueryIntelligence {
           userId: userId
         };
 
-        const personaGreeting = this.personaService.applyPersona('', query, conversationContext);
+        const personaGreeting = await this.personaService.applyPersona('', query, conversationContext);
 
         return {
           success: true,

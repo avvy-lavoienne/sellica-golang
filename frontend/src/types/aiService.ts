@@ -8,9 +8,8 @@ import { AIResponse, QueryIntent } from './chatbot';
 export interface TensorFlowStatus {
   available: boolean;
   healthStatus?: {
-    tensorflowJS: boolean;
-    tensorflowServing: boolean;
-    modelManager: boolean;
+    knowledgeService: boolean;
+    enhancedService: boolean;
     overall: boolean;
   };
   performanceInsights?: {

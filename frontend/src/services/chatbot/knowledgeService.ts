@@ -7,6 +7,8 @@ import { additionalServices, servicePatterns } from './additionalServices';
 import { casualPatternGenerator } from './casualPatternGenerator';
 import { documentConfigurations } from './documentConfigurations';
 import { serviceResponseVariations } from './serviceResponseVariations';
+import { MultiServiceQueryAnalyzer, QueryAnalysisResult } from './multiServiceQueryAnalyzer';
+import { MultiServiceResponseSynthesizer, SynthesisOptions } from './multiServiceResponseSynthesizer';
 
 export interface DocumentRequirement {
   name: string;
@@ -63,9 +65,13 @@ export interface ServiceInfo {
 export class KnowledgeService {
   private static instance: KnowledgeService;
   private knowledgeBase: Map<string, ServiceInfo> = new Map();
+  private multiServiceAnalyzer: MultiServiceQueryAnalyzer;
+  private multiServiceSynthesizer: MultiServiceResponseSynthesizer;
 
   private constructor() {
     this.initializeKnowledgeBase();
+    this.multiServiceAnalyzer = new MultiServiceQueryAnalyzer();
+    this.multiServiceSynthesizer = new MultiServiceResponseSynthesizer();
   }
 
   public static getInstance(): KnowledgeService {
@@ -751,6 +757,94 @@ export class KnowledgeService {
       notes: ['Pelaporan maksimal 30 hari setelah kematian', 'Keluarga terdekat yang melaporkan']
     });
 
+    // Akta Pengakuan Anak - NEW TRAINING INTEGRATION
+    this.knowledgeBase.set('akta_pengakuan_anak', {
+      serviceName: 'Akta Pengakuan Anak',
+      serviceCode: 'APA-001',
+      serviceType: 'Pembuatan Akta Pengakuan Anak',
+      lastUpdated: '2025-02-02',
+      version: '1.0',
+      regulationBasis: [
+        'UU No. 24/2013 tentang Administrasi Kependudukan',
+        'KUH Perdata tentang Pengakuan Anak'
+      ],
+      requirements: [
+        { name: 'Akta kelahiran anak yang akan diakui', required: true },
+        { name: 'KTP-el ayah yang mengakui', required: true },
+        { name: 'Kartu Keluarga ayah', required: true },
+        { name: 'Surat pernyataan pengakuan anak bermaterai', required: true },
+        { name: 'Surat persetujuan ibu (jika diperlukan)', required: false },
+        { name: 'Pas foto ayah terbaru', required: true }
+      ],
+      processSteps: [
+        { step: 1, description: 'Ayah yang mengakui datang ke Disdukcapil', estimatedTime: '15 menit' },
+        { step: 2, description: 'Menyerahkan dokumen persyaratan lengkap', estimatedTime: '10 menit' },
+        { step: 3, description: 'Mengisi formulir pernyataan pengakuan anak', estimatedTime: '20 menit' },
+        { step: 4, description: 'Verifikasi data dan dokumen oleh petugas', estimatedTime: '30 menit' },
+        { step: 5, description: 'Proses pencatatan dan penerbitan akta', estimatedTime: '1-2 minggu' }
+      ],
+      duration: '1-2 minggu setelah dokumen lengkap',
+      cost: 'Gratis (Layanan administrasi kependudukan tidak dipungut biaya)',
+      officeHours: '08:00-15:00 WIB (Senin-Jumat)',
+      importance: [
+        'Anak mendapat status hukum sebagai anak yang diakui',
+        'Timbul hubungan keperdataan antara ayah dan anak',
+        'Anak berhak atas nafkah dari ayah',
+        'Anak berhak atas warisan dari ayah',
+        'Ayah berkewajiban memelihara dan mendidik anak'
+      ],
+      notes: [
+        'Ayah yang mengakui harus hadir langsung',
+        'Pengakuan tidak dapat dicabut begitu saja',
+        'Untuk anak dewasa diperlukan persetujuan anak',
+        'Jika ibu tidak setuju, dapat melalui proses pengadilan'
+      ]
+    });
+
+    // Akta Pengesahan Anak - NEW SERVICE ADDITION
+    this.knowledgeBase.set('akta_pengesahan_anak', {
+      serviceName: 'Akta Pengesahan Anak',
+      serviceCode: 'APSA-001',
+      serviceType: 'Pembuatan Akta Pengesahan Anak',
+      lastUpdated: '2025-02-02',
+      version: '1.0',
+      regulationBasis: [
+        'UU No. 24/2013 tentang Administrasi Kependudukan',
+        'KUH Perdata tentang Pengesahan Anak'
+      ],
+      requirements: [
+        { name: 'Akta kelahiran anak yang akan disahkan', required: true },
+        { name: 'Akta perkawinan orang tua', required: true },
+        { name: 'KTP-el kedua orang tua', required: true },
+        { name: 'Kartu Keluarga', required: true },
+        { name: 'Surat pernyataan pengesahan anak bermaterai', required: true },
+        { name: 'Pas foto kedua orang tua terbaru', required: true }
+      ],
+      processSteps: [
+        { step: 1, description: 'Kedua orang tua datang ke Disdukcapil', estimatedTime: '15 menit' },
+        { step: 2, description: 'Menyerahkan dokumen persyaratan lengkap', estimatedTime: '10 menit' },
+        { step: 3, description: 'Mengisi formulir pernyataan pengesahan anak', estimatedTime: '20 menit' },
+        { step: 4, description: 'Verifikasi data dan dokumen oleh petugas', estimatedTime: '30 menit' },
+        { step: 5, description: 'Proses pencatatan dan penerbitan akta', estimatedTime: '1-2 minggu' }
+      ],
+      duration: '1-2 minggu setelah dokumen lengkap',
+      cost: 'Gratis (Layanan administrasi kependudukan tidak dipungut biaya)',
+      officeHours: '08:00-15:00 WIB (Senin-Jumat)',
+      importance: [
+        'Anak mendapat status hukum sebagai anak sah',
+        'Timbul hubungan keperdataan penuh dengan kedua orang tua',
+        'Anak berhak atas nafkah dan warisan dari kedua orang tua',
+        'Status hukum anak menjadi sama dengan anak yang lahir dalam perkawinan',
+        'Memberikan perlindungan hukum penuh kepada anak'
+      ],
+      notes: [
+        'Kedua orang tua harus hadir langsung',
+        'Hanya dapat dilakukan setelah orang tua menikah secara sah',
+        'Pengesahan berlaku surut sejak kelahiran anak',
+        'Untuk anak dewasa diperlukan persetujuan anak yang bersangkutan'
+      ]
+    });
+
     // Kartu Identitas Anak (KIA) - 2025 Updated
     this.knowledgeBase.set('kia', {
       serviceName: 'Kartu Identitas Anak (KIA)',
@@ -969,13 +1063,130 @@ export class KnowledgeService {
   }
 
   /**
-   * Get service information by query with enhanced AI-powered prioritization
+   * Enhanced service information retrieval with multi-service support
    */
-  public getServiceInfo(query: string): ServiceInfo | string | null {
+  public getServiceInfo(query: string): ServiceInfo | null {
+    // Step 1: Check for multi-service scenarios first
+    const multiServiceResult = this.analyzeMultiServiceQuery(query);
+
+    if (multiServiceResult.isMultiService && multiServiceResult.scenario) {
+      console.log(`🎯 [KNOWLEDGE_SERVICE] Multi-service scenario detected: ${multiServiceResult.scenario.name}`);
+
+      // Return a synthetic ServiceInfo for multi-service scenarios
+      return this.createMultiServiceInfo(multiServiceResult);
+    }
+
+    // Step 2: Fall back to single-service processing
+    const singleServiceResult = this.getSingleServiceInfo(query);
+
+    // Handle string responses by converting to ServiceInfo
+    if (typeof singleServiceResult === 'string') {
+      // Create a synthetic ServiceInfo for string responses
+      return {
+        serviceName: 'Response Information',
+        serviceCode: 'INFO-001',
+        serviceType: 'Information Response',
+        requirements: [],
+        processSteps: [],
+        duration: 'Immediate',
+        cost: 'Free',
+        officeHours: '08:00-15:00 WIB (Senin-Jumat)',
+        specialCases: {
+          'string_response': ['true'],
+          'content': [singleServiceResult]
+        }
+      };
+    }
+
+    return singleServiceResult;
+  }
+
+  /**
+   * Analyze query for multi-service scenarios with performance monitoring
+   */
+  public analyzeMultiServiceQuery(query: string): QueryAnalysisResult {
+    const startTime = performance.now();
+
+    try {
+      const result = this.multiServiceAnalyzer.analyzeQuery(query);
+      const processingTime = performance.now() - startTime;
+
+      // Log performance metrics
+      console.log(`⚡ [MULTI_SERVICE_PERFORMANCE] Analysis completed in ${processingTime.toFixed(2)}ms`);
+      console.log(`📊 [MULTI_SERVICE_PERFORMANCE] Multi-service: ${result.isMultiService}, Confidence: ${result.confidence.toFixed(2)}, Services: ${result.detectedServices.length}`);
+
+      return result;
+    } catch (error) {
+      const processingTime = performance.now() - startTime;
+      console.error(`❌ [MULTI_SERVICE_ERROR] Analysis failed after ${processingTime.toFixed(2)}ms:`, error);
+
+      // Return safe fallback
+      return {
+        isMultiService: false,
+        confidence: 0,
+        detectedServices: [],
+        analysisMetadata: {
+          processingTime,
+          patternMatches: [],
+          complexityScore: 0,
+          recommendedApproach: 'single_service'
+        }
+      };
+    }
+  }
+
+  /**
+   * Create synthetic ServiceInfo for multi-service scenarios
+   */
+  private createMultiServiceInfo(analysisResult: QueryAnalysisResult): ServiceInfo {
+    if (!analysisResult.scenario) {
+      throw new Error('Cannot create multi-service info without scenario');
+    }
+
+    const scenario = analysisResult.scenario;
+
+    // Create a synthetic ServiceInfo that represents the multi-service scenario
+    return {
+      serviceName: scenario.name,
+      serviceCode: `MULTI-${scenario.scenarioId.toUpperCase()}`,
+      serviceType: 'Multi-Service Process',
+      requirements: [
+        { name: 'Multiple documents required - see detailed guidance', required: true }
+      ],
+      processSteps: [
+        { step: 1, description: 'Multi-service process - see comprehensive guidance', estimatedTime: scenario.estimatedDuration }
+      ],
+      duration: scenario.estimatedDuration,
+      cost: 'Varies by service - see individual service costs',
+      officeHours: '08:00-15:00 WIB (Senin-Jumat)',
+      notes: [
+        'This is a multi-service process involving multiple documents',
+        'Follow the recommended sequence for best results',
+        'Some services may have dependencies on others'
+      ],
+      // Mark this as a multi-service scenario for special handling
+      specialCases: {
+        'multi_service': ['true'],
+        'scenario_id': [scenario.scenarioId],
+        'complexity': [scenario.complexity]
+      }
+    };
+  }
+
+  /**
+   * Get service information by query with enhanced AI-powered prioritization (single service)
+   */
+  private getSingleServiceInfo(query: string): ServiceInfo | string | null {
     const lowerQuery = query.toLowerCase();
 
     // PRIORITY 1: AI-Trained Scenario Responses (94%+ accuracy)
     // These take precedence over administrative cache responses
+
+    // KTP requirements query patterns - Handle specific requirement questions
+    if (this.isKTPRequirementsQuery(lowerQuery)) {
+      console.log('🎯 [KNOWLEDGE_SERVICE] Using KTP requirements response (95%+ accuracy)');
+      return this.getKTPRequirementsResponse(lowerQuery);
+    }
 
     // KTP initial query patterns - Handle initial KTP requests
     if (this.isKTPInitialQuery(lowerQuery)) {
@@ -1021,6 +1232,15 @@ export class KnowledgeService {
       if (kkTrainingResponse) {
         console.log('🎯 [KNOWLEDGE_SERVICE] Using KK continuous training response (95%+ accuracy)');
         return kkTrainingResponse;
+      }
+    }
+
+    // PRIORITY 1.7: Perpindahan Continuous Training Integration - Check Perpindahan training data (ONLY for Perpindahan queries)
+    if (this.isPerpindahanSpecificQuery(lowerQuery)) {
+      const perpindahanTrainingResponse = this.getPerpindahanTrainingResponse(lowerQuery);
+      if (perpindahanTrainingResponse) {
+        console.log('🎯 [KNOWLEDGE_SERVICE] Using Perpindahan continuous training response (95%+ accuracy)');
+        return perpindahanTrainingResponse;
       }
     }
 
@@ -1113,6 +1333,11 @@ export class KnowledgeService {
       return this.knowledgeBase.get('akta_kematian') || null;
     }
 
+    // Akta Pengakuan Anak patterns - NEW TRAINING INTEGRATION
+    if (this.isAktaPengakuanAnakQuery(lowerQuery)) {
+      return this.knowledgeBase.get('akta_pengakuan_anak') || null;
+    }
+
     // Akta Perkawinan patterns - AUTOMATED GENERATION
     if (this.isAktaPerkawinanQuery(lowerQuery)) {
       return this.knowledgeBase.get('akta_perkawinan') || null;
@@ -1188,10 +1413,7 @@ export class KnowledgeService {
       return this.knowledgeBase.get('surat_pengganti_identitas') || null;
     }
 
-    // Akta Pengakuan Anak patterns - AUTOMATED GENERATION
-    if (this.isAktaPengakuanAnakQuery(lowerQuery)) {
-      return this.knowledgeBase.get('akta_pengakuan_anak') || null;
-    }
+
 
     // Akta Pengesahan Anak patterns - AUTOMATED GENERATION
     if (this.isAktaPengesahanAnakQuery(lowerQuery)) {
@@ -2491,12 +2713,31 @@ export class KnowledgeService {
       /suami.*istri.*beda.*kota/i,
       /pasangan.*beda.*daerah/i,
 
-      // Common migration expressions
+      // Common migration expressions - ENHANCED FOR USER QUERIES
       /pindah.*tempat.*tinggal/i,
+      /pindah.*alamat/i,
+      /pindah.*domisili/i,
       /ganti.*domisili/i,
       /ubah.*domisili/i,
       /mutasi.*tempat.*tinggal/i,
       /relokasi/i,
+
+      // Casual Indonesian expressions - NEW PATTERNS
+      /aku.*ingin.*pindah/i,
+      /saya.*ingin.*pindah/i,
+      /mau.*pindah.*alamat/i,
+      /mau.*pindah.*domisili/i,
+      /ingin.*pindah.*alamat/i,
+      /ingin.*pindah.*domisili/i,
+      /pengen.*pindah/i,
+      /kepingin.*pindah/i,
+
+      // Address change specific
+      /pindah.*alamat.*domisili/i,
+      /ganti.*alamat.*domisili/i,
+      /ubah.*alamat.*domisili/i,
+      /perpindahan.*alamat/i,
+      /perpindahan.*domisili/i,
 
       // Official document references
       /surat.*keterangan.*pindah/i,
@@ -2504,6 +2745,7 @@ export class KnowledgeService {
       /berkas.*kepindahan/i,
       /formulir.*pindah/i,
       /f.*1.*03/i,
+      /skpwni/i,
 
       // Process-related queries
       /cara.*pindah.*domisili/i,
@@ -2526,6 +2768,8 @@ export class KnowledgeService {
 
     return allPatterns.some(pattern => pattern.test(query));
   }
+
+
 
   /**
    * Format complete service overview for Disdukcapil
@@ -3042,19 +3286,89 @@ Ada yang mau ditanyakan lebih detail, kak? 🤝`;
   }
 
   /**
+   * Check if query is asking for KTP requirements/syarat
+   */
+  private isKTPRequirementsQuery(query: string): boolean {
+    const lowerQuery = query.toLowerCase().trim();
+
+    // KTP requirements query patterns
+    const ktpRequirementsPatterns = [
+      // Direct requirement questions
+      /\b(syarat|persyaratan|dokumen|berkas)\s+(ktp|kartu\s+tanda\s+penduduk)\b/i,
+      /\bktp\s+(syarat|persyaratan|dokumen|berkas)\b/i,
+      /\b(apa|mana)\s+(syarat|persyaratan|dokumen|berkas)\s+(ktp|kartu\s+tanda\s+penduduk)\b/i,
+
+      // Common variations
+      /\bsyarat\s+(cetak|buat|bikin|urus)\s+ktp\b/i,
+      /\bpersyaratan\s+(cetak|buat|bikin|urus)\s+ktp\b/i,
+      /\bdokumen\s+(cetak|buat|bikin|urus)\s+ktp\b/i,
+      /\bberkas\s+(cetak|buat|bikin|urus)\s+ktp\b/i,
+
+      // Question patterns
+      /\b(kalau|kalo)\s+(syarat|persyaratan|dokumen|berkas)\s+(ktp|cetak\s+ktp)\b/i,
+      /\bbutuh\s+(dokumen|berkas|syarat|persyaratan)\s+(apa|mana)\s+(ktp|cetak\s+ktp)\b/i,
+      /\b(apa\s+saja|apa\s+aja)\s+(syarat|persyaratan|dokumen|berkas)\s+(ktp|cetak\s+ktp)\b/i
+    ];
+
+    return ktpRequirementsPatterns.some(pattern => pattern.test(query));
+  }
+
+  /**
+   * Get response for KTP requirements queries
+   */
+  private getKTPRequirementsResponse(query: string): string {
+    return `📋 **PERSYARATAN KARTU TANDA PENDUDUK (KTP)**
+**Dinas Kependudukan dan Pencatatan Sipil Kabupaten Garut**
+
+Halo kak! 😊 Berikut persyaratan untuk pengurusan KTP:
+
+🆔 **PERSYARATAN UMUM KTP:**
+✅ **Fotokopi Kartu Keluarga (KK)** - Asli + Fotokopi
+✅ **Akta Kelahiran/Ijazah terakhir** - Asli + Fotokopi
+✅ **Bukti umur 17 tahun** atau Buku Nikah (jika sudah kawin)
+
+📝 **PERSYARATAN KHUSUS (sesuai kondisi):**
+
+🔸 **KTP Hilang/Rusak:**
+• Surat keterangan kehilangan dari Polsek
+• KTP lama (jika masih ada/rusak)
+
+🔸 **KTP Koreksi Data:**
+• Dokumen pendukung data yang benar
+• Surat pernyataan koreksi data
+
+🔸 **KTP Pertama Kali:**
+• Surat pengantar dari RT/RW
+• Pas foto 3x4 (2 lembar)
+
+⏰ **WAKTU PELAYANAN:** 1-3 hari kerja
+💰 **BIAYA:** GRATIS (sesuai UU)
+🏢 **LOKASI:** Disdukcapil Kabupaten Garut
+
+💡 **Tips:** Pastikan semua dokumen asli dan fotokopi dibawa ya kak!
+
+Ada kondisi khusus yang ingin kak tanyakan? SELLY siap membantu! 😊`;
+  }
+
+  /**
    * Check if query is an initial KTP request (before scenario assessment)
    */
   private isKTPInitialQuery(query: string): boolean {
     const lowerQuery = query.toLowerCase().trim();
 
+    // Exclude requirement queries (handled separately)
+    if (this.isKTPRequirementsQuery(lowerQuery)) {
+      return false;
+    }
+
     // KTP initial request patterns
     const ktpInitialPatterns = [
-      // Direct KTP requests
+      // Direct KTP requests (excluding requirement questions)
       /\b(mau|ingin|butuh|perlu|buat|bikin|cetak|urus)\s+(ktp|kartu\s+tanda\s+penduduk)\b/i,
       /\bktp\s+(baru|hilang|rusak|salah|koreksi)\b/i,
       /\b(pengajuan|pengurusan|pembuatan)\s+ktp\b/i,
 
-      // Common variations
+      // Common variations (but not requirement questions)
       /\bcetak\s+ktp\b/i,
       /\bbikin\s+ktp\b/i,
       /\burus\s+ktp\b/i,
@@ -3754,6 +4068,73 @@ ${closing}`;
   }
 
   /**
+   * Format multi-service response for complex scenarios
+   */
+  private formatMultiServiceResponse(serviceInfo: ServiceInfo): string {
+    const scenarioId = serviceInfo.specialCases?.scenario_id?.[0];
+    if (!scenarioId) {
+      return 'Error: Multi-service scenario ID not found';
+    }
+
+    // Get the original query analysis result
+    const scenario = this.multiServiceAnalyzer.getDependencyMapper()
+      .getAllScenarios()
+      .find(s => s.scenarioId === scenarioId);
+
+    if (!scenario) {
+      return 'Error: Scenario not found';
+    }
+
+    // Collect service data for synthesis
+    const servicesData = new Map<string, ServiceInfo>();
+
+    // Add primary services
+    scenario.primaryServices.forEach(serviceId => {
+      const service = this.knowledgeBase.get(serviceId);
+      if (service) {
+        servicesData.set(serviceId, service);
+      }
+    });
+
+    // Add dependent services
+    scenario.dependentServices.forEach(dep => {
+      const service = this.knowledgeBase.get(dep.serviceId);
+      if (service) {
+        servicesData.set(dep.serviceId, service);
+      }
+    });
+
+    // Create analysis result for synthesis
+    const analysisResult: QueryAnalysisResult = {
+      isMultiService: true,
+      confidence: 0.9,
+      detectedServices: Array.from(servicesData.keys()),
+      scenario,
+      analysisMetadata: {
+        processingTime: 0,
+        patternMatches: [],
+        complexityScore: scenario.complexity === 'complex' ? 8 : scenario.complexity === 'moderate' ? 5 : 3,
+        recommendedApproach: 'multi_service'
+      }
+    };
+
+    // Synthesize comprehensive response
+    const multiServiceResponse = this.multiServiceSynthesizer.synthesizeResponse(
+      analysisResult,
+      servicesData,
+      {
+        responseStyle: 'comprehensive',
+        includeTimeline: true,
+        includeTips: true,
+        includeWarnings: true
+      }
+    );
+
+    // Format for display
+    return this.multiServiceSynthesizer.formatResponse(multiServiceResponse);
+  }
+
+  /**
    * Format Akta Kelahiran interactive assessment for personalized guidance - AUTOMATED GENERATION
    */
   public formatAktaKelahiranAssessment(): string {
@@ -3791,6 +4172,16 @@ Saya siap membantu kak mendapatkan panduan Akta Kelahiran yang tepat! 🤝`;
     // Special handling for complete service overview
     if (serviceInfo.serviceCode === 'OVERVIEW-001') {
       return this.formatCompleteServiceOverview();
+    }
+
+    // Special handling for string responses
+    if (serviceInfo.specialCases?.string_response?.[0] === 'true') {
+      return serviceInfo.specialCases.content?.[0] || 'No content available';
+    }
+
+    // Special handling for multi-service scenarios
+    if (serviceInfo.specialCases?.multi_service?.[0] === 'true') {
+      return this.formatMultiServiceResponse(serviceInfo);
     }
 
     // Special handling for KTP interactive assessment
@@ -4546,6 +4937,303 @@ SELLY siap bantu sampai tuntas! 🤝`);
       enhancedResponse = enhancedResponse.replace(
         'Halo kak! 😊\n\n',
         'Halo kak! 😊 Jangan khawatir, SELLY akan bantu kakak menyelesaikan masalah ini.\n\n'
+      );
+    }
+
+    return enhancedResponse;
+  }
+
+  /**
+   * Check if query is specifically about Perpindahan (Migration/Relocation)
+   */
+  private isPerpindahanSpecificQuery(query: string): boolean {
+    const lowerQuery = query.toLowerCase();
+
+    const perpindahanKeywords = [
+      'pindah', 'perpindahan', 'domisili', 'pindah domisili', 'pindah alamat',
+      'skpwni', 'surat keterangan pindah', 'pindah datang', 'pindah keluar',
+      'fasilitasi pindah', 'cabut berkas', 'formulir f-1.03', 'f-1.03',
+      'migrasi', 'relokasi', 'mutasi alamat', 'kepindahan', 'alamat domisili'
+    ];
+
+    // Enhanced pattern matching for casual Indonesian expressions
+    const casualPerpindahanPatterns = [
+      /aku.*ingin.*pindah/i,
+      /saya.*ingin.*pindah/i,
+      /mau.*pindah/i,
+      /ingin.*pindah/i,
+      /pengen.*pindah/i,
+      /kepingin.*pindah/i,
+      /pindah.*alamat.*domisili/i,
+      /perpindahan.*alamat/i,
+      /ganti.*alamat/i,
+      /ubah.*alamat/i
+    ];
+
+    // Check keywords first
+    const hasKeyword = perpindahanKeywords.some(keyword => lowerQuery.includes(keyword));
+
+    // Check casual patterns
+    const matchesPattern = casualPerpindahanPatterns.some(pattern => pattern.test(lowerQuery));
+
+    return hasKeyword || matchesPattern;
+  }
+
+  /**
+   * Get Perpindahan continuous training response from comprehensive training data
+   */
+  private getPerpindahanTrainingResponse(query: string): string | null {
+    try {
+      // Check for specific Perpindahan patterns first (no file system access needed)
+      const specificResponse = this.getSpecificPerpindahanTrainingResponse(query);
+      if (specificResponse) {
+        return specificResponse;
+      }
+
+      // In production/build environment, use pattern-based responses
+      if (typeof window !== 'undefined' || process.env.NODE_ENV === 'production') {
+        return this.getPerpindahanPatternBasedResponse(query);
+      }
+
+      // Only try to load files in development/server environment
+      try {
+        // Use dynamic import to avoid bundling fs in client code
+        const { loadPerpindahanTrainingData } = require('../../utils/serverFileUtils');
+        const perpindahanTrainingData = loadPerpindahanTrainingData();
+
+        if (perpindahanTrainingData) {
+          // Check each training category for matching patterns
+          for (const [categoryName, trainingPairs] of Object.entries(perpindahanTrainingData)) {
+            if (Array.isArray(trainingPairs)) {
+              // Find matching training pair
+              for (const pair of trainingPairs as any[]) {
+                if (this.matchesPerpindahanTrainingPair(query, pair)) {
+                  console.log(`🎯 [PERPINDAHAN_TRAINING] Matched pattern from ${categoryName}`);
+                  return this.enhancePerpindahanResponseWithPersona(pair.expectedResponse || pair.response);
+                }
+              }
+            }
+          }
+        }
+      } catch (fsError) {
+        console.warn('⚠️ [PERPINDAHAN_TRAINING] Server file utils not available, using pattern-based responses');
+        return this.getPerpindahanPatternBasedResponse(query);
+      }
+
+      return null;
+
+    } catch (error) {
+      console.error('❌ [PERPINDAHAN_TRAINING] Error in Perpindahan training response:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Check if query matches a Perpindahan training pair
+   */
+  private matchesPerpindahanTrainingPair(query: string, pair: any): boolean {
+    const lowerQuery = query.toLowerCase();
+    const pairQuery = (pair.query || '').toLowerCase();
+
+    // Direct similarity check using simple word overlap
+    if (pairQuery) {
+      const queryWords = lowerQuery.split(' ').filter((word: string) => word.length > 2);
+      const pairWords = pairQuery.split(' ').filter((word: string) => word.length > 2);
+      const commonWords = queryWords.filter((word: string) => pairWords.includes(word));
+      const similarity = (commonWords.length * 2) / (queryWords.length + pairWords.length);
+
+      if (similarity > 0.7) {
+        return true;
+      }
+    }
+
+    // Keyword matching
+    const queryWords = lowerQuery.split(' ').filter((word: string) => word.length > 2);
+    const pairWords = pairQuery.split(' ').filter((word: string) => word.length > 2);
+    const commonWords = queryWords.filter((word: string) => pairWords.includes(word));
+
+    return commonWords.length >= 2;
+  }
+
+  /**
+   * Get Perpindahan pattern-based response for build/production environment
+   */
+  private getPerpindahanPatternBasedResponse(query: string): string | null {
+    const lowerQuery = query.toLowerCase();
+
+    // Enhanced pattern matching for address change and SKPWNI queries
+    if (lowerQuery.includes('pindah') || lowerQuery.includes('perpindahan') || lowerQuery.includes('domisili') ||
+        lowerQuery.includes('skpwni') || lowerQuery.includes('alamat')) {
+
+      // SKPWNI specific queries
+      if (lowerQuery.includes('skpwni') || lowerQuery.includes('surat keterangan pindah')) {
+        return this.enhancePerpindahanResponseWithPersona(`Halo kak! 😊 SKPWNI adalah **Surat Keterangan Pindah Warga Negara Indonesia**!
+
+📄 **Fungsi SKPWNI:**
+• Dokumen resmi dari Disdukcapil daerah asal
+• "Tiket" untuk mendaftar di daerah tujuan
+• Bukti bahwa data sudah dilepas dari daerah asal
+• Otorisasi transfer data antar daerah
+
+🎯 **Kapan perlu SKPWNI:**
+• Pindah antar kabupaten/kota
+• Pindah antar provinsi
+• Pindah ke luar negeri
+
+⏰ **Batas waktu:**
+Harus lapor ke daerah tujuan maksimal **30 hari** sejak SKPWNI diterbitkan.
+
+SELLY siap bantu kakak dengan prosedur SKPWNI! 🤝`);
+      }
+
+      // General address change queries
+      if ((lowerQuery.includes('ingin') || lowerQuery.includes('mau')) &&
+          (lowerQuery.includes('pindah') && (lowerQuery.includes('alamat') || lowerQuery.includes('domisili')))) {
+        return this.enhancePerpindahanResponseWithPersona(`Halo kak! 😊 Mau pindah alamat domisili? SELLY siap bantu!
+
+🏠 **DALAM KABUPATEN GARUT:**
+• Lapor ke RT/RW lama dan baru
+• Buat surat keterangan pindah dari kelurahan lama
+• Daftar di kelurahan baru
+• Update data di Disdukcapil
+• **Tidak perlu SKPWNI**
+
+🌍 **ANTAR KABUPATEN/PROVINSI:**
+• Surat pindah (SKPWNI) dari Disdukcapil asal
+• Surat pindah datang di Disdukcapil tujuan
+• Update KK dan KTP-el di daerah baru
+
+💰 **Semua layanan 100% GRATIS!**
+
+Mau tahu prosedur lengkapnya? Tanya aja ke SELLY! 🤝`);
+      }
+
+      // Check for specific Perpindahan situations
+      if (lowerQuery.includes('biaya') || lowerQuery.includes('gratis')) {
+        return this.enhancePerpindahanResponseWithPersona('Semua layanan perpindahan domisili 100% GRATIS sesuai UU No. 24 Tahun 2013! Tidak ada biaya untuk SKPWNI, KK baru, atau KTP-el baru.');
+      }
+      if (lowerQuery.includes('dalam satu kota') || lowerQuery.includes('satu kabupaten')) {
+        return this.enhancePerpindahanResponseWithPersona('Pindah dalam satu kota sangat mudah! Cukup datang ke Disdukcapil dengan KK asli + KTP-el asli, tidak perlu SKPWNI. Bisa selesai hari itu juga!');
+      }
+      if (lowerQuery.includes('antar kota') || lowerQuery.includes('antar kabupaten')) {
+        return this.enhancePerpindahanResponseWithPersona('Pindah antar kota perlu 2 tahap: 1) Dapat SKPWNI dari daerah asal, 2) Lapor ke daerah tujuan dengan SKPWNI. Atau bisa fasilitasi dari daerah tujuan tanpa balik ke asal!');
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Get specific Perpindahan training response based on patterns
+   */
+  private getSpecificPerpindahanTrainingResponse(query: string): string | null {
+    const lowerQuery = query.toLowerCase();
+
+    // Perpindahan Biaya (Cost) patterns
+    if (lowerQuery.includes('biaya') && (lowerQuery.includes('pindah') || lowerQuery.includes('perpindahan'))) {
+      return this.enhancePerpindahanResponseWithPersona(`Halo kak! 😊 Kabar baiknya, semua layanan perpindahan domisili **100% GRATIS**!
+
+**💰 Yang GRATIS:**
+• Pengurusan SKPWNI
+• Penerbitan KK baru
+• Penerbitan KTP-el baru
+• Formulir F-1.03
+• Semua proses administrasi
+
+**📜 Dasar hukum:**
+**UU No. 24 Tahun 2013** secara tegas menghapuskan segala bentuk pungutan biaya untuk penerbitan dokumen kependudukan dasar.
+
+SELLY siap bantu kakak dengan prosedur resmi yang gratis! 🤝`);
+    }
+
+    // Perpindahan dalam satu kota patterns
+    if ((lowerQuery.includes('dalam satu kota') || lowerQuery.includes('satu kabupaten')) && lowerQuery.includes('pindah')) {
+      return this.enhancePerpindahanResponseWithPersona(`Halo kak! 😊 Pindah dalam satu kota/kabupaten prosesnya sangat mudah!
+
+**📋 Langkah-langkah:**
+1. **Datang ke Disdukcapil** atau UPT kecamatan
+2. **Bawa dokumen:**
+   • KK asli
+   • KTP-el asli
+3. **Lapor perubahan alamat** ke petugas
+4. **Terima KK baru** dengan alamat yang diperbarui
+5. **Terima KTP-el baru** dengan alamat baru
+
+**✨ Keuntungan:**
+• Tidak perlu SKPWNI
+• Proses lebih cepat
+• Bisa selesai hari itu juga
+
+SELLY siap bantu kakak dengan prosedur lengkapnya! 🤝`);
+    }
+
+    // SKPWNI patterns
+    if (lowerQuery.includes('skpwni') || lowerQuery.includes('surat keterangan pindah')) {
+      return this.enhancePerpindahanResponseWithPersona(`Halo kak! 😊 SKPWNI adalah **Surat Keterangan Pindah Warga Negara Indonesia**!
+
+**📄 Fungsi SKPWNI:**
+• Dokumen resmi dari Disdukcapil daerah asal
+• "Tiket" untuk mendaftar di daerah tujuan
+• Bukti bahwa data sudah dilepas dari daerah asal
+• Otorisasi transfer data antar daerah
+
+**🎯 Kapan perlu SKPWNI:**
+• Pindah antar kabupaten/kota
+• Pindah antar provinsi
+• Pindah ke luar negeri
+
+**⏰ Batas waktu:**
+Harus lapor ke daerah tujuan maksimal **30 hari** sejak SKPWNI diterbitkan.
+
+SELLY siap bantu kakak dengan prosedur SKPWNI! 🤝`);
+    }
+
+    // Fasilitasi pindah patterns
+    if (lowerQuery.includes('fasilitasi') || lowerQuery.includes('cabut berkas') || lowerQuery.includes('terlanjur pindah')) {
+      return this.enhancePerpindahanResponseWithPersona(`Halo kak! 😊 Ada cara mudah pindah tanpa perlu balik ke kota asal!
+
+**🚀 Fasilitasi Pindah dari Daerah Tujuan:**
+
+**📋 Prosedur:**
+1. **Datang ke Disdukcapil kota TUJUAN** (bukan asal)
+2. **Bawa dokumen:**
+   • Fotokopi KK (atau cukup kasih NIK + No. KK)
+3. **Isi Formulir F-1.03**
+4. **Disdukcapil tujuan** akan kirim surat ke Disdukcapil asal
+5. **SKPWNI diterbitkan** oleh daerah asal (sering digital)
+6. **Proses pindah datang** dilanjutkan di daerah tujuan
+
+**✨ Keuntungan:**
+• Tidak perlu balik ke kota asal
+• Hemat waktu dan biaya transportasi
+
+SELLY siap bantu kakak! 🤝`);
+    }
+
+    return null;
+  }
+
+  /**
+   * Enhance Perpindahan response with Sahabat Adminduk persona
+   */
+  private enhancePerpindahanResponseWithPersona(originalResponse: string): string {
+    let enhancedResponse = originalResponse;
+
+    // Add friendly greeting if not present
+    if (!enhancedResponse.includes('Halo') && !enhancedResponse.includes('Hai')) {
+      enhancedResponse = `Halo kak! 😊\n\n${enhancedResponse}`;
+    }
+
+    // Add helpful closing if not present
+    if (!enhancedResponse.includes('SELLY') && !enhancedResponse.includes('🤝')) {
+      enhancedResponse += '\n\nSemoga informasi ini membantu ya kak! Kalau ada pertanyaan lain tentang perpindahan domisili, SELLY siap bantu! 🤝';
+    }
+
+    // Add empathy for problem scenarios
+    if (enhancedResponse.includes('terlanjur') || enhancedResponse.includes('masalah') || enhancedResponse.includes('hilang')) {
+      enhancedResponse = enhancedResponse.replace(
+        'Halo kak! 😊\n\n',
+        'Halo kak! 😊 Jangan khawatir, SELLY akan bantu kakak menyelesaikan masalah perpindahan ini.\n\n'
       );
     }
 

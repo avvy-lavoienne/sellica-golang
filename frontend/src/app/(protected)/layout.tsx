@@ -88,9 +88,9 @@ export default function ProtectedLayout({
   }
 
   // Check if current page uses enhanced layout
-  const useEnhancedLayout = enhancedLayoutPages.some((page) =>
+  const useEnhancedLayout = pathname ? enhancedLayoutPages.some((page) =>
     pathname.startsWith(page),
-  );
+  ) : false;
 
   // For enhanced layout pages, just return children (they handle their own layout)
   if (useEnhancedLayout) {

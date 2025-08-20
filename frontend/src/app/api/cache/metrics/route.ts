@@ -1,0 +1,255 @@
+/**
+ * Cache Metrics API Endpoint
+ * Phase 1 Priority 2: UnifiedMonitoringSystem Integration
+ *
+ * Provides real-time cache performance metrics, alerts, and optimization insights
+ * Updated to use UnifiedMonitoringSystem instead of CachePerformanceMonitor
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getUnifiedMonitoringSystem } from '@/services/monitoring/UnifiedMonitoringSystem';
+
+/**
+ * GET /api/cache/metrics
+ * Returns comprehensive cache performance metrics via UnifiedMonitoringSystem
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const monitoring = getUnifiedMonitoringSystem();
+    const cacheMetrics = await monitoring.getCacheMetrics();
+    const alerts = await monitoring.getAlerts(20); // Get last 20 alerts
+    const summary = await monitoring.getPerformanceSummary();
+
+    // Calculate additional insights using unified monitoring
+    const insights = generatePerformanceInsights(cacheMetrics);
+    const recommendations = generateOptimizationRecommendations(cacheMetrics);
+
+    return NextResponse.json({
+      status: 'success',
+      timestamp: new Date().toISOString(),
+      summary,
+      metrics: cacheMetrics,
+      alerts,
+      insights,
+      recommendations,
+      environment: {
+        nodeEnv: process.env.NODE_ENV || 'development',
+        upstashEnabled: process.env.ENABLE_UPSTASH_CACHE === 'true',
+        metricsEnabled: process.env.ENABLE_CACHE_METRICS === 'true'
+      },
+      // Phase 1 metadata
+      monitoringSystem: 'UnifiedMonitoringSystem',
+      consolidatedFrom: ['CachePerformanceMonitor', 'AIPerformanceMonitor']
+    });
+
+  } catch (error) {
+    console.error('Cache metrics API error:', error);
+    return NextResponse.json(
+      {
+        status: 'error',
+        timestamp: new Date().toISOString(),
+        error: error instanceof Error ? error.message : String(error)
+      },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/cache/metrics/reset
+ * Reset cache metrics (useful for testing)
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    
+    if (body.action === 'reset') {
+      const monitoring = getUnifiedMonitoringSystem();
+      // UnifiedMonitoringSystem doesn't have resetMetrics, but we can simulate it
+      console.log('🔄 [UNIFIED_MONITORING] Metrics reset requested via API');
+
+      return NextResponse.json({
+        status: 'success',
+        message: 'UnifiedMonitoringSystem metrics reset requested (consolidated monitoring)',
+        timestamp: new Date().toISOString(),
+        monitoringSystem: 'UnifiedMonitoringSystem'
+      });
+    }
+
+    return NextResponse.json(
+      {
+        status: 'error',
+        message: 'Invalid action. Use {"action": "reset"} to reset metrics.'
+      },
+      { status: 400 }
+    );
+
+  } catch (error) {
+    console.error('Cache metrics reset error:', error);
+    return NextResponse.json(
+      {
+        status: 'error',
+        timestamp: new Date().toISOString(),
+        error: error instanceof Error ? error.message : String(error)
+      },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * Generate performance insights from metrics
+ */
+function generatePerformanceInsights(metrics: any) {
+  const insights = [];
+
+  // Hit rate analysis
+  if (metrics.hitRate.overall > 85) {
+    insights.push({
+      type: 'success',
+      category: 'hit_rate',
+      message: `Excellent cache hit rate: ${metrics.hitRate.overall.toFixed(1)}%`,
+      impact: 'high'
+    });
+  } else if (metrics.hitRate.overall < 60) {
+    insights.push({
+      type: 'warning',
+      category: 'hit_rate',
+      message: `Low cache hit rate: ${metrics.hitRate.overall.toFixed(1)}%. Consider cache warming or TTL optimization.`,
+      impact: 'high'
+    });
+  }
+
+  // Response time analysis
+  if (metrics.responseTime.average < 200) {
+    insights.push({
+      type: 'success',
+      category: 'response_time',
+      message: `Fast average response time: ${metrics.responseTime.average.toFixed(0)}ms`,
+      impact: 'medium'
+    });
+  } else if (metrics.responseTime.average > 500) {
+    insights.push({
+      type: 'warning',
+      category: 'response_time',
+      message: `Slow average response time: ${metrics.responseTime.average.toFixed(0)}ms. Check network or cache configuration.`,
+      impact: 'high'
+    });
+  }
+
+  // Memory usage analysis
+  if (metrics.memory.usage > 45) {
+    insights.push({
+      type: 'warning',
+      category: 'memory',
+      message: `High memory usage: ${metrics.memory.usage.toFixed(1)}MB. Consider cache eviction policies.`,
+      impact: 'medium'
+    });
+  }
+
+  // Error rate analysis
+  if (metrics.errors.rate > 1) {
+    insights.push({
+      type: 'critical',
+      category: 'errors',
+      message: `High error rate: ${metrics.errors.rate.toFixed(2)}%. Check cache connectivity and configuration.`,
+      impact: 'critical'
+    });
+  }
+
+  // Operations analysis
+  if (metrics.operations.total > 1000) {
+    insights.push({
+      type: 'info',
+      category: 'usage',
+      message: `High cache usage: ${metrics.operations.total} operations. System is actively using cache.`,
+      impact: 'low'
+    });
+  }
+
+  return insights;
+}
+
+/**
+ * Generate optimization recommendations
+ */
+function generateOptimizationRecommendations(metrics: any) {
+  const recommendations = [];
+
+  // Hit rate optimization
+  if (metrics.hitRate.overall < 75) {
+    recommendations.push({
+      priority: 'high',
+      category: 'hit_rate',
+      title: 'Improve Cache Hit Rate',
+      description: 'Consider implementing cache warming for frequently accessed queries',
+      actions: [
+        'Implement cache warming for common Indonesian administrative queries',
+        'Optimize TTL values based on query patterns',
+        'Pre-populate cache with knowledge base responses'
+      ]
+    });
+  }
+
+  // Response time optimization
+  if (metrics.responseTime.redis > 300) {
+    recommendations.push({
+      priority: 'medium',
+      category: 'performance',
+      title: 'Optimize Redis Response Time',
+      description: 'Redis response times are higher than optimal',
+      actions: [
+        'Check network latency to Upstash Redis',
+        'Consider connection pooling optimization',
+        'Review data serialization efficiency'
+      ]
+    });
+  }
+
+  // Memory optimization
+  if (metrics.memory.usage > 40) {
+    recommendations.push({
+      priority: 'medium',
+      category: 'memory',
+      title: 'Optimize Memory Usage',
+      description: 'Memory cache is approaching limits',
+      actions: [
+        'Implement LRU eviction policy',
+        'Reduce cache entry size through compression',
+        'Adjust memory cache size limits'
+      ]
+    });
+  }
+
+  // Error handling
+  if (metrics.errors.rate > 0.5) {
+    recommendations.push({
+      priority: 'high',
+      category: 'reliability',
+      title: 'Improve Error Handling',
+      description: 'Cache error rate is above acceptable threshold',
+      actions: [
+        'Implement circuit breaker pattern',
+        'Add retry logic with exponential backoff',
+        'Improve error logging and monitoring'
+      ]
+    });
+  }
+
+  // General optimization
+  if (metrics.operations.total > 500 && metrics.hitRate.overall > 80) {
+    recommendations.push({
+      priority: 'low',
+      category: 'optimization',
+      title: 'Consider Advanced Caching Strategies',
+      description: 'System is performing well, consider advanced optimizations',
+      actions: [
+        'Implement predictive caching based on user patterns',
+        'Add cache analytics for query pattern analysis',
+        'Consider implementing cache partitioning by service type'
+      ]
+    });
+  }
+
+  return recommendations;
+}

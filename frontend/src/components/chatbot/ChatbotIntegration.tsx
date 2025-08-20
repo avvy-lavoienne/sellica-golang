@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useCallback, useState, useEffect } from "react";
-import { ChatProvider, useChat } from "@/contexts/ChatContext";
+import { UnifiedChatProvider, useUnifiedChat } from "@/contexts/UnifiedChatContext";
 import { UnifiedChatInterface } from "./UnifiedChatInterface";
 import { aiService } from "@/services/chatbot/aiService";
+import { useAuthenticatedUser } from "@/hooks/useAuthenticatedUser";
 import { cn } from "@/lib/conn/utils";
 
 interface ChatbotIntegrationProps {
@@ -24,22 +25,15 @@ export function ChatbotIntegration({
   className,
   position = "bottom-right",
   disabled = false,
-  userId,
+  userId: propUserId, // Rename to avoid conflict
   apiKey,
   showEnhancementToggle = true,
   defaultEnhancedMode = false,
 }: ChatbotIntegrationProps) {
-  console.log('🚀 ChatbotIntegration: Component rendered with props:', {
-    className,
-    position,
-    disabled,
-    userId,
-    hasApiKey: !!apiKey,
-    showEnhancementToggle,
-    defaultEnhancedMode
-  });
-
-  // Enhanced mode state
+  // Use authenticated user hook, but allow prop override
+  const { userId: authUserId, isAuthenticated, isLoading } = useAuthenticatedUser();
+  const userId = propUserId || authUserId; // Use prop if provided, otherwise use authenticated user
+  // // Enhanced mode state
   const [enhancedMode, setEnhancedMode] = useState(defaultEnhancedMode);
   const [advancedOptions, setAdvancedOptions] = useState({
     enableVariations: false,
@@ -89,11 +83,9 @@ export function ChatbotIntegration({
           performanceMode: advancedOptions.performanceMode
         };
 
-        console.log('🔍 [CHATBOT_INTEGRATION] Sending message with enhanced context:', {
-          message: message.substring(0, 50) + '...',
-          enhancedMode,
-          advancedOptions
-        });
+        // Development-only logging for debugging
+        // if (process.env.NODE_ENV === 'development') {
+        //   // }
 
         // First try to use the API endpoint for AI-powered responses
         const response = await fetch("/api/chat", {
@@ -111,20 +103,14 @@ export function ChatbotIntegration({
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
-            // Log enhancement metadata if available
-            if (data.metadata?.enhancedMode) {
-              console.log('✨ [CHATBOT_INTEGRATION] Enhanced response received:', {
-                enhancementLayers: data.metadata.enhancementLayers,
-                qualityScore: data.metadata.qualityScore,
-                processingTime: data.metadata.processingTime
-              });
-            }
+            // Development-only logging for enhancement metadata
+            // if (process.env.NODE_ENV === 'development' && data.metadata?.enhancedMode) {
+            //   // }
             return data.response;
           }
         }
 
         // Fallback to local processing if API fails
-        console.log("API call failed, using local processing");
         const localResponse = await aiService.processQuery(message);
         return localResponse.content;
       } catch (error) {
@@ -143,18 +129,16 @@ export function ChatbotIntegration({
     [userId, enhancedMode, advancedOptions],
   );
 
-
-
   return (
     <div className="relative">
       {/* Main Chatbot with Integrated Enhancement Toggle */}
-      <ChatProvider userId={userId} onMessageSent={handleMessageSent}>
+      <UnifiedChatProvider userId={userId} onMessageSent={handleMessageSent}>
         <ChatbotUI
           className={className}
           position={position}
           disabled={disabled}
         />
-      </ChatProvider>
+      </UnifiedChatProvider>
     </div>
   );
 }
@@ -175,21 +159,16 @@ function ChatbotUI({
 
   const handleEnhancementModeChange = useCallback((enabled: boolean) => {
     setEnhancedMode(enabled);
-    console.log(`🔄 [CHATBOT_UI] Enhancement mode changed to: ${enabled ? 'Enhanced' : 'Standard'}`);
   }, []);
-  console.log('🔧 ChatbotUI: Component rendered');
-  const chatContext = useChat();
+
+  const chatContext = useUnifiedChat();
   const { sendMessage } = chatContext;
-  console.log('🔧 ChatbotUI: useChat returned:', {
-    hasSendMessage: !!sendMessage,
-    messagesCount: chatContext.messages?.length || 0
-  });
 
   const handleSendMessage = useCallback(
     async (message: string) => {
       await sendMessage(message);
     },
-    [sendMessage],
+    [sendMessage]
   );
 
   return (
@@ -440,3 +419,6 @@ export function ChatbotStatus({ className }: { className?: string }) {
     </div>
   );
 }
+
+// Default export for backward compatibility
+export default ChatbotIntegration;

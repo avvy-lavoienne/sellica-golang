@@ -41,11 +41,11 @@ export const PerformanceMonitor: React.FC = () => {
 
   useEffect(() => {
     fetchPerformanceData();
-    
-    // Update every 10 seconds
-    const interval = setInterval(fetchPerformanceData, 10000);
-    
-    return () => clearInterval(interval);
+
+    // Disabled auto-refresh to reduce API calls
+    // Update every 60 seconds only if needed
+    // const interval = setInterval(fetchPerformanceData, 60000);
+    // return () => clearInterval(interval);
   }, []);
 
   const fetchPerformanceData = async () => {

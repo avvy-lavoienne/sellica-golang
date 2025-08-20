@@ -160,36 +160,36 @@ export function TensorFlowMonitoringDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">TensorFlow.js</CardTitle>
+            <CardTitle className="text-sm font-medium">Knowledge Service</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              {getHealthStatusIcon(healthStatus?.tensorflowJS || false)}
-              {getHealthStatusBadge(healthStatus?.tensorflowJS || false)}
+              {getHealthStatusIcon(healthStatus?.knowledgeService || false)}
+              {getHealthStatusBadge(healthStatus?.knowledgeService || false)}
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">TensorFlow Serving</CardTitle>
+            <CardTitle className="text-sm font-medium">Enhanced Service</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              {getHealthStatusIcon(healthStatus?.tensorflowServing || false)}
-              {getHealthStatusBadge(healthStatus?.tensorflowServing || false)}
+              {getHealthStatusIcon(healthStatus?.enhancedService || false)}
+              {getHealthStatusBadge(healthStatus?.enhancedService || false)}
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Model Manager</CardTitle>
+            <CardTitle className="text-sm font-medium">System Overall</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              {getHealthStatusIcon(healthStatus?.modelManager || false)}
-              {getHealthStatusBadge(healthStatus?.modelManager || false)}
+              {getHealthStatusIcon(healthStatus?.overall || false)}
+              {getHealthStatusBadge(healthStatus?.overall || false)}
             </div>
           </CardContent>
         </Card>

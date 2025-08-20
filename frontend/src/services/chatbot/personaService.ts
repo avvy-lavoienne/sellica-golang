@@ -4,9 +4,10 @@
  * Based on docs/selly-personas/ specifications
  */
 
-import { trainingDataCollector } from './trainingDataCollector';
+import { getTrainingDataCollector } from './trainingDataCollector';
 import { KnowledgeService } from './knowledgeService';
 import { AdministrativeResponseCache } from './administrativeResponseCache';
+import { SmartGreetingManager } from './smartGreetingManager';
 
 export interface PersonaConfig {
   identity: {
@@ -59,6 +60,7 @@ export interface ConversationContext {
   previousInteractions: number;
   currentTopic?: string;
   userId?: string;
+  sessionId?: string; // Phase 2: Added for session continuity
   conversationLength?: 'short' | 'medium' | 'long';
   userTone?: 'formal' | 'casual' | 'friendly';
 }
@@ -84,6 +86,7 @@ export class PersonaService {
   private config?: PersonaConfig;
   private knowledgeService?: KnowledgeService;
   private administrativeCache?: AdministrativeResponseCache;
+  private smartGreetingManager?: SmartGreetingManager;
 
   constructor() {
     // Lazy-load dependencies to prevent circular references
@@ -101,6 +104,9 @@ export class PersonaService {
     }
     if (!this.administrativeCache) {
       this.administrativeCache = AdministrativeResponseCache.getInstance();
+    }
+    if (!this.smartGreetingManager) {
+      this.smartGreetingManager = new SmartGreetingManager();
     }
   }
 
@@ -212,11 +218,11 @@ export class PersonaService {
   /**
    * Main method to apply persona to any response
    */
-  public applyPersona(
+  public async applyPersona(
     originalResponse: string,
     query: string,
     context: ConversationContext
-  ): PersonaEnhancedResponse {
+  ): Promise<PersonaEnhancedResponse> {
 
     // Initialize dependencies if needed
     this.initializeDependencies().catch(error => {
@@ -228,12 +234,12 @@ export class PersonaService {
 
     // Check if this is a greeting
     if (this.isGreeting(query)) {
-      return this.handleGreeting(query, context);
+      return await this.handleGreeting(query, context);
     }
 
     // Check if this is a service request that needs proper handling
     if (this.isServiceRequest(query)) {
-      return this.handleServiceRequest(query, originalResponse, context);
+      return await this.handleServiceRequest(query, originalResponse, context);
     }
 
     // Apply persona characteristics to existing response
@@ -337,11 +343,11 @@ export class PersonaService {
   /**
    * Handle service requests with proper fallback when not trained
    */
-  private handleServiceRequest(
+  private async handleServiceRequest(
     query: string,
     originalResponse: string,
     context: ConversationContext
-  ): PersonaEnhancedResponse {
+  ): Promise<PersonaEnhancedResponse> {
 
     // First, check if we have knowledge about this service
     const serviceInfo = this.knowledgeService?.getServiceInfo(query);
@@ -410,7 +416,8 @@ ${knowledgeResponse}`;
     if (isGenericResponse) {
       // Log this query for training purposes
       const serviceType = this.identifyServiceType(query);
-      const queryId = trainingDataCollector.logUnansweredQuery(
+      const trainingCollector = await getTrainingDataCollector();
+      const queryId = trainingCollector.logUnansweredQuery(
         query,
         serviceType,
         originalResponse,
@@ -543,9 +550,49 @@ Terima kasih atas kesabaran kak. Saya terus belajar untuk melayani masyarakat Ka
   }
 
   /**
-   * Handle greeting with proper persona
+   * Handle greeting with enhanced smart greeting logic
    */
-  private handleGreeting(query: string, _context: ConversationContext): PersonaEnhancedResponse {
+  private async handleGreeting(query: string, context: ConversationContext): Promise<PersonaEnhancedResponse> {
+    try {
+      // Initialize smart greeting manager if needed
+      if (!this.smartGreetingManager) {
+        this.smartGreetingManager = new SmartGreetingManager();
+      }
+
+      // Use SmartGreetingManager for intelligent greeting processing with session continuity
+      const smartGreetingResponse = await this.smartGreetingManager.processGreetingQuery(
+        query,
+        context.userId,
+        context.sessionId
+      );
+
+      if (smartGreetingResponse.isGreeting && smartGreetingResponse.response) {
+        return {
+          content: smartGreetingResponse.response,
+          type: smartGreetingResponse.type === 'full_greeting' ? 'greeting' : 'text',
+          metadata: {
+            personaApplied: true,
+            knowledgeUsed: true,
+            greetingProtocolUsed: smartGreetingResponse.metadata?.greetingProtocol || 'smart_greeting',
+            culturalSensitivityApplied: true,
+            confidence: smartGreetingResponse.metadata?.confidence || 0.95
+          }
+        };
+      }
+
+      // Fallback to original greeting logic if smart greeting fails
+      return this.handleLegacyGreeting(query, context);
+
+    } catch (error) {
+      console.error('❌ [PERSONA_SERVICE] Smart greeting failed, using fallback:', error);
+      return this.handleLegacyGreeting(query, context);
+    }
+  }
+
+  /**
+   * Legacy greeting handler as fallback
+   */
+  private handleLegacyGreeting(query: string, _context: ConversationContext): PersonaEnhancedResponse {
     const timeOfDay = this.getTimeOfDay();
     let greetingResponse = "";
     let protocolUsed = "";
@@ -577,7 +624,7 @@ Terima kasih atas kesabaran kak. Saya terus belajar untuk melayani masyarakat Ka
       type: 'greeting',
       metadata: {
         personaApplied: true,
-        knowledgeUsed: true, // Mark as knowledge-based for performance optimization
+        knowledgeUsed: true,
         greetingProtocolUsed: protocolUsed,
         culturalSensitivityApplied: true,
         confidence: 0.95

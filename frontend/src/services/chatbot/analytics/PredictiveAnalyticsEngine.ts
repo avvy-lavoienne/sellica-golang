@@ -149,9 +149,9 @@ export class PredictiveAnalyticsEngine {
       
       this.isInitialized = true;
       
-      console.log('✅ [PREDICTIVE_ANALYTICS] Predictive Analytics Engine initialized successfully');
+      // console.log(
     } catch (error) {
-      console.error('❌ [PREDICTIVE_ANALYTICS] Failed to initialize:', error);
+      // console.error( [PREDICTIVE_ANALYTICS] Failed to initialize:', error);
       throw error;
     }
   }
@@ -215,11 +215,10 @@ export class PredictiveAnalyticsEngine {
         }
       };
 
-      console.log(`✅ [PREDICTIVE_ANALYTICS] Analytics generated in ${processingTime.toFixed(2)}ms`);
-      
+      // console.log(
       return result;
     } catch (error) {
-      console.error('❌ [PREDICTIVE_ANALYTICS] Failed to generate analytics:', error);
+      // console.error( [PREDICTIVE_ANALYTICS] Failed to generate analytics:', error);
       throw error;
     }
   }
@@ -253,7 +252,7 @@ export class PredictiveAnalyticsEngine {
       
       return forecasts;
     } catch (error) {
-      console.error('❌ [PREDICTIVE_ANALYTICS] Failed to generate trend forecasts:', error);
+      // console.error( [PREDICTIVE_ANALYTICS] Failed to generate trend forecasts:', error);
       return [];
     }
   }
@@ -285,7 +284,7 @@ export class PredictiveAnalyticsEngine {
       
       return predictions;
     } catch (error) {
-      console.error('❌ [PREDICTIVE_ANALYTICS] Failed to predict user behavior:', error);
+      // console.error( [PREDICTIVE_ANALYTICS] Failed to predict user behavior:', error);
       return [];
     }
   }
@@ -329,7 +328,7 @@ export class PredictiveAnalyticsEngine {
         alertLevel
       };
     } catch (error) {
-      console.error('❌ [PREDICTIVE_ANALYTICS] Failed to detect anomalies:', error);
+      // console.error( [PREDICTIVE_ANALYTICS] Failed to detect anomalies:', error);
       return this.getDefaultAnomalyDetection();
     }
   }
@@ -373,7 +372,7 @@ export class PredictiveAnalyticsEngine {
         return b.confidence - a.confidence;
       });
     } catch (error) {
-      console.error('❌ [PREDICTIVE_ANALYTICS] Failed to generate proactive insights:', error);
+      // console.error( [PREDICTIVE_ANALYTICS] Failed to generate proactive insights:', error);
       return [];
     }
   }
@@ -556,9 +555,9 @@ export class PredictiveAnalyticsEngine {
       // Initialize anomaly detection model
       this.anomalyDetectionModel = await this.loadAnomalyDetectionModel();
       
-      console.log('✅ [PREDICTIVE_ANALYTICS] ML models initialized');
+      // console.log(
     } catch (error) {
-      console.error('❌ [PREDICTIVE_ANALYTICS] Failed to initialize models:', error);
+      // console.error( [PREDICTIVE_ANALYTICS] Failed to initialize models:', error);
       // Use fallback models
       await this.initializeFallbackModels();
     }
@@ -587,9 +586,9 @@ export class PredictiveAnalyticsEngine {
       const seasonalData = await this.loadSeasonalData();
       this.historicalData.set('seasonal', seasonalData);
       
-      console.log('✅ [PREDICTIVE_ANALYTICS] Historical data loaded');
+      // console.log(
     } catch (error) {
-      console.error('❌ [PREDICTIVE_ANALYTICS] Failed to load historical data:', error);
+      // console.error( [PREDICTIVE_ANALYTICS] Failed to load historical data:', error);
       // Use mock data for development
       this.loadMockHistoricalData();
     }
@@ -603,9 +602,9 @@ export class PredictiveAnalyticsEngine {
       try {
         console.log('🔄 [PREDICTIVE_ANALYTICS] Updating models...');
         await this.updateModels();
-        console.log('✅ [PREDICTIVE_ANALYTICS] Models updated successfully');
+        // console.log(
       } catch (error) {
-        console.error('❌ [PREDICTIVE_ANALYTICS] Failed to update models:', error);
+        // console.error( [PREDICTIVE_ANALYTICS] Failed to update models:', error);
       }
     }, this.config.modelUpdateInterval);
   }
@@ -919,7 +918,7 @@ export class PredictiveAnalyticsEngine {
         confidence: 0.82
       };
     } catch (error) {
-      console.error('❌ [PREDICTIVE_ANALYTICS] Failed to predict individual user behavior:', error);
+      // console.error( [PREDICTIVE_ANALYTICS] Failed to predict individual user behavior:', error);
       return this.getDefaultUserPrediction(userId);
     }
   }
@@ -989,7 +988,7 @@ export class PredictiveAnalyticsEngine {
 
       return predictions;
     } catch (error) {
-      console.error('❌ [PREDICTIVE_ANALYTICS] Failed to predict cohort behavior:', error);
+      // console.error( [PREDICTIVE_ANALYTICS] Failed to predict cohort behavior:', error);
       return [];
     }
   }
@@ -1032,7 +1031,7 @@ export class PredictiveAnalyticsEngine {
 
       return predictions;
     } catch (error) {
-      console.error('❌ [PREDICTIVE_ANALYTICS] Failed to predict query-based behavior:', error);
+      // console.error( [PREDICTIVE_ANALYTICS] Failed to predict query-based behavior:', error);
       return [];
     }
   }
@@ -1066,7 +1065,7 @@ export class PredictiveAnalyticsEngine {
 
       return anomalies;
     } catch (error) {
-      console.error('❌ [PREDICTIVE_ANALYTICS] Failed to detect performance anomalies:', error);
+      // console.error( [PREDICTIVE_ANALYTICS] Failed to detect performance anomalies:', error);
       return [];
     }
   }
@@ -1097,7 +1096,7 @@ export class PredictiveAnalyticsEngine {
 
       return anomalies;
     } catch (error) {
-      console.error('❌ [PREDICTIVE_ANALYTICS] Failed to detect behavior anomalies:', error);
+      // console.error( [PREDICTIVE_ANALYTICS] Failed to detect behavior anomalies:', error);
       return [];
     }
   }
@@ -1130,7 +1129,7 @@ export class PredictiveAnalyticsEngine {
 
       return anomalies;
     } catch (error) {
-      console.error('❌ [PREDICTIVE_ANALYTICS] Failed to detect data anomalies:', error);
+      // console.error( [PREDICTIVE_ANALYTICS] Failed to detect data anomalies:', error);
       return [];
     }
   }
@@ -1382,7 +1381,7 @@ export class PredictiveAnalyticsEngine {
     // Update model cache
     this.modelCache.clear();
 
-    console.log('✅ [PREDICTIVE_ANALYTICS] Models updated successfully');
+    // console.log(
   }
 
   /**

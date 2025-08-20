@@ -6,6 +6,7 @@
 
 import { AIResponse, EnhancedAIResponse } from '@/types/chatbot';
 import { ProviderResponse, ProcessedQuery } from '../core/UnifiedAIService';
+import { aiLogger } from '../../monitoring/logger';
 
 export interface FormattingConfig {
   includeMetadata: boolean;
@@ -58,7 +59,9 @@ export class ResponseFormatter {
     processedQuery: ProcessedQuery,
     context?: any
   ): Promise<AIResponse> {
-    console.log('🎨 [RESPONSE_FORMATTER] Formatting response from provider:', providerResponse.metadata.providerId);
+    aiLogger.responseFormatter.debug('Formatting response from provider', {
+      providerId: providerResponse.metadata.providerId
+    });
 
     // Build formatting context
     const formattingContext: FormattingContext = {
@@ -350,7 +353,7 @@ export class ResponseFormatter {
    */
   updateConfig(newConfig: Partial<FormattingConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    console.log('🔧 [RESPONSE_FORMATTER] Configuration updated');
+    aiLogger.responseFormatter.debug('Configuration updated');
   }
 
   /**

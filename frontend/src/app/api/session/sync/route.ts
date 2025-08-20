@@ -1,0 +1,312 @@
+/**
+ * Real-Time Session Synchronization API Endpoints
+ * Phase 1 Implementation: Real-time sync and conflict resolution
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { UnifiedSessionManager } from '@/services/session/unifiedSessionManager';
+import { RealTimeSyncManager } from '@/services/session/realTimeSyncManager';
+
+const sessionManager = UnifiedSessionManager.getInstance();
+const syncManager = RealTimeSyncManager.getInstance();
+
+/**
+ * POST /api/session/sync - Sync session update across devices
+ * Body: { sessionId: string, deviceId: string, updateData: object, updateType?: string }
+ */
+export async function POST(request: NextRequest) {
+  const startTime = performance.now();
+  
+  try {
+    const body = await request.json();
+    const { sessionId, deviceId, updateData, updateType = 'context' } = body;
+
+    // Validate required fields
+    if (!sessionId || !deviceId || !updateData) {
+      return NextResponse.json(
+        { 
+          error: 'Missing required fields',
+          code: 'MISSING_FIELDS',
+          required: ['sessionId', 'deviceId', 'updateData']
+        },
+        { status: 400 }
+      );
+    }
+
+    console.log(`🔄 [SESSION_SYNC] Processing sync request: ${sessionId} from device ${deviceId}`);
+
+    // Verify session exists
+    const session = await sessionManager.getSession(sessionId);
+    if (!session) {
+      return NextResponse.json(
+        { 
+          error: 'Session not found',
+          code: 'SESSION_NOT_FOUND',
+          sessionId
+        },
+        { status: 404 }
+      );
+    }
+
+    // Verify device is registered for this session
+    const deviceExists = session.devices.some(device => device.deviceId === deviceId);
+    if (!deviceExists) {
+      return NextResponse.json(
+        { 
+          error: 'Device not registered for this session',
+          code: 'DEVICE_NOT_REGISTERED',
+          sessionId,
+          deviceId
+        },
+        { status: 403 }
+      );
+    }
+
+    // Perform the sync
+    const syncResult = await syncManager.syncSessionUpdate(
+      sessionId,
+      deviceId,
+      updateData,
+      updateType
+    );
+
+    const processingTime = performance.now() - startTime;
+    
+    console.log(`✅ [SESSION_SYNC] Sync completed: ${sessionId} - synced to ${syncResult.syncedDevices} devices (${processingTime.toFixed(2)}ms)`);
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        sessionId,
+        syncResult: {
+          success: syncResult.success,
+          syncedDevices: syncResult.syncedDevices,
+          conflicts: syncResult.conflicts,
+          failedDevices: syncResult.failedDevices,
+          lastSyncTime: syncResult.lastSyncTime
+        }
+      },
+      metadata: {
+        processingTime,
+        timestamp: new Date().toISOString(),
+        deviceId
+      }
+    });
+
+  } catch (error) {
+    const processingTime = performance.now() - startTime;
+    console.error('❌ [SESSION_SYNC] Error syncing session:', error);
+    
+    return NextResponse.json(
+      {
+        error: 'Session sync failed',
+        code: 'SYNC_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        processingTime
+      },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * GET /api/session/sync - Get sync status and active connections
+ * Query params: sessionId (required), deviceId (optional)
+ */
+export async function GET(request: NextRequest) {
+  const startTime = performance.now();
+  
+  try {
+    const { searchParams } = new URL(request.url);
+    const sessionId = searchParams.get('sessionId');
+    const deviceId = searchParams.get('deviceId');
+
+    if (!sessionId) {
+      return NextResponse.json(
+        { 
+          error: 'Session ID is required',
+          code: 'MISSING_SESSION_ID'
+        },
+        { status: 400 }
+      );
+    }
+
+    console.log(`🔍 [SESSION_SYNC] Getting sync status: ${sessionId}${deviceId ? ` for device ${deviceId}` : ''}`);
+
+    // Get session info
+    const session = await sessionManager.getSession(sessionId);
+    if (!session) {
+      return NextResponse.json(
+        { 
+          error: 'Session not found',
+          code: 'SESSION_NOT_FOUND',
+          sessionId
+        },
+        { status: 404 }
+      );
+    }
+
+    // Get active connections for the session
+    const activeConnections = syncManager.getSessionConnections(sessionId);
+    
+    // Get specific device connection if requested
+    let deviceConnection = null;
+    if (deviceId) {
+      deviceConnection = syncManager.getConnectionStatus(sessionId, deviceId);
+    }
+
+    // Get active devices from session
+    const activeDevices = await sessionManager.getActiveDevices(sessionId);
+
+    const syncStatus: any = {
+      sessionId,
+      totalDevices: session.devices.length,
+      activeDevices: activeDevices.length,
+      connectedDevices: activeConnections.length,
+      realTimeSyncEnabled: true, // This would come from session manager config
+      lastSyncTime: session.lastAccessedAt,
+      connections: activeConnections.map(conn => ({
+        deviceId: conn.deviceId,
+        status: conn.status,
+        lastHeartbeat: conn.lastHeartbeat,
+        connectionId: conn.connectionId
+      }))
+    };
+
+    if (deviceConnection) {
+      syncStatus.deviceConnection = {
+        deviceId: deviceConnection.deviceId,
+        status: deviceConnection.status,
+        lastHeartbeat: deviceConnection.lastHeartbeat,
+        connectionId: deviceConnection.connectionId
+      };
+    }
+
+    const processingTime = performance.now() - startTime;
+    
+    console.log(`✅ [SESSION_SYNC] Sync status retrieved: ${sessionId} - ${activeConnections.length} active connections (${processingTime.toFixed(2)}ms)`);
+
+    return NextResponse.json({
+      success: true,
+      data: syncStatus,
+      metadata: {
+        processingTime,
+        timestamp: new Date().toISOString()
+      }
+    });
+
+  } catch (error) {
+    const processingTime = performance.now() - startTime;
+    console.error('❌ [SESSION_SYNC] Error getting sync status:', error);
+    
+    return NextResponse.json(
+      {
+        error: 'Failed to get sync status',
+        code: 'SYNC_STATUS_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        processingTime
+      },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * PUT /api/session/sync - Establish or update real-time connection
+ * Body: { sessionId: string, deviceId: string, action: 'connect' | 'disconnect' | 'heartbeat' }
+ */
+export async function PUT(request: NextRequest) {
+  const startTime = performance.now();
+  
+  try {
+    const body = await request.json();
+    const { sessionId, deviceId, action = 'connect' } = body;
+
+    // Validate required fields
+    if (!sessionId || !deviceId) {
+      return NextResponse.json(
+        { 
+          error: 'Missing required fields',
+          code: 'MISSING_FIELDS',
+          required: ['sessionId', 'deviceId']
+        },
+        { status: 400 }
+      );
+    }
+
+    console.log(`🔗 [SESSION_SYNC] Processing connection action: ${action} for ${sessionId}:${deviceId}`);
+
+    // Verify session exists
+    const session = await sessionManager.getSession(sessionId);
+    if (!session) {
+      return NextResponse.json(
+        { 
+          error: 'Session not found',
+          code: 'SESSION_NOT_FOUND',
+          sessionId
+        },
+        { status: 404 }
+      );
+    }
+
+    let result;
+    
+    switch (action) {
+      case 'connect':
+        result = await syncManager.establishConnection(sessionId, deviceId);
+        break;
+        
+      case 'disconnect':
+        await syncManager.closeConnection(sessionId, deviceId);
+        result = { status: 'disconnected' };
+        break;
+        
+      case 'heartbeat':
+        await syncManager.updateHeartbeat(sessionId, deviceId);
+        result = { status: 'heartbeat_updated' };
+        break;
+        
+      default:
+        return NextResponse.json(
+          { 
+            error: 'Invalid action',
+            code: 'INVALID_ACTION',
+            validActions: ['connect', 'disconnect', 'heartbeat']
+          },
+          { status: 400 }
+        );
+    }
+
+    const processingTime = performance.now() - startTime;
+    
+    console.log(`✅ [SESSION_SYNC] Connection action completed: ${action} for ${sessionId}:${deviceId} (${processingTime.toFixed(2)}ms)`);
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        sessionId,
+        deviceId,
+        action,
+        result
+      },
+      metadata: {
+        processingTime,
+        timestamp: new Date().toISOString()
+      }
+    });
+
+  } catch (error) {
+    const processingTime = performance.now() - startTime;
+    console.error('❌ [SESSION_SYNC] Error processing connection action:', error);
+    
+    return NextResponse.json(
+      {
+        error: 'Connection action failed',
+        code: 'CONNECTION_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        processingTime
+      },
+      { status: 500 }
+    );
+  }
+}

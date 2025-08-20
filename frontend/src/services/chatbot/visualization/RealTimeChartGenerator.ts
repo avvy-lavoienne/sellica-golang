@@ -144,8 +144,7 @@ export class RealTimeChartGenerator {
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
-    console.log('⚡ [REALTIME_CHARTS] Initializing Real-time Chart Generator...');
-    
+    // console.log(
     try {
       // Setup performance monitoring
       this.setupPerformanceMonitoring();
@@ -158,9 +157,9 @@ export class RealTimeChartGenerator {
       
       this.isInitialized = true;
       
-      console.log('✅ [REALTIME_CHARTS] Real-time Chart Generator initialized successfully');
+      // console.log(
     } catch (error) {
-      console.error('❌ [REALTIME_CHARTS] Failed to initialize:', error);
+      // console.error( [REALTIME_CHARTS] Failed to initialize:', error);
       throw error;
     }
   }
@@ -225,11 +224,10 @@ export class RealTimeChartGenerator {
       // Update performance metrics
       this.performanceMonitor.totalCharts++;
       
-      console.log(`✅ [REALTIME_CHARTS] Real-time chart created: ${chart.id}`);
-      
+      // console.log(
       return chart;
     } catch (error) {
-      console.error('❌ [REALTIME_CHARTS] Failed to create real-time chart:', error);
+      // console.error( [REALTIME_CHARTS] Failed to create real-time chart:', error);
       throw error;
     }
   }
@@ -265,7 +263,7 @@ export class RealTimeChartGenerator {
       }
       
     } catch (error) {
-      console.error(`❌ [REALTIME_CHARTS] Failed to update chart ${chartId}:`, error);
+      // console.error( [REALTIME_CHARTS] Failed to update chart ${chartId}:`, error);
       throw error;
     }
   }
@@ -294,12 +292,12 @@ export class RealTimeChartGenerator {
           this.startAPIStreaming(chart.dataSource, chart.id);
           break;
         default:
-          console.warn(`⚠️ [REALTIME_CHARTS] Unsupported data source type: ${dataSource.type}`);
+          // console.warn(️ [REALTIME_CHARTS] Unsupported data source type: ${dataSource.type}`);
       }
       
       console.log(`🔄 [REALTIME_CHARTS] Data streaming started for chart: ${chart.id}`);
     } catch (error) {
-      console.error(`❌ [REALTIME_CHARTS] Failed to start data streaming for chart ${chart.id}:`, error);
+      // console.error( [REALTIME_CHARTS] Failed to start data streaming for chart ${chart.id}:`, error);
       throw error;
     }
   }
@@ -331,7 +329,7 @@ export class RealTimeChartGenerator {
       
       // Setup error handler
       mockWebSocket.onerror = (error: any) => {
-        console.error(`❌ [REALTIME_CHARTS] WebSocket error for chart ${chart.id}:`, error);
+        // console.error( [REALTIME_CHARTS] WebSocket error for chart ${chart.id}:`, error);
         chart.connectionStatus.errorCount++;
         chart.connectionStatus.quality = 'poor';
       };
@@ -350,7 +348,7 @@ export class RealTimeChartGenerator {
       this.startMockDataGeneration(chart);
       
     } catch (error) {
-      console.error(`❌ [REALTIME_CHARTS] Failed to start WebSocket streaming:`, error);
+      // console.error( [REALTIME_CHARTS] Failed to start WebSocket streaming:`, error);
       throw error;
     }
   }
@@ -359,20 +357,24 @@ export class RealTimeChartGenerator {
    * Start mock data generation for development
    */
   private startMockDataGeneration(chart: RealTimeChart): void {
+    // DISABLED: Mock data generation disabled to reduce API calls
+    console.log('📊 [REALTIME_CHARTS] Mock data generation disabled to reduce API load');
+    return;
+
     const interval = setInterval(() => {
       if (!this.activeCharts.has(chart.id)) {
         clearInterval(interval);
         return;
       }
-      
+
       // Generate mock data based on chart type
       const mockData = this.generateMockData(chart.chartType);
-      
+
       // Update chart
       this.updateChart(chart.id, mockData).catch(error => {
-        console.error(`❌ [REALTIME_CHARTS] Mock data update failed:`, error);
+        // console.error( [REALTIME_CHARTS] Mock data update failed:`, error);
       });
-      
+
     }, chart.dataSource.updateFrequency || this.config.updateInterval);
   }
 
@@ -437,7 +439,7 @@ export class RealTimeChartGenerator {
       
       // Update chart with new data
       this.updateChart(chart.id, parsedData).catch(error => {
-        console.error(`❌ [REALTIME_CHARTS] Failed to handle WebSocket message:`, error);
+        // console.error( [REALTIME_CHARTS] Failed to handle WebSocket message:`, error);
       });
       
       // Update connection metrics
@@ -445,7 +447,7 @@ export class RealTimeChartGenerator {
       chart.connectionStatus.lastUpdate = new Date();
       
     } catch (error) {
-      console.error(`❌ [REALTIME_CHARTS] Failed to handle WebSocket message:`, error);
+      // console.error( [REALTIME_CHARTS] Failed to handle WebSocket message:`, error);
       chart.connectionStatus.errorCount++;
     }
   }
@@ -475,7 +477,7 @@ export class RealTimeChartGenerator {
       
       return processedData;
     } catch (error) {
-      console.error(`❌ [REALTIME_CHARTS] Failed to process incoming data:`, error);
+      // console.error( [REALTIME_CHARTS] Failed to process incoming data:`, error);
       throw error;
     }
   }
@@ -504,7 +506,7 @@ export class RealTimeChartGenerator {
           await this.appendData(chart, data);
       }
     } catch (error) {
-      console.error(`❌ [REALTIME_CHARTS] Failed to apply update strategy:`, error);
+      // console.error( [REALTIME_CHARTS] Failed to apply update strategy:`, error);
       throw error;
     }
   }

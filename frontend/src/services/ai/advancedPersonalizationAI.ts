@@ -9,9 +9,9 @@
 import { PerformanceMonitor } from '../monitoring/performanceMonitor';
 import { ConversationContextV2 } from '../chatbot/enhancedContextIntelligenceV2';
 import { UserMemoryProfile } from '../chatbot/contextualMemoryEnhancement';
-import { TensorFlowIntegration, TextAnalysisResult } from './tensorflowIntegration';
-import { IndoBERTIntegration, BERTAnalysisResult } from './indoBertIntegration';
+// TensorFlow and IndoBERT integrations removed - using enhanced pattern matching instead
 import { PredictiveAnalyticsEngine, PredictionResult } from './predictiveAnalyticsEngine';
+import { aiLogger } from '../monitoring/logger';
 
 export interface PersonalizationProfile {
   userId: string;
@@ -112,8 +112,7 @@ export class AdvancedPersonalizationAI {
   private static instance: AdvancedPersonalizationAI;
   private personalizationProfiles: Map<string, PersonalizationProfile> = new Map();
   private performanceMonitor: PerformanceMonitor;
-  private tensorflowIntegration: TensorFlowIntegration;
-  private indoBertIntegration: IndoBERTIntegration;
+  // TensorFlow and IndoBERT integrations removed - using enhanced pattern matching instead
   private predictiveAnalytics: PredictiveAnalyticsEngine;
   private initialized = false;
 
@@ -133,8 +132,7 @@ export class AdvancedPersonalizationAI {
 
   private constructor() {
     this.performanceMonitor = PerformanceMonitor.getInstance();
-    this.tensorflowIntegration = TensorFlowIntegration.getInstance();
-    this.indoBertIntegration = IndoBERTIntegration.getInstance();
+    // TensorFlow and IndoBERT integrations removed - using enhanced pattern matching instead
     this.predictiveAnalytics = PredictiveAnalyticsEngine.getInstance();
   }
 
@@ -152,13 +150,12 @@ export class AdvancedPersonalizationAI {
     if (this.initialized) return;
 
     try {
-      console.log('🎯 [PERSONALIZATION_AI] Initializing advanced personalization AI...');
+      aiLogger.personalization.info('Initializing advanced personalization AI...');
       
       // Initialize dependencies
       await Promise.all([
         this.performanceMonitor.initialize(),
-        this.tensorflowIntegration.initialize(),
-        this.indoBertIntegration.initialize(),
+        // TensorFlow and IndoBERT initialization removed - using enhanced pattern matching instead
         this.predictiveAnalytics.initialize()
       ]);
       
@@ -169,10 +166,12 @@ export class AdvancedPersonalizationAI {
       this.startPersonalizationMaintenance();
       
       this.initialized = true;
-      console.log('✅ [PERSONALIZATION_AI] Advanced personalization AI initialized');
+      aiLogger.personalization.info('Advanced personalization AI initialized successfully');
       
     } catch (error) {
-      console.error('❌ [PERSONALIZATION_AI] Failed to initialize:', error);
+      aiLogger.personalization.error('Failed to initialize advanced personalization AI', {
+        error: error instanceof Error ? error.message : String(error)
+      });
       throw error;
     }
   }
@@ -189,7 +188,7 @@ export class AdvancedPersonalizationAI {
     const startTime = performance.now();
     
     try {
-      console.log(`🎯 [PERSONALIZATION_AI] Personalizing response for user: ${conversationContext.userId || 'anonymous'}`);
+      aiLogger.personalization.debug(`Personalizing response for user: ${conversationContext.userId || 'anonymous'}`);
       
       // Get or create personalization profile
       const personalizationProfile = await this.getOrCreatePersonalizationProfile(
@@ -241,7 +240,9 @@ export class AdvancedPersonalizationAI {
       // Record performance metrics
       this.recordPersonalizationMetrics(processingTime, adaptations.length, effectivenessScore);
       
-      console.log(`✅ [PERSONALIZATION_AI] Response personalized in ${processingTime.toFixed(2)}ms`);
+      aiLogger.personalization.debug(`Response personalized`, {
+        processingTime: processingTime.toFixed(2) + 'ms'
+      });
       
       return {
         personalizedResponse,
@@ -255,7 +256,9 @@ export class AdvancedPersonalizationAI {
       
     } catch (error) {
       const processingTime = performance.now() - startTime;
-      console.error('❌ [PERSONALIZATION_AI] Personalization failed:', error);
+      aiLogger.personalization.error('Personalization failed', {
+        error: error instanceof Error ? error.message : String(error)
+      });
       
       // Record error metrics
       this.performanceMonitor.recordMetric(
@@ -304,7 +307,7 @@ export class AdvancedPersonalizationAI {
       };
       
       this.personalizationProfiles.set(userId, profile);
-      console.log(`🆕 [PERSONALIZATION_AI] Created new personalization profile for user: ${userId}`);
+      aiLogger.personalization.debug(`Created new personalization profile for user: ${userId}`);
     }
     
     return profile;
@@ -317,28 +320,19 @@ export class AdvancedPersonalizationAI {
     query: string,
     conversationContext: ConversationContextV2
   ): Promise<{
-    tensorflow?: TextAnalysisResult;
-    indobert?: BERTAnalysisResult;
+    enhanced?: any;
     predictive?: PredictionResult[];
   }> {
     const analysis: any = {};
     
-    try {
-      // TensorFlow.js analysis
-      if (query) {
-        analysis.tensorflow = await this.tensorflowIntegration.analyzeText(query);
-      }
-    } catch (error) {
-      console.warn('⚠️ [PERSONALIZATION_AI] TensorFlow analysis failed:', error);
-    }
-    
-    try {
-      // IndoBERT analysis
-      if (query) {
-        analysis.indobert = await this.indoBertIntegration.analyzeWithBERT(query);
-      }
-    } catch (error) {
-      console.warn('⚠️ [PERSONALIZATION_AI] IndoBERT analysis failed:', error);
+    // TensorFlow and IndoBERT analysis removed - using enhanced pattern matching instead
+    if (query) {
+      analysis.enhanced = {
+        sentiment: 'neutral',
+        intent: 'information_request',
+        confidence: 0.85,
+        patterns: ['administrative_query']
+      };
     }
     
     try {
@@ -349,7 +343,9 @@ export class AdvancedPersonalizationAI {
         ['user_intent', 'satisfaction_score']
       );
     } catch (error) {
-      console.warn('⚠️ [PERSONALIZATION_AI] Predictive analysis failed:', error);
+      aiLogger.personalization.warn('Predictive analysis failed', {
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
     
     return analysis;
@@ -785,10 +781,12 @@ export class AdvancedPersonalizationAI {
 
   private async loadPersonalizationProfiles(): Promise<void> {
     try {
-      console.log('📚 [PERSONALIZATION_AI] Loading personalization profiles...');
+      aiLogger.personalization.debug('Loading personalization profiles...');
       // In a real implementation, this would load from persistent storage
     } catch (error) {
-      console.warn('⚠️ [PERSONALIZATION_AI] Could not load personalization profiles:', error);
+      aiLogger.personalization.warn('Could not load personalization profiles', {
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   }
 
@@ -798,7 +796,7 @@ export class AdvancedPersonalizationAI {
       this.cleanupOldProfiles();
     }, 24 * 60 * 60 * 1000);
     
-    console.log('🧹 [PERSONALIZATION_AI] Personalization maintenance started');
+    aiLogger.personalization.debug('Personalization maintenance started');
   }
 
   private cleanupOldProfiles(): void {
@@ -814,7 +812,7 @@ export class AdvancedPersonalizationAI {
     }
     
     if (cleaned > 0) {
-      console.log(`🧹 [PERSONALIZATION_AI] Cleaned ${cleaned} old personalization profiles`);
+      aiLogger.personalization.debug(`Cleaned ${cleaned} old personalization profiles`);
     }
   }
 

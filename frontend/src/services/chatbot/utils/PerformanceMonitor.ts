@@ -5,6 +5,7 @@
  */
 
 import { QueryComplexity } from '../core/UnifiedAIService';
+import { aiLogger } from '../../monitoring/logger';
 
 export interface QueryMetrics {
   queryId: string;
@@ -91,7 +92,7 @@ export class PerformanceMonitor {
     // Check for performance issues
     this.checkPerformanceThresholds(queryMetrics);
 
-    console.log(`📊 [PERFORMANCE_MONITOR] Recorded query [${queryId}]:`, {
+    aiLogger.performance.debug(`Recorded query [${queryId}]`, {
       provider: metrics.provider,
       processingTime: metrics.processingTime,
       success: metrics.success,
@@ -363,6 +364,6 @@ export class PerformanceMonitor {
     this.queryHistory = [];
     this.alerts = [];
     this.initializeProviderMetrics();
-    console.log('🗑️ [PERFORMANCE_MONITOR] All metrics cleared');
+    aiLogger.performance.debug('All metrics cleared');
   }
 }

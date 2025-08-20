@@ -5,7 +5,7 @@
  * unified-schema.json (413 lines) to create comprehensive SELLY intelligence
  */
 
-import databaseInventory from '../../../docs/assets/database-inventory.json';
+import databaseInventory from '../../data/database-inventory.json';
 import unifiedSchema from '../../data/unified-schema.json';
 
 export interface EnhancedTableSchema {

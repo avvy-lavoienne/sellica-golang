@@ -54,11 +54,11 @@ export class AIServiceHuggingFace {
     console.log('🤖 Processing with enhanced Indonesian AI...');
     
     try {
-      console.log('🤖 [HUGGINGFACE_SERVICE] Starting processEnhancedQuery for:', query);
+      // console.log(
       const startTime = Date.now();
 
       // PERFORMANCE OPTIMIZATION: Check if PersonaService can handle this directly
-      console.log('⚡ [HUGGINGFACE_SERVICE] Checking for direct knowledge response...');
+      // console.log(
       const conversationContext: ConversationContext = {
         isFirstInteraction: this.conversationHistory.length === 0,
         timeOfDay: this.getTimeOfDay(),
@@ -68,7 +68,7 @@ export class AIServiceHuggingFace {
         userId: context?.userId || context?.user?.id
       };
 
-      const personaEnhanced = this.personaService.applyPersona(
+      const personaEnhanced = await this.personaService.applyPersona(
         '', // Empty initial response to let persona service handle completely
         query,
         conversationContext
@@ -76,7 +76,7 @@ export class AIServiceHuggingFace {
 
       // If persona service provided knowledge-based response, return immediately
       if (personaEnhanced.metadata.knowledgeUsed) {
-        console.log('⚡ [HUGGINGFACE_SERVICE] Using direct knowledge response (bypassing all AI APIs for maximum performance)');
+        // console.log(
         this.addToHistory(query, personaEnhanced.content);
 
         return {
@@ -118,21 +118,19 @@ export class AIServiceHuggingFace {
 
       // Step 1: Determine if this needs database query
       const needsData = this.requiresDataQuery(query);
-      console.log('🤖 [HUGGINGFACE_SERVICE] Needs data query:', needsData);
+      // console.log(
       let dataResult: DataQueryResult | null = null;
 
       if (needsData) {
         // Use enhanced query intelligence with administrative templates
         console.log('🎯 [HUGGINGFACE_SERVICE] Using enhanced query intelligence for data retrieval');
-        console.log('🎯 [HUGGINGFACE_SERVICE] Query:', query);
+        // console.log(
         const { enhancedQueryIntelligence } = await import('./enhancedQueryIntelligence');
         console.log('🎯 [HUGGINGFACE_SERVICE] Calling enhancedQueryIntelligence.processEnhancedQuery...');
         const enhancedResult = await enhancedQueryIntelligence.processEnhancedQuery(query);
-        console.log('🎯 [HUGGINGFACE_SERVICE] Enhanced result:', enhancedResult);
-
+        // console.log(
         if (enhancedResult.success) {
-          console.log('✅ [HUGGINGFACE_SERVICE] Enhanced query intelligence successful');
-
+          // console.log(
           // If we have a complete administrative response, return it directly
           if (enhancedResult.summary && enhancedResult.summary.length > 50) {
             console.log('🎯 [HUGGINGFACE_SERVICE] Got complete administrative response');
@@ -168,7 +166,7 @@ export class AIServiceHuggingFace {
             }
           };
         } else {
-          console.log('❌ [HUGGINGFACE_SERVICE] Enhanced query intelligence failed, no data retrieved');
+          // console.log(
           dataResult = null;
         }
       }
@@ -195,12 +193,7 @@ export class AIServiceHuggingFace {
               enhancementMetadata: groqResult.enhancementMetadata
             }
           };
-          console.log('✅ [GROQ] Enhancement completed:', {
-            enhanced: true,
-            originalLength: response.content.length,
-            enhancedLength: groqResult.enhancedResponse.length,
-            processingTime: `${groqResult.enhancementMetadata.processingTime}ms`
-          });
+          // console.log(
         } else {
           enhancedResponse = response;
           console.log('⚠️ [GROQ] Enhancement failed, using original response');
@@ -213,7 +206,7 @@ export class AIServiceHuggingFace {
 
       // Step 4: Apply SELLY persona (reuse conversationContext from earlier)
 
-      const finalPersonaEnhanced = this.personaService.applyPersona(
+      const finalPersonaEnhanced = await this.personaService.applyPersona(
         enhancedResponse.content,
         query,
         conversationContext
@@ -253,7 +246,7 @@ export class AIServiceHuggingFace {
       return enhancedResponse;
 
     } catch (error) {
-      console.error('❌ Enhanced AI processing failed:', error);
+      // console.error( Enhanced AI processing failed:', error);
       
       // Fallback to standard AI service
       if (this.config.fallbackEnabled) {
@@ -549,10 +542,9 @@ export class AIServiceHuggingFace {
                               lowerQuery.includes('sampai') ||
                               lowerQuery.includes('antara');
 
-    console.log('🔍 [HUGGINGFACE_SERVICE] Checking if query needs data:', query);
-    console.log('🔍 [HUGGINGFACE_SERVICE] Has data keyword:', hasDataKeyword);
-    console.log('🔍 [HUGGINGFACE_SERVICE] Has temporal pattern:', hasTemporalPattern);
-
+    // console.log(
+    // console.log(
+    // console.log(
     return hasDataKeyword || hasTemporalPattern;
   }
 

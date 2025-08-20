@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { trainingDataCollector } from '@/services/chatbot/trainingDataCollector';
+import { getTrainingDataCollector } from '@/services/chatbot/trainingDataCollector';
 
 export async function GET(request: NextRequest) {
   try {
     console.log('🔍 [DEBUG] Starting training data debug...');
-    
+
     // Get data from collector
+    const trainingDataCollector = await getTrainingDataCollector();
     const queries = await trainingDataCollector.getUnansweredQueries();
     const stats = await trainingDataCollector.getTrainingStats();
     

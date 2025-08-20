@@ -16,6 +16,7 @@ import {
   PerformanceMetrics
 } from '../../types/enhancedTrainingData';
 import { PerformanceMonitor } from '../monitoring/performanceMonitor';
+import { aiLogger } from '../monitoring/logger';
 
 export class RealTimeQueryAnalyzer {
   private static instance: RealTimeQueryAnalyzer;
@@ -42,15 +43,17 @@ export class RealTimeQueryAnalyzer {
     if (this.initialized) return;
 
     try {
-      console.log('🔍 [REAL_TIME_ANALYZER] Initializing real-time query analyzer...');
+      aiLogger.realTimeAnalyzer.info('Initializing real-time query analyzer...');
       
       // Initialize analysis models and resources
       await this.loadAnalysisModels();
       
       this.initialized = true;
-      console.log('✅ [REAL_TIME_ANALYZER] Real-time query analyzer initialized successfully');
+      aiLogger.realTimeAnalyzer.info('Real-time query analyzer initialized successfully');
     } catch (error) {
-      console.error('❌ [REAL_TIME_ANALYZER] Failed to initialize:', error);
+      aiLogger.realTimeAnalyzer.error('Failed to initialize real-time query analyzer', {
+        error: error instanceof Error ? error.message : String(error)
+      });
       throw error;
     }
   }
@@ -76,7 +79,7 @@ export class RealTimeQueryAnalyzer {
     const startTime = performance.now();
 
     try {
-      console.log(`🔍 [REAL_TIME_ANALYZER] Analyzing query: "${query.substring(0, 50)}..."`);
+      aiLogger.realTimeAnalyzer.debug(`Analyzing query: "${query.substring(0, 50)}..."`, { queryLength: query.length });
 
       // Perform parallel analysis for optimal performance
       const [classification, semanticAnalysis] = await Promise.all([
@@ -85,7 +88,7 @@ export class RealTimeQueryAnalyzer {
       ]);
 
       const processingTime = performance.now() - startTime;
-      
+
       // Update performance metrics
       this.updatePerformanceMetrics(processingTime, true);
 
@@ -103,7 +106,10 @@ export class RealTimeQueryAnalyzer {
         }
       );
 
-      console.log(`✅ [REAL_TIME_ANALYZER] Query analysis completed in ${processingTime.toFixed(2)}ms`);
+      aiLogger.realTimeAnalyzer.debug(`Query analysis completed`, {
+        processingTime: processingTime.toFixed(2) + 'ms',
+        primaryIntent: classification.primaryIntent
+      });
 
       return {
         classification,
@@ -127,7 +133,10 @@ export class RealTimeQueryAnalyzer {
         }
       );
 
-      console.error('❌ [REAL_TIME_ANALYZER] Query analysis failed:', error);
+      aiLogger.realTimeAnalyzer.error('Query analysis failed', {
+        error: error instanceof Error ? error.message : String(error),
+        queryLength: query.length
+      });
       throw error;
     }
   }
@@ -707,12 +716,12 @@ export class RealTimeQueryAnalyzer {
     // - Sentiment analysis models
     // - Embedding models
     // - Language detection models
-    console.log('📚 [REAL_TIME_ANALYZER] Loading analysis models...');
-    
+    aiLogger.realTimeAnalyzer.debug('Loading analysis models...');
+
     // Simulate model loading time
     await new Promise(resolve => setTimeout(resolve, 100));
-    
-    console.log('✅ [REAL_TIME_ANALYZER] Analysis models loaded successfully');
+
+    aiLogger.realTimeAnalyzer.debug('Analysis models loaded successfully');
   }
 
   /**

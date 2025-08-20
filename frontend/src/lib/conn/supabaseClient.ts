@@ -1,7 +1,12 @@
-import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 
-// Ganti dengan URL dan Anon Key dari Supabase Dashboard
-const supabaseUrl = 'https://yrssspoimsxpibcbeaca.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlyc3NzcG9pbXN4cGliY2JlYWNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ0NTA0NzIsImV4cCI6MjA2MDAyNjQ3Mn0.IAHcNQgy86F7DihpFKjPJ19SgLgzQgal-VhejfdycMU';
+// Use environment variables for security
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Missing required Supabase environment variables');
+}
+
+// Create browser client with proper cookie handling for SSR
+export const supabase = createBrowserClient(supabaseUrl, supabaseKey);

@@ -13,6 +13,9 @@ import {
 } from "./metadata";
 import "@/css/global.css";
 
+// Phase 3: Server-side initialization for Cache Warming Optimization
+import { initializeServerForNextJS } from "@/lib/startup/ServerInitializer";
+
 const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
@@ -35,11 +38,14 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Initialize server-side services for Phase 3 Cache Warming Optimization
+  await initializeServerForNextJS();
+
   return (
     <html lang="id" suppressHydrationWarning>
       <head>
@@ -62,6 +68,9 @@ export default function RootLayout({
             __html: JSON.stringify(websiteStructuredData),
           }}
         />
+
+        {/* PWA Manifest */}
+        <link rel="manifest" href="/manifest.json" />
 
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

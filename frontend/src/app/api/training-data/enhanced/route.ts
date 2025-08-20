@@ -15,7 +15,7 @@ import {
   SemanticMetadata
 } from '../../../../types/enhancedTrainingData';
 
-const trainingCollector = TrainingDataCollector.getInstance();
+const getTrainingCollector = () => TrainingDataCollector.getInstance();
 const queryAnalyzer = RealTimeQueryAnalyzer.getInstance();
 
 /**
@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
     console.log(`🔍 [ENHANCED_TRAINING_API] Processing enhanced query for service: ${serviceType}`);
 
     // Initialize services if needed
+    const trainingCollector = await getTrainingCollector();
     await trainingCollector.initialize();
     await queryAnalyzer.initialize();
 
@@ -100,6 +101,7 @@ export async function GET(request: NextRequest) {
     const serviceType = searchParams.get('serviceType');
 
     // Initialize services if needed
+    const trainingCollector = await getTrainingCollector();
     await trainingCollector.initialize();
     await queryAnalyzer.initialize();
 
@@ -214,6 +216,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Initialize services if needed
+    const trainingCollector = await getTrainingCollector();
     await trainingCollector.initialize();
 
     switch (action) {

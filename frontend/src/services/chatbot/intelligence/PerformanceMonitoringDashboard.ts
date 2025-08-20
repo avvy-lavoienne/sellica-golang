@@ -152,6 +152,10 @@ export class PerformanceMonitoringDashboard {
   startRealTimeMonitoring(): void {
     if (this.isMonitoring) return;
 
+    // DISABLED: Monitoring temporarily disabled to reduce API calls
+    console.log('📊 [PERFORMANCE_MONITORING] Real-time monitoring disabled to reduce API load');
+    return;
+
     // Silent start to reduce console noise
     this.isMonitoring = true;
     this.monitoringInterval = setInterval(() => {

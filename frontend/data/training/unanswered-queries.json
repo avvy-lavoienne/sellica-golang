@@ -88,5 +88,71 @@
       "category": "general_inquiry",
       "tags": []
     }
+  },
+  {
+    "id": "query_1755180905192_bt6o38r5j",
+    "timestamp": "2025-08-14T14:15:05.192Z",
+    "userId": "anonymous",
+    "query": "Cari data dengan nama",
+    "detectedServiceType": "administrasi_kependudukan",
+    "conversationContext": {
+      "previousMessages": [],
+      "timeOfDay": "night",
+      "isFirstInteraction": true
+    },
+    "responseGiven": "Maaf kak, saya belum memahami pertanyaan \"Cari data dengan nama\". 😅\n\n🤔 **Coba tanya dengan cara lain, kak:**\n• \"syarat buat KTP\"\n• \"cara bikin KK\"\n• \"dokumen akta kelahiran\"\n• \"layanan apa saja yang ada\"\n\n📞 **Atau hubungi langsung:**\nWhatsApp: +62-851-8304-3205\n\n💡 Saya akan terus belajar untuk melayani kak lebih baik! 🤝",
+    "responseType": "error",
+    "priority": "low",
+    "status": "pending",
+    "metadata": {
+      "confidence": 0.6,
+      "complexity": "simple",
+      "category": "general_inquiry",
+      "tags": []
+    }
+  },
+  {
+    "id": "query_1755499207048_xy55ibssw",
+    "timestamp": "2025-08-18T06:40:07.048Z",
+    "userId": "49a9ff7c-9834-4606-a6d3-97a87fcdf082",
+    "query": "Test query untuk validasi load test",
+    "detectedServiceType": "administrasi_kependudukan",
+    "conversationContext": {
+      "previousMessages": [],
+      "timeOfDay": "afternoon",
+      "isFirstInteraction": true
+    },
+    "responseGiven": "Maaf kak, saya belum memahami pertanyaan \"Test query untuk validasi load test\". 😅\n\n🤔 **Coba tanya dengan cara lain, kak:**\n• \"syarat buat KTP\"\n• \"cara bikin KK\"\n• \"dokumen akta kelahiran\"\n• \"layanan apa saja yang ada\"\n\n📞 **Atau hubungi langsung:**\nWhatsApp: +62-851-8304-3205\n\n💡 Saya akan terus belajar untuk melayani kak lebih baik! 🤝",
+    "responseType": "error",
+    "priority": "low",
+    "status": "pending",
+    "metadata": {
+      "confidence": 0.9,
+      "complexity": "simple",
+      "category": "general_inquiry",
+      "tags": []
+    }
+  },
+  {
+    "id": "query_1755529041353_nekbad17n",
+    "timestamp": "2025-08-18T14:57:21.353Z",
+    "userId": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+    "query": "kamu tau siapa nama aku?",
+    "detectedServiceType": "administrasi_kependudukan",
+    "conversationContext": {
+      "previousMessages": [],
+      "timeOfDay": "night",
+      "isFirstInteraction": true
+    },
+    "responseGiven": "Maaf kak, saya belum memahami pertanyaan \"kamu tau siapa nama aku?\". 😅\n\n🤔 **Coba tanya dengan cara lain, kak:**\n• \"syarat buat KTP\"\n• \"cara bikin KK\"\n• \"dokumen akta kelahiran\"\n• \"layanan apa saja yang ada\"\n\n📞 **Atau hubungi langsung:**\nWhatsApp: +62-851-8304-3205\n\n💡 Saya akan terus belajar untuk melayani kak lebih baik! 🤝",
+    "responseType": "error",
+    "priority": "low",
+    "status": "pending",
+    "metadata": {
+      "confidence": 0.6,
+      "complexity": "simple",
+      "category": "general_inquiry",
+      "tags": []
+    }
   }
 ]

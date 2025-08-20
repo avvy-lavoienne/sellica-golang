@@ -87,7 +87,7 @@ export class PerformanceValidationTest {
     this.simpleResponseService = new SimpleResponseService();
     this.administrativeCache = AdministrativeResponseCache.getInstance();
     this.performanceMonitor = PerformanceMonitor.getInstance();
-    this.trainingCollector = TrainingDataCollector.getInstance();
+    this.trainingCollector = TrainingDataCollector.getInstanceSync();
   }
 
   /**

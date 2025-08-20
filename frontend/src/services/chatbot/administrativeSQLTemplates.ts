@@ -300,7 +300,7 @@ export class AdministrativeSQLTemplateEngine {
     const queryLower = query.toLowerCase();
 
     console.log(`🔍 [SQL_TEMPLATES] Searching templates for query: "${query}"`);
-    console.log(`🔍 [SQL_TEMPLATES] Available templates: ${Array.from(this.templates.keys()).join(', ')}`);
+    // console.log(
     console.log(`🔍 [SQL_TEMPLATES] Total templates loaded: ${this.templates.size}`);
 
     for (const template of this.templates.values()) {
@@ -313,8 +313,7 @@ export class AdministrativeSQLTemplateEngine {
           queryLower.includes(keyword.toLowerCase())
         ).length;
 
-        console.log(`✅ [SQL_TEMPLATES] Pattern matched for ${template.id}! Keywords: ${keywordMatches}/${template.indonesianKeywords.length}`);
-        
+        // console.log(
         const confidence = Math.min(
           0.7 + (keywordMatches / template.indonesianKeywords.length) * 0.3,
           1.0

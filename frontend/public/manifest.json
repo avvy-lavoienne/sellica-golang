@@ -1,0 +1,60 @@
+{
+  "name": "Sellica - Sistem Elektronik Layanan Kependudukan",
+  "short_name": "Sellica",
+  "description": "Aplikasi layanan kependudukan digital untuk Kabupaten Garut",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "id",
+  "categories": ["government", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32 48x48",
+      "type": "image/x-icon"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Akses dashboard utama",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/favicon.ico",
+          "sizes": "16x16"
+        }
+      ]
+    },
+    {
+      "name": "SELLY AI",
+      "short_name": "SELLY",
+      "description": "Chat dengan asisten AI SELLY",
+      "url": "/selly-ai",
+      "icons": [
+        {
+          "src": "/favicon.ico",
+          "sizes": "16x16"
+        }
+      ]
+    },
+    {
+      "name": "Data Rekam",
+      "short_name": "Data",
+      "description": "Kelola data rekam kependudukan",
+      "url": "/data-rekam",
+      "icons": [
+        {
+          "src": "/favicon.ico",
+          "sizes": "16x16"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

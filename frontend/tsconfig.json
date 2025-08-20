@@ -43,6 +43,8 @@
     "**/test*.ts",
     "**/test*.tsx",
     "src/services/chatbot/test*.ts",
-    "src/services/chatbot/__tests__/**/*.ts"
+    "src/services/chatbot/__tests__/**/*.ts",
+    "src/test/**/*.ts",
+    "src/test/**/*.tsx"
   ]
 }

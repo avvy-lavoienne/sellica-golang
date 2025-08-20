@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useChat } from '@/contexts/ChatContext';
+import { useUnifiedChat } from '@/contexts/UnifiedChatContext';
 import { EnhancedChatMessage } from '@/components/chatbot/EnhancedChatMessage';
 import { cn } from '@/lib/conn/utils';
 
@@ -82,7 +82,7 @@ export function MobileSellyInterface({
     sendMessage,
     clearMessages,
     startNewSession,
-  } = useChat();
+  } = useUnifiedChat();
 
   // Mobile-specific state
   const [inputValue, setInputValue] = useState('');

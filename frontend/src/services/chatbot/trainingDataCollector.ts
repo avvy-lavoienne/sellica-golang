@@ -19,6 +19,7 @@ import {
 import { RealTimeQueryAnalyzer } from './realTimeQueryAnalyzer';
 import { UserFeedbackCollector } from './userFeedbackCollector';
 import { PerformanceMonitor } from '../monitoring/performanceMonitor';
+import { aiLogger } from '../monitoring/logger';
 
 // Legacy interface for backward compatibility
 export interface UnansweredQuery {
@@ -56,6 +57,8 @@ export interface TrainingDataEntry {
 
 export class TrainingDataCollector {
   private static instance: TrainingDataCollector;
+  private static initializationPromise: Promise<TrainingDataCollector> | null = null;
+  private static fileCache: Map<string, { data: any; timestamp: number; ttl: number }> = new Map();
   private unansweredQueries: UnansweredQuery[] = [];
   private enhancedQueries: EnhancedUnansweredQuery[] = [];
   private trainingQueue: EnhancedTrainingDataEntry[] = [];
@@ -65,11 +68,84 @@ export class TrainingDataCollector {
   private performanceMonitor: PerformanceMonitor;
   private initialized = false;
 
-  public static getInstance(): TrainingDataCollector {
+  // Cache TTL: 5 minutes for file data
+  private static readonly FILE_CACHE_TTL = 5 * 60 * 1000;
+
+  public static async getInstance(): Promise<TrainingDataCollector> {
+    // Return existing initialized instance
+    if (TrainingDataCollector.instance && TrainingDataCollector.instance.initialized) {
+      return TrainingDataCollector.instance;
+    }
+
+    // Prevent multiple concurrent initializations
+    if (TrainingDataCollector.initializationPromise) {
+      return TrainingDataCollector.initializationPromise;
+    }
+
+    TrainingDataCollector.initializationPromise = (async () => {
+      if (!TrainingDataCollector.instance) {
+        TrainingDataCollector.instance = new TrainingDataCollector();
+      }
+
+      if (!TrainingDataCollector.instance.initialized) {
+        await TrainingDataCollector.instance.initialize();
+      }
+
+      // Clear the promise after successful initialization
+      TrainingDataCollector.initializationPromise = null;
+      return TrainingDataCollector.instance;
+    })();
+
+    return TrainingDataCollector.initializationPromise;
+  }
+
+  /**
+   * Synchronous getInstance for backward compatibility
+   * Note: This returns an uninitialized instance. Call initialize() separately.
+   */
+  public static getInstanceSync(): TrainingDataCollector {
     if (!TrainingDataCollector.instance) {
       TrainingDataCollector.instance = new TrainingDataCollector();
     }
     return TrainingDataCollector.instance;
+  }
+
+  /**
+   * Cached file loading to prevent repeated disk reads
+   */
+  private static async loadFileWithCache(filePath: string): Promise<any> {
+    const now = Date.now();
+    const cached = TrainingDataCollector.fileCache.get(filePath);
+
+    // Return cached data if still valid
+    if (cached && (now - cached.timestamp) < cached.ttl) {
+      return cached.data;
+    }
+
+    // Only load files on server-side
+    if (typeof window === 'undefined' && typeof require !== 'undefined') {
+      try {
+        // Load file from disk (Node.js compatible)
+        const fs = require('fs').promises;
+        const fileContent = await fs.readFile(filePath, 'utf-8');
+        const data = JSON.parse(fileContent);
+
+        // Cache the data
+        TrainingDataCollector.fileCache.set(filePath, {
+          data,
+          timestamp: now,
+          ttl: TrainingDataCollector.FILE_CACHE_TTL
+        });
+
+        return data;
+      } catch (error) {
+        // Return empty array if file doesn't exist or is invalid
+        return [];
+      }
+    }
+
+    // Return empty array for client-side
+    return [];
   }
 
   private constructor() {
@@ -82,7 +158,7 @@ export class TrainingDataCollector {
     if (this.initialized) return;
 
     try {
-      console.log('📚 [TRAINING_COLLECTOR] Initializing enhanced training data collector...');
+      //console.log('📚 [TRAINING_COLLECTOR] Initializing enhanced training data collector...');
 
       // Initialize real-time analyzer and feedback collector
       await this.realTimeAnalyzer.initialize();
@@ -92,10 +168,10 @@ export class TrainingDataCollector {
       await this.loadFromFile();
 
       this.initialized = true;
-      console.log(`✅ [TRAINING_COLLECTOR] Enhanced training data collector initialized`);
-      console.log(`📊 [TRAINING_COLLECTOR] Loaded ${this.unansweredQueries.length} legacy queries and ${this.enhancedQueries.length} enhanced queries`);
+      //console.log(`✅ [TRAINING_COLLECTOR] Enhanced training data collector initialized`);
+      //console.log(`📊 [TRAINING_COLLECTOR] Loaded ${this.unansweredQueries.length} legacy queries and ${this.enhancedQueries.length} enhanced queries`);
     } catch (error) {
-      console.error('❌ [TRAINING_COLLECTOR] Failed to initialize:', error);
+      //console.error('❌ [TRAINING_COLLECTOR] Failed to initialize:', error);
       this.initialized = true; // Continue even if loading fails
     }
   }
@@ -178,7 +254,7 @@ export class TrainingDataCollector {
     const timestamp = new Date().toISOString();
 
     try {
-      console.log(`🔍 [TRAINING_COLLECTOR] Processing enhanced query: ${queryId}`);
+      aiLogger.training.debug(`Processing enhanced query: ${queryId}`);
 
       // Perform real-time analysis
       const analysisResult = await this.realTimeAnalyzer.analyzeQuery(query, {
@@ -263,8 +339,8 @@ export class TrainingDataCollector {
       // Store enhanced query
       this.enhancedQueries.push(enhancedQuery);
 
-      console.log(`✅ [TRAINING_COLLECTOR] Enhanced query logged: ${queryId} (${serviceType})`);
-      console.log(`📊 [TRAINING_COLLECTOR] Analysis completed in ${analysisResult.processingTime.toFixed(2)}ms`);
+      aiLogger.training.debug(`Enhanced query logged: ${queryId} (${serviceType})`);
+      aiLogger.training.debug(`Analysis completed in ${analysisResult.processingTime.toFixed(2)}ms`);
 
       // Record performance metrics
       this.performanceMonitor.recordMetric(
@@ -285,14 +361,18 @@ export class TrainingDataCollector {
         try {
           this.saveToFile();
         } catch (error: any) {
-          console.error('❌ [TRAINING_COLLECTOR] Failed to auto-save:', error);
+          aiLogger.training.error('Failed to auto-save', {
+            error: error instanceof Error ? error.message : String(error)
+          });
         }
       }
 
       return queryId;
 
     } catch (error) {
-      console.error(`❌ [TRAINING_COLLECTOR] Failed to log enhanced query ${queryId}:`, error);
+      aiLogger.training.error(`Failed to log enhanced query ${queryId}`, {
+        error: error instanceof Error ? error.message : String(error)
+      });
 
       // Fallback to legacy logging
       return this.logUnansweredQuery(query, serviceType, responseGiven, {
@@ -546,7 +626,7 @@ export class TrainingDataCollector {
   }
 
   private async loadFromFile(): Promise<void> {
-    if (typeof window === 'undefined') {
+    if (typeof window === 'undefined' && typeof require !== 'undefined') {
       // Server-side: load from file system
       try {
         const fs = require('fs');
@@ -584,9 +664,11 @@ export class TrainingDataCollector {
         const filePath = path.join(dataDir, 'unanswered-queries.json');
         fs.writeFileSync(filePath, JSON.stringify(this.unansweredQueries, null, 2));
 
-        console.log(`💾 [TRAINING_COLLECTOR] Saved ${this.unansweredQueries.length} queries to ${filePath}`);
+        aiLogger.training.debug(`Saved ${this.unansweredQueries.length} queries to ${filePath}`);
       } catch (error) {
-        console.error('❌ [TRAINING_COLLECTOR] Failed to save training data:', error);
+        aiLogger.training.error('Failed to save training data', {
+          error: error instanceof Error ? error.message : String(error)
+        });
       }
     }
   }
@@ -687,5 +769,5 @@ export class TrainingDataCollector {
   }
 }
 
-// Export singleton instance
-export const trainingDataCollector = TrainingDataCollector.getInstance();
+// Export singleton instance getter (async)
+export const getTrainingDataCollector = () => TrainingDataCollector.getInstance();

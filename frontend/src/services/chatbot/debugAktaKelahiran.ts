@@ -60,13 +60,15 @@ if (scenarioResponseResult) {
 // Test 8: Test single letter A (should go to KTP)
 console.log(`\n3. Testing single letter "A" (should go to KTP):`);
 const letterResult = knowledgeService.getServiceInfo('A');
-const isKTPResult = typeof letterResult === 'string' && letterResult.includes('KTP');
+const isKTPResult = letterResult && letterResult.specialCases?.string_response?.[0] === 'true' &&
+                   letterResult.specialCases?.content?.[0]?.includes('KTP');
 console.log(`   Single "A" goes to KTP: ${isKTPResult}`);
 
 // Test 9: Test letter E (should go to Akta Kelahiran)
 console.log(`\n4. Testing single letter "E" (should go to Akta Kelahiran):`);
 const letterEResult = knowledgeService.getServiceInfo('E');
-const isAktaEResult = typeof letterEResult === 'string' && letterEResult.includes('Luar Negeri');
+const isAktaEResult = letterEResult && letterEResult.specialCases?.string_response?.[0] === 'true' &&
+                     letterEResult.specialCases?.content?.[0]?.includes('Luar Negeri');
 console.log(`   Single "E" goes to Akta Kelahiran: ${isAktaEResult}`);
 
 console.log('\n✅ Debug completed!');

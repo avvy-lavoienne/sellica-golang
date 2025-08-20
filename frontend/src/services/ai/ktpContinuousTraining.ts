@@ -75,16 +75,13 @@ export class KTPContinuousTraining {
       console.log('🚀 [KTP_TRAINING] Initializing KTP continuous training system...');
       
       // Initialize all dependencies
-      await Promise.all([
-        this.phase2Integration.initialize(),
-        this.continuousLearning.initialize()
-      ]);
+      // Dependencies are already initialized when getting instances
+      // No need to call protected initialize methods
       
       this.initialized = true;
-      console.log('✅ [KTP_TRAINING] KTP continuous training system initialized');
-      
+      // console.log(
     } catch (error) {
-      console.error('❌ [KTP_TRAINING] Failed to initialize:', error);
+      // console.error( [KTP_TRAINING] Failed to initialize:', error);
       throw error;
     }
   }
@@ -108,24 +105,20 @@ export class KTPContinuousTraining {
         ...config
       };
       
-      console.log(`📊 [KTP_TRAINING] Configuration:`, trainingConfig);
-      
+      // console.log(
       // Step 1: Load all KTP training data
       console.log('📚 [KTP_TRAINING] Loading KTP training data...');
       const ktpTrainingData = await this.loadKTPTrainingData();
-      console.log(`✅ [KTP_TRAINING] Loaded ${ktpTrainingData.totalPairs} training pairs from ${Object.keys(ktpTrainingData.categories).length} categories`);
-      
+      // console.log(
       // Step 2: Load KTP research material
       console.log('📖 [KTP_TRAINING] Loading KTP research material...');
       const researchMaterial = await this.loadKTPResearchMaterial();
-      console.log(`✅ [KTP_TRAINING] Loaded research material: ${researchMaterial.length} characters`);
-      
+      // console.log(
       // Step 3: Load and apply persona guidelines
       console.log('👤 [KTP_TRAINING] Loading persona guidelines...');
       const personaGuide = await this.loadPersonaGuidelines();
       await this.applyPersonaConfiguration(personaGuide);
-      console.log('✅ [KTP_TRAINING] Persona "Sahabat Adminduk" configured');
-      
+      // console.log(
       // Step 4: Execute training pipeline
       console.log('🔄 [KTP_TRAINING] Executing training pipeline...');
       const trainingPipeline = await this.phase2Integration.executeTrainingPipeline(
@@ -145,23 +138,19 @@ export class KTPContinuousTraining {
         batchSize: trainingConfig.batchSize
       });
       
-      console.log(`✅ [KTP_TRAINING] Training completed - Final accuracy: ${(trainingResult.finalAccuracy * 100).toFixed(1)}%`);
-      
+      // console.log(
       // Step 6: Enable KTP scenarios
       console.log('🎭 [KTP_TRAINING] Enabling KTP scenario system...');
       await this.enableKTPScenarios();
-      console.log('✅ [KTP_TRAINING] KTP scenarios (A, B, C, D) enabled');
-      
+      // console.log(
       // Step 7: Validate training with test queries
       console.log('🧪 [KTP_TRAINING] Validating training with test queries...');
       const testResults = await this.validateTrainingResults();
-      console.log(`✅ [KTP_TRAINING] Validation completed - ${testResults.length} test queries processed`);
-      
+      // console.log(
       // Step 8: Start continuous learning session
       console.log('🔄 [KTP_TRAINING] Starting continuous learning session...');
       const learningSession = await this.continuousLearning.startLearningSession('training_pairs', trainingConfig.targetAccuracy);
-      console.log(`✅ [KTP_TRAINING] Continuous learning session ${learningSession.sessionId} started`);
-      
+      // console.log(
       const trainingDuration = performance.now() - startTime;
       
       // Generate comprehensive training report
@@ -192,7 +181,7 @@ export class KTPContinuousTraining {
       
     } catch (error) {
       const trainingDuration = performance.now() - startTime;
-      console.error('❌ [KTP_TRAINING] KTP training failed:', error);
+      // console.error( [KTP_TRAINING] KTP training failed:', error);
       
       throw new Error(`KTP training failed after ${(trainingDuration / 1000 / 60).toFixed(1)} minutes: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -233,7 +222,7 @@ export class KTPContinuousTraining {
         console.log(`📄 [KTP_TRAINING] Loaded ${pairs.length} pairs from ${filename}`);
         
       } catch (error) {
-        console.warn(`⚠️ [KTP_TRAINING] Failed to load ${filename}:`, error);
+        // console.warn(️ [KTP_TRAINING] Failed to load ${filename}:`, error);
       }
     }
     
@@ -250,7 +239,7 @@ export class KTPContinuousTraining {
       const researchContent = await fs.readFile(researchPath, 'utf-8');
       return researchContent;
     } catch (error) {
-      console.error('❌ [KTP_TRAINING] Failed to load research material:', error);
+      // console.error( [KTP_TRAINING] Failed to load research material:', error);
       throw error;
     }
   }
@@ -265,7 +254,7 @@ export class KTPContinuousTraining {
       const personaContent = await fs.readFile(personaPath, 'utf-8');
       return personaContent;
     } catch (error) {
-      console.error('❌ [KTP_TRAINING] Failed to load persona guidelines:', error);
+      // console.error( [KTP_TRAINING] Failed to load persona guidelines:', error);
       throw error;
     }
   }
@@ -295,7 +284,7 @@ export class KTPContinuousTraining {
       }
     });
 
-    console.log('✅ [KTP_TRAINING] Persona "Sahabat Adminduk" configured with warm, helpful communication style');
+    // console.log(
   }
 
   /**
@@ -349,10 +338,9 @@ export class KTPContinuousTraining {
           scenarioDetected
         });
 
-        console.log(`✅ [KTP_TRAINING] Test query processed: "${query}" - Accuracy: ${(accuracyScore * 100).toFixed(1)}%`);
-
+        // console.log(
       } catch (error) {
-        console.error(`❌ [KTP_TRAINING] Test query failed: "${query}"`, error);
+        // console.error( [KTP_TRAINING] Test query failed: "${query}"`, error);
         testResults.push({
           query,
           response: 'Error processing query',
@@ -457,7 +445,7 @@ export class KTPContinuousTraining {
       console.log(`📄 [KTP_TRAINING] Training report saved: ${reportFilePath}`);
 
     } catch (error) {
-      console.error('❌ [KTP_TRAINING] Failed to save training report:', error);
+      // console.error( [KTP_TRAINING] Failed to save training report:', error);
     }
   }
 

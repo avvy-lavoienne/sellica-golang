@@ -255,6 +255,78 @@ export interface FormAnalytics {
   conversionFunnel: string[]
 }
 
+// Guest-to-Auth Conversion Types
+export interface GuestSessionData {
+  sessionId: string
+  guestUuid: string
+  conversationHistory: ConversationTurn[]
+  userPreferences: UserPreferences
+  createdAt: Date
+  lastAccessedAt: Date
+  interactionCount: number
+  conversionEligible: boolean
+  conversionAttempts: number
+}
+
+export interface ConversationTurn {
+  id: string
+  query: string
+  response: string
+  timestamp: Date
+  metadata?: Record<string, any>
+}
+
+export interface UserPreferences {
+  language: string
+  theme: 'light' | 'dark' | 'auto'
+  dataFormat: 'summary' | 'detailed'
+  verbosity: 'concise' | 'detailed'
+  notifications: boolean
+}
+
+export interface UserRegistrationData {
+  email: string
+  password: string
+  confirmPassword: string
+  name: string
+  nik?: string
+  nip?: string
+  position?: string
+  agreeToTerms: boolean
+  agreeToPrivacy: boolean
+}
+
+export interface ConversionResult {
+  success: boolean
+  userId?: string
+  sessionId?: string
+  error?: string
+  migratedData?: {
+    conversationCount: number
+    preferencesTransferred: boolean
+    sessionContinuity: boolean
+  }
+}
+
+export interface ConversionPromptProps {
+  guestSessionData: GuestSessionData
+  onConvert: (userData: UserRegistrationData) => Promise<ConversionResult>
+  onDismiss: () => void
+  onSkip: () => void
+  className?: string
+  variant?: 'modal' | 'inline' | 'banner'
+  showBenefits?: boolean
+  autoTrigger?: boolean
+}
+
+export interface ConversionState {
+  step: 'prompt' | 'registration' | 'converting' | 'success' | 'error'
+  isLoading: boolean
+  error?: string
+  progress: number
+  validationErrors: Record<string, string[]>
+}
+
 // Comprehensive auth configuration
 export interface AuthConfig {
   security: SecurityFeatures

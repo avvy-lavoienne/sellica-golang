@@ -195,16 +195,16 @@ export const documentConfigurations: Record<string, DocumentConfig> = {
     aliases: ['akta death certificate']
   },
 
-  // Kepindahan (Migration/Moving Service) - AUTOMATED GENERATION IMPLEMENTATION
-  kepindahan: {
-    documentType: 'kepindahan',
+  // Akta Pengakuan Anak - NEW TRAINING INTEGRATION
+  akta_pengakuan_anak: {
+    documentType: 'akta_pengakuan_anak',
     documentNames: [
-      'kepindahan',
-      'pindah domisili',
-      'surat pindah',
-      'skpwni',
-      'perpindahan',
-      'migrasi'
+      'akta pengakuan anak',
+      'pengakuan anak',
+      'akta legitimasi',
+      'legitimasi anak',
+      'pengakuan ayah',
+      'akta pengakuan biologis'
     ],
     actions: [
       'bikin',
@@ -214,9 +214,43 @@ export const documentConfigurations: Record<string, DocumentConfig> = {
       'urus',
       'mengurus',
       'ajukan',
-      'daftar'
+      'daftar',
+      'mengakui'
     ],
-    aliases: ['pindah kota', 'pindah daerah', 'beda domisili']
+    aliases: ['anak luar nikah', 'anak tidak sah', 'pengakuan biologis', 'legitimasi']
+  },
+
+  // Kepindahan (Migration/Moving Service) - AUTOMATED GENERATION IMPLEMENTATION
+  kepindahan: {
+    documentType: 'kepindahan',
+    documentNames: [
+      'kepindahan',
+      'pindah domisili',
+      'pindah alamat',
+      'alamat domisili',
+      'surat pindah',
+      'skpwni',
+      'perpindahan',
+      'migrasi',
+      'perpindahan alamat',
+      'ganti alamat',
+      'ubah alamat'
+    ],
+    actions: [
+      'bikin',
+      'buat',
+      'membuat',
+      'ngurus',
+      'urus',
+      'mengurus',
+      'ajukan',
+      'daftar',
+      'ingin',
+      'mau',
+      'pengen',
+      'kepingin'
+    ],
+    aliases: ['pindah kota', 'pindah daerah', 'beda domisili', 'ganti domisili', 'ubah domisili']
   },
 
   // === DOKUMEN KEPENDUDUKAN DALAM BENTUK SURAT (15 documents) ===
@@ -551,28 +585,6 @@ export const documentConfigurations: Record<string, DocumentConfig> = {
       'mendaftar'
     ],
     aliases: ['akta divorce certificate', 'surat talak']
-  },
-
-  // Akta Pengakuan Anak
-  akta_pengakuan_anak: {
-    documentType: 'akta_pengakuan_anak',
-    documentNames: [
-      'akta pengakuan anak',
-      'akta pengakuan',
-      'surat pengakuan anak',
-      'akta pengakuan anak resmi'
-    ],
-    actions: [
-      'bikin',
-      'buat',
-      'membuat',
-      'ngurus',
-      'urus',
-      'mengurus',
-      'daftar',
-      'mendaftar'
-    ],
-    aliases: ['akta acknowledgment', 'pengakuan anak']
   },
 
   // Akta Pengesahan Anak

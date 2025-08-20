@@ -50,7 +50,7 @@ export class AdministrativeResponseCache {
   // Pre-computed administrative responses
   private readonly ADMINISTRATIVE_TEMPLATES = {
     'persyaratan_dokumen': {
-      pattern: /persyaratan|syarat|dokumen|berkas|kelengkapan/i,
+      pattern: /^(?!.*(ktp|ktp-el|kartu\s+tanda\s+penduduk|kia|kartu\s+identitas\s+anak|kartu\s+keluarga|kk\s+|akta\s+kelahiran|akta\s+perkawinan|akta\s+perceraian|akta\s+kematian|akta\s+pengakuan\s+anak|akta\s+pengesahan\s+anak|pengakuan\s+anak|pengesahan\s+anak|biodata\s+penduduk|kepindahan|pindah\s+domisili|skpwni|skdwni|skpln|surat\s+keterangan\s+pindah|surat\s+kedatangan|perubahan\s+elemen\s+data|perubahan\s+data|koreksi\s+data|pembatalan\s+perkawinan|pembatalan\s+perceraian|kutipan\s+akta|salinan\s+akta|duplikat\s+akta|legalisir|legalisasi|keabsahan\s+dokumen|verifikasi\s+dokumen|validasi\s+dokumen|skdln|perubahan\s+status\s+wna|itas|itap|surat\s+pindah\s+datang|surat\s+domisili|surat\s+keterangan\s+tidak\s+mampu|surat\s+keterangan\s+belum\s+menikah|surat\s+keterangan\s+beda\s+nama|surat\s+keterangan\s+kelahiran|surat\s+keterangan\s+kematian|surat\s+keterangan\s+usaha|surat\s+keterangan\s+penghasilan|surat\s+keterangan\s+ahli\s+waris)).*(persyaratan|syarat|dokumen|berkas|kelengkapan).*$/i,
       response: `📋 **Persyaratan Dokumen Kependudukan**
 
 Untuk pengajuan dokumen kependudukan, Anda memerlukan:
@@ -77,7 +77,7 @@ Apakah ada dokumen khusus yang ingin Anda tanyakan? 😊`,
       confidence: 0.9
     },
     'prosedur_pengajuan': {
-      pattern: /prosedur|cara|langkah|proses|pengajuan/i,
+      pattern: /^(?!.*(ktp|ktp-el|kartu\s+tanda\s+penduduk|kia|kartu\s+identitas\s+anak|kartu\s+keluarga|kk\s+|akta\s+kelahiran|akta\s+perkawinan|akta\s+perceraian|akta\s+kematian|akta\s+pengakuan\s+anak|akta\s+pengesahan\s+anak|pengakuan\s+anak|pengesahan\s+anak|biodata\s+penduduk|kepindahan|pindah\s+domisili|skpwni|skdwni|skpln|surat\s+keterangan\s+pindah|surat\s+kedatangan|perubahan\s+elemen\s+data|perubahan\s+data|koreksi\s+data|pembatalan\s+perkawinan|pembatalan\s+perceraian|kutipan\s+akta|salinan\s+akta|duplikat\s+akta|legalisir|legalisasi|keabsahan\s+dokumen|verifikasi\s+dokumen|validasi\s+dokumen|skdln|perubahan\s+status\s+wna|itas|itap|surat\s+pindah\s+datang|surat\s+domisili|surat\s+keterangan\s+tidak\s+mampu|surat\s+keterangan\s+belum\s+menikah|surat\s+keterangan\s+beda\s+nama|surat\s+keterangan\s+kelahiran|surat\s+keterangan\s+kematian|surat\s+keterangan\s+usaha|surat\s+keterangan\s+penghasilan|surat\s+keterangan\s+ahli\s+waris)).*(prosedur|cara|langkah|proses|pengajuan).*$/i,
       response: `🔄 **Prosedur Pengajuan Dokumen**
 
 **Langkah-langkah pengajuan:**
@@ -199,10 +199,9 @@ Butuh info biaya untuk layanan tertentu? 🤔`,
       this.startCacheMaintenance();
       
       this.initialized = true;
-      console.log(`✅ [ADMIN_CACHE] Cache initialized with ${this.cache.size} responses`);
-      
+      // console.log(
     } catch (error) {
-      console.error('❌ [ADMIN_CACHE] Failed to initialize cache:', error);
+      // console.error( [ADMIN_CACHE] Failed to initialize cache:', error);
       throw error;
     }
   }
@@ -225,7 +224,7 @@ Butuh info biaya untuk layanan tertentu? 🤔`,
         const responseTime = performance.now() - startTime;
         this.recordCacheMetrics('hit', responseTime);
         
-        console.log(`⚡ [ADMIN_CACHE] Cache HIT for query: "${query}" (${responseTime.toFixed(2)}ms)`);
+        // console.log(
         return directHit;
       }
 
@@ -258,11 +257,11 @@ Butuh info biaya untuk layanan tertentu? 🤔`,
       const responseTime = performance.now() - startTime;
       this.recordCacheMetrics('miss', responseTime);
       
-      console.log(`❌ [ADMIN_CACHE] Cache MISS for query: "${query}" (${responseTime.toFixed(2)}ms)`);
+      // console.log(
       return null;
 
     } catch (error) {
-      console.error('❌ [ADMIN_CACHE] Error getting cached response:', error);
+      // console.error( [ADMIN_CACHE] Error getting cached response:', error);
       return null;
     }
   }
@@ -306,7 +305,7 @@ Butuh info biaya untuk layanan tertentu? 🤔`,
       console.log(`💾 [ADMIN_CACHE] Cached response for: "${query}"`);
 
     } catch (error) {
-      console.error('❌ [ADMIN_CACHE] Error caching response:', error);
+      // console.error( [ADMIN_CACHE] Error caching response:', error);
     }
   }
 
@@ -535,7 +534,7 @@ Butuh info biaya untuk layanan tertentu? 🤔`,
       // In a real implementation, this would load from persistent storage
       console.log('📚 [ADMIN_CACHE] Loading existing cache data...');
     } catch (error) {
-      console.warn('⚠️ [ADMIN_CACHE] Could not load existing cache data:', error);
+      // console.warn(️ [ADMIN_CACHE] Could not load existing cache data:', error);
     }
   }
 

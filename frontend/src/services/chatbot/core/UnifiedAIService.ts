@@ -392,12 +392,12 @@ Pedoman Respons:
       // Import providers dynamically to avoid circular dependencies
       const { enhancedProvider } = await import('../providers/EnhancedProvider');
       // const { huggingFaceProvider } = await import('../providers/HuggingFaceProvider'); // DISABLED - Provider deprecated
-      const { tensorFlowProvider } = await import('../providers/TensorFlowProvider');
+      // const { tensorFlowProvider } = await import('../providers/TensorFlowProvider'); // DISABLED - TensorFlow removed
 
       // Register providers
       this.providers.set('enhanced', enhancedProvider);
       // this.providers.set('huggingface', huggingFaceProvider); // DISABLED - Provider deprecated
-      this.providers.set('tensorflow', tensorFlowProvider);
+      // this.providers.set('tensorflow', tensorFlowProvider); // DISABLED - TensorFlow removed
 
       console.log('✅ [UNIFIED_AI] Providers registered:', Array.from(this.providers.keys()));
     } catch (error) {

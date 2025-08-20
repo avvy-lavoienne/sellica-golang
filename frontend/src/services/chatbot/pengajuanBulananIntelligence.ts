@@ -5,23 +5,32 @@
  * Provides comprehensive analytics, business intelligence, and natural language processing
  */
 
-import { createClient } from "@supabase/supabase-js";
+import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/lib/conn/database";
+import { SupabaseManager } from "@/lib/database/supabaseManager";
 
-// Create a service role client for chatbot to bypass RLS
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY!;
+// Use pooled connection manager for better performance and reliability
+let supabaseManager: SupabaseManager | null = null;
 
-const supabaseChatbot = createClient<Database>(
-  supabaseUrl,
-  supabaseServiceKey,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
+/**
+ * Get Supabase client using pooled connection manager
+ */
+async function getSupabaseClient(): Promise<SupabaseClient<Database> | null> {
+  try {
+    if (typeof window !== 'undefined') {
+      return null; // Server-side only for security
     }
+
+    if (!supabaseManager) {
+      supabaseManager = await SupabaseManager.getInstance();
+    }
+
+    return await supabaseManager.getServiceRoleClient();
+  } catch (error) {
+    console.error('❌ [PENGAJUAN_BULANAN_INTELLIGENCE] Failed to get Supabase client:', error);
+    return null;
   }
-);
+}
 
 export interface PengajuanBulananAnalytics {
   totalPengajuan: number;
@@ -437,7 +446,29 @@ export class PengajuanBulananIntelligence {
    */
   public static async generateComprehensiveAnalytics(): Promise<PengajuanBulananAnalytics> {
     console.log('🧠 [PENGAJUAN_INTELLIGENCE] Generating comprehensive analytics...');
-    
+
+    const supabaseChatbot = await getSupabaseClient();
+
+    // Return mock data if client not available
+    if (!supabaseChatbot) {
+      return {
+        totalPengajuan: 0,
+        readyToRecord: 0,
+        pendingCount: 0,
+        overdueCount: 0,
+        alasanBreakdown: [],
+        petugasBreakdown: [],
+        monthlyTrend: [],
+        performanceMetrics: {
+          avgProcessingDays: 0,
+          slaCompliance: 0,
+          bottlenecks: [],
+          recommendations: []
+        },
+        businessInsights: []
+      };
+    }
+
     try {
       const [
         totalData,
@@ -493,10 +524,13 @@ export class PengajuanBulananIntelligence {
    * Get total pengajuan count
    */
   private static async getTotalPengajuan(): Promise<number> {
+    const supabaseChatbot = await getSupabaseClient();
+    if (!supabaseChatbot) return 0;
+
     const { count } = await supabaseChatbot
       .from('pengajuan_bulanan')
       .select('*', { count: 'exact', head: true });
-    
+
     return count || 0;
   }
 
@@ -504,11 +538,14 @@ export class PengajuanBulananIntelligence {
    * Get ready to record count
    */
   private static async getReadyToRecord(): Promise<number> {
+    const supabaseChatbot = await getSupabaseClient();
+    if (!supabaseChatbot) return 0;
+
     const { count } = await supabaseChatbot
       .from('pengajuan_bulanan')
       .select('*', { count: 'exact', head: true })
       .eq('is_ready_to_record', true);
-    
+
     return count || 0;
   }
 
@@ -516,11 +553,14 @@ export class PengajuanBulananIntelligence {
    * Get pending count
    */
   private static async getPendingCount(): Promise<number> {
+    const supabaseChatbot = await getSupabaseClient();
+    if (!supabaseChatbot) return 0;
+
     const { count } = await supabaseChatbot
       .from('pengajuan_bulanan')
       .select('*', { count: 'exact', head: true })
       .eq('is_ready_to_record', false);
-    
+
     return count || 0;
   }
 
@@ -528,14 +568,17 @@ export class PengajuanBulananIntelligence {
    * Get overdue count
    */
   private static async getOverdueCount(): Promise<number> {
+    const supabaseChatbot = await getSupabaseClient();
+    if (!supabaseChatbot) return 0;
+
     const today = new Date().toISOString().split('T')[0];
-    
+
     const { count } = await supabaseChatbot
       .from('pengajuan_bulanan')
       .select('*', { count: 'exact', head: true })
       .lt('estimasi_tanggal_perekaman', today)
       .eq('is_ready_to_record', false);
-    
+
     return count || 0;
   }
 
@@ -543,6 +586,9 @@ export class PengajuanBulananIntelligence {
    * Get breakdown by alasan
    */
   private static async getAlasanBreakdown(): Promise<AlasanBreakdown[]> {
+    const supabaseChatbot = await getSupabaseClient();
+    if (!supabaseChatbot) return [];
+
     const { data } = await supabaseChatbot
       .from('pengajuan_bulanan')
       .select('alasan_pengajuan')
@@ -588,6 +634,9 @@ export class PengajuanBulananIntelligence {
    * Get breakdown by petugas
    */
   private static async getPetugasBreakdown(): Promise<PetugasBreakdown[]> {
+    const supabaseChatbot = await getSupabaseClient();
+    if (!supabaseChatbot) return [];
+
     const { data } = await supabaseChatbot
       .from('pengajuan_bulanan')
       .select('nama_pengaju, nik_pengaju, is_ready_to_record')
@@ -736,7 +785,19 @@ export class PengajuanBulananIntelligence {
    */
   public static async processNaturalLanguageQuery(query: string): Promise<any> {
     console.log('🧠 [PENGAJUAN_INTELLIGENCE] Processing query:', query);
-    
+
+    const supabaseChatbot = await getSupabaseClient();
+
+    // Return fallback response if client not available
+    if (!supabaseChatbot) {
+      return {
+        success: false,
+        data: null,
+        explanation: "Data pengajuan bulanan tidak tersedia saat ini. Silakan coba lagi nanti.",
+        suggestedFollowUps: []
+      };
+    }
+
     const lowerQuery = query.toLowerCase();
     
     // Find matching pattern

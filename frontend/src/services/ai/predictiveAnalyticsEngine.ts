@@ -7,6 +7,7 @@
  */
 
 import { PerformanceMonitor } from '../monitoring/performanceMonitor';
+import { aiLogger } from '../monitoring/logger';
 import { ConversationContextV2 } from '../chatbot/enhancedContextIntelligenceV2';
 import { UserMemoryProfile } from '../chatbot/contextualMemoryEnhancement';
 
@@ -186,7 +187,7 @@ export class PredictiveAnalyticsEngine {
     if (this.initialized) return;
 
     try {
-      console.log('🔮 [PREDICTIVE] Initializing predictive analytics engine...');
+      //console.log('🔮 [PREDICTIVE] Initializing predictive analytics engine...');
       
       // Initialize performance monitor
       await this.performanceMonitor.initialize();
@@ -198,10 +199,9 @@ export class PredictiveAnalyticsEngine {
       this.startAnalyticsMaintenance();
       
       this.initialized = true;
-      console.log('✅ [PREDICTIVE] Predictive analytics engine initialized');
-      
+      // console.log(
     } catch (error) {
-      console.error('❌ [PREDICTIVE] Failed to initialize:', error);
+      // console.error( [PREDICTIVE] Failed to initialize:', error);
       throw error;
     }
   }
@@ -249,13 +249,17 @@ export class PredictiveAnalyticsEngine {
       // Record performance metrics
       this.recordPredictionMetrics(processingTime, validPredictions.length, features);
       
-      console.log(`✅ [PREDICTIVE] Generated ${validPredictions.length} predictions in ${processingTime.toFixed(2)}ms`);
+      aiLogger.predictive.debug(`Generated ${validPredictions.length} predictions`, {
+        processingTime: processingTime.toFixed(2) + 'ms'
+      });
       
       return validPredictions;
       
     } catch (error) {
       const processingTime = performance.now() - startTime;
-      console.error('❌ [PREDICTIVE] Prediction generation failed:', error);
+      aiLogger.predictive.error('Prediction generation failed', {
+        error: error instanceof Error ? error.message : String(error)
+      });
       
       // Record error metrics
       this.performanceMonitor.recordMetric(
@@ -294,7 +298,9 @@ export class PredictiveAnalyticsEngine {
       return prediction;
       
     } catch (error) {
-      console.warn('⚠️ [PREDICTIVE] User behavior prediction failed:', error);
+      aiLogger.predictive.warn('User behavior prediction failed', {
+        error: error instanceof Error ? error.message : String(error)
+      });
       return this.getDefaultUserBehaviorPrediction();
     }
   }
@@ -321,7 +327,9 @@ export class PredictiveAnalyticsEngine {
       return prediction;
       
     } catch (error) {
-      console.warn('⚠️ [PREDICTIVE] Conversation flow prediction failed:', error);
+      aiLogger.predictive.warn('Conversation flow prediction failed', {
+        error: error instanceof Error ? error.message : String(error)
+      });
       return this.getDefaultConversationFlowPrediction();
     }
   }
@@ -343,7 +351,7 @@ export class PredictiveAnalyticsEngine {
       return prediction;
       
     } catch (error) {
-      console.warn('⚠️ [PREDICTIVE] Service demand prediction failed:', error);
+      // console.warn(️ [PREDICTIVE] Service demand prediction failed:', error);
       return this.getDefaultServiceDemandPrediction();
     }
   }
@@ -353,7 +361,7 @@ export class PredictiveAnalyticsEngine {
    */
   private async loadPredictiveModels(): Promise<void> {
     try {
-      console.log('📚 [PREDICTIVE] Loading predictive models...');
+      //console.log('📚 [PREDICTIVE] Loading predictive models...');
       
       Object.values(this.PREDICTIVE_MODELS).forEach(modelDef => {
         const model: PredictiveModel = {
@@ -364,13 +372,12 @@ export class PredictiveAnalyticsEngine {
         };
         
         this.models.set(modelDef.modelId, model);
-        console.log(`✅ [PREDICTIVE] Loaded model: ${modelDef.modelId}`);
+        // console.log(
       });
       
-      console.log(`✅ [PREDICTIVE] Loaded ${this.models.size} predictive models`);
-      
+      // console.log(
     } catch (error) {
-      console.error('❌ [PREDICTIVE] Model loading failed:', error);
+      // console.error( [PREDICTIVE] Model loading failed:', error);
       throw error;
     }
   }
@@ -583,7 +590,7 @@ export class PredictiveAnalyticsEngine {
       };
       
     } catch (error) {
-      console.warn(`⚠️ [PREDICTIVE] Prediction failed for type ${type}:`, error);
+      // console.warn(️ [PREDICTIVE] Prediction failed for type ${type}:`, error);
       return this.getDefaultPrediction(type);
     }
   }
@@ -849,7 +856,7 @@ export class PredictiveAnalyticsEngine {
       this.cleanupCache();
     }, 10 * 60 * 1000);
     
-    console.log('🧹 [PREDICTIVE] Analytics maintenance started');
+    //console.log('🧹 [PREDICTIVE] Analytics maintenance started');
   }
 
   private cleanupCache(): void {

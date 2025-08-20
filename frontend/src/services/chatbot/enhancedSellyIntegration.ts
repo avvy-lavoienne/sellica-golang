@@ -150,16 +150,14 @@ export class EnhancedSellyIntegration {
           
           // Refine intent
           intentRefinement = await this.localAI.refineIntent(
-            query, 
-            enhancedContext.queryIntent,
-            enhancedContext
+            query,
+            enhancedContext.queryIntent
           );
           
           // Assess response quality
-          qualityMetrics = await this.localAI.assessResponseQuality(
+          qualityMetrics = await this.localAI.evaluateResponseQuality(
             baseResponse.content,
-            query,
-            enhancedContext
+            query
           );
           
           enhancementLayers.push('local_ai');

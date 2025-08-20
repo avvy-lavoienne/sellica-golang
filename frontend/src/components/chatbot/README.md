@@ -95,23 +95,23 @@ function MyDashboard() {
 ### 3. Menggunakan Context
 
 ```tsx
-import { ChatProvider, useChat } from '@/contexts/ChatContext';
+import { UnifiedChatProvider, useUnifiedChat } from '@/contexts/UnifiedChatContext';
 
 function App() {
   return (
-    <ChatProvider userId="user123">
+    <UnifiedChatProvider userId="user123">
       <MyComponent />
-    </ChatProvider>
+    </UnifiedChatProvider>
   );
 }
 
 function MyComponent() {
-  const { sendMessage, messages, isTyping } = useChat();
-  
+  const { sendMessage, messages, isTyping } = useUnifiedChat();
+
   const handleSend = async () => {
     await sendMessage("Statistik sistem");
   };
-  
+
   return (
     <div>
       <button onClick={handleSend}>Kirim Pesan</button>

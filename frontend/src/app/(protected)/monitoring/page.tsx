@@ -122,7 +122,7 @@ export default function MonitoringDashboard() {
   const [monitoringData, setMonitoringData] = useState<MonitoringData | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
-  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [autoRefresh, setAutoRefresh] = useState(false); // Disabled by default to reduce API calls
   const [selectedPeriod, setSelectedPeriod] = useState('24h');
 
   // Fetch monitoring data
@@ -142,15 +142,16 @@ export default function MonitoringDashboard() {
     }
   }, [selectedPeriod]);
 
-  // Auto-refresh effect
+  // Auto-refresh effect - disabled by default to reduce API calls
   useEffect(() => {
     fetchMonitoringData();
 
-    if (autoRefresh) {
-      const interval = setInterval(fetchMonitoringData, 30000); // 30 seconds
-      return () => clearInterval(interval);
-    }
-  }, [autoRefresh, selectedPeriod, fetchMonitoringData]);
+    // Disabled auto-refresh to reduce API calls
+    // if (autoRefresh) {
+    //   const interval = setInterval(fetchMonitoringData, 300000); // Increased to 5 minutes
+    //   return () => clearInterval(interval);
+    // }
+  }, [selectedPeriod, fetchMonitoringData]); // Removed autoRefresh dependency
 
   // Manual refresh
   const handleRefresh = () => {

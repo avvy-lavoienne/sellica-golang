@@ -27,12 +27,14 @@ const result = knowledgeService.getServiceInfo(problematicPhrase);
 console.log(`3. getServiceInfo result type: ${typeof result}`);
 
 if (result) {
-  if (typeof result === 'string') {
-    const isKTPResponse = result.includes('KTP');
-    const isAktaResponse = result.includes('Akta Kelahiran') && result.includes('koreksi');
+  // Check if it's a string response wrapped in ServiceInfo
+  if (result.specialCases?.string_response?.[0] === 'true') {
+    const content = result.specialCases.content?.[0] || '';
+    const isKTPResponse = content.includes('KTP');
+    const isAktaResponse = content.includes('Akta Kelahiran') && content.includes('koreksi');
     console.log(`   Contains KTP: ${isKTPResponse}`);
     console.log(`   Contains Akta Kelahiran koreksi: ${isAktaResponse}`);
-    console.log(`   Preview: "${result.substring(0, 100)}..."`);
+    console.log(`   Preview: "${content.substring(0, 100)}..."`);
   } else {
     console.log(`   ServiceInfo object - serviceCode: ${result.serviceCode}`);
   }

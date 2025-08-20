@@ -74,9 +74,9 @@ export class ProactiveInsightsGenerator {
       
       this.isInitialized = true;
       
-      console.log('✅ [INSIGHTS_GENERATOR] Proactive Insights Generator initialized successfully');
+      // console.log(
     } catch (error) {
-      console.error('❌ [INSIGHTS_GENERATOR] Failed to initialize:', error);
+      // console.error( [INSIGHTS_GENERATOR] Failed to initialize:', error);
       throw error;
     }
   }
@@ -108,7 +108,7 @@ export class ProactiveInsightsGenerator {
       
       return insights.filter(insight => insight.confidence >= this.config.minimumConfidence);
     } catch (error) {
-      console.error('❌ [INSIGHTS_GENERATOR] Failed to generate performance insights:', error);
+      // console.error( [INSIGHTS_GENERATOR] Failed to generate performance insights:', error);
       return [];
     }
   }
@@ -140,7 +140,7 @@ export class ProactiveInsightsGenerator {
       
       return insights.filter(insight => insight.confidence >= this.config.minimumConfidence);
     } catch (error) {
-      console.error('❌ [INSIGHTS_GENERATOR] Failed to generate UX insights:', error);
+      // console.error( [INSIGHTS_GENERATOR] Failed to generate UX insights:', error);
       return [];
     }
   }
@@ -172,7 +172,7 @@ export class ProactiveInsightsGenerator {
       
       return insights.filter(insight => insight.confidence >= this.config.minimumConfidence);
     } catch (error) {
-      console.error('❌ [INSIGHTS_GENERATOR] Failed to generate process insights:', error);
+      // console.error( [INSIGHTS_GENERATOR] Failed to generate process insights:', error);
       return [];
     }
   }
@@ -204,7 +204,7 @@ export class ProactiveInsightsGenerator {
       
       return insights.filter(insight => insight.confidence >= this.config.minimumConfidence);
     } catch (error) {
-      console.error('❌ [INSIGHTS_GENERATOR] Failed to generate cultural insights:', error);
+      // console.error( [INSIGHTS_GENERATOR] Failed to generate cultural insights:', error);
       return [];
     }
   }
@@ -236,7 +236,7 @@ export class ProactiveInsightsGenerator {
       
       return insights.filter(insight => insight.confidence >= this.config.minimumConfidence);
     } catch (error) {
-      console.error('❌ [INSIGHTS_GENERATOR] Failed to generate efficiency insights:', error);
+      // console.error( [INSIGHTS_GENERATOR] Failed to generate efficiency insights:', error);
       return [];
     }
   }
@@ -493,7 +493,7 @@ export class ProactiveInsightsGenerator {
       }
     ]);
     
-    console.log('✅ [INSIGHTS_GENERATOR] Insight patterns initialized');
+    // console.log(
   }
 
   /**

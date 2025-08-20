@@ -45,8 +45,7 @@ export const SimpleSellyToggle: React.FC<SimpleSellyToggleProps> = ({
     // Save to localStorage
     localStorage.setItem('selly-enhanced-mode', enabled.toString());
 
-    console.log(`🔄 [SIMPLE_TOGGLE] Mode changed to: ${enabled ? 'Enhanced' : 'Standard'}`);
-  }, [onModeChange]);
+    }, [onModeChange]);
 
   // Open settings page
   const openSettings = useCallback(() => {

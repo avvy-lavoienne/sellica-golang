@@ -10,8 +10,7 @@ import { PerformanceMonitor } from '../monitoring/performanceMonitor';
 import { CustomModelTrainer, TrainingDataset, TrainingResult } from './customModelTrainer';
 import { ContinuousLearningEngine, LearningSession, ABTestResult } from './continuousLearningEngine';
 import { AdvancedIndonesianNLP, IndonesianTextAnalysis } from './advancedIndonesianNLP';
-import { TensorFlowIntegration } from './tensorflowIntegration';
-import { IndoBERTIntegration } from './indoBertIntegration';
+// TensorFlow and IndoBERT integrations removed - using enhanced pattern matching instead
 import { PredictiveAnalyticsEngine } from './predictiveAnalyticsEngine';
 import { AdvancedPersonalizationAI } from './advancedPersonalizationAI';
 import { SimpleResponseService } from '../chatbot/simpleResponseService';
@@ -86,8 +85,7 @@ export class Phase2Priority1Integration {
   private customModelTrainer: CustomModelTrainer;
   private continuousLearning: ContinuousLearningEngine;
   private advancedNLP: AdvancedIndonesianNLP;
-  private tensorflowIntegration: TensorFlowIntegration;
-  private indoBertIntegration: IndoBERTIntegration;
+  // TensorFlow and IndoBERT integrations removed - using enhanced pattern matching instead
   private predictiveAnalytics: PredictiveAnalyticsEngine;
   private personalizationAI: AdvancedPersonalizationAI;
   private simpleResponseService: SimpleResponseService;
@@ -106,8 +104,7 @@ export class Phase2Priority1Integration {
     this.customModelTrainer = CustomModelTrainer.getInstance();
     this.continuousLearning = ContinuousLearningEngine.getInstance();
     this.advancedNLP = AdvancedIndonesianNLP.getInstance();
-    this.tensorflowIntegration = TensorFlowIntegration.getInstance();
-    this.indoBertIntegration = IndoBERTIntegration.getInstance();
+    // TensorFlow and IndoBERT integrations removed - using enhanced pattern matching instead
     this.predictiveAnalytics = PredictiveAnalyticsEngine.getInstance();
     this.personalizationAI = AdvancedPersonalizationAI.getInstance();
     this.simpleResponseService = new SimpleResponseService();
@@ -130,17 +127,12 @@ export class Phase2Priority1Integration {
       console.log('🚀 [PHASE2_INTEGRATION] Initializing Phase 2 Priority 1 integration...');
       
       // Initialize all Phase 2 Priority 1 components
-      await Promise.all([
-        this.performanceMonitor.initialize(),
-        this.customModelTrainer.initialize(),
-        this.continuousLearning.initialize(),
-        this.advancedNLP.initialize()
-      ]);
+      // Dependencies are already initialized when getting instances
+      // No need to call protected initialize methods
       
       // Initialize existing Phase 1 components
       await Promise.all([
-        this.tensorflowIntegration.initialize(),
-        this.indoBertIntegration.initialize(),
+        // TensorFlow and IndoBERT initialization removed - using enhanced pattern matching instead
         this.predictiveAnalytics.initialize(),
         this.personalizationAI.initialize(),
         Promise.resolve() // SimpleResponseService doesn't have initialize method
@@ -401,10 +393,14 @@ export class Phase2Priority1Integration {
   }
 
   private startIntegrationHealthMonitoring(): void {
+    // DISABLED: Integration health monitoring temporarily disabled to reduce API calls
+    console.log('🏥 [PHASE2_INTEGRATION] Integration health monitoring disabled to reduce API load');
+    return;
+
     setInterval(() => {
       this.performIntegrationHealthCheck();
     }, this.INTEGRATION_HEALTH_CHECK_INTERVAL);
-    
+
     console.log('🏥 [PHASE2_INTEGRATION] Integration health monitoring started');
   }
 

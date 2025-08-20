@@ -85,18 +85,13 @@ type Database = {
 };
 
 // Create admin client for operations requiring admin privileges
+// SECURITY: Service role key should only be used server-side
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Server-side only
 
-// Only create the admin client if both URL and key are available
-const supabaseAdmin = supabaseUrl && supabaseServiceKey 
-  ? createClient<Database>(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    })
-  : null;
+// SECURITY FIX: Disable admin client on client-side for security
+// Admin operations should be moved to API routes for proper security
+const supabaseAdmin = null; // Disabled for security - use API routes instead
 
 // Create a typed client for this component
 const typedSupabase = supabase as unknown as ReturnType<typeof createClient<Database>>;
@@ -187,81 +182,26 @@ export default function UserApprovalPage() {
   const handleApprove = async (user: PendingUser) => {
     setProcessingId(user.id);
     try {
-      // Check if supabaseAdmin is available
-      if (!supabaseAdmin) {
-        toast.error(
-          "Admin credentials tidak dikonfigurasi. Harap atur variabel lingkungan NEXT_PUBLIC_SUPABASE_URL dan NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY di file .env.local",
-        );
-        return;
+      const response = await fetch('/api/admin/approve-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Gagal menyetujui pengguna');
       }
 
-      // 1. Create the actual user in Supabase Auth using the admin client
-      const { data: authData, error: authError } =
-        await supabaseAdmin.auth.admin.createUser({
-          email: user.email,
-          password: user.password,
-          email_confirm: true,
-          user_metadata: {
-            name: user.name,
-            position: user.user_metadata?.position,
-            nip: user.user_metadata?.nip,
-            nik: user.user_metadata?.nik,
-          },
-        });
-
-      if (authError) {
-        throw authError;
-      }
-
-      if (!authData.user) {
-        const noUserError = new Error("Failed to create user");
-        throw noUserError;
-      }
-
-      // 2. Create a profile entry for the user using the admin client for more reliable insertion
-      // Using the metadata fields from the registration form
-      const { data: profileData, error: profileError } = await supabaseAdmin
-        .from("profiles")
-        .insert({
-          id: authData.user.id,
-          name: user.name,
-          position: user.user_metadata?.position || null,
-          nip: user.user_metadata?.nip || null,
-          avatar_url: null,
-          nik: user.user_metadata?.nik || null,
-          role: "user", // Explicitly set as regular user
-          email: user.email,
-        })
-        .select();
-
-      if (profileError) {
-        // If profile creation fails, try to delete the auth user to avoid orphaned accounts
-        try {
-          await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
-        } catch (deleteError) {}
-
-        throw profileError;
-      }
-
-      // 3. Update the pending_user record - mark as approved and remove from list
-      const { error: updateError } = await supabaseAdmin
-        .from("pending_users")
-        .update({
-          status: "approved",
-          approved_at: new Date().toISOString(),
-          approved_by: (await supabase.auth.getUser()).data.user?.id,
-        })
-        .eq("id", user.id);
-
-      if (updateError) {
-        throw updateError;
-      }
-
-      toast.success(`Pengguna ${user.email} berhasil disetujui`);
-      fetchPendingUsers(); // Refresh the list of pending users
+      toast.success(result.message || `Pengguna ${user.name} berhasil disetujui dan akun telah dibuat!`);
+      fetchPendingUsers(); // Refresh the list
     } catch (error: any) {
+      console.error("Error approving user:", error);
       toast.error(
-        `Gagal menyetujui pengguna: ${error.message || JSON.stringify(error) || "Unknown error"}`,
+        `Gagal menyetujui pengguna: ${error.message || "Unknown error"}`,
       );
     } finally {
       setProcessingId(null);
@@ -271,20 +211,24 @@ export default function UserApprovalPage() {
   const handleReject = async (user: PendingUser) => {
     setProcessingId(user.id);
     try {
-      const { error } = await typedSupabase
-        .from("pending_users")
-        .update({ 
-          status: 'rejected',
-          approved_at: new Date().toISOString(),
-          approved_by: (await supabase.auth.getUser()).data.user?.id
-        })
-        .eq("id", user.id);
-        
-      if (error) throw error;
-      
-      toast.success(`Pengguna ${user.email} berhasil ditolak`);
+      const response = await fetch('/api/admin/reject-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: user.id }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Gagal menolak pengguna');
+      }
+
+      toast.success(result.message || `Pengguna ${user.email} berhasil ditolak`);
       fetchPendingUsers();
     } catch (error: any) {
+      console.error("Error rejecting user:", error);
       toast.error(`Gagal menolak pengguna: ${error.message}`);
     } finally {
       setProcessingId(null);

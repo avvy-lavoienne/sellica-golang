@@ -55,7 +55,7 @@ export class GroqResponseEnhancer {
     const content = response.content || '';
 
     // Skip enhancement for very short responses
-    if (content.length < 100) return false;
+    if (content.length < 50) return false;
 
     // Skip if response is already very natural (contains multiple casual indicators)
     const casualIndicators = [
@@ -66,6 +66,14 @@ export class GroqResponseEnhancer {
     ];
     const casualCount = casualIndicators.filter(Boolean).length;
     if (casualCount >= 2) return false;
+
+    // ALWAYS enhance greeting responses that seem generic or incomplete
+    const isGreetingResponse = /selly|ai assistant|dinas kependudukan/i.test(content);
+    const isGenericGreeting = isGreetingResponse && !content.includes('kak') && !content.includes('😊');
+    if (isGenericGreeting) {
+      console.log('🎯 [GROQ] Detected generic greeting response, will enhance');
+      return true;
+    }
 
     // Enhance if response contains formal administrative language that could be improved
     const formalPatterns = /prosedur|persyaratan|dokumen|administrasi|pelayanan|formulir|berkas|kelengkapan/i;
@@ -133,8 +141,30 @@ export class GroqResponseEnhancer {
       // Optimize content length for Groq API
       const optimizedContent = this.optimizeContentForGroq(content);
 
+      // Detect if this is a greeting response
+      const isGreetingResponse = /selly|ai assistant|dinas kependudukan/i.test(optimizedContent) && optimizedContent.length < 200;
+
       // Smart Enhancement Prompt: Polish existing knowledge, don't replace it
-      const enhancementPrompt = `Sebagai asisten AI untuk Dinas Kependudukan dan Pencatatan Sipil Kabupaten Garut, tolong perbaiki dan tingkatkan kualitas respons berikut agar lebih natural, ramah, dan mudah dipahami. PENTING: Jangan mengubah informasi faktual atau prosedur yang sudah benar, hanya perbaiki cara penyampaiannya.
+      const enhancementPrompt = isGreetingResponse
+        ? `Sebagai SELLY, asisten AI ramah untuk Dinas Kependudukan dan Pencatatan Sipil Kabupaten Garut, tolong ubah respons formal berikut menjadi sapaan yang hangat dan bersahabat:
+
+Respons asli:
+${optimizedContent}
+
+Ubah menjadi sapaan SELLY yang:
+1. Dimulai dengan "Halo kak!" atau sapaan ramah lainnya
+2. Memperkenalkan diri sebagai SELLY dengan cara yang bersahabat
+3. Menawarkan bantuan dengan antusias
+4. Menggunakan emoticon yang sesuai (😊, 💡, dll)
+5. Menyertakan tips singkat tentang layanan kependudukan
+
+Contoh format yang diinginkan:
+"Halo kak! 😊 Saya SELLY, asisten AI dari Dinas Kependudukan Kabupaten Garut yang siap membantu!
+
+💡 Tips: Jangan ragu untuk bertanya apa saja tentang layanan kependudukan!"
+
+Sapaan SELLY yang hangat:`
+        : `Sebagai asisten AI untuk Dinas Kependudukan dan Pencatatan Sipil Kabupaten Garut, tolong perbaiki dan tingkatkan kualitas respons berikut agar lebih natural, ramah, dan mudah dipahami. PENTING: Jangan mengubah informasi faktual atau prosedur yang sudah benar, hanya perbaiki cara penyampaiannya.
 
 Respons asli:
 ${optimizedContent}

@@ -10,9 +10,9 @@ import '@testing-library/jest-dom';
 import { SellyWelcomeCard } from '../SellyWelcomeCard';
 import { MobileSellyInterface } from '../MobileSellyInterface';
 
-// Mock dependencies
-jest.mock('@/contexts/ChatContext', () => ({
-  useChat: () => ({
+// Mock dependencies - Updated to use UnifiedChatContext for Critical-1 fix
+jest.mock('@/contexts/UnifiedChatContext', () => ({
+  useUnifiedChat: () => ({
     messages: [],
     isTyping: false,
     loadingStage: '',
@@ -20,6 +20,15 @@ jest.mock('@/contexts/ChatContext', () => ({
     sendMessage: jest.fn(),
     clearMessages: jest.fn(),
     startNewSession: jest.fn(),
+    uiState: {
+      isOpen: false,
+      isMinimized: false,
+      isTyping: false,
+      hasUnreadMessages: false,
+    },
+    toggleChat: jest.fn(),
+    minimizeChat: jest.fn(),
+    maximizeChat: jest.fn(),
   }),
 }));
 

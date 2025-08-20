@@ -171,6 +171,52 @@ export default function TopNav({
       localStorage.removeItem("user-session");
       localStorage.removeItem("supabase.auth.token");
 
+      // PHASE 1 CRITICAL FIX: Clear all SELLY chat data to prevent chat history bleeding
+      try {
+        console.log('🧹 [LOGOUT] Starting SELLY chat data cleanup...');
+
+        // Clear specific SELLY chat keys
+        const sellyKeys = [
+          'selly_chat_sessions',
+          'selly_current_session',
+          'selly_chat_config',
+          'selly-enhanced-mode'
+        ];
+
+        sellyKeys.forEach(key => {
+          localStorage.removeItem(key);
+          console.log(`🗑️ [LOGOUT] Cleared localStorage key: ${key}`);
+        });
+
+        // Pattern-based clearing for all keys starting with 'selly_' or 'selly-'
+        const allKeys = Object.keys(localStorage);
+        let patternClearedCount = 0;
+
+        allKeys.forEach(key => {
+          if (key.startsWith('selly_') || key.startsWith('selly-')) {
+            localStorage.removeItem(key);
+            patternClearedCount++;
+            console.log(`🗑️ [LOGOUT] Pattern-cleared localStorage key: ${key}`);
+          }
+        });
+
+        // Clear chat service caches
+        try {
+          const { EnhancedChatStorageService } = await import('@/services/chatbot/enhancedChatStorageService');
+          const chatStorageService = EnhancedChatStorageService.getInstance();
+          chatStorageService.clearLocalCache(); // Clear all local cache
+          console.log('🧹 [LOGOUT] Cleared EnhancedChatStorageService local cache');
+        } catch (cacheError) {
+          console.warn('⚠️ [LOGOUT] Could not clear chat service cache:', cacheError);
+        }
+
+        console.log(`✅ [LOGOUT] SELLY chat data cleanup completed. Cleared ${sellyKeys.length} specific keys and ${patternClearedCount} pattern-matched keys.`);
+
+      } catch (cleanupError) {
+        console.error('❌ [LOGOUT] Error during SELLY chat data cleanup:', cleanupError);
+        // Don't throw - continue with logout even if cleanup fails
+      }
+
       // Update user state
       if (typeof setUser === "function") {
         setUser(null);
@@ -190,9 +236,9 @@ export default function TopNav({
 
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (user?.id) {
+      if (user?.id && !user?.name && !user?.avatar_url) {
         try {
-          // Get user profile from profiles table
+          // Get user profile from profiles table only if we don't have profile data yet
           const { data, error } = await supabase
             .from("profiles")
             .select("*")
@@ -216,7 +262,8 @@ export default function TopNav({
     };
 
     fetchUserProfile();
-  }, [user?.id, setUser, user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]); // Remove user and setUser from dependencies to prevent infinite loop
 
   return (
     <TooltipProvider>

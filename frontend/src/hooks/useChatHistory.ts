@@ -224,11 +224,11 @@ export function useChatHistory(userId?: string) {
         updatedAt: new Date(),
       };
 
-      console.log('useChatHistory: Session updated', {
-        sessionId: targetSessionId,
-        messagesCount: updatedSession.messages.length,
-        lastMessage: updatedSession.messages[updatedSession.messages.length - 1]?.content?.substring(0, 50)
-      });
+      // console.log('useChatHistory: Session updated', {
+      //   sessionId: targetSessionId,
+      //   messagesCount: updatedSession.messages.length,
+      //   lastMessage: updatedSession.messages[updatedSession.messages.length - 1]?.content?.substring(0, 50)
+      // });
 
       return {
         ...prev,

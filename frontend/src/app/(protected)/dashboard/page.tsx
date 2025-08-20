@@ -85,20 +85,25 @@ async function fetchDashboardData(role: string): Promise<{
       "salah_rekam",
       "pengajuan_bulanan",
     ];
+
+    // Use a single query per table instead of two separate queries
     const results = await Promise.all(
       tables.map(async (table) => {
-        const query = supabase
+        // Single query to get both total and completed counts
+        const { data, error } = await supabase
           .from(table)
-          .select("id", { count: "exact", head: true });
+          .select("id, is_ready_to_record");
 
-        const { count: totalCount } = await query;
+        if (error) {
+          console.error(`Error fetching ${table}:`, error);
+          return {
+            totalCount: 0,
+            completedCount: 0,
+          };
+        }
 
-        const completedQuery = supabase
-          .from(table)
-          .select("id", { count: "exact", head: true })
-          .eq("is_ready_to_record", true);
-
-        const { count: completedCount } = await completedQuery;
+        const totalCount = data?.length || 0;
+        const completedCount = data?.filter(item => item.is_ready_to_record === true).length || 0;
 
         return {
           totalCount: totalCount || 0,
@@ -149,19 +154,17 @@ async function fetchDashboardData(role: string): Promise<{
   };
 
   const fetchRecentActivities = async (): Promise<RecentActivity[]> => {
+    // Reduce the number of tables queried to minimize API calls
     const tables = [
       { name: "aktivitas_siak", type: "aktivitas_siak" },
       { name: "aktivitas_user", type: "aktivitas_user" },
       { name: "dokumentasi", type: "dokumentasi" },
       { name: "salah_rekam", type: "salah_rekam" },
-      { name: "adjudicate_record", type: "adjudicate_record" },
-      { name: "duplicate_operator", type: "duplicate_operator" },
-      { name: "pengajuan_bulanan", type: "pengajuan_bulanan" },
-      { name: "pengaduan_bulanan", type: "pengaduan_bulanan" },
+      // Removed some tables to reduce API calls - can be added back if needed
     ];
 
     const recentActivities: RecentActivity[] = [];
-    const recentLimit = 10;
+    const recentLimit = 5; // Reduced limit to get less data
 
     for (const table of tables) {
       try {
@@ -280,6 +283,15 @@ export default function Dashboard() {
     yearly: { labels: [], datasets: [] },
     monthly: { labels: [], datasets: [] },
   });
+
+  // Add data cache to prevent unnecessary API calls
+  const [dataCache, setDataCache] = useState<{
+    timestamp: number;
+    data: any;
+  } | null>(null);
+
+  // Cache duration: 5 minutes
+  const CACHE_DURATION = 5 * 60 * 1000;
 
   const prepareChartData = useCallback(
     (rekamData: ChartDataResponse): ChartData => {
@@ -432,6 +444,15 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
+      // Check if we have cached data that's still valid
+      if (dataCache && (Date.now() - dataCache.timestamp) < CACHE_DURATION) {
+        setUserName(dataCache.data.userName);
+        setStats(dataCache.data.stats);
+        setUserRole(dataCache.data.userRole);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       setError(null);
       try {
@@ -459,6 +480,16 @@ export default function Dashboard() {
         const data = await fetchDashboardData(profileData.role);
         setUserName(data.userName);
         setStats(data.stats);
+
+        // Cache the data
+        setDataCache({
+          timestamp: Date.now(),
+          data: {
+            userName: data.userName,
+            stats: data.stats,
+            userRole: profileData.role
+          }
+        });
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
         setError(
@@ -473,13 +504,16 @@ export default function Dashboard() {
     };
 
     fetchData();
-  }, []);
+  }, [dataCache, CACHE_DURATION]);
+
+  // Cache chart data to prevent unnecessary API calls
+  const [chartDataCache, setChartDataCache] = useState<Record<string, ChartData>>({});
 
   useEffect(() => {
-    // Ensure stats and rekamData are defined before proceeding
-    if (!loading && stats?.rekamData) {
+    // Only fetch chart data if we don't have it cached and stats are loaded
+    if (!loading && stats?.rekamData && !chartDataCache[selectedYear]) {
       try {
-        // Manually prepare new chart data when selectedYear changes
+        // Use existing stats data instead of making new API calls
         const rekamData: ChartDataResponse = {
           chartData: [
             { table: "adjudicate_record", data: [] },
@@ -489,28 +523,8 @@ export default function Dashboard() {
           ],
         };
 
-        // We need to access chartData from the most recent fetchData call
-        const fetchLatestData = async () => {
-          const {
-            data: { user },
-          } = await supabase.auth.getUser();
-
-          if (!user) {
-            throw new Error("User not authenticated");
-          }
-
-          const { data: profileData } = await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", user.id)
-            .single();
-
-          if (!profileData) {
-            throw new Error("Profile not found");
-          }
-
-          const role = profileData.role;
-
+        // Only fetch if we really need fresh data for charts
+        const fetchChartDataOnce = async () => {
           const tables = [
             "adjudicate_record",
             "duplicate_operator",
@@ -522,9 +536,8 @@ export default function Dashboard() {
             tables.map(async (table, index) => {
               const query = supabase
                 .from(table)
-                .select("id, created_at, is_ready_to_record");
-
-              // Removed the user_id filter
+                .select("id, created_at, is_ready_to_record")
+                .limit(100); // Limit results to reduce data transfer
 
               const { data, error } = await query;
 
@@ -540,17 +553,30 @@ export default function Dashboard() {
 
           const newChartData = prepareChartData(rekamData);
           setChartData(newChartData);
+
+          // Cache the chart data
+          setChartDataCache(prev => ({
+            ...prev,
+            [selectedYear]: newChartData
+          }));
         };
 
-        fetchLatestData();
+        fetchChartDataOnce();
       } catch (error) {
         console.error("Error updating chart data:", error);
       }
+    } else if (chartDataCache[selectedYear]) {
+      // Use cached data
+      setChartData(chartDataCache[selectedYear]);
     }
-  }, [selectedYear, loading, stats?.rekamData, prepareChartData]);
+  }, [selectedYear, loading, stats?.rekamData, prepareChartData, chartDataCache]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
+    // Clear cache to force fresh data
+    setDataCache(null);
+    setChartDataCache({});
+
     try {
       const {
         data: { user },
@@ -575,6 +601,17 @@ export default function Dashboard() {
       setUserName(data.userName);
       setStats(data.stats);
       setError(null);
+
+      // Update cache with fresh data
+      setDataCache({
+        timestamp: Date.now(),
+        data: {
+          userName: data.userName,
+          stats: data.stats,
+          userRole: profileData.role
+        }
+      });
+
       toast.success("Data berhasil diperbarui");
     } catch (error) {
       console.error("Error refreshing dashboard data:", error);
@@ -593,7 +630,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (stats && stats.recentActivities) {
-      console.log("Recent Activities:", stats.recentActivities);
+      // console.log("Recent Activities:", stats.recentActivities);
     }
   }, [stats]);
 
@@ -646,12 +683,12 @@ export default function Dashboard() {
       }
     : undefined;
 
-  console.log('🏠 Dashboard: About to render EnhancedDashboardLayout', {
-    userName,
-    userRole,
-    enableChatbot: true,
-    hasApiKey: !!process.env.DEEPSEEK_API_KEY
-  });
+  // console.log('🏠 Dashboard: About to render EnhancedDashboardLayout', {
+  //   userName,
+  //   userRole,
+  //   enableChatbot: true,
+  //   hasApiKey: !!process.env.DEEPSEEK_API_KEY
+  // });
 
   return (
     <>

@@ -218,7 +218,7 @@ interface AutoRefreshProps {
 
 export function AutoRefresh({
   onRefresh,
-  interval = 30,
+  interval = 300, // Increased to 5 minutes to reduce API calls
   enabled = false,
   onToggle,
   className
@@ -374,8 +374,8 @@ export function useRealTimeData<T>(
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
 
   const {
-    interval = 30000, // 30 seconds
-    enabled = true,
+    interval = 300000, // Increased to 5 minutes to reduce API calls
+    enabled = false, // Disabled by default to reduce API calls
     onError,
     onSuccess
   } = options

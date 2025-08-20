@@ -84,8 +84,7 @@ export const SellyAdvancedToggle: React.FC<SellyAdvancedToggleProps> = ({
       // Save to localStorage
       localStorage.setItem('selly-advanced-mode', enabled.toString());
 
-      console.log(`🔄 [SELLY_TOGGLE] Mode changed to: ${enabled ? 'Advanced' : 'Standard'}`);
-    } catch (error) {
+      } catch (error) {
       console.error('❌ [SELLY_TOGGLE] Error changing mode:', error);
     } finally {
       setIsLoading(false);
