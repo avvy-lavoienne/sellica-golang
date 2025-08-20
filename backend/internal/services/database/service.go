@@ -12,12 +12,12 @@ import (
 
 // Service provides database operations using Supabase
 type Service struct {
-	client    *supabase.Client
-	pool      *ConnectionPool
-	url       string
+	client     *supabase.Client
+	pool       *ConnectionPool
+	url        string
 	serviceKey string
-	mu        sync.RWMutex
-	isHealthy bool
+	mu         sync.RWMutex
+	isHealthy  bool
 }
 
 // ConnectionPool manages Supabase client connections
@@ -40,7 +40,10 @@ func NewService(url, serviceKey string) (*Service, error) {
 	}
 
 	// Create primary client
-	client := supabase.CreateClient(url, serviceKey)
+	client, err := supabase.NewClient(url, serviceKey, &supabase.ClientOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Supabase client: %w", err)
+	}
 
 	// Create connection pool
 	pool := &ConnectionPool{
@@ -48,7 +51,8 @@ func NewService(url, serviceKey string) (*Service, error) {
 		maxSize:     100,
 		minSize:     10,
 		factory: func() *supabase.Client {
-			return supabase.CreateClient(url, serviceKey)
+			client, _ := supabase.NewClient(url, serviceKey, &supabase.ClientOptions{})
+			return client
 		},
 	}
 
@@ -83,11 +87,9 @@ func (s *Service) Ping() error {
 		return fmt.Errorf("database client not initialized")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	// Simple query to test connection
-	_, err := s.client.From("health_check").Select("1").Limit(1).ExecuteWithContext(ctx)
+	// Simple query to test connection - using a basic health check
+	// Note: This is a simplified health check since we don't have a specific health_check table
+	_, _, err := s.client.From("auth.users").Select("id", "", false).Limit(1, "").Execute()
 	if err != nil {
 		s.mu.Lock()
 		s.isHealthy = false
@@ -174,11 +176,11 @@ func (s *Service) GetPoolStatus() map[string]interface{} {
 	defer s.pool.mu.RUnlock()
 
 	return map[string]interface{}{
-		"poolEnabled":        true,
-		"totalConnections":   s.pool.created,
+		"poolEnabled":          true,
+		"totalConnections":     s.pool.created,
 		"availableConnections": len(s.pool.connections),
-		"maxConnections":     s.pool.maxSize,
-		"minConnections":     s.pool.minSize,
+		"maxConnections":       s.pool.maxSize,
+		"minConnections":       s.pool.minSize,
 	}
 }
 
@@ -208,12 +210,9 @@ func (s *Service) TestConnection() map[string]interface{} {
 	pooledClient := s.GetPooledClient()
 	defer s.ReturnPooledClient(pooledClient)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
 	// Perform a more comprehensive test
-	_, err = pooledClient.From("health_check").Select("*").Limit(1).ExecuteWithContext(ctx)
-	
+	_, _, err = pooledClient.From("auth.users").Select("id", "", false).Limit(1, "").Execute()
+
 	responseTime := time.Since(startTime).Milliseconds()
 	result["responseTime"] = responseTime
 
@@ -238,10 +237,10 @@ func (s *Service) Close() {
 			_ = conn
 		}
 	}
-	
+
 	s.mu.Lock()
 	s.isHealthy = false
 	s.mu.Unlock()
-	
+
 	logrus.Info("🗄️ Database service closed")
 }

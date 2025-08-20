@@ -7,19 +7,19 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/patrickmn/go-cache"
+	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 )
 
 // Service provides multi-level caching with Redis and in-memory cache
 type Service struct {
-	redis      *redis.Client
-	memory     *cache.Cache
-	redisURL   string
-	isHealthy  bool
-	mu         sync.RWMutex
-	stats      *CacheStats
+	redis     *redis.Client
+	memory    *cache.Cache
+	redisURL  string
+	isHealthy bool
+	mu        sync.RWMutex
+	stats     *CacheStats
 }
 
 // CacheStats tracks cache performance metrics
@@ -166,7 +166,7 @@ func (s *Service) Ping() error {
 	// Test memory cache
 	testKey := "health_check_" + fmt.Sprintf("%d", time.Now().UnixNano())
 	s.memory.Set(testKey, "test", 1*time.Second)
-	
+
 	if _, found := s.memory.Get(testKey); !found {
 		return fmt.Errorf("memory cache test failed")
 	}
@@ -228,9 +228,9 @@ func (s *Service) GetStats() map[string]interface{} {
 	}
 
 	return map[string]interface{}{
-		"memory":    memoryStats,
-		"redis":     redisStats,
-		"hitRatio":  hitRatio,
+		"memory":   memoryStats,
+		"redis":    redisStats,
+		"hitRatio": hitRatio,
 		"stats": map[string]interface{}{
 			"memoryHits":   s.stats.MemoryHits,
 			"memoryMisses": s.stats.MemoryMisses,
@@ -295,12 +295,12 @@ func (s *Service) Close() {
 	if s.redis != nil {
 		s.redis.Close()
 	}
-	
+
 	s.memory.Flush()
-	
+
 	s.mu.Lock()
 	s.isHealthy = false
 	s.mu.Unlock()
-	
+
 	logrus.Info("🗄️ Cache service closed")
 }

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 
 	"selly-backend/internal/services/database"
@@ -99,10 +99,10 @@ func (s *Service) GetUserInfo(userID string) (map[string]interface{}, error) {
 	// This would typically query the user profile from Supabase
 	// For now, return basic info structure
 	return map[string]interface{}{
-		"user_id":    userID,
-		"timestamp":  time.Now().UTC(),
-		"source":     "supabase",
-		"available":  s.db.IsHealthy(),
+		"user_id":   userID,
+		"timestamp": time.Now().UTC(),
+		"source":    "supabase",
+		"available": s.db.IsHealthy(),
 	}, nil
 }
 
@@ -130,10 +130,10 @@ func (s *Service) DebugAuth(tokenString string) map[string]interface{} {
 
 	if claims, ok := token.Claims.(*UserClaims); ok {
 		result["claims"] = map[string]interface{}{
-			"user_id":   claims.UserID,
-			"email":     claims.Email,
-			"role":      claims.Role,
-			"issued_at": claims.IssuedAt,
+			"user_id":    claims.UserID,
+			"email":      claims.Email,
+			"role":       claims.Role,
+			"issued_at":  claims.IssuedAt,
 			"expires_at": claims.ExpiresAt,
 		}
 		result["expired"] = s.IsTokenExpired(claims)
@@ -180,10 +180,10 @@ func (s *Service) RegisterUser(email, password string) (map[string]interface{}, 
 // GetAuthStats returns authentication service statistics
 func (s *Service) GetAuthStats() map[string]interface{} {
 	return map[string]interface{}{
-		"jwtConfigured":    len(s.jwtSecret) > 0,
-		"databaseHealthy":  s.db != nil && s.db.IsHealthy(),
-		"timestamp":        time.Now().UTC(),
-		"service":          "authentication",
-		"version":          "1.0",
+		"jwtConfigured":   len(s.jwtSecret) > 0,
+		"databaseHealthy": s.db != nil && s.db.IsHealthy(),
+		"timestamp":       time.Now().UTC(),
+		"service":         "authentication",
+		"version":         "1.0",
 	}
 }

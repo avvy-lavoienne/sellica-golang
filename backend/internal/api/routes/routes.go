@@ -32,7 +32,7 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	router.Use(middleware.ResponseTimeMiddleware())
 	router.Use(middleware.SecurityHeadersMiddleware())
 	router.Use(middleware.LoggingMiddleware(services.Monitoring))
-	
+
 	// CORS middleware (use development CORS for now)
 	router.Use(middleware.DevelopmentCORSMiddleware())
 
@@ -74,37 +74,35 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 
 // setupHealthRoutes configures health check endpoints
 func setupHealthRoutes(router *gin.Engine, handler *handlers.HealthHandler) {
-	health := router.Group("/health")
-	{
-		health.GET("", handler.GetHealth)           // GET /health - Comprehensive health check
-		health.GET("/simple", handler.GetHealthSimple) // GET /health/simple - Simple health check
-		health.GET("/live", handler.GetHealthLive)   // GET /health/live - Liveness probe
-		health.GET("/ready", handler.GetHealthReady) // GET /health/ready - Readiness probe
-	}
-
 	// Root health endpoint for load balancers
 	router.GET("/health", handler.GetHealth)
+
+	health := router.Group("/health")
+	{
+		health.GET("/simple", handler.GetHealthSimple) // GET /health/simple - Simple health check
+		health.GET("/live", handler.GetHealthLive)     // GET /health/live - Liveness probe
+		health.GET("/ready", handler.GetHealthReady)   // GET /health/ready - Readiness probe
+	}
 }
 
 // setupMetricsRoutes configures metrics endpoints
 func setupMetricsRoutes(router *gin.Engine, handler *handlers.MetricsHandler) {
-	metrics := router.Group("/metrics")
-	{
-		metrics.GET("", handler.GetMetrics)           // GET /metrics - Comprehensive metrics
-		metrics.GET("/health", handler.GetMetricsHealth) // GET /metrics/health - Metrics service health
-		metrics.GET("/summary", handler.GetMetricsSummary) // GET /metrics/summary - Key metrics summary
-	}
-
 	// Root metrics endpoint for monitoring systems
 	router.GET("/metrics", handler.GetMetrics)
+
+	metrics := router.Group("/metrics")
+	{
+		metrics.GET("/health", handler.GetMetricsHealth)   // GET /metrics/health - Metrics service health
+		metrics.GET("/summary", handler.GetMetricsSummary) // GET /metrics/summary - Key metrics summary
+	}
 }
 
 // setupDatabaseRoutes configures database test endpoints
 func setupDatabaseRoutes(router *gin.Engine, handler *handlers.DatabaseHandler) {
 	database := router.Group("/database")
 	{
-		database.GET("/health", handler.GetDatabaseHealth)       // GET /database/health
-		database.GET("/stats", handler.GetDatabaseStats)         // GET /database/stats
+		database.GET("/health", handler.GetDatabaseHealth)            // GET /database/health
+		database.GET("/stats", handler.GetDatabaseStats)              // GET /database/stats
 		database.GET("/performance", handler.TestDatabasePerformance) // GET /database/performance
 	}
 
@@ -116,10 +114,10 @@ func setupDatabaseRoutes(router *gin.Engine, handler *handlers.DatabaseHandler) 
 func setupCacheRoutes(router *gin.Engine, handler *handlers.CacheHandler) {
 	cache := router.Group("/cache")
 	{
-		cache.GET("/health", handler.GetCacheHealth)         // GET /cache/health
-		cache.GET("/stats", handler.GetCacheStats)           // GET /cache/stats
+		cache.GET("/health", handler.GetCacheHealth)            // GET /cache/health
+		cache.GET("/stats", handler.GetCacheStats)              // GET /cache/stats
 		cache.GET("/performance", handler.TestCachePerformance) // GET /cache/performance
-		cache.DELETE("/clear", handler.ClearCache)           // DELETE /cache/clear
+		cache.DELETE("/clear", handler.ClearCache)              // DELETE /cache/clear
 	}
 }
 

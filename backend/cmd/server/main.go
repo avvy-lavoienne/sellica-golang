@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -47,7 +46,13 @@ func main() {
 	router := gin.New()
 
 	// Setup routes with services
-	routes.SetupRoutes(router, services)
+	routeServices := &routes.Services{
+		Database:   services.Database,
+		Cache:      services.Cache,
+		Auth:       services.Auth,
+		Monitoring: services.Monitoring,
+	}
+	routes.SetupRoutes(router, routeServices)
 
 	// Create HTTP server
 	server := &http.Server{
@@ -63,7 +68,7 @@ func main() {
 		logrus.Infof("🚀 SELLY Go Backend starting on port %d", cfg.Server.Port)
 		logrus.Infof("📊 Environment: %s", cfg.Server.Environment)
 		logrus.Infof("🔗 Health check: http://localhost:%d/health", cfg.Server.Port)
-		
+
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logrus.Fatalf("Failed to start server: %v", err)
 		}
