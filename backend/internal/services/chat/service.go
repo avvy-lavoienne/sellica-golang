@@ -308,6 +308,8 @@ func (s *Service) storeMessage(ctx context.Context, sessionID, userID, message, 
 	logrus.WithFields(logrus.Fields{
 		"session_id": sessionID,
 		"user_id":    userID,
+		"message":    message[:min(len(message), 100)], // Log first 100 chars
+		"response":   response[:min(len(response), 100)], // Log first 100 chars
 	}).Debug("Storing message in database")
 }
 
@@ -318,6 +320,7 @@ func (s *Service) cacheResponse(message string, response *AIResponse, context ma
 		"response":   response.Content,
 		"confidence": response.Confidence,
 		"model":      response.Model,
+		"context":    context, // Include context in cache data
 		"timestamp":  time.Now(),
 	}
 
@@ -336,3 +339,5 @@ func (s *Service) IsHealthy() bool {
 	defer s.mu.RUnlock()
 	return s.isHealthy
 }
+
+

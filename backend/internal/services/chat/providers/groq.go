@@ -133,7 +133,7 @@ func (p *GroqProvider) ProcessQuery(ctx context.Context, req *AIRequest) (*AIRes
 
 	// Process response
 	if len(response.Choices) == 0 {
-		return nil, fmt.Errorf("no response choices from Groq API")
+		return nil, fmt.Errorf("no response choices from groq API")
 	}
 
 	content := response.Choices[0].Message.Content

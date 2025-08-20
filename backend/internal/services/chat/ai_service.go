@@ -238,6 +238,11 @@ func (s *AIService) generateSessionRecommendations(session *Session, query strin
 		recommendations = append(recommendations, "Berdasarkan percakapan sebelumnya, Anda mungkin tertarik dengan...")
 	}
 
+	// Add query-specific recommendations
+	if strings.Contains(strings.ToLower(query), "ktp") {
+		recommendations = append(recommendations, "Informasi terkait: Cara perpanjang KTP, Syarat pembuatan KTP baru")
+	}
+
 	// Add recommendations based on user expertise level
 	if session.UserExpertiseLevel == "beginner" {
 		recommendations = append(recommendations, "Untuk informasi lebih detail, silakan tanyakan...")
