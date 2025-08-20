@@ -10,6 +10,7 @@ import (
 	"selly-backend/internal/services/chat"
 	"selly-backend/internal/services/database"
 	"selly-backend/internal/services/monitoring"
+	"selly-backend/internal/services/training"
 )
 
 // Services holds all application services for dependency injection
@@ -19,6 +20,7 @@ type Services struct {
 	Auth       *auth.Service
 	Chat       *chat.Service
 	Monitoring *monitoring.Service
+	Training   *training.Service
 }
 
 // SetupRoutes configures all API routes and middleware
@@ -29,6 +31,7 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	databaseHandler := handlers.NewDatabaseHandler(services.Database, services.Monitoring)
 	cacheHandler := handlers.NewCacheHandler(services.Cache, services.Monitoring)
 	chatHandler := handlers.NewChatHandler(services.Chat, services.Monitoring)
+	trainingHandler := handlers.NewTrainingHandler(services.Training)
 
 	// Global middleware
 	router.Use(middleware.RequestIDMiddleware())
@@ -56,6 +59,9 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 
 	// Chat routes (public and protected)
 	setupChatRoutes(router, chatHandler, services.Auth)
+
+	// Training data routes (protected)
+	setupTrainingRoutes(router, trainingHandler, services.Auth)
 
 	// Authentication routes (public)
 	setupAuthRoutes(router, services.Auth)
@@ -190,13 +196,24 @@ func setupChatRoutes(router *gin.Engine, handler *handlers.ChatHandler, authServ
 	}
 }
 
+// setupTrainingRoutes configures training data endpoints
+func setupTrainingRoutes(router *gin.Engine, handler *handlers.TrainingHandler, authService *auth.Service) {
+	// Training data endpoints (require authentication)
+	api := router.Group("/api")
+	api.Use(middleware.AuthMiddleware(authService))
+	{
+		handler.RegisterRoutes(api)
+	}
+}
+
 // GetServices creates and returns the services struct for dependency injection
-func GetServices(db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service) *Services {
+func GetServices(db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service) *Services {
 	return &Services{
 		Database:   db,
 		Cache:      cache,
 		Auth:       auth,
 		Chat:       chat,
 		Monitoring: monitoring,
+		Training:   training,
 	}
 }

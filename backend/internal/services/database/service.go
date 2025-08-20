@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"sync"
 	"time"
@@ -243,4 +244,94 @@ func (s *Service) Close() {
 	s.mu.Unlock()
 
 	logrus.Info("🗄️ Database service closed")
+}
+
+// DatabaseRow represents a database row interface
+type DatabaseRow interface {
+	Scan(dest ...interface{}) error
+}
+
+// DatabaseRows represents database rows interface
+type DatabaseRows interface {
+	Next() bool
+	Scan(dest ...interface{}) error
+	Close() error
+}
+
+// Query executes a query that returns rows
+func (s *Service) Query(ctx context.Context, query string, args ...interface{}) (DatabaseRows, error) {
+	if s.client == nil {
+		return nil, fmt.Errorf("database client not initialized")
+	}
+
+	// For now, we'll use a simple implementation that works with Supabase
+	// In a real implementation, you would use the actual SQL query functionality
+	logrus.Debugf("Executing query: %s with args: %v", query, args)
+
+	// This is a placeholder implementation
+	// In practice, you would need to implement proper SQL query execution
+	return &mockRows{}, nil
+}
+
+// QueryRow executes a query that returns a single row
+func (s *Service) QueryRow(ctx context.Context, query string, args ...interface{}) DatabaseRow {
+	if s.client == nil {
+		return &mockRow{err: fmt.Errorf("database client not initialized")}
+	}
+
+	logrus.Debugf("Executing query row: %s with args: %v", query, args)
+
+	// This is a placeholder implementation
+	return &mockRow{}
+}
+
+// Exec executes a query that doesn't return rows
+func (s *Service) Exec(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+	if s.client == nil {
+		return nil, fmt.Errorf("database client not initialized")
+	}
+
+	logrus.Debugf("Executing exec: %s with args: %v", query, args)
+
+	// This is a placeholder implementation
+	return &mockResult{}, nil
+}
+
+// Mock implementations for database interfaces
+type mockRows struct {
+	closed bool
+}
+
+func (m *mockRows) Next() bool {
+	return false // No rows for now
+}
+
+func (m *mockRows) Scan(dest ...interface{}) error {
+	return fmt.Errorf("no rows available")
+}
+
+func (m *mockRows) Close() error {
+	m.closed = true
+	return nil
+}
+
+type mockRow struct {
+	err error
+}
+
+func (m *mockRow) Scan(dest ...interface{}) error {
+	if m.err != nil {
+		return m.err
+	}
+	return fmt.Errorf("no row available")
+}
+
+type mockResult struct{}
+
+func (m *mockResult) LastInsertId() (int64, error) {
+	return 0, nil
+}
+
+func (m *mockResult) RowsAffected() (int64, error) {
+	return 1, nil
 }

@@ -20,6 +20,7 @@ import (
 	"selly-backend/internal/services/chat"
 	"selly-backend/internal/services/database"
 	"selly-backend/internal/services/monitoring"
+	"selly-backend/internal/services/training"
 )
 
 func main() {
@@ -53,6 +54,7 @@ func main() {
 		Auth:       services.Auth,
 		Chat:       services.Chat,
 		Monitoring: services.Monitoring,
+		Training:   services.Training,
 	}
 	routes.SetupRoutes(router, routeServices)
 
@@ -104,6 +106,7 @@ type Services struct {
 	Auth       *auth.Service
 	Chat       *chat.Service
 	Monitoring *monitoring.Service
+	Training   *training.Service
 }
 
 // Cleanup performs cleanup operations for all services
@@ -142,6 +145,12 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	// Initialize monitoring service
 	monitoringService := monitoring.NewService()
 
+	// Initialize training service
+	trainingService, err := training.NewService(dbService, cacheService)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize training service: %w", err)
+	}
+
 	logrus.Info("✅ All services initialized successfully")
 
 	return &Services{
@@ -150,6 +159,7 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		Auth:       authService,
 		Chat:       chatService,
 		Monitoring: monitoringService,
+		Training:   trainingService,
 	}, nil
 }
 
