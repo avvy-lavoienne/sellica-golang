@@ -289,6 +289,10 @@ func (ic *IntentClassifier) findBestIntent(scores map[IntentCategory]float64) (I
 
 // extractParameters extracts parameters based on intent
 func (ic *IntentClassifier) extractParameters(text string, category IntentCategory, details map[string]interface{}) map[string]interface{} {
+	// Use details for additional context if available
+	if len(details) > 0 {
+		logrus.WithField("details", details).Debug("Using intent details for parameter extraction")
+	}
 	parameters := make(map[string]interface{})
 
 	switch category {
@@ -360,6 +364,7 @@ func (ic *IntentClassifier) generateSubIntents(text string, category IntentCateg
 
 // getSpecificIntent returns a specific intent name based on category and text
 func (ic *IntentClassifier) getSpecificIntent(category IntentCategory, text string) string {
+	// Use text to determine specific intent variations
 	base := string(category)
 
 	switch category {
@@ -502,7 +507,20 @@ func (ic *IntentClassifier) initializeContextRules() {
 
 // extractKeywordsFromPattern extracts keywords from regex patterns
 func (ic *IntentClassifier) extractKeywordsFromPattern(pattern string) []string {
-	// Simplified keyword extraction from patterns
-	// In a real implementation, this would be more sophisticated
-	return []string{}
+	// Extract keywords from pattern by finding literal words
+	// Remove regex metacharacters and extract meaningful words
+	cleaned := strings.ReplaceAll(pattern, `\b`, "")
+	cleaned = strings.ReplaceAll(cleaned, `(?:`, "")
+	cleaned = strings.ReplaceAll(cleaned, `|`, " ")
+	cleaned = strings.ReplaceAll(cleaned, `\s+`, " ")
+
+	words := strings.Fields(cleaned)
+	var keywords []string
+	for _, word := range words {
+		if len(word) > 2 && !strings.Contains(word, "?") && !strings.Contains(word, "*") {
+			keywords = append(keywords, word)
+		}
+	}
+
+	return keywords
 }

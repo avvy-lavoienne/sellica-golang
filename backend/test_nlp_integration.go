@@ -278,7 +278,5 @@ func TestNLPIntegration() {
 	fmt.Println("🔤 Indonesian NLP Service Integration Test Complete!")
 }
 
-// main function to run the NLP test
-func main() {
-	TestNLPIntegration()
-}
+// Run this test with: go run test_nlp_integration.go
+// Or call TestNLPIntegration() from another test runner

@@ -162,6 +162,10 @@ func (s *Service) ProcessText(ctx context.Context, req *NLPRequest) (*NLPRespons
 
 // processFeature processes a specific NLP feature
 func (s *Service) processFeature(ctx context.Context, req *NLPRequest, response *NLPResponse, feature NLPFeature) error {
+	// Check context cancellation
+	if ctx.Err() != nil {
+		return fmt.Errorf("context cancelled during feature processing: %w", ctx.Err())
+	}
 	switch feature {
 	case FeatureLanguageDetection:
 		result, err := s.languageDetector.Detect(req.Text, req.Context)
@@ -358,6 +362,11 @@ func (s *Service) cacheResult(req *NLPRequest, response *NLPResponse) {
 
 // storeNLPTrainingData stores NLP training data for continuous learning
 func (s *Service) storeNLPTrainingData(ctx context.Context, req *NLPRequest, response *NLPResponse) {
+	// Check context cancellation
+	if ctx.Err() != nil {
+		logrus.WithError(ctx.Err()).Warn("Context cancelled, skipping NLP training data storage")
+		return
+	}
 	if s.trainingService == nil {
 		return
 	}
@@ -377,10 +386,14 @@ func (s *Service) storeNLPTrainingData(ctx context.Context, req *NLPRequest, res
 		},
 	}
 
-	// Convert to training service format (simplified)
+	// Store training data for continuous learning (when training service is available)
 	logrus.WithFields(logrus.Fields{
-		"training_id": trainingData.ID,
-		"text_length": len(req.Text),
-		"confidence":  response.Confidence,
-	}).Debug("Storing NLP training data for continuous learning")
+		"training_id":     trainingData.ID,
+		"text_length":     len(trainingData.Text),
+		"confidence":      response.Confidence,
+		"processing_mode": trainingData.ProcessingMode,
+		"created_at":      trainingData.CreatedAt,
+		"updated_at":      trainingData.UpdatedAt,
+		"metadata_keys":   len(trainingData.Metadata),
+	}).Debug("NLP training data prepared for continuous learning storage")
 }

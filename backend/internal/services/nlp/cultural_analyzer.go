@@ -293,6 +293,19 @@ func (ca *CulturalAnalyzer) determinePrimaryRegion(markers []RegionalMarker) str
 
 // detectCulturalContext detects cultural context
 func (ca *CulturalAnalyzer) detectCulturalContext(text string, context map[string]interface{}) CulturalContext {
+	// Check context for hints
+	if contextType, exists := context["context_type"]; exists {
+		if ctxStr, ok := contextType.(string); ok {
+			switch ctxStr {
+			case "government":
+				return ContextGovernment
+			case "business":
+				return ContextBusiness
+			case "education":
+				return ContextEducation
+			}
+		}
+	}
 	contextScores := make(map[CulturalContext]float64)
 
 	for culturalContext, patterns := range ca.culturalPatterns {
