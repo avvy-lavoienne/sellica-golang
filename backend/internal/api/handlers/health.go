@@ -40,7 +40,7 @@ func (h *HealthHandler) GetHealth(c *gin.Context) {
 	go func() {
 		status := "healthy"
 		details := map[string]interface{}{"available": false}
-		
+
 		if h.db != nil {
 			if err := h.db.Ping(); err != nil {
 				status = "unhealthy"
@@ -48,7 +48,7 @@ func (h *HealthHandler) GetHealth(c *gin.Context) {
 			} else {
 				status = "healthy"
 				details = map[string]interface{}{
-					"available": true,
+					"available":  true,
 					"poolStatus": h.db.GetPoolStatus(),
 				}
 			}
@@ -56,7 +56,7 @@ func (h *HealthHandler) GetHealth(c *gin.Context) {
 			status = "unavailable"
 			details["error"] = "Database service not initialized"
 		}
-		
+
 		healthChan <- map[string]interface{}{
 			"database": map[string]interface{}{
 				"status":  status,
@@ -69,7 +69,7 @@ func (h *HealthHandler) GetHealth(c *gin.Context) {
 	go func() {
 		status := "healthy"
 		details := map[string]interface{}{"available": false}
-		
+
 		if h.cache != nil {
 			if err := h.cache.Ping(); err != nil {
 				status = "unhealthy"
@@ -83,7 +83,7 @@ func (h *HealthHandler) GetHealth(c *gin.Context) {
 			status = "unavailable"
 			details["error"] = "Cache service not initialized"
 		}
-		
+
 		healthChan <- map[string]interface{}{
 			"cache": map[string]interface{}{
 				"status":  status,
@@ -95,7 +95,7 @@ func (h *HealthHandler) GetHealth(c *gin.Context) {
 	// System metrics check
 	go func() {
 		var systemHealth map[string]interface{}
-		
+
 		if h.monitoring != nil {
 			systemHealth = h.monitoring.GetHealthStatus()
 		} else {
@@ -104,7 +104,7 @@ func (h *HealthHandler) GetHealth(c *gin.Context) {
 				"error":  "Monitoring service not initialized",
 			}
 		}
-		
+
 		healthChan <- map[string]interface{}{
 			"system": systemHealth,
 		}
@@ -118,7 +118,7 @@ func (h *HealthHandler) GetHealth(c *gin.Context) {
 				"version": "1.0.0",
 				"status":  "healthy",
 				"details": map[string]interface{}{
-					"language": "Go",
+					"language":  "Go",
 					"framework": "Gin",
 					"startTime": startTime,
 				},
@@ -146,9 +146,10 @@ func (h *HealthHandler) GetHealth(c *gin.Context) {
 		if serviceMap, ok := service.(map[string]interface{}); ok {
 			totalServices++
 			if status, exists := serviceMap["status"]; exists {
-				if status == "healthy" {
+				switch status {
+				case "healthy":
 					healthyServices++
-				} else if status == "unhealthy" {
+				case "unhealthy":
 					overallStatus = "degraded"
 				}
 			}
@@ -175,18 +176,21 @@ func (h *HealthHandler) GetHealth(c *gin.Context) {
 		"version":      "go-1.0",
 		"services":     services,
 		"summary": map[string]interface{}{
-			"totalServices":   totalServices,
-			"healthyServices": healthyServices,
+			"totalServices":    totalServices,
+			"healthyServices":  healthyServices,
 			"degradedServices": totalServices - healthyServices,
 		},
 	}
 
 	// Return appropriate HTTP status based on health
-	httpStatus := http.StatusOK
-	if overallStatus == "unhealthy" {
+	var httpStatus int
+	switch overallStatus {
+	case "unhealthy":
 		httpStatus = http.StatusServiceUnavailable
-	} else if overallStatus == "degraded" {
+	case "degraded":
 		httpStatus = http.StatusOK // Still return 200 for degraded but functional
+	default:
+		httpStatus = http.StatusOK
 	}
 
 	logrus.WithFields(logrus.Fields{
@@ -213,7 +217,7 @@ func (h *HealthHandler) GetHealthSimple(c *gin.Context) {
 // GET /health/live - Liveness probe endpoint
 func (h *HealthHandler) GetHealthLive(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
-		"status": "alive",
+		"status":    "alive",
 		"timestamp": time.Now().UTC(),
 	})
 }

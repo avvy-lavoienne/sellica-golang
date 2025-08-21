@@ -27,11 +27,11 @@ func NewTrainingHandler(trainingService *training.Service) *TrainingHandler {
 func (h *TrainingHandler) RegisterRoutes(r *gin.RouterGroup) {
 	trainingGroup := r.Group("/training-data")
 	{
-		trainingGroup.POST("", h.SubmitTrainingData)           // Submit training data
-		trainingGroup.GET("", h.GetTrainingData)               // Retrieve training data
-		trainingGroup.POST("/enhanced", h.SubmitEnhancedData)  // Submit enhanced training data
-		trainingGroup.GET("/enhanced", h.GetEnhancedData)      // Retrieve enhanced training data
-		trainingGroup.GET("/stats", h.GetTrainingStats)        // Training statistics
+		trainingGroup.POST("", h.SubmitTrainingData)                // Submit training data
+		trainingGroup.GET("", h.GetTrainingData)                    // Retrieve training data
+		trainingGroup.POST("/enhanced", h.SubmitEnhancedData)       // Submit enhanced training data
+		trainingGroup.GET("/enhanced", h.GetEnhancedData)           // Retrieve enhanced training data
+		trainingGroup.GET("/stats", h.GetTrainingStats)             // Training statistics
 		trainingGroup.GET("/suggestions", h.GetTrainingSuggestions) // Training suggestions
 	}
 }
@@ -39,7 +39,7 @@ func (h *TrainingHandler) RegisterRoutes(r *gin.RouterGroup) {
 // SubmitTrainingData handles POST /training-data
 func (h *TrainingHandler) SubmitTrainingData(c *gin.Context) {
 	var req training.TrainingData
-	
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		logrus.WithError(err).Error("Failed to bind training data request")
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -73,9 +73,9 @@ func (h *TrainingHandler) SubmitTrainingData(c *gin.Context) {
 		"success": true,
 		"message": "Training data submitted successfully",
 		"data": gin.H{
-			"id":         req.ID,
-			"status":     req.Status,
-			"timestamp":  req.Timestamp,
+			"id":        req.ID,
+			"status":    req.Status,
+			"timestamp": req.Timestamp,
 		},
 	})
 }
@@ -166,7 +166,7 @@ func (h *TrainingHandler) GetTrainingData(c *gin.Context) {
 // SubmitEnhancedData handles POST /training-data/enhanced
 func (h *TrainingHandler) SubmitEnhancedData(c *gin.Context) {
 	var req training.TrainingData
-	
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		logrus.WithError(err).Error("Failed to bind enhanced training data request")
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -186,7 +186,7 @@ func (h *TrainingHandler) SubmitEnhancedData(c *gin.Context) {
 	}
 
 	// Mark as enhanced mode in metadata
-	if req.Metadata.EnhancementMode == false {
+	if !req.Metadata.EnhancementMode {
 		req.Metadata.EnhancementMode = true
 	}
 
@@ -205,9 +205,9 @@ func (h *TrainingHandler) SubmitEnhancedData(c *gin.Context) {
 		"success": true,
 		"message": "Enhanced training data submitted successfully",
 		"data": gin.H{
-			"id":              req.ID,
-			"status":          req.Status,
-			"timestamp":       req.Timestamp,
+			"id":               req.ID,
+			"status":           req.Status,
+			"timestamp":        req.Timestamp,
 			"enhancement_mode": true,
 		},
 	})
@@ -302,13 +302,13 @@ func (h *TrainingHandler) GetTrainingStats(c *gin.Context) {
 		"success": true,
 		"data":    stats,
 		"service_performance": gin.H{
-			"total_submissions":      serviceStats.TotalSubmissions,
-			"successful_inserts":     serviceStats.SuccessfulInserts,
-			"failed_inserts":         serviceStats.FailedInserts,
-			"cache_hits":             serviceStats.CacheHits,
-			"cache_misses":           serviceStats.CacheMisses,
+			"total_submissions":       serviceStats.TotalSubmissions,
+			"successful_inserts":      serviceStats.SuccessfulInserts,
+			"failed_inserts":          serviceStats.FailedInserts,
+			"cache_hits":              serviceStats.CacheHits,
+			"cache_misses":            serviceStats.CacheMisses,
 			"average_processing_time": serviceStats.AverageProcessingTime,
-			"last_updated":           serviceStats.LastUpdated,
+			"last_updated":            serviceStats.LastUpdated,
 		},
 	})
 }
