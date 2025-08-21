@@ -8,7 +8,7 @@ import { AIResponse } from '@/types/chatbot';
 import { AIProvider, ProviderCapabilities } from '@/types/aiProvider';
 import { aiLogger } from '../../monitoring/logger';
 import { PerformanceMonitor } from '../../monitoring/performanceMonitor';
-import { createClient } from '@/lib/conn/server';
+import { createClient } from '@/lib/conn/client';
 import { BackendCacheManager } from './BackendCacheManager';
 
 export interface BackendAIRequest {
