@@ -4,7 +4,7 @@
  * Week 1, Day 4: Authentication Integration Implementation
  */
 
-import { createClient } from '@/lib/conn/client';
+import { createClient } from '@/lib/conn/server';
 import { aiLogger } from '../../monitoring/logger';
 import { isFeatureEnabled } from '@/config/featureFlags';
 
