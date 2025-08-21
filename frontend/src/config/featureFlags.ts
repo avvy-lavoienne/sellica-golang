@@ -409,12 +409,142 @@ export const PHASE_3_FEATURES: Record<string, FeatureFlagConfig> = {
   }
 };
 
+// Phase 3: Backend Integration Features (Week 1)
+export const PHASE_3_BACKEND_FEATURES: Record<string, FeatureFlagConfig> = {
+  ENABLE_BACKEND_INTEGRATION: {
+    key: 'enableBackendIntegration',
+    name: 'Backend AI Integration',
+    description: 'Enable Phase 3 high-performance backend AI service integration',
+    enabled: true,
+    rolloutPercentage: 5, // Start with 5% rollout
+    userSegments: ['beta_testers', 'developers'],
+    environment: 'development',
+    metadata: {
+      phase: 3,
+      priority: 'critical',
+      implementationWeek: 1,
+      targetResponseTime: 50
+    }
+  },
+
+  ENABLE_BACKEND_FALLBACK: {
+    key: 'enableBackendFallback',
+    name: 'Backend Fallback System',
+    description: 'Enable fallback to frontend services when backend is unavailable',
+    enabled: true,
+    rolloutPercentage: 100,
+    userSegments: ['all'],
+    environment: 'development',
+    dependencies: ['enableBackendIntegration'],
+    metadata: {
+      phase: 3,
+      priority: 'critical',
+      implementationWeek: 1
+    }
+  },
+
+  ENABLE_BACKEND_HEALTH_CHECKS: {
+    key: 'enableBackendHealthChecks',
+    name: 'Backend Health Monitoring',
+    description: 'Enable continuous backend health monitoring and status checks',
+    enabled: true,
+    rolloutPercentage: 100,
+    userSegments: ['all'],
+    environment: 'development',
+    metadata: {
+      phase: 3,
+      priority: 'high',
+      implementationWeek: 1,
+      checkInterval: 30000
+    }
+  },
+
+  ENABLE_BACKEND_PERFORMANCE_MONITORING: {
+    key: 'enableBackendPerformanceMonitoring',
+    name: 'Backend Performance Tracking',
+    description: 'Enable real-time performance monitoring for backend integration',
+    enabled: true,
+    rolloutPercentage: 100,
+    userSegments: ['all'],
+    environment: 'development',
+    metadata: {
+      phase: 3,
+      priority: 'high',
+      implementationWeek: 1
+    }
+  },
+
+  ENABLE_BACKEND_AUTHENTICATION: {
+    key: 'enableBackendAuthentication',
+    name: 'Backend JWT Authentication',
+    description: 'Enable JWT token authentication for backend API requests',
+    enabled: true,
+    rolloutPercentage: 100,
+    userSegments: ['all'],
+    environment: 'development',
+    metadata: {
+      phase: 3,
+      priority: 'high',
+      implementationWeek: 1
+    }
+  },
+
+  ENABLE_BACKEND_SESSION_MANAGEMENT: {
+    key: 'enableBackendSessionManagement',
+    name: 'Backend Session Processing',
+    description: 'Enable session-aware chat processing with backend',
+    enabled: true,
+    rolloutPercentage: 100,
+    userSegments: ['all'],
+    environment: 'development',
+    dependencies: ['enableBackendIntegration'],
+    metadata: {
+      phase: 3,
+      priority: 'medium',
+      implementationWeek: 2
+    }
+  },
+
+  ENABLE_BACKEND_INDONESIAN_NLP: {
+    key: 'enableBackendIndonesianNLP',
+    name: 'Backend Indonesian NLP',
+    description: 'Enable specialized Indonesian NLP processing with backend workers',
+    enabled: true,
+    rolloutPercentage: 100,
+    userSegments: ['all'],
+    environment: 'development',
+    dependencies: ['enableBackendIntegration'],
+    metadata: {
+      phase: 3,
+      priority: 'high',
+      implementationWeek: 3,
+      targetAccuracy: 0.95
+    }
+  },
+
+  ENABLE_BACKEND_DEBUG_LOGGING: {
+    key: 'enableBackendDebugLogging',
+    name: 'Backend Debug Logging',
+    description: 'Enable detailed debug logging for backend integration',
+    enabled: process.env.NODE_ENV === 'development',
+    rolloutPercentage: 100,
+    userSegments: ['developers'],
+    environment: 'development',
+    metadata: {
+      phase: 3,
+      priority: 'low',
+      implementationWeek: 1
+    }
+  }
+};
+
 // Combined feature flags
 export const ALL_FEATURE_FLAGS: Record<string, FeatureFlagConfig> = {
   ...PHASE_1_FEATURES,
   ...PHASE_2_FEATURES,
   ...PHASE_3_FEATURES,
-  ...TENSORFLOW_REMOVAL_FEATURES
+  ...TENSORFLOW_REMOVAL_FEATURES,
+  ...PHASE_3_BACKEND_FEATURES
 };
 
 // Default enabled features for development
@@ -449,7 +579,15 @@ export const DEFAULT_ENABLED_FEATURES = [
   'disable_indobert',
   'enable_enhanced_fallback',
   'enable_groq_integration',
-  'enable_performance_monitoring'
+  'enable_performance_monitoring',
+
+  // Phase 3: Backend Integration Features (Week 1)
+  'enableBackendIntegration',
+  'enableBackendFallback',
+  'enableBackendHealthChecks',
+  'enableBackendPerformanceMonitoring',
+  'enableBackendAuthentication',
+  'enableBackendDebugLogging'
 ];
 
 // Environment-specific configurations

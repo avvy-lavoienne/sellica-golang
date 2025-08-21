@@ -22,6 +22,10 @@ import { contextMiddleware } from './context/ContextMiddleware';
 import { UpstashCacheService } from '../cache/upstashCacheService';
 import { UpstashCacheServiceSingleton } from '../cache/UpstashCacheServiceFactory';
 
+// Phase 3 Backend Integration
+import { BackendIntegratedRouter } from '../ai/backend/BackendIntegratedRouter';
+import { isFeatureEnabled } from '@/config/featureFlags';
+
 // Feature flags for safe rollout
 const FEATURE_FLAGS = {
   orchestratorSingleton: process.env.NEXT_PUBLIC_FF_ORCHESTRATOR_SINGLETON === 'true',
@@ -89,6 +93,9 @@ export class AIService {
 
   // Singleton orchestrator instance for performance optimization
   private static orchestrator: OptimizedAIOrchestrator | null = null;
+
+  // Phase 3 Backend Integration
+  private static backendRouter: BackendIntegratedRouter | null = null;
   private static initializationPromise: Promise<void> | null = null;
   private static initializationStatus: 'pending' | 'success' | 'failed' = 'pending';
 
@@ -297,6 +304,29 @@ export class AIService {
    * Process user query and generate response
    */
   async processQuery(query: string, context?: any): Promise<AIResponse> {
+    // Phase 3: Check if backend integration is enabled
+    if (isFeatureEnabled('enableBackendIntegration')) {
+      try {
+        // Initialize backend router if not already done
+        if (!AIService.backendRouter) {
+          AIService.backendRouter = new BackendIntegratedRouter();
+        }
+
+        // Route query through backend integration
+        const backendResponse = await AIService.backendRouter.routeQuery(query, context);
+
+        // If backend response is successful, return it
+        if (backendResponse && backendResponse.content) {
+          return backendResponse;
+        }
+
+        // If backend fails, fall through to existing logic
+      } catch (backendError) {
+        // Log backend error and fall through to existing logic
+        console.warn('Backend integration failed, falling back to frontend processing:', backendError);
+      }
+    }
+
     // Start performance tracking if enabled
     const operationId = FEATURE_FLAGS.performanceMonitoring
       ? performanceMonitor.startAIOperation('processQuery', {
