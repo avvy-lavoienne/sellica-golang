@@ -1,6 +1,6 @@
 module selly-backend
 
-go 1.21.1
+go 1.23.0
 
 require (
 	github.com/gin-contrib/cors v1.7.0
@@ -68,4 +68,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-require github.com/stretchr/objx v0.5.2 // indirect
+require (
+	github.com/stretchr/objx v0.5.2 // indirect
+	golang.org/x/time v0.12.0 // indirect
+)

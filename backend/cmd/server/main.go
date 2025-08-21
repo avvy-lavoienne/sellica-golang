@@ -18,6 +18,7 @@ import (
 	"selly-backend/internal/services/auth"
 	"selly-backend/internal/services/cache"
 	"selly-backend/internal/services/chat"
+	"selly-backend/internal/services/concurrent"
 	"selly-backend/internal/services/database"
 	"selly-backend/internal/services/monitoring"
 	"selly-backend/internal/services/training"
@@ -48,14 +49,15 @@ func main() {
 	router := gin.New()
 
 	// Setup routes with services
-	routeServices := &routes.Services{
-		Database:   services.Database,
-		Cache:      services.Cache,
-		Auth:       services.Auth,
-		Chat:       services.Chat,
-		Monitoring: services.Monitoring,
-		Training:   services.Training,
-	}
+	routeServices := routes.GetServices(
+		services.Database,
+		services.Cache,
+		services.Auth,
+		services.Chat,
+		services.Monitoring,
+		services.Training,
+		services.Concurrent,
+	)
 	routes.SetupRoutes(router, routeServices)
 
 	// Create HTTP server
@@ -107,6 +109,7 @@ type Services struct {
 	Chat       *chat.Service
 	Monitoring *monitoring.Service
 	Training   *training.Service
+	Concurrent *concurrent.Service
 }
 
 // Cleanup performs cleanup operations for all services
@@ -151,6 +154,17 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		return nil, fmt.Errorf("failed to initialize training service: %w", err)
 	}
 
+	// Initialize concurrent processing service
+	concurrentService, err := concurrent.NewService(nil, monitoringService)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize concurrent service: %w", err)
+	}
+
+	// Start concurrent service
+	if err := concurrentService.Start(); err != nil {
+		logrus.WithError(err).Warn("Failed to start concurrent service")
+	}
+
 	logrus.Info("✅ All services initialized successfully")
 
 	return &Services{
@@ -160,6 +174,7 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		Chat:       chatService,
 		Monitoring: monitoringService,
 		Training:   trainingService,
+		Concurrent: concurrentService,
 	}, nil
 }
 

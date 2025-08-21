@@ -73,6 +73,7 @@ func setupTestServer() *gin.Engine {
 		chatService,
 		monitoringService,
 		trainingService,
+		nil, // concurrent service not needed for benchmarks
 	)
 
 	router := gin.New()

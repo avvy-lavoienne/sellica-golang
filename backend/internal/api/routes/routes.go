@@ -8,6 +8,7 @@ import (
 	"selly-backend/internal/services/auth"
 	"selly-backend/internal/services/cache"
 	"selly-backend/internal/services/chat"
+	"selly-backend/internal/services/concurrent"
 	"selly-backend/internal/services/database"
 	"selly-backend/internal/services/monitoring"
 	"selly-backend/internal/services/training"
@@ -21,6 +22,7 @@ type Services struct {
 	Chat       *chat.Service
 	Monitoring *monitoring.Service
 	Training   *training.Service
+	Concurrent *concurrent.Service
 }
 
 // SetupRoutes configures all API routes and middleware
@@ -62,6 +64,9 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 
 	// Training data routes (protected)
 	setupTrainingRoutes(router, trainingHandler, services.Auth)
+
+	// Concurrent processing routes (public)
+	SetupConcurrentRoutes(router, services.Concurrent)
 
 	// Authentication routes (public)
 	setupAuthRoutes(router, services.Auth)
@@ -207,7 +212,7 @@ func setupTrainingRoutes(router *gin.Engine, handler *handlers.TrainingHandler, 
 }
 
 // GetServices creates and returns the services struct for dependency injection
-func GetServices(db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service) *Services {
+func GetServices(db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service) *Services {
 	return &Services{
 		Database:   db,
 		Cache:      cache,
@@ -215,5 +220,6 @@ func GetServices(db *database.Service, cache *cache.Service, auth *auth.Service,
 		Chat:       chat,
 		Monitoring: monitoring,
 		Training:   training,
+		Concurrent: concurrent,
 	}
 }
