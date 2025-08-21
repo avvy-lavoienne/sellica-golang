@@ -34,6 +34,7 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	cacheHandler := handlers.NewCacheHandler(services.Cache, services.Monitoring)
 	chatHandler := handlers.NewChatHandler(services.Chat, services.Monitoring)
 	trainingHandler := handlers.NewTrainingHandler(services.Training)
+	performanceHandler := handlers.NewPerformanceHandler(services.Chat, services.Monitoring)
 
 	// Global middleware
 	router.Use(middleware.RequestIDMiddleware())
@@ -64,6 +65,9 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 
 	// Training data routes (protected)
 	setupTrainingRoutes(router, trainingHandler, services.Auth)
+
+	// Performance monitoring routes (public)
+	setupPerformanceRoutes(router, performanceHandler)
 
 	// Concurrent processing routes (public)
 	SetupConcurrentRoutes(router, services.Concurrent)
@@ -208,6 +212,18 @@ func setupTrainingRoutes(router *gin.Engine, handler *handlers.TrainingHandler, 
 	api.Use(middleware.AuthMiddleware(authService))
 	{
 		handler.RegisterRoutes(api)
+	}
+}
+
+// setupPerformanceRoutes configures performance monitoring endpoints
+func setupPerformanceRoutes(router *gin.Engine, handler *handlers.PerformanceHandler) {
+	// Performance monitoring endpoints (public)
+	api := router.Group("/api/performance")
+	{
+		api.GET("/metrics", handler.GetHighPerformanceMetrics)  // GET /api/performance/metrics - High-performance AI metrics
+		api.GET("/health", handler.GetPerformanceHealth)       // GET /api/performance/health - Performance health check
+		api.GET("/stats", handler.GetPerformanceStats)         // GET /api/performance/stats - Performance statistics
+		api.POST("/test", handler.PostPerformanceTest)         // POST /api/performance/test - Performance test endpoint
 	}
 }
 

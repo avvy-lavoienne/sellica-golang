@@ -68,7 +68,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-require (
-	github.com/stretchr/objx v0.5.2 // indirect
-	golang.org/x/time v0.12.0 // indirect
-)
+require golang.org/x/time v0.12.0
+
+require github.com/stretchr/objx v0.5.2 // indirect

@@ -12,18 +12,20 @@ import (
 	"selly-backend/internal/services/auth"
 	"selly-backend/internal/services/cache"
 	"selly-backend/internal/services/database"
+	"selly-backend/internal/services/performance"
 	"selly-backend/pkg/types"
 )
 
 // Service provides chat processing functionality
 type Service struct {
-	db        *database.Service
-	cache     *cache.Service
-	auth      *auth.Service
-	aiService *AIService
-	sessions  *SessionManager
-	mu        sync.RWMutex
-	isHealthy bool
+	db                    *database.Service
+	cache                 *cache.Service
+	auth                  *auth.Service
+	aiService             *AIService
+	sessions              *SessionManager
+	highPerformanceEngine *performance.HighPerformanceIntegration
+	mu                    sync.RWMutex
+	isHealthy             bool
 }
 
 // ChatRequest represents an incoming chat message request
@@ -106,16 +108,37 @@ type SessionMetadata struct {
 
 // NewService creates a new chat service
 func NewService(db *database.Service, cache *cache.Service, auth *auth.Service) *Service {
-	service := &Service{
-		db:        db,
-		cache:     cache,
-		auth:      auth,
-		aiService: NewAIService(),
-		sessions:  NewSessionManager(cache, db),
-		isHealthy: true,
+	// Initialize high-performance integration
+	hpIntegration, err := performance.NewHighPerformanceIntegration(&performance.IntegrationConfig{
+		EnableHighPerformance: true,
+		FallbackToStandard:   true,
+		PerformanceThreshold: 200 * time.Millisecond,
+		MaxRetries:           3,
+	})
+	if err != nil {
+		logrus.WithError(err).Warn("⚠️ Failed to initialize high-performance engine, using standard processing")
+		hpIntegration = nil
+	} else {
+		// Start the high-performance engine
+		if err := hpIntegration.Start(); err != nil {
+			logrus.WithError(err).Warn("⚠️ Failed to start high-performance engine, using standard processing")
+			hpIntegration = nil
+		} else {
+			logrus.Info("🚀 High-Performance AI Engine integrated successfully")
+		}
 	}
 
-	logrus.Info("✅ Chat service initialized")
+	service := &Service{
+		db:                    db,
+		cache:                 cache,
+		auth:                  auth,
+		aiService:             NewAIService(),
+		sessions:              NewSessionManager(cache, db),
+		highPerformanceEngine: hpIntegration,
+		isHealthy:             true,
+	}
+
+	logrus.Info("✅ Chat service initialized with high-performance capabilities")
 	return service
 }
 
@@ -142,16 +165,61 @@ func (s *Service) ProcessChat(ctx context.Context, req *ChatRequest, authContext
 		sessionID = s.generateSessionID(authContext.UserID)
 	}
 
-	// Process with AI service
-	aiResponse, err := s.aiService.ProcessQuery(ctx, &AIRequest{
-		Query:           req.Message,
-		UserID:          authContext.UserID,
-		SessionID:       sessionID,
-		Context:         req.Context,
-		EnhancementMode: req.EnhancementMode,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("AI processing failed: %w", err)
+	// Process with high-performance engine if available, otherwise use standard AI service
+	var aiResponse *AIResponse
+	var err error
+
+	if s.highPerformanceEngine != nil {
+		// Use high-performance processing
+		hpResponse, hpErr := s.highPerformanceEngine.ProcessChatRequest(
+			ctx,
+			authContext.UserID,
+			sessionID,
+			req.Message,
+			req.Context,
+		)
+		if hpErr == nil {
+			// Convert high-performance response to standard AI response
+			aiResponse = &AIResponse{
+				Content:        hpResponse.Response,
+				Confidence:     hpResponse.Confidence,
+				Type:           "text",
+				Model:          "high-performance-engine",
+				ProcessingTime: hpResponse.ProcessingTime.Seconds() * 1000, // Convert to milliseconds
+				CacheHit:       false, // Will be set by high-performance engine if applicable
+				CacheLayer:     "high-performance",
+			}
+
+			// Add high-performance metadata to recommendations
+			if hpResponse.Metadata != nil {
+				if workerType, exists := hpResponse.Metadata["worker_type"]; exists {
+					aiResponse.Recommendations = append(aiResponse.Recommendations,
+						fmt.Sprintf("Processed by: %v", workerType))
+				}
+				if cacheHit, exists := hpResponse.Metadata["cache_hit"]; exists {
+					if hit, ok := cacheHit.(bool); ok {
+						aiResponse.CacheHit = hit
+					}
+				}
+			}
+		} else {
+			logrus.WithError(hpErr).Warn("High-performance processing failed, falling back to standard AI service")
+			err = hpErr
+		}
+	}
+
+	// Fallback to standard AI service if high-performance failed or unavailable
+	if aiResponse == nil {
+		aiResponse, err = s.aiService.ProcessQuery(ctx, &AIRequest{
+			Query:           req.Message,
+			UserID:          authContext.UserID,
+			SessionID:       sessionID,
+			Context:         req.Context,
+			EnhancementMode: req.EnhancementMode,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("AI processing failed: %w", err)
+		}
 	}
 
 	// Store message in database (if available)
@@ -223,20 +291,70 @@ func (s *Service) ProcessSessionChat(ctx context.Context, req *SessionChatReques
 	}).Info("💬 Processing session-aware chat message")
 
 	// Get or create session
-	session, err := s.sessions.GetOrCreateSession(ctx, req.SessionID, authContext.UserID, req.Context)
-	if err != nil {
-		return nil, fmt.Errorf("session management failed: %w", err)
+	session, sessionErr := s.sessions.GetOrCreateSession(ctx, req.SessionID, authContext.UserID, req.Context)
+	if sessionErr != nil {
+		return nil, fmt.Errorf("session management failed: %w", sessionErr)
 	}
 
-	// Process with session context
-	aiResponse, err := s.aiService.ProcessSessionQuery(ctx, &SessionAIRequest{
-		Query:   req.Message,
-		Session: session,
-		Context: req.Context,
-		UserID:  authContext.UserID,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("session AI processing failed: %w", err)
+	// Process with high-performance engine if available, otherwise use standard session AI service
+	var aiResponse *AIResponse
+	var err error
+
+	if s.highPerformanceEngine != nil {
+		// Enhance context with session information
+		sessionContext := req.Context
+		if sessionContext == nil {
+			sessionContext = make(map[string]interface{})
+		}
+		sessionContext["session_id"] = session.ID
+		sessionContext["conversation_history"] = session.ConversationHistory
+		sessionContext["user_preferences"] = session.UserPreferences
+		sessionContext["cultural_context"] = session.CulturalContext
+
+		// Use high-performance processing with session context
+		hpResponse, hpErr := s.highPerformanceEngine.ProcessChatRequest(
+			ctx,
+			authContext.UserID,
+			session.ID,
+			req.Message,
+			sessionContext,
+		)
+		if hpErr == nil {
+			// Convert high-performance response to standard AI response
+			aiResponse = &AIResponse{
+				Content:        hpResponse.Response,
+				Confidence:     hpResponse.Confidence,
+				Type:           "text",
+				Model:          "high-performance-session-engine",
+				ProcessingTime: hpResponse.ProcessingTime.Seconds() * 1000,
+				CacheHit:       false,
+				CacheLayer:     "high-performance-session",
+			}
+
+			// Add session-aware metadata
+			if hpResponse.Metadata != nil {
+				if workerType, exists := hpResponse.Metadata["worker_type"]; exists {
+					aiResponse.Recommendations = append(aiResponse.Recommendations,
+						fmt.Sprintf("Session-aware processing by: %v", workerType))
+				}
+			}
+		} else {
+			logrus.WithError(hpErr).Warn("High-performance session processing failed, falling back to standard session AI service")
+			err = hpErr
+		}
+	}
+
+	// Fallback to standard session AI service if high-performance failed or unavailable
+	if aiResponse == nil {
+		aiResponse, err = s.aiService.ProcessSessionQuery(ctx, &SessionAIRequest{
+			Query:   req.Message,
+			Session: session,
+			Context: req.Context,
+			UserID:  authContext.UserID,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("session AI processing failed: %w", err)
+		}
 	}
 
 	// Update session with new conversation turn
@@ -346,4 +464,50 @@ func (s *Service) IsHealthy() bool {
 	return s.isHealthy
 }
 
+// GetHighPerformanceMetrics returns high-performance AI metrics
+func (s *Service) GetHighPerformanceMetrics() map[string]interface{} {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
+	if s.highPerformanceEngine == nil {
+		return nil
+	}
+
+	return s.highPerformanceEngine.GetPerformanceMetrics()
+}
+
+// GetHighPerformanceHealth returns high-performance AI health status
+func (s *Service) GetHighPerformanceHealth() map[string]interface{} {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.highPerformanceEngine == nil {
+		return nil
+	}
+
+	return s.highPerformanceEngine.GetHealthStatus()
+}
+
+// IsHighPerformanceEnabled returns whether high-performance processing is enabled
+func (s *Service) IsHighPerformanceEnabled() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return s.highPerformanceEngine != nil
+}
+
+// Stop gracefully stops the chat service
+func (s *Service) Stop() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.highPerformanceEngine != nil {
+		if err := s.highPerformanceEngine.Stop(); err != nil {
+			logrus.WithError(err).Warn("Failed to stop high-performance engine")
+		}
+	}
+
+	s.isHealthy = false
+	logrus.Info("🛑 Chat service stopped")
+	return nil
+}
