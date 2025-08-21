@@ -535,6 +535,74 @@ export const PHASE_3_BACKEND_FEATURES: Record<string, FeatureFlagConfig> = {
       priority: 'low',
       implementationWeek: 1
     }
+  },
+
+  // Week 2: Performance Integration Features
+  ENABLE_BACKEND_PERFORMANCE_DASHBOARD: {
+    key: 'enableBackendPerformanceDashboard',
+    name: 'Backend Performance Dashboard',
+    description: 'Enable real-time performance monitoring dashboard',
+    enabled: true,
+    rolloutPercentage: 100,
+    userSegments: ['all'],
+    environment: 'development',
+    dependencies: ['enableBackendPerformanceMonitoring'],
+    metadata: {
+      phase: 3,
+      priority: 'high',
+      implementationWeek: 2,
+      targetResponseTime: 50
+    }
+  },
+
+  ENABLE_BACKEND_CACHING: {
+    key: 'enableBackendCaching',
+    name: 'Backend Multi-Tier Caching',
+    description: 'Enable L1/L2/L3 intelligent caching system',
+    enabled: true,
+    rolloutPercentage: 100,
+    userSegments: ['all'],
+    environment: 'development',
+    dependencies: ['enableBackendIntegration'],
+    metadata: {
+      phase: 3,
+      priority: 'high',
+      implementationWeek: 2,
+      cacheImprovement: '2x'
+    }
+  },
+
+  ENABLE_BACKEND_SESSION_OPTIMIZATION: {
+    key: 'enableBackendSessionOptimization',
+    name: 'Backend Session Optimization',
+    description: 'Enable session-aware processing and conversation history',
+    enabled: true,
+    rolloutPercentage: 100,
+    userSegments: ['all'],
+    environment: 'development',
+    dependencies: ['enableBackendSessionManagement'],
+    metadata: {
+      phase: 3,
+      priority: 'medium',
+      implementationWeek: 2
+    }
+  },
+
+  ENABLE_BACKEND_HEALTH_DASHBOARD: {
+    key: 'enableBackendHealthDashboard',
+    name: 'Backend Health Dashboard',
+    description: 'Enable real-time health monitoring and incident response',
+    enabled: true,
+    rolloutPercentage: 100,
+    userSegments: ['all'],
+    environment: 'development',
+    dependencies: ['enableBackendHealthChecks'],
+    metadata: {
+      phase: 3,
+      priority: 'high',
+      implementationWeek: 2,
+      checkInterval: 30000
+    }
   }
 };
 
@@ -587,7 +655,13 @@ export const DEFAULT_ENABLED_FEATURES = [
   'enableBackendHealthChecks',
   'enableBackendPerformanceMonitoring',
   'enableBackendAuthentication',
-  'enableBackendDebugLogging'
+  'enableBackendDebugLogging',
+
+  // Phase 3: Week 2 Performance Integration Features
+  'enableBackendPerformanceDashboard',
+  'enableBackendCaching',
+  'enableBackendSessionOptimization',
+  'enableBackendHealthDashboard'
 ];
 
 // Environment-specific configurations

@@ -8,6 +8,10 @@ import { BackendAIService } from './BackendAIService';
 import { BackendIntegratedRouter } from './BackendIntegratedRouter';
 import { BackendAuthService } from './BackendAuthService';
 import { BackendErrorHandler } from './BackendErrorHandler';
+import { BackendPerformanceMonitor } from './BackendPerformanceMonitor';
+import { BackendSessionManager } from './BackendSessionManager';
+import { BackendCacheManager } from './BackendCacheManager';
+import { BackendHealthMonitor } from './BackendHealthMonitor';
 import { aiLogger } from '../../monitoring/logger';
 import { PerformanceMonitor } from '../../monitoring/performanceMonitor';
 
@@ -34,6 +38,9 @@ export interface TestConfig {
   enableFallbackTests: boolean;
   enableAuthTests: boolean;
   enableErrorHandlingTests: boolean;
+  enableSessionTests: boolean;
+  enableCacheTests: boolean;
+  enableHealthTests: boolean;
   timeoutMs: number;
   maxRetries: number;
 }
@@ -48,6 +55,10 @@ export class BackendConnectivityTest {
   private authService: BackendAuthService;
   private errorHandler: BackendErrorHandler;
   private performanceMonitor: PerformanceMonitor;
+  private backendPerformanceMonitor: BackendPerformanceMonitor;
+  private sessionManager: BackendSessionManager;
+  private cacheManager: BackendCacheManager;
+  private healthMonitor: BackendHealthMonitor;
   private config: TestConfig;
 
   constructor(config?: Partial<TestConfig>) {
@@ -56,12 +67,19 @@ export class BackendConnectivityTest {
     this.authService = new BackendAuthService();
     this.errorHandler = new BackendErrorHandler();
     this.performanceMonitor = PerformanceMonitor.getInstance();
+    this.backendPerformanceMonitor = new BackendPerformanceMonitor();
+    this.sessionManager = new BackendSessionManager();
+    this.cacheManager = new BackendCacheManager();
+    this.healthMonitor = new BackendHealthMonitor();
 
     this.config = {
       enablePerformanceTests: true,
       enableFallbackTests: true,
       enableAuthTests: true,
       enableErrorHandlingTests: true,
+      enableSessionTests: true,
+      enableCacheTests: true,
+      enableHealthTests: true,
       timeoutMs: 10000,
       maxRetries: 3,
       ...config
@@ -110,6 +128,25 @@ export class BackendConnectivityTest {
       if (this.config.enableErrorHandlingTests) {
         testResults.push(await this.testErrorHandling());
         testResults.push(await this.testTimeoutHandling());
+      }
+
+      // Week 2: Session management tests
+      if (this.config.enableSessionTests) {
+        testResults.push(await this.testSessionCreation());
+        testResults.push(await this.testSessionChat());
+        testResults.push(await this.testConversationHistory());
+      }
+
+      // Week 2: Cache tests
+      if (this.config.enableCacheTests) {
+        testResults.push(await this.testCachePerformance());
+        testResults.push(await this.testMultiTierCaching());
+      }
+
+      // Week 2: Health monitoring tests
+      if (this.config.enableHealthTests) {
+        testResults.push(await this.testHealthMonitoring());
+        testResults.push(await this.testPerformanceMonitoring());
       }
 
       // Calculate results
@@ -670,11 +707,312 @@ export class BackendConnectivityTest {
   }
 
   /**
+   * Test session creation
+   */
+  private async testSessionCreation(): Promise<ConnectivityTestResult> {
+    const startTime = performance.now();
+
+    try {
+      const session = await this.sessionManager.createSession();
+      const responseTime = performance.now() - startTime;
+
+      const success = !!(session && session.id && session.userId);
+
+      return {
+        testName: 'Session Creation',
+        success,
+        responseTime,
+        metadata: {
+          hasSessionId: !!session.id,
+          hasUserId: !!session.userId,
+          sessionId: session.id,
+          messageCount: session.messageCount
+        }
+      };
+
+    } catch (error) {
+      return {
+        testName: 'Session Creation',
+        success: false,
+        responseTime: performance.now() - startTime,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
+   * Test session chat processing
+   */
+  private async testSessionChat(): Promise<ConnectivityTestResult> {
+    const startTime = performance.now();
+    const testQuery = 'Test session chat message';
+
+    try {
+      // Create session first
+      const session = await this.sessionManager.createSession();
+
+      // Process chat message
+      const response = await this.sessionManager.processSessionChat(
+        session.id,
+        testQuery
+      );
+
+      const responseTime = performance.now() - startTime;
+
+      const success = !!(
+        response &&
+        response.content &&
+        response.metadata?.sessionId === session.id
+      );
+
+      return {
+        testName: 'Session Chat Processing',
+        success,
+        responseTime,
+        metadata: {
+          hasContent: !!response.content,
+          sessionId: response.metadata?.sessionId,
+          sessionMatches: response.metadata?.sessionId === session.id,
+          messageCount: response.metadata?.messageCount
+        }
+      };
+
+    } catch (error) {
+      return {
+        testName: 'Session Chat Processing',
+        success: false,
+        responseTime: performance.now() - startTime,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
+   * Test conversation history preservation
+   */
+  private async testConversationHistory(): Promise<ConnectivityTestResult> {
+    const startTime = performance.now();
+
+    try {
+      // Create session
+      const session = await this.sessionManager.createSession();
+
+      // Send multiple messages
+      await this.sessionManager.processSessionChat(session.id, 'First message');
+      await this.sessionManager.processSessionChat(session.id, 'Second message');
+
+      // Get conversation history
+      const history = this.sessionManager.getSessionHistory(session.id);
+      const responseTime = performance.now() - startTime;
+
+      const success = history.length >= 4; // 2 user + 2 assistant messages
+
+      return {
+        testName: 'Conversation History',
+        success,
+        responseTime,
+        metadata: {
+          historyLength: history.length,
+          hasUserMessages: history.some(msg => msg.role === 'user'),
+          hasAssistantMessages: history.some(msg => msg.role === 'assistant'),
+          sessionId: session.id
+        }
+      };
+
+    } catch (error) {
+      return {
+        testName: 'Conversation History',
+        success: false,
+        responseTime: performance.now() - startTime,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
+   * Test cache performance
+   */
+  private async testCachePerformance(): Promise<ConnectivityTestResult> {
+    const startTime = performance.now();
+    const testQuery = 'Cache performance test query';
+
+    try {
+      // First request (cache miss)
+      const firstResponse = await this.backendService.processQuery(testQuery);
+      const firstTime = performance.now() - startTime;
+
+      // Second request (should be cache hit)
+      const secondStartTime = performance.now();
+      const secondResponse = await this.backendService.processQuery(testQuery);
+      const secondTime = performance.now() - secondStartTime;
+
+      const responseTime = performance.now() - startTime;
+
+      // Cache hit should be significantly faster
+      const cacheImprovement = firstTime / secondTime;
+      const success = cacheImprovement > 2; // At least 2x improvement
+
+      return {
+        testName: 'Cache Performance',
+        success,
+        responseTime,
+        metadata: {
+          firstRequestTime: firstTime,
+          secondRequestTime: secondTime,
+          cacheImprovement,
+          bothResponsesValid: !!(firstResponse.content && secondResponse.content)
+        }
+      };
+
+    } catch (error) {
+      return {
+        testName: 'Cache Performance',
+        success: false,
+        responseTime: performance.now() - startTime,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
+   * Test multi-tier caching
+   */
+  private async testMultiTierCaching(): Promise<ConnectivityTestResult> {
+    const startTime = performance.now();
+
+    try {
+      const stats = this.cacheManager.getCacheStatistics();
+      const responseTime = performance.now() - startTime;
+
+      const success = !!(
+        stats.l1 &&
+        stats.l2 &&
+        stats.l3 &&
+        stats.overall
+      );
+
+      return {
+        testName: 'Multi-Tier Caching',
+        success,
+        responseTime,
+        metadata: {
+          l1Size: stats.l1.size,
+          l2Size: stats.l2.size,
+          l3Size: stats.l3.size,
+          overallHitRate: stats.overall.hitRate,
+          totalHits: stats.overall.totalHits
+        }
+      };
+
+    } catch (error) {
+      return {
+        testName: 'Multi-Tier Caching',
+        success: false,
+        responseTime: performance.now() - startTime,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
+   * Test health monitoring
+   */
+  private async testHealthMonitoring(): Promise<ConnectivityTestResult> {
+    const startTime = performance.now();
+
+    try {
+      // Start health monitoring
+      await this.healthMonitor.startMonitoring();
+
+      // Wait for initial health check
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const healthStatus = this.healthMonitor.getCurrentHealth();
+      const monitoringStatus = this.healthMonitor.getMonitoringStatus();
+
+      const responseTime = performance.now() - startTime;
+
+      const success = !!(
+        healthStatus &&
+        monitoringStatus.isMonitoring &&
+        monitoringStatus.checksPerformed > 0
+      );
+
+      return {
+        testName: 'Health Monitoring',
+        success,
+        responseTime,
+        metadata: {
+          isMonitoring: monitoringStatus.isMonitoring,
+          checksPerformed: monitoringStatus.checksPerformed,
+          healthy: healthStatus?.healthy,
+          activeIncidents: monitoringStatus.activeIncidents
+        }
+      };
+
+    } catch (error) {
+      return {
+        testName: 'Health Monitoring',
+        success: false,
+        responseTime: performance.now() - startTime,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
+   * Test performance monitoring
+   */
+  private async testPerformanceMonitoring(): Promise<ConnectivityTestResult> {
+    const startTime = performance.now();
+
+    try {
+      // Start performance monitoring
+      await this.backendPerformanceMonitor.startMonitoring();
+
+      // Wait for initial metrics collection
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      const metrics = this.backendPerformanceMonitor.getCurrentMetrics();
+      const improvement = this.backendPerformanceMonitor.getPerformanceImprovement();
+
+      const responseTime = performance.now() - startTime;
+
+      const success = !!(
+        metrics &&
+        improvement &&
+        metrics.highPerformance.averageResponseTime > 0
+      );
+
+      return {
+        testName: 'Performance Monitoring',
+        success,
+        responseTime,
+        metadata: {
+          hasMetrics: !!metrics,
+          averageResponseTime: metrics?.highPerformance.averageResponseTime,
+          responseTimeImprovement: improvement?.responseTimeImprovement,
+          targetAchieved: improvement?.targetAchievement.responseTime,
+          throughput: metrics?.highPerformance.requestsPerSecond
+        }
+      };
+
+    } catch (error) {
+      return {
+        testName: 'Performance Monitoring',
+        success: false,
+        responseTime: performance.now() - startTime,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
    * Update test configuration
    */
   updateConfig(newConfig: Partial<TestConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    
+
     aiLogger.backend.info('🔧 Test configuration updated', {
       config: this.config
     });

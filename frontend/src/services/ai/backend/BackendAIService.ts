@@ -9,6 +9,7 @@ import { AIProvider, ProviderCapabilities } from '@/types/aiProvider';
 import { aiLogger } from '../../monitoring/logger';
 import { PerformanceMonitor } from '../../monitoring/performanceMonitor';
 import { createClient } from '@/lib/conn/client';
+import { BackendCacheManager } from './BackendCacheManager';
 
 export interface BackendAIRequest {
   message: string;
@@ -56,6 +57,7 @@ export class BackendAIService implements AIProvider {
 
   private config: BackendAuthConfig;
   private performanceMonitor: PerformanceMonitor;
+  private cacheManager: BackendCacheManager;
   private tokenCache: string | null = null;
   private tokenExpiry: number = 0;
   private isHealthy: boolean = true;
@@ -72,7 +74,8 @@ export class BackendAIService implements AIProvider {
     };
     
     this.performanceMonitor = PerformanceMonitor.getInstance();
-    
+    this.cacheManager = new BackendCacheManager();
+
     aiLogger.backend.info('🚀 Backend AI Service initialized', {
       baseURL: this.config.baseURL,
       enableAuth: this.config.enableAuth
@@ -85,11 +88,24 @@ export class BackendAIService implements AIProvider {
   async processQuery(query: string, context?: any): Promise<AIResponse> {
     const startTime = performance.now();
     const operationId = `backend_query_${Date.now()}`;
-    
+
     try {
       // Start performance monitoring
       this.performanceMonitor.startAIOperation(operationId, 'backend', query);
-      
+
+      // Check cache first
+      const cachedResponse = await this.cacheManager.getCachedResponse(query, context);
+      if (cachedResponse) {
+        this.performanceMonitor.completeAIOperation(operationId, true);
+
+        aiLogger.backend.debug('🎯 Cache hit for backend query', {
+          query: query.substring(0, 50) + '...',
+          cacheAge: Date.now() - (cachedResponse.metadata?.timestamp || 0)
+        });
+
+        return cachedResponse;
+      }
+
       // Check backend health
       await this.ensureBackendHealth();
       
@@ -106,17 +122,20 @@ export class BackendAIService implements AIProvider {
       
       // Transform response
       const aiResponse = this.transformBackendResponse(backendResponse, startTime);
-      
+
+      // Cache the response
+      await this.cacheManager.setCachedResponse(query, context, aiResponse);
+
       // Complete performance monitoring
       this.performanceMonitor.completeAIOperation(operationId, true);
-      
+
       aiLogger.backend.info('✅ Backend query processed successfully', {
         query: query.substring(0, 50) + '...',
         processingTime: aiResponse.metadata?.processingTime,
         workerType: aiResponse.metadata?.workerType,
         confidence: aiResponse.confidence
       });
-      
+
       return aiResponse;
       
     } catch (error) {
