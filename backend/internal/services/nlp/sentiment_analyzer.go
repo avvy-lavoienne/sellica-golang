@@ -10,12 +10,12 @@ import (
 
 // SentimentAnalyzer handles Indonesian sentiment analysis
 type SentimentAnalyzer struct {
-	positiveWords    map[string]float64
-	negativeWords    map[string]float64
-	emotionPatterns  map[string]*regexp.Regexp
-	politenessRules  []PolitenessRule
-	intensifiers     map[string]float64
-	negationWords    []string
+	positiveWords   map[string]float64
+	negativeWords   map[string]float64
+	emotionPatterns map[string]*regexp.Regexp
+	politenessRules []PolitenessRule
+	intensifiers    map[string]float64
+	negationWords   []string
 }
 
 // PolitenessRule represents rules for detecting politeness in Indonesian
@@ -92,34 +92,34 @@ func (sa *SentimentAnalyzer) initializeLexicons() error {
 	// Positive words with scores
 	positiveWords := map[string]float64{
 		// Basic positive words
-		"baik":       0.7,
-		"bagus":      0.8,
-		"hebat":      0.9,
-		"luar biasa": 1.0,
-		"mantap":     0.8,
-		"keren":      0.7,
-		"oke":        0.5,
-		"setuju":     0.6,
-		"suka":       0.7,
-		"senang":     0.8,
-		"gembira":    0.9,
-		"bahagia":    0.9,
-		"puas":       0.7,
-		"terima kasih": 0.8,
-		"makasih":    0.7,
-		"thanks":     0.7,
-		"sukses":     0.8,
-		"berhasil":   0.8,
-		"lancar":     0.7,
-		"mudah":      0.6,
-		"cepat":      0.6,
-		"efisien":    0.7,
-		"profesional": 0.8,
-		"ramah":      0.7,
-		"sopan":      0.7,
-		"membantu":   0.8,
-		"memuaskan":  0.8,
-		"recommended": 0.7,
+		"baik":             0.7,
+		"bagus":            0.8,
+		"hebat":            0.9,
+		"luar biasa":       1.0,
+		"mantap":           0.8,
+		"keren":            0.7,
+		"oke":              0.5,
+		"setuju":           0.6,
+		"suka":             0.7,
+		"senang":           0.8,
+		"gembira":          0.9,
+		"bahagia":          0.9,
+		"puas":             0.7,
+		"terima kasih":     0.8,
+		"makasih":          0.7,
+		"thanks":           0.7,
+		"sukses":           0.8,
+		"berhasil":         0.8,
+		"lancar":           0.7,
+		"mudah":            0.6,
+		"cepat":            0.6,
+		"efisien":          0.7,
+		"profesional":      0.8,
+		"ramah":            0.7,
+		"sopan":            0.7,
+		"membantu":         0.8,
+		"memuaskan":        0.8,
+		"recommended":      0.7,
 		"direkomendasikan": 0.7,
 	}
 
@@ -183,12 +183,12 @@ func (sa *SentimentAnalyzer) initializeLexicons() error {
 
 	// Initialize emotion patterns
 	emotionPatterns := map[string]string{
-		"joy":     `\b(senang|gembira|bahagia|suka|ceria|riang|girang)\b`,
-		"anger":   `\b(marah|kesal|jengkel|dongkol|sebel|benci)\b`,
-		"sadness": `\b(sedih|kecewa|galau|murung|duka|nestapa)\b`,
-		"fear":    `\b(takut|khawatir|cemas|was-was|panik|ngeri)\b`,
+		"joy":      `\b(senang|gembira|bahagia|suka|ceria|riang|girang)\b`,
+		"anger":    `\b(marah|kesal|jengkel|dongkol|sebel|benci)\b`,
+		"sadness":  `\b(sedih|kecewa|galau|murung|duka|nestapa)\b`,
+		"fear":     `\b(takut|khawatir|cemas|was-was|panik|ngeri)\b`,
 		"surprise": `\b(kaget|heran|terkejut|tercengang|bingung)\b`,
-		"disgust": `\b(jijik|muak|mual|eneg|geli)\b`,
+		"disgust":  `\b(jijik|muak|mual|eneg|geli)\b`,
 	}
 
 	for emotion, pattern := range emotionPatterns {
@@ -340,7 +340,7 @@ func (sa *SentimentAnalyzer) calculateConfidence(score float64, wordCount int, e
 	confidence := 0.5 // Base confidence
 
 	// Score magnitude contributes to confidence
-	confidence += abs(score) * 0.3
+	confidence += absSentiment(score) * 0.3
 
 	// Word count contributes to confidence
 	if wordCount > 5 {
@@ -407,8 +407,8 @@ func (sa *SentimentAnalyzer) isNegationWord(word string) bool {
 	return false
 }
 
-// abs returns absolute value of float64
-func abs(x float64) float64 {
+// absSentiment returns absolute value of float64 for sentiment analysis
+func absSentiment(x float64) float64 {
 	if x < 0 {
 		return -x
 	}

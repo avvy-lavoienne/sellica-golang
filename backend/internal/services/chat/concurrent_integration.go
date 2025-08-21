@@ -13,6 +13,51 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// convertToConCurrentAIRequest converts chat.AIRequest to concurrent.AIRequest
+func convertToConcurrentAIRequest(req *AIRequest) *concurrent.AIRequest {
+	return &concurrent.AIRequest{
+		Query:           req.Query,
+		UserID:          req.UserID,
+		SessionID:       req.SessionID,
+		Context:         req.Context,
+		EnhancementMode: req.EnhancementMode,
+	}
+}
+
+// convertFromConcurrentAIResponse converts concurrent.AIResponse to chat.AIResponse
+func convertFromConcurrentAIResponse(resp *concurrent.AIResponse) *AIResponse {
+	return &AIResponse{
+		Content:         resp.Content,
+		Type:            resp.Type,
+		Confidence:      resp.Confidence,
+		Model:           resp.Model,
+		ProcessingTime:  resp.ProcessingTime,
+		CacheHit:        resp.CacheHit,
+		CacheLayer:      resp.CacheLayer,
+		Recommendations: resp.Recommendations,
+	}
+}
+
+// convertToConcurrentAIRequests converts slice of chat.AIRequest to slice of concurrent.AIRequest
+func convertToConcurrentAIRequests(reqs []*AIRequest) []*concurrent.AIRequest {
+	concurrentReqs := make([]*concurrent.AIRequest, len(reqs))
+	for i, req := range reqs {
+		concurrentReqs[i] = convertToConcurrentAIRequest(req)
+	}
+	return concurrentReqs
+}
+
+// convertFromConcurrentAIResponses converts slice of concurrent.AIResponse to slice of chat.AIResponse
+func convertFromConcurrentAIResponses(resps []*concurrent.AIResponse) []*AIResponse {
+	aiResponses := make([]*AIResponse, len(resps))
+	for i, resp := range resps {
+		if resp != nil {
+			aiResponses[i] = convertFromConcurrentAIResponse(resp)
+		}
+	}
+	return aiResponses
+}
+
 // ConcurrentChatService extends the chat service with concurrent processing capabilities
 type ConcurrentChatService struct {
 	*Service          // Embed the original service
@@ -177,12 +222,16 @@ func (ccs *ConcurrentChatService) ProcessChatConcurrent(ctx context.Context, req
 	}
 
 	// Process with concurrent AI manager
-	aiResponse, err := ccs.concurrentManager.ProcessRequest(ctx, aiRequest)
+	concurrentRequest := convertToConcurrentAIRequest(aiRequest)
+	concurrentResponse, err := ccs.concurrentManager.ProcessRequest(ctx, concurrentRequest)
 	if err != nil {
 		logrus.WithError(err).Warn("Concurrent processing failed, falling back to sequential")
 		// Fall back to sequential processing
 		return ccs.Service.ProcessChat(ctx, req, authContext.(*auth.AuthContext))
 	}
+
+	// Convert response back to chat service format
+	aiResponse := convertFromConcurrentAIResponse(concurrentResponse)
 
 	// Store message in database (if available)
 	if ccs.db != nil && ccs.db.IsHealthy() {
@@ -260,10 +309,14 @@ func (ccs *ConcurrentChatService) ProcessMultipleChatRequests(ctx context.Contex
 	}
 
 	// Process all requests concurrently
-	aiResponses, err := ccs.concurrentManager.ProcessConcurrentRequests(ctx, aiRequests)
+	concurrentRequests := convertToConcurrentAIRequests(aiRequests)
+	concurrentResponses, err := ccs.concurrentManager.ProcessConcurrentRequests(ctx, concurrentRequests)
 	if err != nil {
 		return nil, fmt.Errorf("concurrent processing failed: %w", err)
 	}
+
+	// Convert responses back to chat service format
+	aiResponses := convertFromConcurrentAIResponses(concurrentResponses)
 
 	// Convert AI responses to chat responses
 	responses := make([]*ChatResponse, len(aiResponses))
