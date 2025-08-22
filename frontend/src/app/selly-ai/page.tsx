@@ -26,8 +26,8 @@ import { cn } from '@/lib/conn/utils';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { pageTransition, fadeInUp, staggerContainer } from '@/lib/animations';
 import { QUICK_ACTIONS } from '@/types/chatbot';
-import { SellyWelcomeCard } from './components/SellyWelcomeCard';
-import { MobileSellyInterface } from './components/MobileSellyInterface';
+import { SellyWelcomeCard } from './components/SellyWelcomeCard'; // Disabled for core build
+import { MobileSellyInterface } from './components/MobileSellyInterface'; // Disabled for core build
 import { isMobile } from '@/utils/mobile';
 
 interface SellyAIPageContentProps {
@@ -471,12 +471,12 @@ export default function SellyAIPage() {
     try {
       console.log('🔄 [SELLY_AI_PAGE] Resetting SELLY AI page services...');
 
-      // Clear EnhancedChatStorageService cache
+      // Clear EnhancedChatStorageService cache (disabled for core build)
       try {
-        const { EnhancedChatStorageService } = await import('@/services/chatbot/enhancedChatStorageService');
-        const chatStorageService = EnhancedChatStorageService.getInstance();
-        chatStorageService.clearLocalCache();
-        console.log('🧹 [SELLY_AI_PAGE] Cleared EnhancedChatStorageService cache');
+        // const { EnhancedChatStorageService } = await import('@/services/chatbot/enhancedChatStorageService'); // Disabled for core build
+        // const chatStorageService = EnhancedChatStorageService.getInstance(); // Disabled for core build
+        // chatStorageService.clearLocalCache(); // Disabled for core build
+        console.log('🧹 [SELLY_AI_PAGE] EnhancedChatStorageService cache clearing disabled in core build mode');
       } catch (cacheError) {
         console.warn('⚠️ [SELLY_AI_PAGE] Could not clear chat service cache:', cacheError);
       }

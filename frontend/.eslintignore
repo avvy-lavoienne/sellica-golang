@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Legacy backend (excluded from builds)
+selly-legacy-nextjs-backend/
+**/selly-legacy-nextjs-backend/
+src/**/selly-legacy-nextjs-backend/
+
+# Build outputs
+.next/
+out/
+dist/
+
+# Test files
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+**/test*.ts
+**/test*.tsx
+src/services/chatbot/test*.ts
+src/services/chatbot/__tests__/
+src/test/
+
+# Environment files
+.env*
+
+# Logs
+*.log

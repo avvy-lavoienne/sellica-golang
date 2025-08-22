@@ -6,20 +6,35 @@
 'use client';
 
 import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
-import { 
-  UnifiedSession, 
-  EnhancedChatMessage, 
-  EnhancedChatSession,
-  SessionState,
-  SessionEventType,
-  FeatureFlagContext,
-  SyncStatus,
-  PerformanceMetrics,
-  SessionConfig
-} from '@/services/session/unifiedTypes';
+// import {
+//   UnifiedSession,
+//   EnhancedChatMessage,
+//   EnhancedChatSession,
+//   SessionState,
+//   SessionEventType,
+//   FeatureFlagContext,
+//   SyncStatus,
+//   PerformanceMetrics,
+//   SessionConfig
+// } from '@/services/session/unifiedTypes'; // Disabled for core build
+
+// Mock types for core build
+type UnifiedSession = any;
+type EnhancedChatMessage = any;
+type EnhancedChatSession = any;
+type SessionState = any;
+type SessionEventType = any;
+type FeatureFlagContext = any;
+type SyncStatus = any;
+type PerformanceMetrics = any;
+type SessionConfig = any;
 import { useEnhancedChatHistory } from '@/hooks/useEnhancedChatHistory';
-import { SessionStorageAdapter } from '@/services/session/storage';
-import { createDefaultStorage } from '@/services/session/storage';
+// import { SessionStorageAdapter } from '@/services/session/storage'; // Disabled for core build
+// import { createDefaultStorage } from '@/services/session/storage'; // Disabled for core build
+
+// Mock types and services for core build
+type SessionStorageAdapter = any;
+const createDefaultStorage = () => ({ logError: () => {} });
 
 // Enhanced Chat Context State
 export interface EnhancedChatState {

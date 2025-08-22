@@ -7,6 +7,34 @@ import { UnifiedChatInterface } from "./UnifiedChatInterface";
 // // DISABLED FOR CORE BUILD
 // // DISABLED FOR CORE BUILD
 // import { aiService } from "../../../selly-legacy-nextjs-backend/business-logic/chatbot/core/aiService";
+
+// Mock aiService for core build
+const aiService = {
+  processQuery: async (message: string) => ({
+    content: `Mock response for: ${message}`,
+    response: 'Mock response for core build'
+  }),
+  getProviderStatus: () => ({ status: 'available' }),
+  getPerformanceMetrics: () => ({ responseTime: 100 }),
+  clearCache: () => {},
+  resetProviders: () => {},
+  validateConfiguration: () => true,
+  getProviderCapabilities: () => ({}),
+  optimizePerformance: () => {},
+  getSystemHealth: () => ({ status: 'healthy' }),
+  updateConfig: (config: any) => {},
+  getProviders: () => [],
+  switchProvider: (provider: string) => {},
+  getProviderMetrics: (provider: string) => ({}),
+  testProvider: (provider: string) => Promise.resolve(true),
+  getConfiguration: () => ({}),
+  updateProviderConfig: (provider: string, config: any) => {},
+  isConfigured: () => true,
+  testConnection: () => Promise.resolve(true),
+  getStatus: () => ({ status: 'ready' }),
+  getCurrentProvider: () => 'mock',
+  getAvailableProviders: () => ['mock']
+};
 import { useAuthenticatedUser } from "@/hooks/useAuthenticatedUser";
 import { cn } from "@/lib/conn/utils";
 

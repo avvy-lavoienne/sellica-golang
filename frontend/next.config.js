@@ -44,6 +44,12 @@ const nextConfig = {
 
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
+    // Exclude legacy backend directory from builds
+    config.module.rules.push({
+      test: /selly-legacy-nextjs-backend/,
+      use: 'ignore-loader',
+    });
+
     // Suppress warnings from external libraries
     config.ignoreWarnings = [
       // Suppress Supabase realtime warning
@@ -53,6 +59,8 @@ const nextConfig = {
       },
       // Suppress other common warnings
       /Critical dependency: the request of a dependency is an expression/,
+      // Suppress warnings from legacy backend
+      /selly-legacy-nextjs-backend/,
     ];
 
     // Production optimizations

@@ -37,6 +37,8 @@
   "exclude": [
     "node_modules",
     "selly-legacy-nextjs-backend/**/*",
+    "**/selly-legacy-nextjs-backend/**/*",
+    "src/**/selly-legacy-nextjs-backend/**/*",
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/*.spec.ts",

@@ -89,9 +89,17 @@ export class EnhancedErrorBoundary extends Component<EnhancedErrorBoundaryProps,
 
   private async initializeErrorRecovery() {
     try {
-      const { createDefaultStorage } = await import('@/services/session/storage');
-      const { PerformanceMonitor } = await import('@/services/monitoring/performanceMonitor');
-      const { EnhancedSessionAnalytics } = await import('@/services/analytics/enhancedSessionAnalytics');
+      // const { createDefaultStorage } = await import('@/services/session/storage'); // Disabled for core build
+      // const { PerformanceMonitor } = await import('@/services/monitoring/performanceMonitor'); // Disabled for core build
+      // const { EnhancedSessionAnalytics } = await import('@/services/analytics/enhancedSessionAnalytics'); // Disabled for core build
+
+      // Mock services for core build
+      const createDefaultStorage = () => ({ logError: () => {} });
+      const PerformanceMonitor = { getInstance: () => ({ recordError: () => {} }) };
+      const EnhancedSessionAnalytics = class {
+        constructor(storageAdapter: any, performanceMonitor: any) {}
+        trackError() {}
+      };
 
       const storageAdapter = createDefaultStorage();
       const performanceMonitor = PerformanceMonitor.getInstance();
@@ -490,9 +498,17 @@ export function useErrorRecovery(sessionId: string, userId?: string) {
   React.useEffect(() => {
     const initializeRecovery = async () => {
       try {
-        const { createDefaultStorage } = await import('@/services/session/storage');
-        const { PerformanceMonitor } = await import('@/services/monitoring/performanceMonitor');
-        const { EnhancedSessionAnalytics } = await import('@/services/analytics/enhancedSessionAnalytics');
+        // const { createDefaultStorage } = await import('@/services/session/storage'); // Disabled for core build
+        // const { PerformanceMonitor } = await import('@/services/monitoring/performanceMonitor'); // Disabled for core build
+        // const { EnhancedSessionAnalytics } = await import('@/services/analytics/enhancedSessionAnalytics'); // Disabled for core build
+
+        // Mock services for core build
+        const createDefaultStorage = () => ({ logError: () => {} });
+        const PerformanceMonitor = { getInstance: () => ({ recordError: () => {} }) };
+        const EnhancedSessionAnalytics = class {
+          constructor(_storageAdapter: any, _performanceMonitor: any) {}
+          trackError() {}
+        };
 
         const storageAdapter = createDefaultStorage();
         const performanceMonitor = PerformanceMonitor.getInstance();

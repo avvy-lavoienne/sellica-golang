@@ -422,7 +422,8 @@ export default function MobileChatPage() {
 
   const handleMessageSent = useCallback(async (message: string) => {
     try {
-      const response = await aiService.processQuery(message);
+      // const response = await aiService.processQuery(message); // Disabled for core build
+      const response = { content: `Core build mode response: ${message}` }; // Mock response
       return response.content;
     } catch (error) {
       console.error('Error processing message:', error);

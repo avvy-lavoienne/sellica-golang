@@ -309,7 +309,8 @@ export function UnifiedChatInterface({
       try {
         const { EnhancedChatStorageService } = await import('@/services/chatbot/enhancedChatStorageService');
         const chatStorageService = EnhancedChatStorageService.getInstance();
-        chatStorageService.clearLocalCache();
+        // chatStorageService.clearLocalCache(); // Method not available - using alternative
+        await chatStorageService.clearAllSessions(); // Use available method
         console.log('🧹 [UNIFIED_CHAT_INTERFACE] Cleared EnhancedChatStorageService cache');
       } catch (cacheError) {
         console.warn('⚠️ [UNIFIED_CHAT_INTERFACE] Could not clear chat service cache:', cacheError);

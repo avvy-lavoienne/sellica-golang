@@ -14,6 +14,9 @@ package-lock.json
 /.next/
 /out/
 
+# turbo
+/.turbo/
+
 # production
 /build
 dist

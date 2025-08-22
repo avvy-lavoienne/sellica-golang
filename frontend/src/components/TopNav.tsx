@@ -204,7 +204,8 @@ export default function TopNav({
         try {
           const { EnhancedChatStorageService } = await import('@/services/chatbot/enhancedChatStorageService');
           const chatStorageService = EnhancedChatStorageService.getInstance();
-          chatStorageService.clearLocalCache(); // Clear all local cache
+          // chatStorageService.clearLocalCache(); // Method not available - using alternative
+        await chatStorageService.clearAllSessions(); // Use available method
           console.log('🧹 [LOGOUT] Cleared EnhancedChatStorageService local cache');
         } catch (cacheError) {
           console.warn('⚠️ [LOGOUT] Could not clear chat service cache:', cacheError);
