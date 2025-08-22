@@ -298,35 +298,42 @@ export class BackendIntegratedRouter {
    * Check if backend should be used
    */
   private shouldUseBackend(
-    queryAnalysis: any, 
-    backendHealthy: boolean, 
+    queryAnalysis: any,
+    backendHealthy: boolean,
     routingContext?: RoutingContext
   ): boolean {
     if (!backendHealthy) {
       return false;
     }
-    
+
+    // FORCE BACKEND FOR ALL QUERIES (100% routing)
+    // This ensures all chat requests go to the Golang backend for optimal performance
+    return true;
+
+    // Previous restrictive conditions commented out for 100% backend routing:
+    /*
     // Prioritize backend for Indonesian government queries
     if (queryAnalysis.isIndonesian && queryAnalysis.isGovernmentRelated) {
       return true;
     }
-    
+
     // Use backend for high-confidence Indonesian queries
     if (queryAnalysis.isIndonesian && queryAnalysis.confidence > this.BACKEND_PRIORITY_THRESHOLD) {
       return true;
     }
-    
+
     // Use backend for complex queries that benefit from specialized workers
     if (queryAnalysis.complexity === 'complex') {
       return true;
     }
-    
+
     // Check user preferences
     if (routingContext?.userPreferences?.preferBackend) {
       return true;
     }
-    
+
     return false;
+    */
   }
 
   /**
@@ -417,10 +424,10 @@ export class BackendIntegratedRouter {
       const response: AIResponse = {
         content: fallbackResult.response.content,
         type: fallbackResult.response.type || 'text',
-        confidence: fallbackResult.confidence,
-        model: fallbackResult.response.metadata?.modelUsed || 'Enhanced-Fallback',
         metadata: {
           ...fallbackResult.response.metadata,
+          confidence: fallbackResult.confidence,
+          model: fallbackResult.response.metadata?.modelUsed || 'Enhanced-Fallback',
           routingStrategy: 'fallback-first',
           routingDecision: routeDecision,
           serviceUsed: fallbackResult.serviceUsed,
@@ -459,10 +466,10 @@ export class BackendIntegratedRouter {
     return {
       content: fallbackResult.response.content,
       type: fallbackResult.response.type || 'text',
-      confidence: fallbackResult.confidence,
-      model: fallbackResult.response.metadata?.modelUsed || 'Enhanced-Fallback',
       metadata: {
         ...fallbackResult.response.metadata,
+        confidence: fallbackResult.confidence,
+        model: fallbackResult.response.metadata?.modelUsed || 'Enhanced-Fallback',
         routingStrategy: 'backend-fallback',
         routingDecision: routeDecision,
         serviceUsed: fallbackResult.serviceUsed,
@@ -479,11 +486,11 @@ export class BackendIntegratedRouter {
     return {
       content: 'Maaf, terjadi kesalahan sistem. Silakan coba lagi dalam beberapa saat atau hubungi administrator untuk bantuan.',
       type: 'text',
-      confidence: 0.1,
-      model: 'Ultimate-Fallback',
       metadata: {
+        confidence: 0.1,
+        model: 'Ultimate-Fallback',
         routingStrategy: 'ultimate-fallback',
-        error: true,
+        error: 'all_services_failed',
         fallbackReason: 'all_services_failed',
         query: query.substring(0, 50) + '...'
       }

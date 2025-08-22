@@ -38,7 +38,7 @@ export class Logger {
     );
     this.disabledComponents = new Set(
       process.env.LOG_DISABLED_COMPONENTS?.split(',').map(c => c.trim()) ??
-      (process.env.NODE_ENV === 'production' ? ['INDOBERT', 'TENSORFLOW', 'TRAINING_COLLECTOR', 'ANALYTICS', 'PERFORMANCE_MONITOR', 'CUSTOM_TRAINER', 'PREDICTIVE', 'PERSONALIZATION_AI', 'REAL_TIME_ANALYZER', 'CONTINUOUS_LEARNING', 'ADVANCED_NLP', 'RESPONSE_FORMATTER', 'ENHANCED_QUERY', 'HUGGINGFACE_SERVICE'] : [])
+      (process.env.NODE_ENV === 'production' ? ['INDOBERT', 'TENSORFLOW', 'TRAINING_COLLECTOR', 'ANALYTICS', 'PERFORMANCE_MONITOR', 'CUSTOM_TRAINER', 'PREDICTIVE', 'PERSONALIZATION_AI', 'REAL_TIME_ANALYZER', 'CONTINUOUS_LEARNING', 'ADVANCED_NLP', 'RESPONSE_FORMATTER', 'ENHANCED_QUERY', 'HUGGINGFACE_SERVICE', 'BACKEND'] : [])
     );
   }
 
@@ -138,7 +138,7 @@ export class Logger {
   }
 
   // Convenience methods for AI/ML components
-  public aiLog(component: 'INDOBERT' | 'TENSORFLOW' | 'TRAINING_COLLECTOR' | 'ANALYTICS' | 'PERFORMANCE_MONITOR' | 'CUSTOM_TRAINER' | 'PREDICTIVE' | 'PERSONALIZATION_AI' | 'REAL_TIME_ANALYZER' | 'CONTINUOUS_LEARNING' | 'ADVANCED_NLP' | 'RESPONSE_FORMATTER' | 'ENHANCED_QUERY' | 'HUGGINGFACE_SERVICE',
+  public aiLog(component: 'INDOBERT' | 'TENSORFLOW' | 'TRAINING_COLLECTOR' | 'ANALYTICS' | 'PERFORMANCE_MONITOR' | 'CUSTOM_TRAINER' | 'PREDICTIVE' | 'PERSONALIZATION_AI' | 'REAL_TIME_ANALYZER' | 'CONTINUOUS_LEARNING' | 'ADVANCED_NLP' | 'RESPONSE_FORMATTER' | 'ENHANCED_QUERY' | 'HUGGINGFACE_SERVICE' | 'BACKEND',
                level: 'info' | 'warn' | 'error' | 'debug',
                message: string,
                metadata?: Record<string, any>): void {
@@ -270,5 +270,11 @@ export const aiLogger = {
     warn: (message: string, metadata?: Record<string, any>) => logger.aiLog('HUGGINGFACE_SERVICE', 'warn', message, metadata),
     error: (message: string, metadata?: Record<string, any>) => logger.aiLog('HUGGINGFACE_SERVICE', 'error', message, metadata),
     debug: (message: string, metadata?: Record<string, any>) => logger.aiLog('HUGGINGFACE_SERVICE', 'debug', message, metadata),
+  },
+  backend: {
+    info: (message: string, metadata?: Record<string, any>) => logger.aiLog('BACKEND', 'info', message, metadata),
+    warn: (message: string, metadata?: Record<string, any>) => logger.aiLog('BACKEND', 'warn', message, metadata),
+    error: (message: string, metadata?: Record<string, any>) => logger.aiLog('BACKEND', 'error', message, metadata),
+    debug: (message: string, metadata?: Record<string, any>) => logger.aiLog('BACKEND', 'debug', message, metadata),
   }
 };

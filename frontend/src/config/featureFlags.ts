@@ -416,8 +416,8 @@ export const PHASE_3_BACKEND_FEATURES: Record<string, FeatureFlagConfig> = {
     name: 'Backend AI Integration',
     description: 'Enable Phase 3 high-performance backend AI service integration',
     enabled: true,
-    rolloutPercentage: 5, // Start with 5% rollout
-    userSegments: ['beta_testers', 'developers'],
+    rolloutPercentage: 100, // Changed from 5 to 100 for full backend integration
+    userSegments: ['all'], // Changed from ['beta_testers', 'developers'] to ['all']
     environment: 'development',
     metadata: {
       phase: 3,

@@ -110,7 +110,8 @@ export class EnhancedAuthService {
         throw new Error('User client not initialized');
       }
 
-      const { data: { user, session }, error } = await this.userClient.auth.getUser();
+      const { data: { user }, error } = await this.userClient.auth.getUser();
+      const { data: { session } } = await this.userClient.auth.getSession();
 
       if (error) {
         this.logger.warn('Auth context error:', error.message);

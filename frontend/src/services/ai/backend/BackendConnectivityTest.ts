@@ -259,11 +259,11 @@ export class BackendConnectivityTest {
 
       return {
         testName: 'Backend Health Check',
-        success: healthStatus.healthy,
+        success: healthStatus.available,
         responseTime,
         metadata: {
-          healthy: healthStatus.healthy,
-          lastCheck: healthStatus.lastCheck
+          healthy: healthStatus.available,
+          lastCheck: healthStatus.lastChecked
         }
       };
 
@@ -288,7 +288,7 @@ export class BackendConnectivityTest {
       const response = await this.backendService.processQuery(testQuery);
       const responseTime = performance.now() - startTime;
 
-      const success = !!(response && response.content && response.confidence > 0);
+      const success = !!(response && response.content && (response.metadata?.confidence || 0) > 0);
 
       return {
         testName: 'Basic Query Processing',
@@ -296,8 +296,8 @@ export class BackendConnectivityTest {
         responseTime,
         metadata: {
           hasContent: !!response.content,
-          confidence: response.confidence,
-          model: response.model,
+          confidence: response.metadata?.confidence,
+          model: response.metadata?.model,
           workerType: response.metadata?.workerType
         }
       };
@@ -324,9 +324,9 @@ export class BackendConnectivityTest {
       const responseTime = performance.now() - startTime;
 
       const success = !!(
-        response && 
-        response.content && 
-        response.confidence > 0.8 &&
+        response &&
+        response.content &&
+        (response.metadata?.confidence || 0) > 0.8 &&
         response.metadata?.workerType === 'nlp'
       );
 
@@ -336,7 +336,7 @@ export class BackendConnectivityTest {
         responseTime,
         metadata: {
           hasContent: !!response.content,
-          confidence: response.confidence,
+          confidence: response.metadata?.confidence,
           workerType: response.metadata?.workerType,
           routedToNLP: response.metadata?.workerType === 'nlp'
         }
@@ -447,7 +447,7 @@ export class BackendConnectivityTest {
         metadata: {
           hasAuthHeader: !!authHeaders.Authorization,
           hasContent: !!response.content,
-          confidence: response.confidence
+          confidence: response.metadata?.confidence
         }
       };
 
@@ -515,8 +515,8 @@ export class BackendConnectivityTest {
       const responses = await Promise.all(promises);
       const responseTime = performance.now() - startTime;
 
-      const success = responses.every(response => 
-        response && response.content && response.confidence > 0
+      const success = responses.every(response =>
+        response && response.content && (response.metadata?.confidence || 0) > 0
       );
 
       return {
@@ -526,7 +526,7 @@ export class BackendConnectivityTest {
         metadata: {
           concurrentQueries,
           successfulResponses: responses.filter(r => r && r.content).length,
-          averageConfidence: responses.reduce((sum, r) => sum + (r?.confidence || 0), 0) / responses.length
+          averageConfidence: responses.reduce((sum, r) => sum + (r?.metadata?.confidence || 0), 0) / responses.length
         }
       };
 

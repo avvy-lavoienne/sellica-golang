@@ -153,8 +153,19 @@ export class BackendCacheManager {
             cacheKey: cacheKey.substring(0, 20) + '...',
             age: Date.now() - l1Response.timestamp
           });
-          
-          return l1Response.response;
+
+          // Add cache metadata to response
+          const responseWithCacheMetadata = {
+            ...l1Response.response,
+            metadata: {
+              ...l1Response.response.metadata,
+              cacheTimestamp: l1Response.timestamp,
+              cacheLevel: 'L1' as const,
+              cacheAge: Date.now() - l1Response.timestamp
+            }
+          };
+
+          return responseWithCacheMetadata;
         }
         this.updateStats('l1', 'miss');
       }
@@ -173,8 +184,19 @@ export class BackendCacheManager {
             cacheKey: cacheKey.substring(0, 20) + '...',
             age: Date.now() - l2Response.timestamp
           });
-          
-          return l2Response.response;
+
+          // Add cache metadata to response
+          const responseWithCacheMetadata = {
+            ...l2Response.response,
+            metadata: {
+              ...l2Response.response.metadata,
+              cacheTimestamp: l2Response.timestamp,
+              cacheLevel: 'L2' as const,
+              cacheAge: Date.now() - l2Response.timestamp
+            }
+          };
+
+          return responseWithCacheMetadata;
         }
         this.updateStats('l2', 'miss');
       }
@@ -194,8 +216,19 @@ export class BackendCacheManager {
             cacheKey: cacheKey.substring(0, 20) + '...',
             age: Date.now() - l3Response.timestamp
           });
-          
-          return l3Response.response;
+
+          // Add cache metadata to response
+          const responseWithCacheMetadata = {
+            ...l3Response.response,
+            metadata: {
+              ...l3Response.response.metadata,
+              cacheTimestamp: l3Response.timestamp,
+              cacheLevel: 'L3' as const,
+              cacheAge: Date.now() - l3Response.timestamp
+            }
+          };
+
+          return responseWithCacheMetadata;
         }
         this.updateStats('l3', 'miss');
       }

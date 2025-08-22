@@ -16,6 +16,7 @@ import { sessionAnalyticsService } from '@/services/session/SessionAnalyticsServ
 import { crossDeviceSessionSync } from '@/services/session/CrossDeviceSessionSync';
 
 export async function POST(request: NextRequest) {
+  console.log('🚨 [API] ROUTE ENTRY - Using MODIFIED route with direct backend integration');
   const requestStartTime = performance.now();
 
   try {
@@ -135,11 +136,96 @@ export async function POST(request: NextRequest) {
 
     let response;
 
-    // OPTIMIZATION: Temporarily disable EnhancedSellyIntegration to consolidate response processing
-    // This ensures consistent response quality and proper Groq API integration for all users
-    const forceSimpleResponseService = true;
+    // OPTIMIZATION: Enable backend integration for 100% Golang backend routing
+    // This ensures optimal performance and proper backend integration for all users
+    const forceSimpleResponseService = false;
 
-    if (shouldUseEnhancedFallback) {
+    // FORCE 100% BACKEND INTEGRATION - Direct Go Backend Call
+    // ALWAYS use backend - bypass all conditions
+    const useBackendIntegration = true; // Force to true
+
+    console.log('🔍 [API] Backend integration check:', {
+      useBackendIntegration,
+      forceSimpleResponseService,
+      featureFlag: isFeatureEnabled('enableBackendIntegration'),
+      envVar: process.env.NEXT_PUBLIC_FORCE_BACKEND_INTEGRATION
+    });
+
+    if (useBackendIntegration && !forceSimpleResponseService) {
+      console.log('✅ [API] Condition met - proceeding with backend integration');
+      try {
+        console.log('🚀 [API] FORCING direct Go backend call');
+
+        // Direct call to Go backend (bypass complex routing)
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+        const backendEndpoint = `${backendUrl}/chat`;
+
+        console.log('🎯 [API] Calling Go backend directly:', backendEndpoint);
+
+        const backendResponse = await fetch(backendEndpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent': 'SELLY-Frontend-API/1.0',
+            'X-Request-Source': 'main-api-route'
+          },
+          body: JSON.stringify({
+            message,
+            context,
+            sessionId: consistentSessionId,
+            enhancementMode: enhancementMode || 'standard'
+          }),
+          signal: AbortSignal.timeout(30000) // 30 second timeout
+        });
+
+        if (!backendResponse.ok) {
+          throw new Error(`Backend responded with status: ${backendResponse.status}`);
+        }
+
+        const backendResult = await backendResponse.json();
+        const totalProcessingTime = performance.now() - requestStartTime;
+
+        console.log('✅ [API] Direct Go backend response received:', {
+          status: backendResponse.status,
+          processingTime: totalProcessingTime,
+          hasContent: !!backendResult.content || !!backendResult.response
+        });
+
+        // IMMEDIATELY RETURN Go backend response
+        return NextResponse.json({
+          success: true,
+          response: backendResult.content || backendResult.response || backendResult.message,
+          type: backendResult.type || 'text',
+          metadata: {
+            source: 'golang-backend-direct',
+            totalProcessingTime,
+            backendProcessingTime: backendResult.processingTime,
+            apiVersion: 'direct-backend-v1.0',
+            timestamp: new Date().toISOString(),
+            sessionId: consistentSessionId,
+            userId: authContext.isAuthenticated ? authContext.userId : undefined,
+            isAuthenticated: authContext.isAuthenticated,
+            backendUrl: backendEndpoint
+          }
+        });
+
+      } catch (backendError) {
+        console.warn('⚠️ [API] Direct backend call failed, using fallback:', {
+          error: backendError instanceof Error ? backendError.message : 'Unknown error',
+          backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL
+        });
+        response = null; // Will trigger fallback logic below
+      }
+    } else {
+      console.log('❌ [API] Backend integration condition NOT met:', {
+        useBackendIntegration,
+        forceSimpleResponseService,
+        condition: useBackendIntegration && !forceSimpleResponseService
+      });
+    }
+
+    // If no backend response, continue with existing fallback logic
+    if (!response && shouldUseEnhancedFallback) {
       // Use Enhanced Fallback Service when TensorFlow/IndoBERT are disabled
       console.log('🚀 [TENSORFLOW_REMOVAL] Using Enhanced Fallback Service (TensorFlow/IndoBERT bypassed)...');
       const enhancedFallbackService = getEnhancedFallbackService();

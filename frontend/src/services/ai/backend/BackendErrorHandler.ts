@@ -311,10 +311,10 @@ export class BackendErrorHandler {
       const response: AIResponse = {
         content: fallbackResult.response.content,
         type: fallbackResult.response.type || 'text',
-        confidence: fallbackResult.confidence,
-        model: fallbackResult.response.metadata?.modelUsed || 'Enhanced-Fallback',
         metadata: {
           ...fallbackResult.response.metadata,
+          confidence: fallbackResult.confidence,
+          model: fallbackResult.response.metadata?.modelUsed || 'Enhanced-Fallback',
           fallbackUsed: true,
           originalError: originalError?.code,
           serviceUsed: fallbackResult.serviceUsed,
@@ -352,9 +352,9 @@ export class BackendErrorHandler {
     const response: AIResponse = {
       content: 'Maaf, terjadi kesalahan sistem. Silakan coba lagi dalam beberapa saat atau hubungi administrator untuk bantuan.',
       type: 'text',
-      confidence: 0.1,
-      model: 'Ultimate-Fallback',
       metadata: {
+        confidence: 0.1,
+        model: 'Ultimate-Fallback',
         fallbackUsed: true,
         ultimateFallback: true,
         originalError: originalError?.code,
@@ -422,8 +422,8 @@ export class BackendErrorHandler {
     success: boolean
   ): void {
     this.performanceMonitor.recordMetric(
-      'error_handling',
-      'backend-error-handler',
+      'response_time',
+      'ai_service',
       handlingTime,
       'ms',
       {

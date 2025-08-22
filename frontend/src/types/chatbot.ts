@@ -173,7 +173,6 @@ export interface AIResponse {
     errorHandled?: boolean;
     errorType?: string;
     fallbackMode?: boolean;
-    fallbackReason?: string;
     processingTime?: number;
     severity?: string;
     retryable?: boolean;
@@ -192,6 +191,33 @@ export interface AIResponse {
     serviceType?: string;
     bypassedAI?: boolean;
     fastResponse?: boolean;
+    // Cache metadata
+    cacheTimestamp?: number;
+    cacheLevel?: 'L1' | 'L2' | 'L3';
+    cacheAge?: number;
+    // Backend worker metadata
+    workerType?: 'simple' | 'complex' | 'nlp' | 'learning';
+    source?: string;
+    backendProcessingTime?: number;
+    totalProcessingTime?: number;
+    sessionId?: string;
+    provider?: string;
+    serviceUsed?: string;
+    routingStrategy?: string;
+    messageCount?: number;
+    optimized?: boolean;
+    connectionPooled?: boolean;
+    batched?: boolean;
+    loadBalanced?: boolean;
+    originalError?: string;
+    handlingStrategy?: string;
+    ultimateFallback?: boolean;
+    query?: string;
+    timestamp?: string;
+    routingDecision?: any;
+    fallbackReason?: string;
+    updatedContext?: any;
+    sessionContext?: any;
   };
 }
 

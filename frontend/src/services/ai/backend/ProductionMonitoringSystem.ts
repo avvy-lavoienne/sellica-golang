@@ -275,8 +275,8 @@ export class ProductionMonitoringSystem {
     return {
       performance: {
         averageResponseTime: performanceMetrics?.highPerformance.averageResponseTime || 0,
-        p95ResponseTime: performanceMetrics?.highPerformance.averageResponseTime * 1.5 || 0,
-        p99ResponseTime: performanceMetrics?.highPerformance.averageResponseTime * 2 || 0,
+        p95ResponseTime: (performanceMetrics?.highPerformance.averageResponseTime || 0) * 1.5,
+        p99ResponseTime: (performanceMetrics?.highPerformance.averageResponseTime || 0) * 2,
         throughput: performanceMetrics?.highPerformance.requestsPerSecond || 0,
         errorRate: performanceMetrics?.highPerformance.errorRate || 0
       },

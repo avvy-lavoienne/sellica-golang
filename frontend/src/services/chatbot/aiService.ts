@@ -304,26 +304,43 @@ export class AIService {
    * Process user query and generate response
    */
   async processQuery(query: string, context?: any): Promise<AIResponse> {
-    // Phase 3: Check if backend integration is enabled
-    if (isFeatureEnabled('enableBackendIntegration')) {
+    // Phase 3: Force backend integration for all queries (100% routing)
+    const forceBackendIntegration = process.env.NEXT_PUBLIC_FORCE_BACKEND_INTEGRATION === 'true' ||
+                                    isFeatureEnabled('enableBackendIntegration');
+
+    if (forceBackendIntegration) {
       try {
         // Initialize backend router if not already done
         if (!AIService.backendRouter) {
           AIService.backendRouter = new BackendIntegratedRouter();
         }
 
-        // Route query through backend integration
-        const backendResponse = await AIService.backendRouter.routeQuery(query, context);
+        console.log('🚀 [AI_SERVICE] Forcing backend integration for query processing');
 
-        // If backend response is successful, return it
-        if (backendResponse && backendResponse.content) {
+        // Route query through backend integration with preference for backend
+        const backendResponse = await AIService.backendRouter.routeQuery(query, {
+          ...context,
+          userPreferences: { preferBackend: true },
+          forceBackend: true
+        });
+
+        // Always return backend response if available (no fallback conditions)
+        if (backendResponse) {
+          console.log('✅ [AI_SERVICE] Backend response received:', {
+            type: backendResponse.type,
+            hasContent: !!backendResponse.content,
+            source: backendResponse.metadata?.source
+          });
           return backendResponse;
         }
 
         // If backend fails, fall through to existing logic
       } catch (backendError) {
         // Log backend error and fall through to existing logic
-        console.warn('Backend integration failed, falling back to frontend processing:', backendError);
+        console.warn('⚠️ [AI_SERVICE] Backend integration failed, using fallback:', {
+          error: backendError instanceof Error ? backendError.message : 'Unknown error',
+          query: query.substring(0, 50) + '...'
+        });
       }
     }
 

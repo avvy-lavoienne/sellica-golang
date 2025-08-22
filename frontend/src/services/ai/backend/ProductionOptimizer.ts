@@ -535,10 +535,10 @@ export class ProductionOptimizer {
     return {
       content: data.response || data.content || '',
       type: data.type || 'text',
-      confidence: data.confidence || 0.8,
-      model: data.model || 'Backend-Production',
       metadata: {
         ...data.metadata,
+        confidence: data.confidence || 0.8,
+        model: data.model || 'Backend-Production',
         optimized: true,
         connectionPooled: this.config.connectionPooling.enabled,
         batched: this.config.requestBatching.enabled,

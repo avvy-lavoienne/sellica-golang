@@ -5,7 +5,7 @@
  */
 
 import { AIResponse } from '@/types/chatbot';
-import { AIProvider, ProviderCapabilities } from '@/types/aiProvider';
+import { AIProvider, ProviderCapabilities, ProviderHealthStatus, ProcessedQuery, ProviderResponse } from '@/types/aiProvider';
 import { aiLogger } from '../../monitoring/logger';
 import { PerformanceMonitor } from '../../monitoring/performanceMonitor';
 import { createClient } from '@/lib/conn/client';
@@ -63,6 +63,8 @@ export class BackendAIService implements AIProvider {
   private isHealthy: boolean = true;
   private lastHealthCheck: number = 0;
   private readonly HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
+  private averageResponseTime: number = 0;
+  private errorRate: number = 0;
 
   constructor(config?: Partial<BackendAuthConfig>) {
     this.config = {
@@ -83,6 +85,36 @@ export class BackendAIService implements AIProvider {
   }
 
   /**
+   * Check if backend AI service is available
+   */
+  async isAvailable(): Promise<boolean> {
+    try {
+      await this.ensureBackendHealth();
+      return this.isHealthy;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Process query using AIProvider interface
+   */
+  async process(query: ProcessedQuery, context?: any): Promise<ProviderResponse> {
+    const response = await this.processQuery(query.originalQuery, context);
+    return {
+      success: true,
+      response,
+      metadata: {
+        providerId: this.id,
+        processingTime: response.metadata?.totalProcessingTime || 0,
+        confidence: response.metadata?.confidence || 0,
+        cached: response.metadata?.cacheLevel !== undefined,
+        fallbackUsed: false
+      }
+    };
+  }
+
+  /**
    * Process query with backend AI engine
    */
   async processQuery(query: string, context?: any): Promise<AIResponse> {
@@ -91,7 +123,11 @@ export class BackendAIService implements AIProvider {
 
     try {
       // Start performance monitoring
-      this.performanceMonitor.startAIOperation(operationId, 'backend', query);
+      this.performanceMonitor.startAIOperation(operationId, {
+        provider: 'backend',
+        query: query.substring(0, 100) + (query.length > 100 ? '...' : ''),
+        queryLength: query.length
+      });
 
       // Check cache first
       const cachedResponse = await this.cacheManager.getCachedResponse(query, context);
@@ -100,7 +136,8 @@ export class BackendAIService implements AIProvider {
 
         aiLogger.backend.debug('🎯 Cache hit for backend query', {
           query: query.substring(0, 50) + '...',
-          cacheAge: Date.now() - (cachedResponse.metadata?.timestamp || 0)
+          cacheAge: cachedResponse.metadata?.cacheAge || 0,
+          cacheLevel: cachedResponse.metadata?.cacheLevel || 'unknown'
         });
 
         return cachedResponse;
@@ -133,7 +170,7 @@ export class BackendAIService implements AIProvider {
         query: query.substring(0, 50) + '...',
         processingTime: aiResponse.metadata?.processingTime,
         workerType: aiResponse.metadata?.workerType,
-        confidence: aiResponse.confidence
+        confidence: aiResponse.metadata?.confidence
       });
 
       return aiResponse;
@@ -165,7 +202,12 @@ export class BackendAIService implements AIProvider {
     
     try {
       // Start performance monitoring
-      this.performanceMonitor.startAIOperation(operationId, 'backend-session', query);
+      this.performanceMonitor.startAIOperation(operationId, {
+        provider: 'backend-session',
+        query: query.substring(0, 100) + (query.length > 100 ? '...' : ''),
+        queryLength: query.length,
+        sessionId
+      });
       
       // Check backend health
       await this.ensureBackendHealth();
@@ -335,15 +377,29 @@ export class BackendAIService implements AIProvider {
   ): AIResponse {
     const processingTime = performance.now() - startTime;
     
+    // Ensure type is valid
+    const validTypes: Array<"text" | "data" | "chart" | "table" | "administrative"> =
+      ["text", "data", "chart", "table", "administrative"];
+    const responseType = validTypes.includes(backendResponse.type as any)
+      ? (backendResponse.type as "text" | "data" | "chart" | "table" | "administrative")
+      : "text";
+
+    // Ensure workerType is valid
+    const validWorkerTypes: Array<"simple" | "complex" | "nlp" | "learning"> =
+      ["simple", "complex", "nlp", "learning"];
+    const workerType = validWorkerTypes.includes(backendResponse.workerType as any)
+      ? (backendResponse.workerType as "simple" | "complex" | "nlp" | "learning")
+      : undefined;
+
     return {
       content: backendResponse.message || 'No response from backend',
-      type: backendResponse.type || 'text',
-      confidence: backendResponse.confidence || 0.9,
-      model: backendResponse.model || 'SELLY-Backend-AI',
+      type: responseType,
       metadata: {
         ...backendResponse.metadata,
+        confidence: backendResponse.confidence || 0.9,
+        model: backendResponse.model || 'SELLY-Backend-AI',
         source: 'backend-high-performance',
-        workerType: backendResponse.workerType,
+        workerType: workerType,
         backendProcessingTime: backendResponse.processingTime,
         totalProcessingTime: processingTime,
         sessionId: backendResponse.sessionId,
@@ -397,10 +453,12 @@ export class BackendAIService implements AIProvider {
   /**
    * Get backend health status
    */
-  async getHealthStatus(): Promise<{ healthy: boolean; lastCheck: number }> {
+  async getHealthStatus(): Promise<ProviderHealthStatus> {
     return {
-      healthy: this.isHealthy,
-      lastCheck: this.lastHealthCheck
+      available: this.isHealthy,
+      responseTime: this.averageResponseTime || 0,
+      errorRate: this.errorRate || 0,
+      lastChecked: new Date(this.lastHealthCheck)
     };
   }
 
