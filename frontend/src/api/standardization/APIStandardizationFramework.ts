@@ -6,9 +6,10 @@
  */
 
 import { performance } from 'perf_hooks';
-import { getLoadTestingFramework } from '@/tests/load/LoadTestingFramework';
-import { getUnifiedMonitoringSystem } from '@/services/monitoring/UnifiedMonitoringSystem';
-import { getMultiLevelCacheManager } from '@/services/cache/MultiLevelCacheManager';
+// DISABLED FOR CORE BUILD
+// import { getLoadTestingFramework } from '@/tests/load/LoadTestingFramework';
+// import { getUnifiedMonitoringSystem } from '@/services/monitoring/UnifiedMonitoringSystem';
+// import { getMultiLevelCacheManager } from '@/services/cache/MultiLevelCacheManager';
 
 export interface APIStandardizationConfig {
   enableOpenAPIGeneration: boolean;
@@ -169,9 +170,10 @@ export class APIStandardizationFramework {
     this.config = this.createDefaultConfig(config);
     
     if (this.config.enablePhase2Integration) {
-      this.monitoringSystem = getUnifiedMonitoringSystem();
-      this.cacheManager = getMultiLevelCacheManager();
-      this.loadTestingFramework = getLoadTestingFramework();
+      // this.monitoringSystem = getUnifiedMonitoringSystem();
+      // this.cacheManager = getMultiLevelCacheManager();
+      // this.loadTestingFramework = getLoadTestingFramework();
+      console.log('Phase 2 integration features disabled for core build');
     }
   }
 

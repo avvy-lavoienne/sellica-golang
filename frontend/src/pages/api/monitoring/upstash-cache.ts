@@ -5,8 +5,8 @@
  */
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import { UpstashCacheService } from '../../../services/cache/upstashCacheService';
-import { UpstashCacheServiceSingleton } from '../../../services/cache/UpstashCacheServiceFactory';
+// import { UpstashCacheService } from '../../../services/cache/upstashCacheService';
+// import { UpstashCacheServiceSingleton } from '../../../services/cache/UpstashCacheServiceFactory';
 
 interface CacheApiResponse {
   success: boolean;

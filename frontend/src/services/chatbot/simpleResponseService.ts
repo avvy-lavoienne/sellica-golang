@@ -19,35 +19,43 @@ import { SERVICE_TOKENS } from '../core/ServiceTokens';
 // Core service types (for type safety)
 import type { PersonaService, ConversationContext } from './personaService';
 import type { KnowledgeService } from './knowledgeService';
-import type { PerformanceMonitor } from '../monitoring/performanceMonitor';
+import type { PerformanceMonitor } from './utils/PerformanceMonitor';
 
 // Phase 1 Priority 2: IntelligenceLayer integration
 import type { IntelligenceLayer } from '../core/IntelligenceLayer';
 
 // Essential imports (reduced from 50+ to <20)
-import { getTrainingDataCollector } from './trainingDataCollector';
+// DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// import { getTrainingDataCollector } from '../../../selly-legacy-nextjs-backend/business-logic/training/trainingDataCollector';
 import { AdministrativeResponseCache } from './administrativeResponseCache';
 import { EnhancedUserContextService } from './enhancedUserContextService';
-import { EnhancedChatStorageService } from './enhancedChatStorageService';
-import { UnifiedCacheKeyGenerator, CacheKeyMetricsCollector } from '../cache/UnifiedCacheKeyGenerator';
+// import { EnhancedChatStorageService } from './enhancedChatStorageService';
+// import { UnifiedCacheKeyGenerator, CacheKeyMetricsCollector } from '../cache/UnifiedCacheKeyGenerator';
 import { EnhancedConversationContextManager } from './enhancedConversationContextManager';
 import { EnhancedResponsePersonalizationService } from './enhancedResponsePersonalizationService';
-import { SessionContinuityManager } from './sessionContinuityManager';
-import { CrossDeviceSyncService } from './crossDeviceSyncService';
-import { AnalyticsDashboardService } from './analyticsDashboardService';
-import { UpstashCacheService } from '../cache/upstashCacheService';
-import { UpstashCacheServiceSingleton } from '../cache/UpstashCacheServiceFactory';
-import { CachePerformanceMonitor } from '../cache/cachePerformanceMonitor';
-import { IndonesianLanguageCache } from '../cache/indonesianLanguageCache';
-import { EnhancedCacheManager } from '../cache/EnhancedCacheManager';
-import { PatternRecognitionEngine } from '../cache/PatternRecognitionEngine';
-import { CacheWarmingOrchestrator } from '../cache/CacheWarmingOrchestrator';
-import { aiLogger } from '../monitoring/logger';
-import { Phase2Priority1Integration } from '../ai/phase2Priority1Integration';
-import { CustomModelTrainer } from '../ai/customModelTrainer';
-import { ContinuousLearningEngine } from '../ai/continuousLearningEngine';
-import { AdvancedIndonesianNLP } from '../ai/advancedIndonesianNLP';
-import { GroqResponseEnhancer } from './groqResponseEnhancer';
+// import { SessionContinuityManager } from './sessionContinuityManager';
+// import { CrossDeviceSyncService } from './crossDeviceSyncService';
+// import { AnalyticsDashboardService } from './analyticsDashboardService';
+// import { UpstashCacheService } from '../cache/upstashCacheService';
+// import { UpstashCacheServiceSingleton } from '../cache/UpstashCacheServiceFactory';
+// import { CachePerformanceMonitor } from '../cache/cachePerformanceMonitor';
+// import { IndonesianLanguageCache } from '../cache/indonesianLanguageCache';
+// import { EnhancedCacheManager } from '../cache/EnhancedCacheManager';
+// import { PatternRecognitionEngine } from '../cache/PatternRecognitionEngine';
+// import { CacheWarmingOrchestrator } from '../cache/CacheWarmingOrchestrator';
+// import { aiLogger } from '../monitoring/logger';
+// import { Phase2Priority1Integration } from '../ai/phase2Priority1Integration';
+// DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// import { CustomModelTrainer } from '../../../selly-legacy-nextjs-backend/business-logic/ai/customModelTrainer';
+// DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// import { ContinuousLearningEngine } from '../../../selly-legacy-nextjs-backend/business-logic/ai/continuousLearningEngine';
+// DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// import { AdvancedIndonesianNLP } from '../../../selly-legacy-nextjs-backend/business-logic/ai/advancedIndonesianNLP';
+// import { GroqResponseEnhancer } from './groqResponseEnhancer';
 import { AIResponse } from '@/types/chatbot';
 
 export interface SimpleResponseResult extends AIResponse {
@@ -212,7 +220,7 @@ export class SimpleResponseService {
         console.log('🔧 [SIMPLE_RESPONSE_SERVICE] Resolved PerformanceMonitor via container');
       } else {
         // Fallback for backward compatibility
-        const { PerformanceMonitor } = require('../monitoring/performanceMonitor');
+        const { PerformanceMonitor } = require('./utils/PerformanceMonitor');
         this._performanceMonitor = PerformanceMonitor.getInstance();
         console.log('⚠️ [SIMPLE_RESPONSE_SERVICE] Fallback PerformanceMonitor instantiation (no container)');
       }

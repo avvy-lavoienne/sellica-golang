@@ -6,7 +6,7 @@
  * fallback generation time from 2.1s to <500ms
  */
 
-import { PerformanceMonitor } from '../monitoring/performanceMonitor';
+import { PerformanceMonitor } from './utils/PerformanceMonitor';
 
 export interface CachedResponse {
   id: string;

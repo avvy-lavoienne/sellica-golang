@@ -7,8 +7,8 @@ import { additionalServices, servicePatterns } from './additionalServices';
 import { casualPatternGenerator } from './casualPatternGenerator';
 import { documentConfigurations } from './documentConfigurations';
 import { serviceResponseVariations } from './serviceResponseVariations';
-import { MultiServiceQueryAnalyzer, QueryAnalysisResult } from './multiServiceQueryAnalyzer';
-import { MultiServiceResponseSynthesizer, SynthesisOptions } from './multiServiceResponseSynthesizer';
+// import { MultiServiceQueryAnalyzer, QueryAnalysisResult } from './multiServiceQueryAnalyzer';
+// import { MultiServiceResponseSynthesizer, SynthesisOptions } from './multiServiceResponseSynthesizer';
 
 export interface DocumentRequirement {
   name: string;

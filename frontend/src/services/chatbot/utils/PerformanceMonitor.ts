@@ -5,7 +5,7 @@
  */
 
 import { QueryComplexity } from '../core/UnifiedAIService';
-import { aiLogger } from '../../monitoring/logger';
+// import { aiLogger } from '../../monitoring/logger';
 
 export interface QueryMetrics {
   queryId: string;

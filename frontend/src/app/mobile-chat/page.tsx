@@ -15,7 +15,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { UnifiedChatProvider, useUnifiedChat } from '@/contexts/UnifiedChatContext';
 import { EnhancedChatMessage } from '@/components/chatbot/EnhancedChatMessage';
 import { MobileNavigation } from '@/components/mobile/MobileNavigation';
-import { aiService } from '@/services/chatbot/aiService';
+// DISABLED FOR CORE BUILD - Using simplified chat functionality
+// // DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// import { aiService } from '../../../selly-legacy-nextjs-backend/business-logic/chatbot/core/aiService';
 import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
 import { cn } from '@/lib/conn/utils';
 

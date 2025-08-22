@@ -13,22 +13,22 @@ import { SERVICE_TOKENS, SERVICE_DEPENDENCIES, SERVICE_PRIORITIES } from './Serv
 import { KnowledgeService } from '../chatbot/knowledgeService';
 import { PersonaService } from '../chatbot/personaService';
 import { SimpleResponseService } from '../chatbot/simpleResponseService';
-import { PerformanceMonitor } from '../monitoring/performanceMonitor';
-import { UpstashCacheService } from '../cache/upstashCacheService';
-import { EnhancedChatStorageService } from '../chatbot/enhancedChatStorageService';
+import { PerformanceMonitor } from '../chatbot/utils/PerformanceMonitor';
+// import { UpstashCacheService } from '../cache/upstashCacheService';
+// import { EnhancedChatStorageService } from '../chatbot/enhancedChatStorageService';
 
 // Phase 1 Priority 2: Import IntelligenceLayer
 import { IntelligenceLayer } from './IntelligenceLayer';
 
 // Phase 3 Security: Import compliance services
-import { ConsentManagementSystem } from '../compliance/ConsentManagementSystem';
+// import { ConsentManagementSystem } from '../compliance/ConsentManagementSystem';
 
 // Phase 3 Week 19-20: Import encryption services
-import { GovernmentGradeEncryption } from '../security/GovernmentGradeEncryption';
+// import { GovernmentGradeEncryption } from '../security/GovernmentGradeEncryption';
 
 // Phase 3 Week 21-22: Import audit services
-import { GovernmentAuditTrail } from '../audit/GovernmentAuditTrail';
-import { DigitalSignatureService } from '../security/DigitalSignatureService';
+// import { GovernmentAuditTrail } from '../audit/GovernmentAuditTrail';
+// import { DigitalSignatureService } from '../security/DigitalSignatureService';
 
 // Import Indonesian Data Protection Service (lazy loading)
 function getIndonesianDataProtectionService() {
@@ -109,7 +109,7 @@ function registerCriticalServices(container: ServiceContainer): void {
     SERVICE_TOKENS.UpstashCacheService,
     () => {
       console.log('🏗️ [SERVICE_REGISTRATION] Creating UpstashCacheService...');
-      const { UpstashCacheServiceSingleton } = require('../cache/UpstashCacheServiceFactory');
+      // const { UpstashCacheServiceSingleton } = require('../cache/UpstashCacheServiceFactory');
       return UpstashCacheServiceSingleton.getInstance('unified');
     },
     {

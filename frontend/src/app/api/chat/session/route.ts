@@ -4,8 +4,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { EnhancedSimpleResponseService } from '@/services/session/enhancedSimpleResponseService';
-import { UnifiedSessionManager } from '@/services/session/unifiedSessionManager';
+// import { EnhancedSimpleResponseService } from '@/services/session/enhancedSimpleResponseService';
+// DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// import { UnifiedSessionManager } from '../../../../../selly-legacy-nextjs-backend/business-logic/session/session/unifiedSessionManager';
 
 const enhancedResponseService = EnhancedSimpleResponseService.getInstance();
 const sessionManager = UnifiedSessionManager.getInstance();

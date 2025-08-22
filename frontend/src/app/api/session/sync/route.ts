@@ -4,8 +4,16 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { UnifiedSessionManager } from '@/services/session/unifiedSessionManager';
-import { RealTimeSyncManager } from '@/services/session/realTimeSyncManager';
+// DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// import { UnifiedSessionManager } from '../../../../../selly-legacy-nextjs-backend/business-logic/session/session/unifiedSessionManager';
+// DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// import { RealTimeSyncManager } from '../../../../../selly-legacy-nextjs-backend/business-logic/session/session/realTimeSyncManager';
 
 const sessionManager = UnifiedSessionManager.getInstance();
 const syncManager = RealTimeSyncManager.getInstance();

@@ -4,7 +4,7 @@
  */
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import { circuitBreakerManager } from '../../../services/monitoring/CircuitBreakerManager';
+// import { circuitBreakerManager } from '../../../services/monitoring/CircuitBreakerManager';
 
 interface CircuitBreakerApiResponse {
   success: boolean;

@@ -17,7 +17,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { UnifiedChatProvider, useUnifiedChat } from '@/contexts/UnifiedChatContext';
 import { EnhancedChatMessage } from '@/components/chatbot/EnhancedChatMessage';
 import { EnhancedSellyToggle } from '@/components/chatbot/EnhancedSellyToggle';
-import { aiService } from '@/services/chatbot/aiService';
+// DISABLED FOR CORE BUILD - Using simplified chat functionality
+// // DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// import { aiService } from '../../../selly-legacy-nextjs-backend/business-logic/chatbot/core/aiService';
 import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
 import { cn } from '@/lib/conn/utils';
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -600,7 +603,8 @@ export default function SellyAIPage() {
       // Second tier: Fallback to local AI processing
       try {
         console.log('🔄 [SELLY_AI_PAGE] Attempting local AI processing...');
-        const localResponse = await aiService.processQuery(message);
+        // DISABLED FOR CORE BUILD - Using mock response
+        const localResponse = { content: 'AI service not available in core build mode. Please use the basic chat functionality.' };
         if (localResponse && localResponse.content) {
           console.log('✅ [SELLY_AI_PAGE] Local AI processing successful');
           return localResponse.content;

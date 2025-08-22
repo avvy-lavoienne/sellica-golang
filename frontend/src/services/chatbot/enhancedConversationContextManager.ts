@@ -11,7 +11,7 @@
  */
 
 import { EnhancedUserContext, EnhancedUserContextService } from './enhancedUserContextService';
-import { EnhancedChatStorageService, ConversationMessage } from './enhancedChatStorageService';
+// import { EnhancedChatStorageService, ConversationMessage } from './enhancedChatStorageService';
 
 export interface ConversationMemory {
   recentTopics: string[];

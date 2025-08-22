@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { aiServiceTensorFlow } from '@/services/chatbot/aiServiceTensorFlow';
-import { PerformanceMonitor } from '@/services/chatbot/performanceMonitor';
-import { getWeek3Service } from '@/services/integration/week3Integration';
-import { getWeek5Integration } from '@/services/integration/week5Integration';
+// import { aiServiceTensorFlow } from '@/services/chatbot/aiServiceTensorFlow';
+import { PerformanceMonitor } from '@/services/chatbot/utils/PerformanceMonitor';
+// import { getWeek3Service } from '@/services/integration/week3Integration';
+// import { getWeek5Integration } from '@/services/integration/week5Integration';
 
 // Initialize performance monitor instance
 const performanceMonitor = new PerformanceMonitor();

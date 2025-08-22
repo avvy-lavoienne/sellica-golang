@@ -4,7 +4,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { UnifiedSessionManager } from '@/services/session/unifiedSessionManager';
+// DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// import { UnifiedSessionManager } from '../../../../../selly-legacy-nextjs-backend/business-logic/session/session/unifiedSessionManager';
 
 const sessionManager = UnifiedSessionManager.getInstance();
 

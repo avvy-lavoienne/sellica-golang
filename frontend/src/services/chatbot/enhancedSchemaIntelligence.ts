@@ -6,7 +6,7 @@
 
 import { schemaLoader } from "./schemaLoader";
 import PengajuanBulananIntelligence from './pengajuanBulananIntelligence';
-import { ContextualEntityRecognition, ContextualQuery } from './contextualEntityRecognition';
+// import { ContextualEntityRecognition, ContextualQuery } from './contextualEntityRecognition';
 
 export interface DeepColumnIntelligence {
   columnName: string;

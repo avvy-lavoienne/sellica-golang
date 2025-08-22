@@ -11,7 +11,7 @@
  */
 
 import { EnhancedUserContext, EnhancedUserContextService } from './enhancedUserContextService';
-import { SessionContinuityManager } from './sessionContinuityManager';
+// import { SessionContinuityManager } from './sessionContinuityManager';
 
 export interface SmartGreetingContext {
   isFirstInteraction: boolean;

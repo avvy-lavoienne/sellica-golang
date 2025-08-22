@@ -11,9 +11,9 @@
 import { RobustSingleton } from './RobustSingleton';
 
 // Phase 3 Cache Warming Optimization imports
-import { IntelligentCacheWarmer } from '../cache/IntelligentCacheWarmer';
-import { CacheWarmingScheduler } from '../cache/CacheWarmingScheduler';
-import { PredictiveCacheAnalyzer } from '../cache/PredictiveCacheAnalyzer';
+// import { IntelligentCacheWarmer } from '../cache/IntelligentCacheWarmer';
+// import { CacheWarmingScheduler } from '../cache/CacheWarmingScheduler';
+// import { PredictiveCacheAnalyzer } from '../cache/PredictiveCacheAnalyzer';
 
 export interface ServiceDependency {
   serviceName: string;

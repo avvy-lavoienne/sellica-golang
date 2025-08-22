@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { PerformanceMonitor } from '@/services/chatbot/performanceMonitor';
-import { metricsCollector } from '@/services/monitoring/metricsCollector';
+import { PerformanceMonitor } from '@/services/chatbot/utils/PerformanceMonitor';
+// import { metricsCollector } from '@/services/monitoring/metricsCollector';
 
 // Initialize performance monitor instance
 const performanceMonitor = new PerformanceMonitor();

@@ -14,9 +14,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { GlobalServiceRegistry } from '@/services/core/GlobalServiceRegistry';
-import { MemoryMonitoringService } from '@/services/monitoring/MemoryMonitoringService';
+// DISABLED FOR CORE BUILD - Using simplified monitoring
+// // DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// import { MemoryMonitoringService } from '../../../selly-legacy-nextjs-backend/backend-utilities/monitoring/monitoring/MemoryMonitoringService';
 import { ServiceMigrationUtility } from '@/services/core/ServiceMigrationUtility';
-import { MemoryEfficientErrorHandler } from '@/services/monitoring/MemoryEfficientErrorHandler';
+// // DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// import { MemoryEfficientErrorHandler } from '../../../selly-legacy-nextjs-backend/backend-utilities/monitoring/monitoring/MemoryEfficientErrorHandler';
 
 interface MemoryTestResults {
   initialMemory: number;

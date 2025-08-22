@@ -9,6 +9,8 @@
     "build:verbose": "next build",
     "heroku-postbuild": "NODE_ENV=production npm run build:optimized",
     "build:optimized": "next build && node scripts/heroku-postbuild.js",
+    "build:core": "node disable-problematic-routes.js disable && cross-env DISABLE_RUNTIME_LOGS=true next build",
+    "build:restore": "node disable-problematic-routes.js restore",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",

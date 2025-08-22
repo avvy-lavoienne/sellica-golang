@@ -4,10 +4,10 @@
  */
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import { contextMiddleware } from '../../../services/chatbot/context/ContextMiddleware';
-import { backwardCompatibilityLayer } from '../../../services/chatbot/context/BackwardCompatibilityLayer';
-import { contextTransformer } from '../../../services/chatbot/context/ContextTransformer';
-import { contextValidator } from '../../../services/chatbot/context/StandardizedContext';
+// import { contextMiddleware } from '../../../services/chatbot/context/ContextMiddleware';
+// import { backwardCompatibilityLayer } from '../../../services/chatbot/context/BackwardCompatibilityLayer';
+// import { contextTransformer } from '../../../services/chatbot/context/ContextTransformer';
+// import { contextValidator } from '../../../services/chatbot/context/StandardizedContext';
 
 interface ContextApiResponse {
   success: boolean;

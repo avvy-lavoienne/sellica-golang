@@ -14,10 +14,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerUser } from '@/lib/auth/supabaseAuth';
-import { enhancedSessionSecurity } from '@/services/session/EnhancedSessionSecurity';
-import { sessionAnalyticsService } from '@/services/session/SessionAnalyticsService';
-import { crossDeviceSessionSync } from '@/services/session/CrossDeviceSessionSync';
-import { authenticationConsistentChatStorage } from '@/services/chatbot/AuthenticationConsistentChatStorage';
+// import { enhancedSessionSecurity } from '@/services/session/EnhancedSessionSecurity';
+// import { sessionAnalyticsService } from '@/services/session/SessionAnalyticsService';
+// import { crossDeviceSessionSync } from '@/services/session/CrossDeviceSessionSync';
+// import { authenticationConsistentChatStorage } from '@/services/chatbot/AuthenticationConsistentChatStorage';
 
 /**
  * GET /api/session/enhanced-management

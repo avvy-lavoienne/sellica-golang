@@ -3,7 +3,10 @@
 import React, { useCallback, useState, useEffect } from "react";
 import { UnifiedChatProvider, useUnifiedChat } from "@/contexts/UnifiedChatContext";
 import { UnifiedChatInterface } from "./UnifiedChatInterface";
-import { aiService } from "@/services/chatbot/aiService";
+// DISABLED FOR CORE BUILD - Using simplified chat functionality
+// // DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// import { aiService } from "../../../selly-legacy-nextjs-backend/business-logic/chatbot/core/aiService";
 import { useAuthenticatedUser } from "@/hooks/useAuthenticatedUser";
 import { cn } from "@/lib/conn/utils";
 

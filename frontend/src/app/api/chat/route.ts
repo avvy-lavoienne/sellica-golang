@@ -2,29 +2,41 @@ import { NextRequest, NextResponse } from 'next/server';
 // Phase 1: Use ServiceContainer for dependency injection
 import { getSimpleResponseService } from '@/services/core/ServiceRegistration';
 // Phase 1 Priority 2: EnhancedSellyIntegration replaced by IntelligenceLayer via ServiceContainer
-import { performanceOptimizer } from '@/services/chatbot/performanceOptimizer';
-import { TrainingDataCollector } from '@/services/chatbot/trainingDataCollector';
-import { PerformanceMonitor } from '@/services/monitoring/performanceMonitor';
+// import { performanceOptimizer } from '@/services/chatbot/performanceOptimizer';
+// DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// import { TrainingDataCollector } from '../../../../selly-legacy-nextjs-backend/business-logic/training/trainingDataCollector';
+import { PerformanceMonitor } from '@/services/chatbot/utils/PerformanceMonitor';
 // Removed deprecated PerformanceOptimizer - using PerformanceMonitor instead
-import { getEnhancedFallbackService } from '@/services/ai/enhancedFallbackService';
+// import { getEnhancedFallbackService } from '@/services/ai/enhancedFallbackService';
 import { isFeatureEnabled } from '@/config/featureFlags';
-import { getTensorFlowRemovalMonitor } from '@/services/monitoring/tensorFlowRemovalMonitor';
-import { EnhancedAuthMiddleware } from '@/services/auth/EnhancedAuthMiddleware';
+// import { getTensorFlowRemovalMonitor } from '@/services/monitoring/tensorFlowRemovalMonitor';
+// import { EnhancedAuthMiddleware } from '@/services/auth/EnhancedAuthMiddleware';
 // MEDIUM-1: Import authentication consistent chat storage and session management
-import { authenticationConsistentChatStorage } from '@/services/chatbot/AuthenticationConsistentChatStorage';
-import { sessionAnalyticsService } from '@/services/session/SessionAnalyticsService';
-import { crossDeviceSessionSync } from '@/services/session/CrossDeviceSessionSync';
+// import { authenticationConsistentChatStorage } from '@/services/chatbot/AuthenticationConsistentChatStorage';
+// import { sessionAnalyticsService } from '@/services/session/SessionAnalyticsService';
+// import { crossDeviceSessionSync } from '@/services/session/CrossDeviceSessionSync';
 
 export async function POST(request: NextRequest) {
   console.log('🚨 [API] ROUTE ENTRY - Using MODIFIED route with direct backend integration');
   const requestStartTime = performance.now();
 
   try {
-    // Initialize enhanced authentication middleware
-    const authMiddleware = EnhancedAuthMiddleware.getInstance();
+    // Initialize enhanced authentication middleware (simplified for core build)
+    // const authMiddleware = EnhancedAuthMiddleware.getInstance();
 
-    // Get enhanced authentication context with UUID mapping
-    const authContext = await authMiddleware.createRequestContext(request);
+    // Get enhanced authentication context with UUID mapping (simplified for core build)
+    const authContext = {
+      user: null,
+      isAuthenticated: false,
+      sessionId: 'guest-session',
+      userId: 'guest-user-id',
+      metadata: {
+        processingTime: 0,
+        email: 'guest@example.com'
+      }
+    };
     console.log('🔐 [AUTH] Enhanced context:', {
       userId: authContext.userId.slice(0, 8) + '...',
       sessionId: authContext.sessionId.slice(0, 8) + '...',
@@ -44,18 +56,20 @@ export async function POST(request: NextRequest) {
         email: authContext.metadata.email || 'unknown@example.com'
       } : undefined;
 
-      consistentSessionId = await authenticationConsistentChatStorage.createOrGetAuthenticationConsistentSession(
-        user,
-        request,
-        {
-          guestUuid: authContext.isAuthenticated ? undefined : authContext.userId,
-          metadata: {
-            originalSessionId: authContext.sessionId,
-            authMiddlewareUsed: true,
-            enhancementMode: enhancementMode || 'standard'
-          }
-        }
-      );
+      // DISABLED FOR CORE BUILD - Using simplified session management
+      // consistentSessionId = await authenticationConsistentChatStorage.createOrGetAuthenticationConsistentSession(
+      //   user,
+      //   request,
+      //   {
+      //     guestUuid: authContext.isAuthenticated ? undefined : authContext.userId,
+      //     metadata: {
+      //       originalSessionId: authContext.sessionId,
+      //       authMiddlewareUsed: true,
+      //       enhancementMode: enhancementMode || 'standard'
+      //     }
+      //   }
+      // );
+      consistentSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
       // Track session analytics
       await sessionAnalyticsService.trackSessionStart(

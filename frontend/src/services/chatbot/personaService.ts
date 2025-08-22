@@ -4,7 +4,9 @@
  * Based on docs/selly-personas/ specifications
  */
 
-import { getTrainingDataCollector } from './trainingDataCollector';
+// DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// import { getTrainingDataCollector } from '../../../selly-legacy-nextjs-backend/business-logic/training/trainingDataCollector';
 import { KnowledgeService } from './knowledgeService';
 import { AdministrativeResponseCache } from './administrativeResponseCache';
 import { SmartGreetingManager } from './smartGreetingManager';
