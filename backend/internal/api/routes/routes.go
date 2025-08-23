@@ -73,7 +73,7 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	SetupConcurrentRoutes(router, services.Concurrent)
 
 	// Authentication routes (public)
-	setupAuthRoutes(router, services.Auth)
+	setupAuthRoutes(router, services.Auth, services.Database)
 
 	// Protected routes (require authentication)
 	protected := router.Group("/")
@@ -143,51 +143,34 @@ func setupCacheRoutes(router *gin.Engine, handler *handlers.CacheHandler) {
 }
 
 // setupAuthRoutes configures authentication endpoints
-func setupAuthRoutes(router *gin.Engine, authService *auth.Service) {
+func setupAuthRoutes(router *gin.Engine, authService *auth.Service, dbService *database.Service) {
+	// Create auth handler with both services
+	authHandler := handlers.NewAuthHandler(authService, dbService)
+
+	// Public auth endpoints
 	auth := router.Group("/auth")
 	{
-		auth.POST("/register", func(c *gin.Context) {
-			// Registration handler
-			var request struct {
-				Email    string `json:"email" binding:"required,email"`
-				Password string `json:"password" binding:"required,min=8"`
-			}
+		auth.POST("/register", authHandler.Register)
+		auth.POST("/login", authHandler.Login)
+		auth.POST("/logout", authHandler.Logout)
 
-			if err := c.ShouldBindJSON(&request); err != nil {
-				c.JSON(400, gin.H{
-					"success": false,
-					"error":   "Invalid request format",
-					"details": err.Error(),
-				})
-				return
-			}
-
-			result, err := authService.RegisterUser(request.Email, request.Password)
-			if err != nil {
-				c.JSON(500, gin.H{
-					"success": false,
-					"error":   "Registration failed",
-					"details": err.Error(),
-				})
-				return
-			}
-
-			c.JSON(200, gin.H{
-				"success": true,
-				"data":    result,
-			})
-		})
-
+		// Debug endpoint (keep existing functionality)
 		auth.GET("/debug", func(c *gin.Context) {
-			// Debug authentication
 			token := c.GetHeader("Authorization")
 			if token != "" {
 				token = token[7:] // Remove "Bearer " prefix
 			}
-
 			debugInfo := authService.DebugAuth(token)
 			c.JSON(200, debugInfo)
 		})
+	}
+
+	// Protected auth endpoints (require authentication)
+	authProtected := router.Group("/auth")
+	authProtected.Use(middleware.AuthMiddleware(authService))
+	{
+		authProtected.POST("/refresh", authHandler.RefreshToken)
+		authProtected.GET("/profile", authHandler.GetProfile)
 	}
 }
 

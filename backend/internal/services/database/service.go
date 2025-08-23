@@ -4,12 +4,20 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/supabase-community/supabase-go"
+)
+
+// Common database errors
+var (
+	ErrDatabaseNotHealthy = errors.New("database service is not healthy")
+	ErrUserNotFound       = errors.New("user not found")
+	ErrUserAlreadyExists  = errors.New("user already exists")
 )
 
 // Service provides database operations using Supabase
