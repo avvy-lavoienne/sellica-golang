@@ -1,5 +1,5 @@
 ---
-type: "always_apply"
+type: "manual"
 ---
 
 # Next.js to Go Backend Migration Workflow Analysis Rules

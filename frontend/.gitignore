@@ -21,6 +21,10 @@ package-lock.json
 /build
 dist
 
+# deployment artifacts (generated files)
+/deployment/static-build/
+deployment/static-build
+
 # misc
 .DS_Store
 *.pem
