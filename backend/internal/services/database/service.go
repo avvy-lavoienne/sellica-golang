@@ -320,44 +320,7 @@ func (s *Service) Exec(ctx context.Context, query string, args ...interface{}) (
 	}, nil
 }
 
-// Mock implementations for database interfaces
-type mockRows struct {
-	closed bool
-}
-
-func (m *mockRows) Next() bool {
-	return false // No rows for now
-}
-
-func (m *mockRows) Scan(dest ...interface{}) error {
-	return fmt.Errorf("no rows available")
-}
-
-func (m *mockRows) Close() error {
-	m.closed = true
-	return nil
-}
-
-type mockRow struct {
-	err error
-}
-
-func (m *mockRow) Scan(dest ...interface{}) error {
-	if m.err != nil {
-		return m.err
-	}
-	return fmt.Errorf("no row available")
-}
-
-type mockResult struct{}
-
-func (m *mockResult) LastInsertId() (int64, error) {
-	return 0, nil
-}
-
-func (m *mockResult) RowsAffected() (int64, error) {
-	return 1, nil
-}
+// Mock implementations removed - using Supabase implementations only
 
 // Real Supabase implementations
 type supabaseRows struct {
