@@ -17,7 +17,53 @@ import {
 } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ComprehensiveErrorRecovery, ErrorRecoveryResult } from '@/services/error/comprehensiveErrorRecovery';
+// import { ComprehensiveErrorRecovery, ErrorRecoveryResult } from '@/services/error/comprehensiveErrorRecovery'; // Moved to legacy backend
+
+// Mock types and services for core build
+type ErrorRecoveryResult = {
+  success: boolean;
+  stepsExecuted: Array<{ name: string; success: boolean; message: string }>;
+  message: string;
+  strategy?: any; // Can be string or object
+  userMessage?: string;
+  technicalDetails?: string;
+  totalTime?: number;
+  preventiveMeasures?: any[];
+};
+
+class ComprehensiveErrorRecovery {
+  constructor(_storage: any, _monitor: any, _analytics: any) {}
+
+  static getInstance() {
+    return new ComprehensiveErrorRecovery(null, null, null);
+  }
+
+  attemptRecovery(_error: Error, _context: any) {
+    return Promise.resolve({
+      success: false,
+      stepsExecuted: [],
+      message: 'Error recovery disabled in core build'
+    } as ErrorRecoveryResult);
+  }
+
+  stop() {}
+
+  handleError(_error: Error, _context: any) {
+    return Promise.resolve({
+      success: false,
+      stepsExecuted: [],
+      message: 'Error handling disabled in core build'
+    } as ErrorRecoveryResult);
+  }
+
+  predictErrors(_context: any) {
+    return Promise.resolve([]);
+  }
+
+  getRecoveryDashboard() {
+    return null;
+  }
+}
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -41,7 +87,7 @@ interface EnhancedErrorBoundaryProps {
 }
 
 export class EnhancedErrorBoundary extends Component<EnhancedErrorBoundaryProps, ErrorBoundaryState> {
-  private errorRecovery: ComprehensiveErrorRecovery | null = null;
+  private errorRecovery: any | null = null;
   private retryTimer?: NodeJS.Timeout;
 
   constructor(props: EnhancedErrorBoundaryProps) {
@@ -153,6 +199,7 @@ export class EnhancedErrorBoundary extends Component<EnhancedErrorBoundaryProps,
         isRecovering: false,
         recoveryResult: {
           success: false,
+          message: 'Error recovery failed',
           strategy: { id: 'default', name: 'Default', description: '', applicableErrorTypes: [], steps: [], successRate: 0, averageRecoveryTime: 0, resourceCost: 'low', userImpact: 'minimal' },
           stepsExecuted: [],
           totalTime: 0,
@@ -306,8 +353,8 @@ export class EnhancedErrorBoundary extends Component<EnhancedErrorBoundaryProps,
                         <div className="mt-3">
                           <p className="text-xs font-medium mb-2">Langkah Pemulihan:</p>
                           <ul className="text-xs space-y-1">
-                            {recoveryResult.stepsExecuted.map((step, index) => (
-                              <li key={step.id} className="flex items-center space-x-2">
+                            {recoveryResult.stepsExecuted.map((step: any, index: number) => (
+                              <li key={step.id || index} className="flex items-center space-x-2">
                                 <CheckCircleIcon className="h-3 w-3 text-green-500" />
                                 <span>{step.name}</span>
                               </li>

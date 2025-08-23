@@ -6,11 +6,41 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { EnhancedSessionAnalytics, AnalyticsDashboard, SessionQualityScore } from '@/services/analytics/enhancedSessionAnalytics';
-import { UserJourneyTracker, JourneyAnalysis } from '@/services/analytics/userJourneyTracker';
-import { ConversionAnalytics } from '@/services/analytics/conversionAnalytics';
-import { createDefaultStorage } from '@/services/session/storage';
-import { PerformanceMonitor } from '@/services/monitoring/performanceMonitor';
+// import { EnhancedSessionAnalytics, AnalyticsDashboard, SessionQualityScore } from '@/services/analytics/enhancedSessionAnalytics'; // Moved to legacy backend
+// import { UserJourneyTracker, JourneyAnalysis } from '@/services/analytics/userJourneyTracker'; // Moved to legacy backend
+// import { ConversionAnalytics } from '@/services/analytics/conversionAnalytics'; // Moved to legacy backend
+// import { createDefaultStorage } from '@/services/session/storage'; // Moved to legacy backend
+// import { PerformanceMonitor } from '@/services/monitoring/performanceMonitor'; // Moved to legacy backend
+
+// Mock types and services for core build
+type AnalyticsDashboard = any;
+type SessionQualityScore = any;
+type JourneyAnalysis = any;
+class EnhancedSessionAnalytics {
+  constructor(_storage: any, _monitor: any, _config?: any) {}
+  getDashboard() { return Promise.resolve({}); }
+  getSessionQualityScore() { return Promise.resolve({}); }
+  calculateSessionQualityScore(_sessionId: string) { return Promise.resolve({}); }
+  trackEvent(_sessionId?: string, _type?: any, _data?: any, _userId?: string) { return Promise.resolve(); }
+  stop() {}
+}
+class UserJourneyTracker {
+  constructor(_analytics: any, _config?: any) {}
+  analyzeJourney(_sessionId?: string) { return Promise.resolve({}); }
+  trackEvent(_sessionId: string, _type: any, _action: string, _data?: any, _userId?: string) { return Promise.resolve(); }
+  getJourneyPaths() { return Promise.resolve([]); }
+  stop() {}
+}
+class ConversionAnalytics {
+  constructor(_analytics: any, _monitor?: any) {}
+  getConversionMetrics() { return Promise.resolve({}); }
+  getConversionRecommendations(_sessionId: string) { return Promise.resolve([]); }
+  getFunnelMetrics() { return Promise.resolve({}); }
+  trackEvent(_type: any, _sessionId: string, _data: any, _userId?: string) { return Promise.resolve(); }
+  stop() {}
+}
+const createDefaultStorage = () => ({ logError: () => {} });
+const PerformanceMonitor = { getInstance: () => ({ getMetrics: () => ({}) }) };
 
 export interface AnalyticsState {
   dashboard: AnalyticsDashboard | null;
@@ -434,9 +464,9 @@ export function useSessionAnalytics({
     qualityInsights: state.qualityScore ? {
       overall: state.qualityScore.overall,
       strongestFactor: Object.entries(state.qualityScore.factors)
-        .sort(([,a], [,b]) => b - a)[0]?.[0],
+        .sort(([,a], [,b]) => (b as number) - (a as number))[0]?.[0],
       weakestFactor: Object.entries(state.qualityScore.factors)
-        .sort(([,a], [,b]) => a - b)[0]?.[0],
+        .sort(([,a], [,b]) => (a as number) - (b as number))[0]?.[0],
       improvementAreas: state.qualityScore.improvementAreas
     } : null
   };

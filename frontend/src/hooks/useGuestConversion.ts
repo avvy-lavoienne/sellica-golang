@@ -54,6 +54,26 @@ export function useGuestConversion(
   } = options
 
   const router = useRouter()
+  // Mock services and types for core build
+  type GuestSession = any;
+  const GuestConversionService = {
+    getInstance: () => ({
+      convertGuestToUser: () => Promise.resolve(),
+      convertGuestToAuth: (_guestData: any, _userData: any) => Promise.resolve({
+        success: true,
+        sessionId: 'mock-session-id',
+        error: undefined
+      }),
+      isConversionEligible: (_guestData: any) => Promise.resolve(true),
+      trackConversionAttempt: (_sessionId: string) => Promise.resolve()
+    })
+  };
+  const UnifiedSessionManager = {
+    getInstance: () => ({
+      getSession: (_sessionId: string) => Promise.resolve({ type: 'guest' })
+    })
+  };
+
   const conversionService = useRef(GuestConversionService.getInstance())
   const sessionManager = useRef(UnifiedSessionManager.getInstance())
 

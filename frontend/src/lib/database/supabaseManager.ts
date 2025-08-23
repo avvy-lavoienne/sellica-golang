@@ -7,7 +7,15 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '@/lib/conn/database';
 import { createServiceLogger } from '@/utils/buildLogger';
 import { IntelligentMemoryCache } from '@/lib/cache/intelligentMemoryCache';
-import { GlobalServiceRegistry } from '@/services/core/GlobalServiceRegistry';
+// import { GlobalServiceRegistry } from '@/services/core/GlobalServiceRegistry'; // Moved to legacy backend
+
+// Mock GlobalServiceRegistry for core build
+const GlobalServiceRegistry = {
+  get: (_serviceName: string) => null,
+  register: (_serviceName: string, _service: any) => {},
+  isRegistered: (_serviceName: string) => false,
+  getInstance: () => ({})
+};
 
 export interface SupabasePoolConfig {
   maxConnections: number;
@@ -332,7 +340,7 @@ export class SupabaseManager {
    * Create new database connection with Critical-3 performance tracking
    */
   private async createConnection(context: 'service' | 'user'): Promise<SupabaseConnection> {
-    const connectionId = `${context}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const connectionId = `${context}_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     const key = context === 'service' ? this.serviceRoleKey : this.anonKey;
 
     // Critical-3: Track connection establishment time

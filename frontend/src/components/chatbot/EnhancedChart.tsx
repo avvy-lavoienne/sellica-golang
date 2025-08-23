@@ -39,7 +39,10 @@ import {
   Eye,
   BarChart3
 } from 'lucide-react';
-import { ChartConfig, ChartInsight, VisualizationType } from '@/services/chatbot/visualizationEngine';
+// import { ChartConfig, ChartInsight, VisualizationType } from '@/services/chatbot/visualizationEngine'; // Moved to legacy backend
+type ChartConfig = any;
+type ChartInsight = any;
+type VisualizationType = any;
 
 // Register Chart.js components
 ChartJS.register(
@@ -86,7 +89,7 @@ export function EnhancedChart({
     // Transform data to be compatible with Chart.js
     const chartData = {
       labels: config.data.labels,
-      datasets: config.data.datasets.map(dataset => ({
+      datasets: config.data.datasets.map((dataset: any) => ({
         ...dataset,
         data: dataset.data as number[]
       }))
@@ -287,7 +290,7 @@ export function EnhancedChart({
                 </CollapsibleTrigger>
 
                 <CollapsibleContent className="space-y-3 mt-3">
-                  {config.insights.map((insight, index) => (
+                  {config.insights.map((insight: any, index: number) => (
                     <motion.div
                       key={index}
                       initial={{ opacity: 0, x: -20 }}

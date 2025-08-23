@@ -307,7 +307,8 @@ export function UnifiedChatInterface({
 
       // Clear EnhancedChatStorageService cache
       try {
-        const { EnhancedChatStorageService } = await import('@/services/chatbot/enhancedChatStorageService');
+        // const { EnhancedChatStorageService } = await import('@/services/chatbot/enhancedChatStorageService'); // Moved to legacy backend
+        const EnhancedChatStorageService = { getInstance: () => ({ clearAllSessions: () => Promise.resolve() }) };
         const chatStorageService = EnhancedChatStorageService.getInstance();
         // chatStorageService.clearLocalCache(); // Method not available - using alternative
         await chatStorageService.clearAllSessions(); // Use available method

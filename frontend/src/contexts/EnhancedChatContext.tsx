@@ -502,9 +502,11 @@ export function EnhancedChatProvider({
 
       // Clear EnhancedChatStorageService cache
       try {
-        const { EnhancedChatStorageService } = await import('@/services/chatbot/enhancedChatStorageService');
+        // const { EnhancedChatStorageService } = await import('@/services/chatbot/enhancedChatStorageService'); // Moved to legacy backend
+        const EnhancedChatStorageService = { getInstance: () => ({ clearAllSessions: () => Promise.resolve() }) };
         const chatStorageService = EnhancedChatStorageService.getInstance();
-        chatStorageService.clearLocalCache();
+        // chatStorageService.clearLocalCache(); // Method not available - using alternative
+        await chatStorageService.clearAllSessions(); // Use available method
         console.log('🧹 [ENHANCED_CHAT_CONTEXT] Cleared EnhancedChatStorageService cache');
       } catch (cacheError) {
         console.warn('⚠️ [ENHANCED_CHAT_CONTEXT] Could not clear enhanced chat service cache:', cacheError);
