@@ -1,13 +1,13 @@
 ---
-type: "manual"
+type: "always_apply"
 ---
 
 # Next.js to Go Backend Migration Workflow Analysis Rules
 
-**Rule Category**: Migration Workflow Analysis  
-**Priority**: Critical  
-**Scope**: All SELLY frontend to backend migrations  
-**Enforcement**: Mandatory for all `/frontend/*` to `/backend/*` migrations  
+**Rule Category**: Migration Workflow Analysis
+**Priority**: Critical
+**Scope**: All SELLY frontend to backend migrations
+**Enforcement**: Mandatory for all `/frontend/*` to `/backend/*` migrations
 
 ## Rule 1: Mandatory Frontend Workflow Analysis
 
@@ -19,7 +19,6 @@ Before implementing any migration from `/frontend/*` to `/backend/*`, you MUST:
 ```typescript
 // REQUIRED: Analyze complete workflow structure
 interface WorkflowAnalysis {
-  // Directory structure analysis
   directoryStructure: {
     apiRoutes: string[];           // /frontend/src/app/api/*
     components: string[];          // React components involved
@@ -27,16 +26,12 @@ interface WorkflowAnalysis {
     middleware: string[];          // Next.js middleware
     serverActions: string[];       // Server actions and form handlers
   };
-  
-  // Data flow analysis
   dataFlow: {
     requestFlow: RequestFlowStep[];
     responseFlow: ResponseFlowStep[];
     stateManagement: StateManagementPattern[];
     integrationPoints: IntegrationPoint[];
   };
-  
-  // Performance characteristics
   performance: {
     currentResponseTimes: number[];
     memoryUsage: number;
@@ -64,7 +59,6 @@ interface WorkflowAnalysis {
 ### **2.1 API Route Migration Pattern**
 ```typescript
 // BEFORE: Next.js API Route
-// /frontend/src/app/api/chat/route.ts
 export async function POST(request: NextRequest) {
   const { message, context } = await request.json();
   const response = await aiService.processQuery(message, context);
@@ -74,14 +68,13 @@ export async function POST(request: NextRequest) {
 
 ```go
 // AFTER: Go HTTP Handler
-// /backend/internal/api/handlers/chat.go
 func (h *ChatHandler) ProcessChat(c *gin.Context) {
     var req ChatRequest
     if err := c.ShouldBindJSON(&req); err != nil {
         c.JSON(400, gin.H{"error": "Invalid request format"})
         return
     }
-    
+
     response, err := h.aiService.ProcessQuery(c.Request.Context(), &AIRequest{
         Query:   req.Message,
         Context: req.Context,
@@ -90,7 +83,7 @@ func (h *ChatHandler) ProcessChat(c *gin.Context) {
         c.JSON(500, gin.H{"error": "Processing failed"})
         return
     }
-    
+
     c.JSON(200, gin.H{"success": true, "response": response})
 }
 ```
@@ -98,7 +91,6 @@ func (h *ChatHandler) ProcessChat(c *gin.Context) {
 ### **2.2 Middleware Migration Pattern**
 ```typescript
 // BEFORE: Next.js Middleware
-// /frontend/src/middleware.ts
 export function middleware(request: NextRequest) {
   const token = request.cookies.get('auth-token');
   if (!token) {
@@ -110,7 +102,6 @@ export function middleware(request: NextRequest) {
 
 ```go
 // AFTER: Go Middleware
-// /backend/internal/api/middleware/auth.go
 func AuthMiddleware(authService *auth.Service) gin.HandlerFunc {
     return func(c *gin.Context) {
         token := c.GetHeader("Authorization")
@@ -119,14 +110,14 @@ func AuthMiddleware(authService *auth.Service) gin.HandlerFunc {
             c.Abort()
             return
         }
-        
+
         claims, err := authService.ValidateToken(token)
         if err != nil {
             c.JSON(401, gin.H{"error": "Invalid token"})
             c.Abort()
             return
         }
-        
+
         c.Set("user_context", claims)
         c.Next()
     }
@@ -149,12 +140,8 @@ const { data, error } = await supabase
 ```go
 // AFTER: Go Database Service
 func (s *TrainingService) InsertTrainingData(ctx context.Context, data *TrainingData) error {
-    query := `
-        INSERT INTO training_data (query, response, user_id, metadata)
-        VALUES ($1, $2, $3, $4)
-    `
-    _, err := s.db.ExecContext(ctx, query, 
-        data.Query, data.Response, data.UserID, data.Metadata)
+    query := `INSERT INTO training_data (query, response, user_id, metadata) VALUES ($1, $2, $3, $4)`
+    _, err := s.db.ExecContext(ctx, query, data.Query, data.Response, data.UserID, data.Metadata)
     return err
 }
 ```
@@ -171,17 +158,10 @@ func (s *TrainingService) InsertTrainingData(ctx context.Context, data *Training
 ```go
 // REQUIRED: Maintain API contract compatibility
 type APICompatibilityCheck struct {
-    // Request/Response format must match exactly
     RequestFormat  interface{} `json:"request_format"`
     ResponseFormat interface{} `json:"response_format"`
-    
-    // HTTP status codes must match
     StatusCodes []int `json:"status_codes"`
-    
-    // Headers must be compatible
     RequiredHeaders []string `json:"required_headers"`
-    
-    // Authentication flow must be preserved
     AuthFlow AuthenticationFlow `json:"auth_flow"`
 }
 ```
@@ -313,10 +293,8 @@ Track migration success metrics:
 ### **8.1 AI Service Migration**
 ```typescript
 // BEFORE: Next.js AI Service
-// /frontend/src/services/chatbot/aiService.ts
 class AIService {
   async processQuery(query: string, context?: any): Promise<AIResponse> {
-    // Complex AI processing logic
     const providers = ['enhanced', 'tensorflow', 'huggingface'];
     const selectedProvider = this.selectProvider(query, context);
     return await this.providers[selectedProvider].process(query, context);
@@ -326,7 +304,6 @@ class AIService {
 
 ```go
 // AFTER: Go AI Service
-// /backend/internal/services/ai/service.go
 type AIService struct {
     providers map[string]AIProvider
     selector  *ProviderSelector
@@ -347,7 +324,6 @@ func (s *AIService) ProcessQuery(ctx context.Context, req *AIRequest) (*AIRespon
 ### **8.2 Session Management Migration**
 ```typescript
 // BEFORE: Next.js Session Management
-// /frontend/src/services/session/sessionManager.ts
 export class SessionManager {
   async createSession(userId: string): Promise<Session> {
     const session = await supabase.from('sessions').insert({
@@ -362,7 +338,6 @@ export class SessionManager {
 
 ```go
 // AFTER: Go Session Service
-// /backend/internal/services/session/service.go
 type SessionService struct {
     db    *database.Service
     cache *cache.Service
@@ -377,14 +352,11 @@ func (s *SessionService) CreateSession(ctx context.Context, userID string) (*Ses
         ExpiresAt: time.Now().Add(24 * time.Hour),
     }
 
-    // Store in database
     if err := s.db.InsertSession(ctx, session); err != nil {
         return nil, fmt.Errorf("failed to create session: %w", err)
     }
 
-    // Cache for fast access
     s.cache.SetSession(session.ID, session, 24*time.Hour)
-
     return session, nil
 }
 ```
@@ -392,7 +364,6 @@ func (s *SessionService) CreateSession(ctx context.Context, userID string) (*Ses
 ### **8.3 Real-time Features Migration**
 ```typescript
 // BEFORE: Next.js Real-time with Supabase
-// /frontend/src/services/realtime/realtimeService.ts
 const subscription = supabase
   .channel('training_data')
   .on('postgres_changes', {
@@ -407,7 +378,6 @@ const subscription = supabase
 
 ```go
 // AFTER: Go Real-time with WebSockets
-// /backend/internal/services/realtime/service.go
 type RealtimeService struct {
     hub        *WebSocketHub
     db         *database.Service
@@ -435,10 +405,7 @@ try {
   return NextResponse.json({ success: true, data: result });
 } catch (error) {
   console.error('AI processing failed:', error);
-  return NextResponse.json(
-    { success: false, error: 'Processing failed' },
-    { status: 500 }
-  );
+  return NextResponse.json({ success: false, error: 'Processing failed' }, { status: 500 });
 }
 ```
 
@@ -447,7 +414,6 @@ try {
 func (h *AIHandler) ProcessQuery(c *gin.Context) {
     result, err := h.aiService.ProcessQuery(c.Request.Context(), req)
     if err != nil {
-        // Structured error handling
         switch {
         case errors.Is(err, ErrInvalidInput):
             c.JSON(400, gin.H{"success": false, "error": "Invalid input"})
@@ -459,7 +425,6 @@ func (h *AIHandler) ProcessQuery(c *gin.Context) {
         }
         return
     }
-
     c.JSON(200, gin.H{"success": true, "data": result})
 }
 ```
@@ -467,8 +432,6 @@ func (h *AIHandler) ProcessQuery(c *gin.Context) {
 ### **9.2 Rate Limiting Migration**
 ```typescript
 // BEFORE: Next.js Rate Limiting
-import { Ratelimit } from '@upstash/ratelimit';
-
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
   limiter: Ratelimit.slidingWindow(10, '1 m'),
@@ -479,13 +442,11 @@ export async function POST(request: NextRequest) {
   if (!success) {
     return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   }
-  // Process request
 }
 ```
 
 ```go
 // AFTER: Go Rate Limiting
-// /backend/internal/middleware/ratelimit.go
 type RateLimiter struct {
     redis  *redis.Client
     limits map[string]*RateLimit
@@ -499,7 +460,7 @@ func (rl *RateLimiter) RateLimitMiddleware() gin.HandlerFunc {
         allowed, err := rl.checkRateLimit(key, 10, time.Minute)
         if err != nil {
             logrus.WithError(err).Error("Rate limit check failed")
-            c.Next() // Allow on error
+            c.Next()
             return
         }
 
@@ -508,7 +469,6 @@ func (rl *RateLimiter) RateLimitMiddleware() gin.HandlerFunc {
             c.Abort()
             return
         }
-
         c.Next()
     }
 }
@@ -531,32 +491,20 @@ type MigrationTestCase struct {
     Input          interface{}
     ExpectedOutput interface{}
     PerformanceTarget time.Duration
-
-    // Test both endpoints
     TestNextJS func(input interface{}) (interface{}, error)
     TestGo     func(input interface{}) (interface{}, error)
 }
 
 func (mt *MigrationTest) RunComparativeTest() *TestResult {
-    results := &TestResult{
-        TestName: mt.Name,
-        Cases:    make([]CaseResult, len(mt.TestCases)),
-    }
+    results := &TestResult{TestName: mt.Name, Cases: make([]CaseResult, len(mt.TestCases))}
 
     for i, testCase := range mt.TestCases {
-        // Test Next.js implementation
         nextjsResult, nextjsErr := testCase.TestNextJS(testCase.Input)
-        nextjsTime := measureExecutionTime(func() {
-            testCase.TestNextJS(testCase.Input)
-        })
+        nextjsTime := measureExecutionTime(func() { testCase.TestNextJS(testCase.Input) })
 
-        // Test Go implementation
         goResult, goErr := testCase.TestGo(testCase.Input)
-        goTime := measureExecutionTime(func() {
-            testCase.TestGo(testCase.Input)
-        })
+        goTime := measureExecutionTime(func() { testCase.TestGo(testCase.Input) })
 
-        // Compare results
         results.Cases[i] = CaseResult{
             Description:      testCase.Description,
             FunctionalParity: compareResults(nextjsResult, goResult),
@@ -564,7 +512,6 @@ func (mt *MigrationTest) RunComparativeTest() *TestResult {
             ErrorParity:      compareErrors(nextjsErr, goErr),
         }
     }
-
     return results
 }
 ```
@@ -577,7 +524,7 @@ type PerformanceBenchmark struct {
     NextJSBaseline  BenchmarkMetrics
     GoTarget        BenchmarkMetrics
     ActualGo        BenchmarkMetrics
-    ImprovementGoal float64 // e.g., 5.0 for 5x improvement
+    ImprovementGoal float64
 }
 
 type BenchmarkMetrics struct {
@@ -589,8 +536,7 @@ type BenchmarkMetrics struct {
 }
 
 func (pb *PerformanceBenchmark) ValidateImprovement() bool {
-    actualImprovement := float64(pb.NextJSBaseline.ResponseTime) /
-                        float64(pb.ActualGo.ResponseTime)
+    actualImprovement := float64(pb.NextJSBaseline.ResponseTime) / float64(pb.ActualGo.ResponseTime)
     return actualImprovement >= pb.ImprovementGoal
 }
 ```
