@@ -16,12 +16,20 @@ import (
 )
 
 // Service provides training data collection and management
+// Enhanced architecture following Phase 1 specifications
 type Service struct {
+	// Core components
+	collector       *DataCollector
+	processor       *BatchProcessor
+	validator       *TrainingDataValidator
+	analyzer        *QueryAnalyzer
+	cache          *TrainingCache
+	metrics        *PerformanceMetrics
+	supabase       *database.Service  // Supabase client service
+
+	// Legacy components (maintained for compatibility)
 	db          *database.Service
-	cache       *cache.Service
-	validator   *TrainingDataValidator
-	collector   *DataCollector
-	analyzer    *QueryAnalyzer
+	legacyCache *cache.Service
 	mu          sync.RWMutex
 	stats       *ServiceStats
 }
@@ -104,12 +112,35 @@ func NewService(db *database.Service, cache *cache.Service) (*Service, error) {
 		},
 	}
 
+	// Create enhanced components following Phase 1 specifications
+	batchProcessor := NewBatchProcessor(db, &BatchProcessorConfig{
+		BatchSize:            1000, // Optimal for Supabase REST API
+		MaxConcurrentBatches: 10,   // Concurrent batch operations
+		RetryAttempts:        3,    // Retry failed operations
+		BatchTimeout:         30 * time.Second,
+	})
+
+	trainingCache := NewTrainingCache(cache, &TrainingCacheConfig{
+		MemoryTTL:     5 * time.Minute,  // Fast memory cache
+		RedisTTL:      30 * time.Minute, // Distributed cache
+		MaxMemorySize: 1000,             // Max entries in memory
+	})
+
+	performanceMetrics := NewPerformanceMetrics()
+
 	service := &Service{
-		db:        db,
-		cache:     cache,
-		validator: validator,
-		collector: collector,
-		analyzer:  analyzer,
+		// Enhanced components (Phase 1 architecture)
+		collector:       collector,
+		processor:       batchProcessor,
+		validator:       validator,
+		analyzer:        analyzer,
+		cache:          trainingCache,
+		metrics:        performanceMetrics,
+		supabase:       db, // Supabase client service
+
+		// Legacy components (maintained for compatibility)
+		db:          db,
+		legacyCache: cache,
 		stats: &ServiceStats{
 			LastUpdated: time.Now(),
 		},
@@ -121,6 +152,7 @@ func NewService(db *database.Service, cache *cache.Service) (*Service, error) {
 	// Start batch processing goroutine
 	go service.startBatchProcessor()
 
+	logrus.Info("✅ Enhanced training service initialized successfully with Phase 1 architecture")
 	return service, nil
 }
 
@@ -174,7 +206,7 @@ func (s *Service) GetTrainingData(ctx context.Context, req *TrainingDataRequest)
 	// Check cache first
 	cacheKey := s.buildCacheKey("training_data", req)
 	if s.cache != nil {
-		if cached, err := s.cache.Get(cacheKey); err == nil {
+		if cached, found := s.cache.Get(ctx, cacheKey); found {
 			s.incrementCacheHits()
 			if response, ok := cached.(*TrainingDataResponse); ok {
 				return response, nil
@@ -233,7 +265,7 @@ func (s *Service) GetTrainingData(ctx context.Context, req *TrainingDataRequest)
 
 	// Cache the response
 	if s.cache != nil {
-		s.cache.Set(cacheKey, response, 5*time.Minute)
+		s.cache.Set(ctx, cacheKey, response, 5*time.Minute)
 	}
 
 	return response, nil
@@ -244,7 +276,7 @@ func (s *Service) GetTrainingStats(ctx context.Context) (*TrainingStatsResponse,
 	// Check cache first
 	cacheKey := "training_stats"
 	if s.cache != nil {
-		if cached, err := s.cache.Get(cacheKey); err == nil {
+		if cached, found := s.cache.Get(ctx, cacheKey); found {
 			if stats, ok := cached.(*TrainingStatsResponse); ok {
 				return stats, nil
 			}
@@ -259,7 +291,7 @@ func (s *Service) GetTrainingStats(ctx context.Context) (*TrainingStatsResponse,
 
 	// Cache the stats
 	if s.cache != nil {
-		s.cache.Set(cacheKey, stats, 10*time.Minute)
+		s.cache.Set(ctx, cacheKey, stats, 10*time.Minute)
 	}
 
 	return stats, nil
