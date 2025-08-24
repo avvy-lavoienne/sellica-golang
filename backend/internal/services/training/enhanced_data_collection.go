@@ -332,92 +332,13 @@ func (rta *RealTimeAnalyzer) generateRecommendationsFast(classification ServiceC
 
 
 
-// extractEntities extracts entities from a query (simplified implementation)
-func (rta *RealTimeAnalyzer) extractEntities(query string) []string {
-	entities := []string{}
-	
-	// Government document entities
-	if strings.Contains(query, "ktp") {
-		entities = append(entities, "KTP")
-	}
-	if strings.Contains(query, "kartu keluarga") || strings.Contains(query, "kk") {
-		entities = append(entities, "KK")
-	}
-	if strings.Contains(query, "akta") {
-		entities = append(entities, "AKTA")
-	}
-	
-	return entities
-}
 
-// determineSentiment determines the sentiment of a query (simplified)
-func (rta *RealTimeAnalyzer) determineSentiment(query string) string {
-	negativeWords := []string{"tidak", "gagal", "error", "masalah", "susah"}
-	positiveWords := []string{"terima kasih", "bagus", "baik", "senang"}
-	
-	negativeCount := 0
-	positiveCount := 0
-	
-	for _, word := range negativeWords {
-		if strings.Contains(query, word) {
-			negativeCount++
-		}
-	}
-	
-	for _, word := range positiveWords {
-		if strings.Contains(query, word) {
-			positiveCount++
-		}
-	}
-	
-	if negativeCount > positiveCount {
-		return "negative"
-	} else if positiveCount > negativeCount {
-		return "positive"
-	}
-	return "neutral"
-}
 
-// extractKeywords extracts important keywords from words
-func (rta *RealTimeAnalyzer) extractKeywords(words []string) []string {
-	stopWords := map[string]bool{
-		"dan": true, "atau": true, "yang": true, "untuk": true,
-		"dari": true, "ke": true, "di": true, "pada": true,
-		"dengan": true, "oleh": true, "dalam": true,
-	}
-	
-	keywords := []string{}
-	for _, word := range words {
-		if len(word) > 3 && !stopWords[word] {
-			keywords = append(keywords, word)
-		}
-	}
-	
-	return keywords
-}
 
-// identifyTopics identifies topics in a query
-func (rta *RealTimeAnalyzer) identifyTopics(query string) []string {
-	topics := []string{}
-	
-	topicPatterns := map[string][]string{
-		"dokumen": {"ktp", "kk", "akta", "surat", "dokumen"},
-		"prosedur": {"cara", "prosedur", "syarat", "langkah"},
-		"status": {"status", "progress", "sudah", "belum"},
-		"masalah": {"masalah", "error", "tidak bisa", "gagal"},
-	}
-	
-	for topic, patterns := range topicPatterns {
-		for _, pattern := range patterns {
-			if strings.Contains(query, pattern) {
-				topics = append(topics, topic)
-				break
-			}
-		}
-	}
-	
-	return topics
-}
+
+
+
+
 
 
 
