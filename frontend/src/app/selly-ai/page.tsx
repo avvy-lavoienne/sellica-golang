@@ -572,10 +572,10 @@ export default function SellyAIPage() {
         }
       };
 
-      // First tier: Try API endpoint for AI-powered responses
+      // First tier: Try Go Backend API endpoint for AI-powered responses
       try {
-        console.log('🔄 [SELLY_AI_PAGE] Attempting primary API call...');
-        const response = await fetch('/api/chat', {
+        console.log('🔄 [SELLY_AI_PAGE] Attempting Go Backend API call...');
+        const response = await fetch('http://localhost:8080/chat', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -590,7 +590,7 @@ export default function SellyAIPage() {
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.response) {
-            console.log('✅ [SELLY_AI_PAGE] Primary API call successful');
+            console.log('✅ [SELLY_AI_PAGE] Go Backend API call successful');
             return data.response;
           }
         }
@@ -600,17 +600,28 @@ export default function SellyAIPage() {
         console.log('⚠️ [SELLY_AI_PAGE] Primary API error, trying fallback:', apiError);
       }
 
-      // Second tier: Fallback to local AI processing
+      // Second tier: Fallback with basic Indonesian response
       try {
-        console.log('🔄 [SELLY_AI_PAGE] Attempting local AI processing...');
-        // DISABLED FOR CORE BUILD - Using mock response
-        const localResponse = { content: 'AI service not available in core build mode. Please use the basic chat functionality.' };
-        if (localResponse && localResponse.content) {
-          console.log('✅ [SELLY_AI_PAGE] Local AI processing successful');
-          return localResponse.content;
+        console.log('🔄 [SELLY_AI_PAGE] Using intelligent fallback response...');
+
+        // Provide intelligent Indonesian response based on query content
+        const lowerMessage = message.toLowerCase();
+        let fallbackResponse = '';
+
+        if (lowerMessage.includes('ktp')) {
+          fallbackResponse = 'Untuk mengurus KTP, Anda perlu membawa dokumen persyaratan ke Dinas Kependudukan dan Pencatatan Sipil. Apakah ada hal spesifik yang ingin Anda tanyakan tentang KTP?';
+        } else if (lowerMessage.includes('kk') || lowerMessage.includes('kartu keluarga')) {
+          fallbackResponse = 'Untuk mengurus Kartu Keluarga, silakan datang ke Dinas Kependudukan dengan membawa dokumen yang diperlukan. Ada yang bisa saya bantu lebih lanjut?';
+        } else if (lowerMessage.includes('akta')) {
+          fallbackResponse = 'Untuk mengurus akta kelahiran, Anda perlu membawa dokumen persyaratan ke Dinas Kependudukan. Apakah Anda memerlukan informasi lebih detail?';
+        } else {
+          fallbackResponse = 'Halo! Saya SELLY, asisten virtual Dinas Kependudukan dan Pencatatan Sipil. Bagaimana saya bisa membantu Anda hari ini?';
         }
+
+        console.log('✅ [SELLY_AI_PAGE] Intelligent fallback response generated');
+        return fallbackResponse;
       } catch (localError) {
-        console.log('⚠️ [SELLY_AI_PAGE] Local AI processing failed:', localError);
+        console.log('⚠️ [SELLY_AI_PAGE] Fallback processing failed:', localError);
       }
 
       // Third tier: Final fallback with helpful message

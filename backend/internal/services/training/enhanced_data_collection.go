@@ -450,15 +450,8 @@ func (cw *CacheWarmer) WarmCache(ctx context.Context) error {
 
 		// Check if already cached
 		if _, err := cw.cache.Get(cacheKey); err != nil {
-			// Generate analysis for popular query
-			analyzer := &RealTimeAnalyzer{
-				serviceTypePatterns: map[string][]string{
-					"ktp": {"ktp", "kartu tanda penduduk"},
-					"kk":  {"kk", "kartu keluarga"},
-					"akta": {"akta", "kelahiran"},
-				},
-				cache: cw.cache,
-			}
+			// Generate analysis for popular query using properly initialized analyzer
+			analyzer := NewRealTimeAnalyzer(cw.cache)
 
 			if result, err := analyzer.AnalyzeQuery(ctx, query, nil); err == nil {
 				cw.cache.Set(cacheKey, result, 30*time.Minute)
