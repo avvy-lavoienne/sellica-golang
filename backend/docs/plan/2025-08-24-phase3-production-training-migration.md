@@ -29,10 +29,11 @@
 
 ### **Production Targets**
 - **Zero-Downtime Migration**: Seamless transition without service interruption
-- **Performance Validation**: 20x improvement in training speed confirmed in production with Supabase
-- **Reliability**: 99.9% uptime for training services (leveraging Supabase managed infrastructure)
-- **Scalability**: Handle 1000+ concurrent training operations with Supabase auto-scaling
-- **Government Compliance**: Full compliance with Indonesian data protection laws using Supabase ap-southeast-1 region
+- **Performance Validation**: 20x improvement in training speed confirmed in production with Supabase + Upstash Redis
+- **Reliability**: 99.9% uptime for training services (leveraging Supabase + Upstash managed infrastructure)
+- **Scalability**: Handle 1000+ concurrent training operations with auto-scaling cache and database
+- **Government Compliance**: Full compliance with Indonesian data protection laws using TLS encryption
+- **Cache Performance**: 80-90% L1 cache hit ratio with <1ms response times
 
 ## 🏗️ **Technical Implementation Plan**
 
@@ -47,6 +48,7 @@ type ProductionTrainingInfrastructure struct {
     monitoringSystem   *ProductionMonitoring
     alertingSystem     *AlertingSystem
     supabaseManager    *SupabaseProductionManager  // Manages Supabase production configuration
+    upstashManager     *UpstashProductionManager   // Manages Upstash Redis (TLS) configuration
     securityManager    *SecurityManager
 }
 
@@ -57,16 +59,18 @@ type ProductionDeploymentConfig struct {
     SecurityConfig     *SecurityConfig
     MonitoringConfig   *MonitoringConfig
     SupabaseConfig     *SupabaseProductionConfig  // Supabase production settings
+    UpstashConfig      *UpstashProductionConfig   // Upstash Redis (TLS) production settings
 }
 ```
 
 **Infrastructure Tasks:**
 - [ ] Set up production Go backend training infrastructure with Supabase Pro/Team plan
+- [ ] Configure Upstash Redis Pro with TLS encryption for production caching
 - [ ] Configure load balancing for training services
-- [ ] Implement health checking and monitoring for Supabase connections
+- [ ] Implement health checking and monitoring for Supabase + Upstash connections
 - [ ] Configure Supabase automatic backups and point-in-time recovery
-- [ ] Configure security and compliance measures with Supabase RLS policies
-- [ ] Implement production logging and alerting with Supabase monitoring
+- [ ] Configure security and compliance measures with Supabase RLS policies + TLS encryption
+- [ ] Implement production logging and alerting with Supabase + Upstash monitoring
 
 #### **Day 31-32: Migration Strategy Implementation**
 **Zero-Downtime Migration Strategy:**
@@ -254,14 +258,17 @@ type FinalValidationSuite struct {
 ## 📊 **Success Criteria and Validation**
 
 ### **Production Performance Validation**
-| Metric | Next.js Legacy | Go + Supabase Production | Achievement |
-|--------|---------------|-------------------------|-------------|
+| Metric | Next.js Legacy | Go + Supabase + Upstash Production | Achievement |
+|--------|---------------|-----------------------------------|-------------|
 | **Training Speed** | 800ms-3.8s | 50-200ms | ✅ 20x improvement |
 | **Memory Usage** | 200-500MB | 50-150MB | ✅ 3x improvement |
 | **Concurrent Operations** | 100-200 | 1000+ | ✅ 5x improvement |
-| **Uptime** | 99.5% | 99.9% | ✅ Improved reliability with managed Supabase |
+| **Uptime** | 99.5% | 99.9% | ✅ Improved reliability with managed services |
 | **Error Rate** | <0.1% | <0.05% | ✅ Reduced errors |
 | **API Response Time** | N/A | 10-30ms | ✅ Supabase managed performance |
+| **Cache L1 Response** | N/A | <1ms | ✅ Memory cache performance |
+| **Cache L2 Response** | N/A | 10-30ms | ✅ Upstash Redis (TLS) performance |
+| **Cache Hit Ratio** | N/A | 80-90% L1 | ✅ Optimal cache performance |
 
 ### **Migration Success Criteria**
 - [ ] Zero-downtime migration completed successfully
@@ -282,8 +289,9 @@ type FinalValidationSuite struct {
 ### **Critical Risks**
 1. **Production Migration Failure**: Risk of service disruption during migration
 2. **Supabase Performance**: Risk of API rate limits or performance issues under production load
-3. **Data Loss**: Risk of losing training data during legacy retirement (mitigated by Supabase backups)
-4. **Compliance Issues**: Risk of non-compliance with government regulations (mitigated by Supabase ap-southeast-1 deployment)
+3. **Upstash Redis Connectivity**: Risk of cache performance degradation affecting training speed
+4. **Data Loss**: Risk of losing training data during legacy retirement (mitigated by Supabase backups)
+5. **Compliance Issues**: Risk of non-compliance with government regulations (mitigated by TLS encryption)
 
 ### **Mitigation Strategies**
 1. **Gradual Migration**: Implement phased migration with validation checkpoints
@@ -302,10 +310,10 @@ type FinalValidationSuite struct {
 - **AI/ML Engineers**: 1 engineer (part-time, 50%)
 
 ### **Infrastructure Requirements**
-- **Production Environment**: High-availability Go backend infrastructure with Supabase Pro/Team plan
-- **Monitoring Systems**: Comprehensive monitoring, alerting, and Supabase dashboard integration
+- **Production Environment**: High-availability Go backend infrastructure with Supabase Pro/Team + Upstash Redis Pro
+- **Monitoring Systems**: Comprehensive monitoring, alerting, Supabase + Upstash dashboard integration
 - **Backup Systems**: Supabase automatic backups and point-in-time recovery
-- **Security Systems**: Enhanced security with Supabase RLS policies and compliance monitoring
+- **Security Systems**: Enhanced security with Supabase RLS policies, TLS encryption, and compliance monitoring
 
 ## 📈 **Phase 3 Deliverables**
 

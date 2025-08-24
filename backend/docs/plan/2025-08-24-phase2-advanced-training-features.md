@@ -58,6 +58,7 @@ type KTPTrainingModule struct {
     scenarioManager    *KTPScenarioManager
     validator          *KTPValidator
     supabase          *database.Service  // Supabase client for KTP training data
+    cache             *cache.Service     // Upstash Redis (TLS) for KTP training cache
 }
 
 type KTPTrainingConfig struct {
@@ -236,6 +237,7 @@ type ModelIntegrationService struct {
     trainingPipeline  *ModelTrainingPipeline
     deploymentManager *ModelDeploymentManager
     supabaseStorage   *storage.Service  // Supabase storage for model artifacts
+    cache            *cache.Service     // Upstash Redis (TLS) for model metadata cache
 }
 
 type ModelTrainingPipeline struct {
@@ -351,12 +353,14 @@ func (tpo *TrainingPerformanceOptimizer) OptimizeTrainingPerformance(
 2. **Supabase Performance**: Risk of API rate limits during intensive parallel training operations
 3. **Model Integration Complexity**: Risk of TensorFlow/IndoBERT integration issues with Supabase storage
 4. **Resource Management**: Risk of Supabase connection pool exhaustion during parallel training
+5. **Cache Performance**: Risk of Upstash Redis latency affecting real-time training operations
 
 ### **Mitigation Strategies**
 1. **Incremental Migration**: Migrate modules one by one with thorough testing
-2. **Supabase Optimization**: Implement connection pooling, batch operations, and query optimization
-3. **Fallback Mechanisms**: Maintain Next.js modules as backup during migration
-4. **Resource Allocation**: Implement intelligent Supabase connection management and rate limiting
+2. **Multi-Level Caching**: Leverage Upstash Redis (TLS) with intelligent memory fallback
+3. **Supabase Optimization**: Implement connection pooling, batch operations, and query optimization
+4. **Fallback Mechanisms**: Maintain Next.js modules as backup during migration
+5. **Resource Allocation**: Intelligent Supabase connection management and Upstash Redis rate limiting
 
 ## 📋 **Resource Requirements**
 
@@ -369,9 +373,10 @@ func (tpo *TrainingPerformanceOptimizer) OptimizeTrainingPerformance(
 ### **Infrastructure Requirements**
 - **High-Performance Computing**: GPU resources for model training
 - **Supabase Pro/Team Plan**: Enhanced connection limits and performance for training workloads
+- **Upstash Redis Pro**: Enhanced performance and connection limits for intensive training
 - **Extended Storage**: Supabase storage for training data and models
-- **Monitoring Tools**: Advanced performance monitoring, alerting, and Supabase dashboard
-- **Testing Environment**: Comprehensive testing infrastructure with Supabase staging
+- **Monitoring Tools**: Advanced performance monitoring, alerting, Supabase + Upstash dashboards
+- **Testing Environment**: Comprehensive testing infrastructure with Supabase staging + Upstash Redis
 
 ## 📈 **Phase 2 Deliverables**
 
