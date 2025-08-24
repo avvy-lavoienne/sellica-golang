@@ -2,8 +2,10 @@ package cache
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -51,10 +53,25 @@ func NewService(redisURL string) (*Service, error) {
 			return service, nil // Continue without Redis
 		}
 
+		// Configure TLS for Upstash Redis (rediss:// protocol)
+		if strings.HasPrefix(redisURL, "rediss://") {
+			if opt.TLSConfig == nil {
+				opt.TLSConfig = &tls.Config{}
+			}
+			// For Upstash Redis, we need to handle certificate verification properly
+			// Extract hostname from address for proper TLS verification
+			host := opt.Addr
+			if colonIndex := strings.LastIndex(host, ":"); colonIndex != -1 {
+				host = host[:colonIndex]
+			}
+			opt.TLSConfig.ServerName = host
+			logrus.Info("🔒 Configuring TLS connection for Upstash Redis")
+		}
+
 		service.redis = redis.NewClient(opt)
 
-		// Test Redis connection
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		// Test Redis connection with extended timeout for remote connection
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
 		if err := service.redis.Ping(ctx).Err(); err != nil {
@@ -62,7 +79,11 @@ func NewService(redisURL string) (*Service, error) {
 			service.redis = nil
 		} else {
 			service.isHealthy = true
-			logrus.Info("✅ Cache service initialized with Redis")
+			if strings.HasPrefix(redisURL, "rediss://") {
+				logrus.Info("✅ Cache service initialized with Upstash Redis (TLS)")
+			} else {
+				logrus.Info("✅ Cache service initialized with Redis")
+			}
 		}
 	} else {
 		logrus.Warn("Redis URL not provided - using memory cache only")

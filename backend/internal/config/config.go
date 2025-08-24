@@ -86,7 +86,7 @@ func Load() *Config {
 			PoolMaxSize:    getEnvAsInt("DB_POOL_MAX_SIZE", 100),
 		},
 		Cache: CacheConfig{
-			RedisURL:    getEnv("REDIS_URL", "redis://localhost:6379"),
+			RedisURL:    getEnv("REDIS_URL", "rediss://default:AZt2AAIjcDE4MzM3YTAyODVjMDg0ZTcxYjBjZmQ3MWY1ZWE1ZWVmN3AxMA@creative-stingray-39798.upstash.io:6379"),
 			RedisDB:     getEnvAsInt("REDIS_DB", 0),
 			TTLSeconds:  getEnvAsInt("CACHE_TTL_SECONDS", 300),
 			MemoryMaxMB: getEnvAsInt("CACHE_MEMORY_MAX_MB", 100),

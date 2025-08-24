@@ -12,6 +12,7 @@ import (
 
 // TrainingCache provides intelligent caching for training data
 // Implements multi-level caching strategy for optimal performance
+// Compatible with Upstash Redis (TLS) and standard Redis connections
 type TrainingCache struct {
 	redisCache    *cache.Service
 	memoryCache   map[string]*CacheEntry

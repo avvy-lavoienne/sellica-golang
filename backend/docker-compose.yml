@@ -14,7 +14,7 @@ services:
       - GIN_MODE=debug
       - LOG_LEVEL=info
       - ENVIRONMENT=development
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - ENABLE_METRICS=true
       - METRICS_PORT=9090
       # Supabase configuration (set these in .env file)
