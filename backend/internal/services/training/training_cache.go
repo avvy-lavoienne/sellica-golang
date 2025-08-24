@@ -285,28 +285,7 @@ func (tc *TrainingCache) setInRedis(_ context.Context, key string, data interfac
 	return tc.redisCache.Set(key, data, ttl)
 }
 
-// evictLeastRecentlyUsed removes the least recently used entry
-func (tc *TrainingCache) evictLeastRecentlyUsed() {
-	var oldestKey string
-	var oldestTime time.Time
-	var lowestAccess int64 = -1
 
-	for key, entry := range tc.memoryCache {
-		if lowestAccess == -1 || entry.AccessCount < lowestAccess {
-			oldestKey = key
-			oldestTime = entry.Timestamp
-			lowestAccess = entry.AccessCount
-		} else if entry.AccessCount == lowestAccess && entry.Timestamp.Before(oldestTime) {
-			oldestKey = key
-			oldestTime = entry.Timestamp
-		}
-	}
-
-	if oldestKey != "" {
-		delete(tc.memoryCache, oldestKey)
-		tc.incrementEvictions()
-	}
-}
 
 // evictLeastRecentlyUsedFast performs fast LRU eviction without full scan
 func (tc *TrainingCache) evictLeastRecentlyUsedFast() {
@@ -394,19 +373,7 @@ func (tc *TrainingCache) GetMetrics() TrainingCacheMetrics {
 	}
 }
 
-// incrementHits increments the cache hit counter
-func (tc *TrainingCache) incrementHits() {
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
-	tc.hits++
-}
 
-// incrementMisses increments the cache miss counter
-func (tc *TrainingCache) incrementMisses() {
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
-	tc.misses++
-}
 
 // incrementEvictions increments the cache eviction counter
 func (tc *TrainingCache) incrementEvictions() {

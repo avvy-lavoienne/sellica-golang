@@ -306,7 +306,12 @@ func (rta *RealTimeAnalyzer) analyzeSemanticsFast(query string) SemanticAnalysis
 
 // calculateConfidenceFast performs quick confidence calculation
 func (rta *RealTimeAnalyzer) calculateConfidenceFast(classification ServiceClassification, semantic SemanticAnalysis) float64 {
-	return classification.Confidence // Use classification confidence directly
+	// Combine classification confidence with semantic complexity for better accuracy
+	baseConfidence := classification.Confidence
+	if semantic.Complexity > 100 {
+		baseConfidence *= 0.9 // Reduce confidence for complex queries
+	}
+	return baseConfidence
 }
 
 // generateRecommendationsFast generates basic recommendations quickly
@@ -323,104 +328,9 @@ func (rta *RealTimeAnalyzer) generateRecommendationsFast(classification ServiceC
 	}
 }
 
-// classifyService classifies the service type of a query
-func (rta *RealTimeAnalyzer) classifyService(query string) ServiceClassification {
-	rta.mu.RLock()
-	defer rta.mu.RUnlock()
 
-	queryLower := strings.ToLower(query)
-	scores := make(map[string]float64)
 
-	for serviceType, patterns := range rta.serviceTypePatterns {
-		score := 0.0
-		for _, pattern := range patterns {
-			if strings.Contains(queryLower, pattern) {
-				score += 1.0
-			}
-		}
-		if score > 0 {
-			scores[serviceType] = score / float64(len(patterns))
-		}
-	}
 
-	// Find best match
-	bestType := "general"
-	bestScore := 0.0
-	var alternatives []string
-
-	for serviceType, score := range scores {
-		if score > bestScore {
-			if bestScore > 0 {
-				alternatives = append(alternatives, bestType)
-			}
-			bestType = serviceType
-			bestScore = score
-		} else if score > 0.3 {
-			alternatives = append(alternatives, serviceType)
-		}
-	}
-
-	return ServiceClassification{
-		ServiceType:      bestType,
-		Confidence:       bestScore,
-		AlternativeTypes: alternatives,
-	}
-}
-
-// analyzeSemantics performs semantic analysis of a query
-func (rta *RealTimeAnalyzer) analyzeSemantics(query string) SemanticAnalysis {
-	queryLower := strings.ToLower(query)
-	words := strings.Fields(queryLower)
-
-	// Detect intent
-	intent := "unknown"
-	for intentType, patterns := range rta.intentPatterns {
-		for _, pattern := range patterns {
-			if strings.Contains(queryLower, pattern) {
-				intent = intentType
-				break
-			}
-		}
-		if intent != "unknown" {
-			break
-		}
-	}
-
-	// Extract entities (simplified)
-	entities := rta.extractEntities(queryLower)
-	
-	// Determine sentiment (simplified)
-	sentiment := rta.determineSentiment(queryLower)
-	
-	// Calculate complexity
-	complexity := len(words)
-	if complexity <= rta.complexityThresholds["simple"] {
-		// Simple query
-	} else if complexity <= rta.complexityThresholds["moderate"] {
-		// Moderate complexity
-	} else {
-		// Complex query
-	}
-
-	// Extract keywords
-	keywords := rta.extractKeywords(words)
-	
-	// Identify topics
-	topics := rta.identifyTopics(queryLower)
-
-	return SemanticAnalysis{
-		Intent:     intent,
-		Entities:   entities,
-		Sentiment:  sentiment,
-		Complexity: complexity,
-		Keywords:   keywords,
-		Topics:     topics,
-		Metadata: map[string]interface{}{
-			"word_count": len(words),
-			"char_count": len(query),
-		},
-	}
-}
 
 // extractEntities extracts entities from a query (simplified implementation)
 func (rta *RealTimeAnalyzer) extractEntities(query string) []string {
@@ -509,51 +419,9 @@ func (rta *RealTimeAnalyzer) identifyTopics(query string) []string {
 	return topics
 }
 
-// calculateConfidence calculates overall confidence score
-func (rta *RealTimeAnalyzer) calculateConfidence(classification ServiceClassification, semantic SemanticAnalysis) float64 {
-	// Weighted confidence calculation
-	classificationWeight := 0.4
-	semanticWeight := 0.3
-	complexityWeight := 0.3
-	
-	classificationScore := classification.Confidence
-	semanticScore := 0.8 // Simplified semantic confidence
-	if semantic.Intent != "unknown" {
-		semanticScore = 0.9
-	}
-	
-	complexityScore := 1.0
-	if semantic.Complexity > 200 {
-		complexityScore = 0.7
-	}
-	
-	return (classificationScore*classificationWeight + 
-		   semanticScore*semanticWeight + 
-		   complexityScore*complexityWeight)
-}
 
-// generateRecommendations generates action recommendations
-func (rta *RealTimeAnalyzer) generateRecommendations(classification ServiceClassification, semantic SemanticAnalysis) []string {
-	recommendations := []string{}
-	
-	if classification.Confidence < 0.7 {
-		recommendations = append(recommendations, "request_clarification")
-	}
-	
-	if semantic.Sentiment == "negative" {
-		recommendations = append(recommendations, "escalate_to_human")
-	}
-	
-	if semantic.Complexity > 200 {
-		recommendations = append(recommendations, "break_down_query")
-	}
-	
-	if len(semantic.Entities) > 0 {
-		recommendations = append(recommendations, "use_entity_context")
-	}
-	
-	return recommendations
-}
+
+
 
 // TrackConversation tracks a conversation step
 func (ct *ConversationTracker) TrackConversation(ctx context.Context, sessionID, userID string, step ConversationStep) error {
