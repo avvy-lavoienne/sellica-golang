@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -72,10 +73,16 @@ func NewGroqProvider(apiKey string) *GroqProvider {
 		}
 	}
 
+	// Get model from environment or use default
+	model := os.Getenv("GROQ_MODEL")
+	if model == "" {
+		model = "llama-3.3-70b-versatile" // Updated default model
+	}
+
 	provider := &GroqProvider{
 		apiKey:  apiKey,
 		baseURL: "https://api.groq.com/openai/v1",
-		model:   "llama3-8b-8192", // Default model
+		model:   model,
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},

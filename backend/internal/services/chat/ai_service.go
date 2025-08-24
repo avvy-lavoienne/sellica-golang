@@ -91,38 +91,27 @@ func NewAIService() *AIService {
 		groqProvider := providers.NewGroqProvider(groqAPIKey)
 		service.providers["groq"] = &GroqProviderAdapter{provider: groqProvider}
 		service.providers["enhanced"] = &GroqProviderAdapter{provider: groqProvider} // Use Groq as enhanced provider
-		logrus.Info("✅ Groq AI provider registered")
+		service.providers["simple"] = &GroqProviderAdapter{provider: groqProvider}   // Use Groq for all modes
+		logrus.Info("✅ Groq AI provider registered for all modes (simple, enhanced, groq)")
 	} else {
-		logrus.Warn("⚠️ Groq API key not found, using fallback for enhanced mode")
+		logrus.Warn("⚠️ Groq API key not found, using mock providers")
+		service.providers["simple"] = &SimpleAIProvider{name: "simple-response-service"}
 		service.providers["enhanced"] = &EnhancedAIProvider{name: "enhanced-indonesian-ai"}
 	}
 
-	// Register HuggingFace provider if API key is available
-	if hfAPIKey != "" {
+	// HuggingFace provider - conditionally disabled (Option B: Conditional Disable)
+	// Only initialize if both API key exists AND feature flag is enabled
+	enableHuggingFace := os.Getenv("ENABLE_HUGGINGFACE") == "true"
+	if hfAPIKey != "" && enableHuggingFace {
 		hfProvider := providers.NewHuggingFaceProvider(hfAPIKey)
 		service.providers["huggingface"] = &HuggingFaceProviderAdapter{provider: hfProvider}
-		// Use HuggingFace as simple provider if Groq is not available
-		if groqAPIKey == "" {
-			service.providers["simple"] = &HuggingFaceProviderAdapter{provider: hfProvider}
-		}
-		logrus.Info("✅ HuggingFace AI provider registered")
-	} else {
-		logrus.Warn("⚠️ HuggingFace API key not found, using fallback for simple mode")
+		logrus.Info("✅ HuggingFace AI provider registered (feature flag enabled)")
+	} else if hfAPIKey != "" && !enableHuggingFace {
+		logrus.Info("ℹ️ HuggingFace provider disabled by feature flag (ENABLE_HUGGINGFACE=false)")
+	} else if enableHuggingFace {
+		logrus.Warn("⚠️ HuggingFace feature flag enabled but no API key found")
 	}
-
-	// Fallback to mock providers if no real providers are available
-	if groqAPIKey == "" && hfAPIKey == "" {
-		logrus.Warn("⚠️ No AI provider API keys found, using mock providers")
-		service.providers["simple"] = &SimpleAIProvider{name: "simple-response-service"}
-		if _, exists := service.providers["enhanced"]; !exists {
-			service.providers["enhanced"] = &EnhancedAIProvider{name: "enhanced-indonesian-ai"}
-		}
-	} else {
-		// Set simple provider to mock if not set by real providers
-		if _, exists := service.providers["simple"]; !exists {
-			service.providers["simple"] = &SimpleAIProvider{name: "simple-response-service"}
-		}
-	}
+	// Note: HuggingFace code preserved for future Indonesian NLP specialization
 
 	logrus.Info("✅ AI service initialized with multiple providers")
 	return service
