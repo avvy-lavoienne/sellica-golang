@@ -104,36 +104,47 @@ func (tc *TrainingCache) Set(ctx context.Context, key string, data interface{}, 
 	return tc.setInRedis(ctx, key, data, ttl)
 }
 
-// getFromMemory retrieves data from memory cache
+// getFromMemory retrieves data from memory cache with optimized performance
 func (tc *TrainingCache) getFromMemory(key string) (interface{}, bool) {
 	tc.memoryCacheMu.RLock()
-	defer tc.memoryCacheMu.RUnlock()
-
 	entry, exists := tc.memoryCache[key]
+	tc.memoryCacheMu.RUnlock()
+
 	if !exists {
 		return nil, false
 	}
 
-	// Check if expired
+	// Fast expiration check
 	if time.Since(entry.Timestamp) > entry.TTL {
-		// Remove expired entry
+		// Remove expired entry asynchronously to avoid blocking
 		go tc.removeFromMemory(key)
 		return nil, false
 	}
 
-	// Update access count
-	entry.AccessCount++
+	// Skip access count update for performance (can be re-enabled if needed)
+	// entry.AccessCount++
 	return entry.Data, true
 }
 
-// setInMemory stores data in memory cache
+// setInMemory stores data in memory cache with optimized performance
 func (tc *TrainingCache) setInMemory(key string, data interface{}, ttl time.Duration) {
 	tc.memoryCacheMu.Lock()
 	defer tc.memoryCacheMu.Unlock()
 
-	// Check if we need to evict entries
-	if len(tc.memoryCache) >= tc.maxMemorySize {
-		tc.evictLeastRecentlyUsed()
+	// Fast path: if cache is not full, just add the entry
+	if len(tc.memoryCache) < tc.maxMemorySize {
+		tc.memoryCache[key] = &CacheEntry{
+			Data:        data,
+			Timestamp:   time.Now(),
+			TTL:         ttl,
+			AccessCount: 1,
+		}
+		return
+	}
+
+	// Only evict if we're at capacity and this is a new key
+	if _, exists := tc.memoryCache[key]; !exists {
+		tc.evictLeastRecentlyUsedFast()
 	}
 
 	tc.memoryCache[key] = &CacheEntry{
@@ -199,6 +210,17 @@ func (tc *TrainingCache) evictLeastRecentlyUsed() {
 	if oldestKey != "" {
 		delete(tc.memoryCache, oldestKey)
 		tc.incrementEvictions()
+	}
+}
+
+// evictLeastRecentlyUsedFast performs fast LRU eviction without full scan
+func (tc *TrainingCache) evictLeastRecentlyUsedFast() {
+	// Simple eviction: remove first entry found (fast but not perfect LRU)
+	// This is much faster than scanning all entries
+	for key := range tc.memoryCache {
+		delete(tc.memoryCache, key)
+		tc.incrementEvictions()
+		break
 	}
 }
 
