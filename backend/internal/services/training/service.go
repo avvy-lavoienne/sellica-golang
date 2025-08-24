@@ -16,7 +16,7 @@ import (
 )
 
 // Service provides training data collection and management
-// Enhanced architecture following Phase 1 specifications
+// Enhanced architecture following Phase 1 and Phase 2 specifications
 type Service struct {
 	// Core components
 	collector       *DataCollector
@@ -26,6 +26,12 @@ type Service struct {
 	cache          *TrainingCache
 	metrics        *PerformanceMetrics
 	supabase       *database.Service  // Supabase client service
+
+	// Phase 2 Advanced Components
+	advancedModules    *AdvancedTrainingModules
+	indonesianNLP      *IndonesianNLPService
+	abTesting          *ABTestingFramework
+	modelIntegration   *ModelIntegrationService
 
 	// Legacy components (maintained for compatibility)
 	db          *database.Service
@@ -175,12 +181,29 @@ func NewService(db *database.Service, cache *cache.Service) (*Service, error) {
 	// Set service reference in collector
 	collector.service = service
 
+	// Initialize Phase 2 Advanced Components
+	logrus.Info("🚀 Initializing Phase 2 advanced training components...")
+
+	// Advanced training modules (KTP, KK, Akta)
+	service.advancedModules = NewAdvancedTrainingModules(service, cache, db)
+
+	// Indonesian NLP service
+	service.indonesianNLP = NewIndonesianNLPService(cache)
+
+	// A/B testing framework
+	service.abTesting = NewABTestingFramework(cache)
+
+	// Model integration service (placeholder for TensorFlow/IndoBERT)
+	service.modelIntegration = &ModelIntegrationService{
+		cache: cache,
+	}
+
 	// Start enhanced background processes
 	go service.startBatchProcessor()
 	go service.startCacheOptimization()
 	go service.startCacheWarming()
 
-	logrus.Info("✅ Enhanced training service initialized successfully with Phase 1 Day 3-4 architecture")
+	logrus.Info("✅ Enhanced training service initialized successfully with Phase 1 Day 3-4 + Phase 2 architecture")
 	return service, nil
 }
 

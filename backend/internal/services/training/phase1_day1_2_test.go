@@ -189,8 +189,8 @@ func TestContinuousLearningEngine(t *testing.T) {
 		assert.GreaterOrEqual(t, len(activeSessions), 2, "Should have at least 2 active sessions")
 
 		// Get specific session
-		retrievedSession, found := engine.GetSession(session1.ID)
-		assert.True(t, found, "Should find the session")
+		retrievedSession, err := engine.GetSession(session1.ID)
+		assert.NoError(t, err, "Should find the session")
 		assert.Equal(t, session1.ID, retrievedSession.ID, "Session IDs should match")
 	})
 
@@ -208,8 +208,8 @@ func TestContinuousLearningEngine(t *testing.T) {
 		time.Sleep(100 * time.Millisecond)
 
 		// Check session status
-		retrievedSession, found := engine.GetSession(session.ID)
-		if found {
+		retrievedSession, err := engine.GetSession(session.ID)
+		if err == nil {
 			assert.Equal(t, LearningStatusCancelled, retrievedSession.Status, "Session should be cancelled")
 		}
 	})
