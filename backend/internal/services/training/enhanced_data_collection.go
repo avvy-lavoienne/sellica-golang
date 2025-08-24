@@ -3,6 +3,8 @@ package training
 import (
 	"context"
 	"fmt"
+	"hash/fnv"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -19,6 +21,44 @@ type RealTimeAnalyzer struct {
 	complexityThresholds map[string]int
 	cache              *cache.Service
 	mu                 sync.RWMutex
+
+	// Phase 3 Week 1: Ultra-fast analysis components
+	compiledPatterns   *CompiledPatterns
+	analysisCache      *AnalysisCache
+	fastPathMatcher    *FastPathMatcher
+}
+
+// CompiledPatterns provides pre-compiled regex patterns for maximum performance
+type CompiledPatterns struct {
+	servicePatterns map[string][]*regexp.Regexp
+	intentPatterns  map[string][]*regexp.Regexp
+	keywordMap      map[string]string // Fast keyword to service mapping
+	mu              sync.RWMutex
+}
+
+// AnalysisCache provides intelligent caching for analysis results
+type AnalysisCache struct {
+	results    sync.Map // key: hash, value: *CachedAnalysis
+	expiration sync.Map // key: hash, value: expiration time
+	hitCount   int64
+	missCount  int64
+}
+
+// FastPathMatcher provides ultra-fast pattern matching using hash-based lookups
+type FastPathMatcher struct {
+	keywordHashes map[uint32]string // Hash to service mapping
+	patterns      map[string]*regexp.Regexp
+	cache         sync.Map // Recently matched patterns
+}
+
+// CachedAnalysis represents a cached analysis result
+type CachedAnalysis struct {
+	ServiceType string
+	Intent      string
+	Confidence  float64
+	Complexity  int
+	Priority    int
+	Timestamp   time.Time
 }
 
 // ConversationTracker tracks conversation flows for enhanced training data
@@ -101,7 +141,7 @@ type SemanticAnalysis struct {
 
 // NewRealTimeAnalyzer creates a new real-time analyzer
 func NewRealTimeAnalyzer(cache *cache.Service) *RealTimeAnalyzer {
-	return &RealTimeAnalyzer{
+	analyzer := &RealTimeAnalyzer{
 		serviceTypePatterns: map[string][]string{
 			"ktp": {"ktp", "kartu tanda penduduk", "identitas", "penduduk"},
 			"kk":  {"kk", "kartu keluarga", "keluarga", "anggota keluarga"},
@@ -120,6 +160,13 @@ func NewRealTimeAnalyzer(cache *cache.Service) *RealTimeAnalyzer {
 		},
 		cache: cache,
 	}
+
+	// Phase 3 Week 1: Initialize ultra-fast analysis components
+	analyzer.compiledPatterns = NewCompiledPatterns(analyzer.serviceTypePatterns, analyzer.intentPatterns)
+	analyzer.analysisCache = NewAnalysisCache()
+	analyzer.fastPathMatcher = NewFastPathMatcher(analyzer.serviceTypePatterns)
+
+	return analyzer
 }
 
 // NewConversationTracker creates a new conversation tracker
@@ -158,25 +205,60 @@ func NewCacheWarmer(cache *cache.Service, trainingCache *TrainingCache) *CacheWa
 func (rta *RealTimeAnalyzer) AnalyzeQuery(ctx context.Context, query string, context map[string]interface{}) (*AnalysisResult, error) {
 	startTime := time.Now()
 
-	// Fast cache check with optimized key
-	cacheKey := fmt.Sprintf("analysis:%x", query) // Use hash for faster key comparison
-	if cached, err := rta.cache.Get(cacheKey); err == nil {
-		if result, ok := cached.(*AnalysisResult); ok {
-			return result, nil
+	// Phase 3 Week 1: Ultra-fast analysis with intelligent caching
+	queryHash := hashString(query)
+
+	// Try ultra-fast analysis cache first
+	if cached := rta.analysisCache.Get(queryHash); cached != nil {
+		result := &AnalysisResult{
+			Classification:     ServiceClassification{ServiceType: cached.ServiceType, Confidence: cached.Confidence},
+			SemanticAnalysis:   SemanticAnalysis{Intent: cached.Intent, Complexity: cached.Complexity},
+			ProcessingTime:     time.Since(startTime),
+			Confidence:         cached.Confidence,
+			RecommendedActions: []string{}, // Minimal for cache hits
 		}
+		return result, nil
 	}
 
-	// Perform fast classification (optimized for speed)
-	classification := rta.classifyServiceFast(query)
+	// Fast path matching for common patterns
+	if serviceType := rta.fastPathMatcher.MatchService(query); serviceType != "" {
+		classification := ServiceClassification{ServiceType: serviceType, Confidence: 0.95}
+		semanticAnalysis := rta.analyzeSemanticsFast(query)
+		confidence := rta.calculateConfidenceFast(classification, semanticAnalysis)
 
-	// Perform lightweight semantic analysis
+		// Cache the result
+		rta.analysisCache.Set(queryHash, &CachedAnalysis{
+			ServiceType: serviceType,
+			Intent:      semanticAnalysis.Intent,
+			Confidence:  confidence,
+			Complexity:  semanticAnalysis.Complexity,
+			Timestamp:   time.Now(),
+		})
+
+		result := &AnalysisResult{
+			Classification:     classification,
+			SemanticAnalysis:   semanticAnalysis,
+			ProcessingTime:     time.Since(startTime),
+			Confidence:         confidence,
+			RecommendedActions: rta.generateRecommendationsFast(classification),
+		}
+		return result, nil
+	}
+
+	// Fallback to compiled patterns for complex queries
+	classification := rta.classifyServiceWithCompiledPatterns(query)
 	semanticAnalysis := rta.analyzeSemanticsFast(query)
-
-	// Quick confidence calculation
 	confidence := rta.calculateConfidenceFast(classification, semanticAnalysis)
-
-	// Generate basic recommendations
 	recommendations := rta.generateRecommendationsFast(classification)
+
+	// Cache the result
+	rta.analysisCache.Set(queryHash, &CachedAnalysis{
+		ServiceType: classification.ServiceType,
+		Intent:      semanticAnalysis.Intent,
+		Confidence:  confidence,
+		Complexity:  semanticAnalysis.Complexity,
+		Timestamp:   time.Now(),
+	})
 
 	result := &AnalysisResult{
 		Classification:     classification,
@@ -185,9 +267,6 @@ func (rta *RealTimeAnalyzer) AnalyzeQuery(ctx context.Context, query string, con
 		Confidence:         confidence,
 		RecommendedActions: recommendations,
 	}
-
-	// Cache the result
-	rta.cache.Set(cacheKey, result, 10*time.Minute)
 
 	return result, nil
 }
@@ -651,4 +730,140 @@ func (cw *CacheWarmer) StartCacheWarming(ctx context.Context) {
 			}
 		}
 	}()
+}
+
+// Phase 3 Week 1: Ultra-fast analysis component constructors
+
+// NewCompiledPatterns creates pre-compiled regex patterns for maximum performance
+func NewCompiledPatterns(servicePatterns, intentPatterns map[string][]string) *CompiledPatterns {
+	cp := &CompiledPatterns{
+		servicePatterns: make(map[string][]*regexp.Regexp),
+		intentPatterns:  make(map[string][]*regexp.Regexp),
+		keywordMap:      make(map[string]string),
+	}
+
+	// Compile service patterns
+	for service, patterns := range servicePatterns {
+		var compiled []*regexp.Regexp
+		for _, pattern := range patterns {
+			if regex, err := regexp.Compile("(?i)" + regexp.QuoteMeta(pattern)); err == nil {
+				compiled = append(compiled, regex)
+				// Add to keyword map for fast lookup
+				cp.keywordMap[strings.ToLower(pattern)] = service
+			}
+		}
+		cp.servicePatterns[service] = compiled
+	}
+
+	// Compile intent patterns
+	for intent, patterns := range intentPatterns {
+		var compiled []*regexp.Regexp
+		for _, pattern := range patterns {
+			if regex, err := regexp.Compile("(?i)" + regexp.QuoteMeta(pattern)); err == nil {
+				compiled = append(compiled, regex)
+			}
+		}
+		cp.intentPatterns[intent] = compiled
+	}
+
+	return cp
+}
+
+// NewAnalysisCache creates a new analysis cache
+func NewAnalysisCache() *AnalysisCache {
+	return &AnalysisCache{}
+}
+
+// NewFastPathMatcher creates a new fast path matcher with hash-based lookups
+func NewFastPathMatcher(servicePatterns map[string][]string) *FastPathMatcher {
+	fpm := &FastPathMatcher{
+		keywordHashes: make(map[uint32]string),
+		patterns:      make(map[string]*regexp.Regexp),
+	}
+
+	// Create hash-based keyword mapping for ultra-fast lookups
+	for service, patterns := range servicePatterns {
+		for _, pattern := range patterns {
+			hash := hashString(strings.ToLower(pattern))
+			fpm.keywordHashes[hash] = service
+
+			// Pre-compile common patterns
+			if regex, err := regexp.Compile("(?i)" + regexp.QuoteMeta(pattern)); err == nil {
+				fpm.patterns[pattern] = regex
+			}
+		}
+	}
+
+	return fpm
+}
+
+// hashString creates a fast hash for string lookups
+func hashString(s string) uint32 {
+	h := fnv.New32a()
+	h.Write([]byte(s))
+	return h.Sum32()
+}
+
+// Phase 3 Week 1: Ultra-fast analysis methods
+
+// AnalysisCache methods for intelligent caching
+func (ac *AnalysisCache) Get(hash uint32) *CachedAnalysis {
+	if result, found := ac.results.Load(hash); found {
+		if expiry, hasExpiry := ac.expiration.Load(hash); hasExpiry {
+			if time.Now().Before(expiry.(time.Time)) {
+				return result.(*CachedAnalysis)
+			}
+			// Expired, remove from cache
+			ac.results.Delete(hash)
+			ac.expiration.Delete(hash)
+		}
+	}
+	return nil
+}
+
+func (ac *AnalysisCache) Set(hash uint32, analysis *CachedAnalysis) {
+	expiry := time.Now().Add(10 * time.Minute)
+	ac.results.Store(hash, analysis)
+	ac.expiration.Store(hash, expiry)
+}
+
+// FastPathMatcher methods for ultra-fast pattern matching
+func (fpm *FastPathMatcher) MatchService(query string) string {
+	queryLower := strings.ToLower(query)
+	words := strings.Fields(queryLower)
+
+	// Fast hash-based lookup for exact matches
+	for _, word := range words {
+		hash := hashString(word)
+		if service, found := fpm.keywordHashes[hash]; found {
+			return service
+		}
+	}
+
+	// Check cache for recent matches
+	if cached, found := fpm.cache.Load(queryLower); found {
+		return cached.(string)
+	}
+
+	return ""
+}
+
+// classifyServiceWithCompiledPatterns uses pre-compiled patterns for classification
+func (rta *RealTimeAnalyzer) classifyServiceWithCompiledPatterns(query string) ServiceClassification {
+	queryLower := strings.ToLower(query)
+
+	// Use compiled patterns for accurate matching
+	for service, patterns := range rta.compiledPatterns.servicePatterns {
+		for _, pattern := range patterns {
+			if pattern.MatchString(queryLower) {
+				return ServiceClassification{
+					ServiceType: service,
+					Confidence:  0.9,
+				}
+			}
+		}
+	}
+
+	// Fallback to fast classification
+	return rta.classifyServiceFast(query)
 }
