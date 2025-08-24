@@ -3,7 +3,6 @@ package training
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"selly-backend/internal/services/cache"
@@ -28,7 +27,6 @@ type AdvancedTrainingModules struct {
 	
 	// Performance tracking
 	performanceTracker *AdvancedPerformanceTracker
-	mu                sync.RWMutex
 }
 
 // KTPTrainingModule handles KTP (Kartu Tanda Penduduk) training
@@ -189,7 +187,6 @@ type TestResult struct {
 type AdvancedPerformanceTracker struct {
 	moduleMetrics map[string]interface{}
 	overallMetrics *OverallPerformanceMetrics
-	mu            sync.RWMutex
 }
 
 type OverallPerformanceMetrics struct {
@@ -222,6 +219,11 @@ func NewAdvancedTrainingModules(trainingService *Service, cache *cache.Service, 
 	modules.ktpModule = NewKTPTrainingModule(trainingService, cache)
 	modules.kkModule = NewKKTrainingModule(trainingService, cache)
 	modules.aktaModule = NewAktaTrainingModule(trainingService, cache)
+
+	// Initialize Phase 2 advanced services
+	modules.nlpService = NewIndonesianNLPService(cache)
+	modules.abTesting = NewABTestingFramework(cache)
+	modules.modelIntegration = &ModelIntegrationService{cache: cache}
 
 	logrus.Info("✅ Advanced training modules initialized successfully")
 	return modules
@@ -477,14 +479,14 @@ func (atm *AktaTrainingModule) ExecuteAktaTraining(ctx context.Context, config *
 		ModelType:            "akta_model",
 	})
 	if err != nil {
-		return nil, fmt.Errorf("Akta training failed: %w", err)
+		return nil, fmt.Errorf("akta training failed: %w", err)
 	}
 
 	// Step 3: Validate with test scenarios
 	logrus.Info("🧪 Validating Akta training with test scenarios...")
 	testResults, err := atm.validator.ValidateAktaTraining(ctx, atm.scenarios)
 	if err != nil {
-		return nil, fmt.Errorf("Akta validation failed: %w", err)
+		return nil, fmt.Errorf("akta validation failed: %w", err)
 	}
 
 	// Step 4: Update performance metrics
@@ -575,4 +577,36 @@ func (atm *AktaTrainingModule) calculatePerformanceGain(trainingResult *Learning
 		return 0.0
 	}
 	return ((trainingResult.FinalAccuracy - baseline) / baseline) * 100.0
+}
+
+// Getter methods for accessing Phase 2 components
+
+// GetIndonesianNLP returns the Indonesian NLP service
+func (atm *AdvancedTrainingModules) GetIndonesianNLP() *IndonesianNLPService {
+	return atm.nlpService
+}
+
+// GetABTesting returns the A/B testing framework
+func (atm *AdvancedTrainingModules) GetABTesting() *ABTestingFramework {
+	return atm.abTesting
+}
+
+// GetModelIntegration returns the model integration service
+func (atm *AdvancedTrainingModules) GetModelIntegration() *ModelIntegrationService {
+	return atm.modelIntegration
+}
+
+// GetKTPModule returns the KTP training module
+func (atm *AdvancedTrainingModules) GetKTPModule() *KTPTrainingModule {
+	return atm.ktpModule
+}
+
+// GetKKModule returns the KK training module
+func (atm *AdvancedTrainingModules) GetKKModule() *KKTrainingModule {
+	return atm.kkModule
+}
+
+// GetAktaModule returns the Akta training module
+func (atm *AdvancedTrainingModules) GetAktaModule() *AktaTrainingModule {
+	return atm.aktaModule
 }

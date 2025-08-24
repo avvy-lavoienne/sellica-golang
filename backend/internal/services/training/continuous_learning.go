@@ -310,7 +310,7 @@ func (cle *ContinuousLearningEngine) executeTrainingLoop(ctx context.Context, se
 }
 
 // trainEpoch simulates training for one epoch
-func (cle *ContinuousLearningEngine) trainEpoch(ctx context.Context, session *LearningSession, config *LearningConfig, epoch int) (float64, float64, error) {
+func (cle *ContinuousLearningEngine) trainEpoch(_ context.Context, session *LearningSession, _ *LearningConfig, epoch int) (float64, float64, error) {
 	// Start with a reasonable baseline accuracy
 	baseAccuracy := 0.75 + (float64(epoch) * 0.005) // Start at 75% and improve
 
@@ -354,7 +354,7 @@ func (cle *ContinuousLearningEngine) trainEpoch(ctx context.Context, session *Le
 }
 
 // validateModel validates the model with validation data
-func (cle *ContinuousLearningEngine) validateModel(ctx context.Context, session *LearningSession, validationData []TrainingPair) (float64, error) {
+func (cle *ContinuousLearningEngine) validateModel(_ context.Context, session *LearningSession, validationData []TrainingPair) (float64, error) {
 	if len(validationData) == 0 {
 		return session.BestAccuracy, nil
 	}
@@ -375,7 +375,7 @@ func (cle *ContinuousLearningEngine) validateModel(ctx context.Context, session 
 }
 
 // simulatePrediction simulates a prediction with given accuracy
-func (cle *ContinuousLearningEngine) simulatePrediction(pair TrainingPair, modelAccuracy float64) bool {
+func (cle *ContinuousLearningEngine) simulatePrediction(_ TrainingPair, modelAccuracy float64) bool {
 	// Simple simulation: return true if random value is less than model accuracy
 	return (float64(time.Now().UnixNano()%1000) / 1000.0) < modelAccuracy
 }

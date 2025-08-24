@@ -33,7 +33,6 @@ type TrainingCache struct {
 	// Enhanced Phase 1 Day 3-4 features
 	analytics     *CacheAnalytics
 	optimizer     *CacheOptimizer
-	warmer        *CacheWarmer
 	hitRatioTarget float64
 }
 
@@ -153,7 +152,7 @@ func (tc *TrainingCache) removeFromMemory(key string) {
 }
 
 // getFromRedis retrieves data from Redis cache
-func (tc *TrainingCache) getFromRedis(ctx context.Context, key string) (interface{}, bool) {
+func (tc *TrainingCache) getFromRedis(_ context.Context, key string) (interface{}, bool) {
 	if tc.redisCache == nil {
 		return nil, false
 	}
@@ -172,7 +171,7 @@ func (tc *TrainingCache) getFromRedis(ctx context.Context, key string) (interfac
 }
 
 // setInRedis stores data in Redis cache
-func (tc *TrainingCache) setInRedis(ctx context.Context, key string, data interface{}, ttl time.Duration) error {
+func (tc *TrainingCache) setInRedis(_ context.Context, key string, data interface{}, ttl time.Duration) error {
 	if tc.redisCache == nil {
 		return nil
 	}

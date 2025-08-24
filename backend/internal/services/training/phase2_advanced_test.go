@@ -253,9 +253,10 @@ func TestABTestingFramework(t *testing.T) {
 			variant, err := abTesting.AssignVariant(ctx, test.ID, userID)
 			require.NoError(t, err)
 			
-			if variant == "control" {
+			switch variant {
+			case "control":
 				controlCount++
-			} else if variant == "treatment" {
+			case "treatment":
 				treatmentCount++
 			}
 		}
@@ -284,15 +285,22 @@ func TestABTestingFramework(t *testing.T) {
 		err = abTesting.StartABTest(ctx, test.ID)
 		require.NoError(t, err)
 		
-		// Record some metrics
+		// Assign users to variants and record metrics
 		for i := 0; i < 20; i++ {
-			// Control metrics (slightly lower accuracy)
-			err = abTesting.RecordMetric(ctx, test.ID, "control", "accuracy", 0.85+float64(i%5)*0.01)
+			userID := fmt.Sprintf("metrics_user_%d", i)
+			variant, err := abTesting.AssignVariant(ctx, test.ID, userID)
 			require.NoError(t, err)
-			
-			// Treatment metrics (slightly higher accuracy)
-			err = abTesting.RecordMetric(ctx, test.ID, "treatment", "accuracy", 0.90+float64(i%5)*0.01)
-			require.NoError(t, err)
+
+			// Record metrics based on assigned variant
+			if variant == "control" {
+				// Control metrics (slightly lower accuracy)
+				err = abTesting.RecordMetric(ctx, test.ID, "control", "accuracy", 0.85+float64(i%5)*0.01)
+				require.NoError(t, err)
+			} else {
+				// Treatment metrics (slightly higher accuracy)
+				err = abTesting.RecordMetric(ctx, test.ID, "treatment", "accuracy", 0.90+float64(i%5)*0.01)
+				require.NoError(t, err)
+			}
 		}
 		
 		// Analyze test

@@ -386,6 +386,11 @@ func (abf *ABTestingFramework) calculateVariantResults(variantID string, metrics
 		Confidence: make(map[string]float64),
 	}
 
+	// Handle nil metrics
+	if metrics == nil {
+		return results
+	}
+
 	// Calculate metrics
 	if metrics.Accuracy != nil {
 		results.Metrics["accuracy"] = metrics.Accuracy.Mean
@@ -407,7 +412,7 @@ func (abf *ABTestingFramework) calculateVariantResults(variantID string, metrics
 }
 
 // generateRecommendation generates a recommendation based on test results
-func (abf *ABTestingFramework) generateRecommendation(winner string, effectSize, pValue float64) string {
+func (abf *ABTestingFramework) generateRecommendation(winner string, effectSize, _ float64) string {
 	if winner == "" {
 		return "No clear winner detected. Consider running the test longer or increasing sample size."
 	}
@@ -416,7 +421,7 @@ func (abf *ABTestingFramework) generateRecommendation(winner string, effectSize,
 		return fmt.Sprintf("Treatment model shows significant improvement (%.2f%% effect size). Recommend rolling out to production.", effectSize*100)
 	}
 
-	return fmt.Sprintf("Control model performs better. Recommend keeping current model and investigating treatment model issues.")
+	return "Control model performs better. Recommend keeping current model and investigating treatment model issues."
 }
 
 // generateNextSteps generates next steps based on test results
@@ -516,16 +521,25 @@ type ABTestConfig struct {
 
 // A/B Testing component implementations
 func (ts *TrafficSplitter) AssignVariant(userID string, trafficSplit TrafficSplit) string {
-	// Simple hash-based assignment for consistent user experience
+	// Simple hash based on user ID
 	hash := 0
 	for _, char := range userID {
-		hash = hash*31 + int(char)
+		hash = (hash*31 + int(char)) % 1000000
 	}
 
-	// Normalize to 0-1 range
-	normalized := float64(hash%1000) / 1000.0
+	// Make hash positive
+	if hash < 0 {
+		hash = -hash
+	}
 
-	if normalized < trafficSplit.Control {
+	// Normalize to 0-100 range
+	normalized := hash % 100
+
+	// Calculate control threshold as percentage
+	total := trafficSplit.Control + trafficSplit.Treatment
+	controlPercentage := int((trafficSplit.Control / total) * 100)
+
+	if normalized < controlPercentage {
 		return "control"
 	}
 	return "treatment"
