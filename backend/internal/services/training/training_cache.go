@@ -13,21 +13,28 @@ import (
 // TrainingCache provides intelligent caching for training data
 // Implements multi-level caching strategy for optimal performance
 // Compatible with Upstash Redis (TLS) and standard Redis connections
+// Enhanced for Phase 1 Day 3-4 with intelligent optimization
 type TrainingCache struct {
 	redisCache    *cache.Service
 	memoryCache   map[string]*CacheEntry
 	memoryCacheMu sync.RWMutex
-	
+
 	// Cache configuration
 	memoryTTL     time.Duration
 	redisTTL      time.Duration
 	maxMemorySize int
-	
+
 	// Performance metrics
 	hits          int64
 	misses        int64
 	evictions     int64
 	mu            sync.RWMutex
+
+	// Enhanced Phase 1 Day 3-4 features
+	analytics     *CacheAnalytics
+	optimizer     *CacheOptimizer
+	warmer        *CacheWarmer
+	hitRatioTarget float64
 }
 
 // CacheEntry represents a cached training data entry
@@ -301,3 +308,5 @@ type TrainingCacheMetrics struct {
 	MemorySize    int     `json:"memory_size"`
 	MaxMemorySize int     `json:"max_memory_size"`
 }
+
+

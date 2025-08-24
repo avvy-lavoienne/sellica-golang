@@ -54,7 +54,7 @@ type TrainingDataValidator struct {
 	requiredFields    []string
 }
 
-// DataCollector handles data collection operations
+// DataCollector handles data collection operations with enhanced caching
 type DataCollector struct {
 	service       *Service
 	batchSize     int
@@ -62,6 +62,12 @@ type DataCollector struct {
 	pendingBatch  []TrainingData
 	batchMutex    sync.Mutex
 	flushTimer    *time.Timer
+
+	// Enhanced Phase 1 Day 3-4 features
+	realTimeAnalyzer    *RealTimeAnalyzer
+	conversationTracker *ConversationTracker
+	performanceMonitor  *DataCollectionMetrics
+	cacheWarmer        *CacheWarmer
 }
 
 // QueryAnalyzer analyzes queries for classification and metadata
@@ -120,11 +126,31 @@ func NewService(db *database.Service, cache *cache.Service) (*Service, error) {
 		BatchTimeout:         30 * time.Second,
 	})
 
+	// Enhanced training cache with analytics and optimization
+	analytics := NewCacheAnalytics()
 	trainingCache := NewTrainingCache(cache, &TrainingCacheConfig{
 		MemoryTTL:     5 * time.Minute,  // Fast memory cache
 		RedisTTL:      30 * time.Minute, // Distributed cache
 		MaxMemorySize: 1000,             // Max entries in memory
 	})
+
+	// Initialize cache optimizer
+	optimizer := NewCacheOptimizer(analytics, cache, trainingCache)
+	trainingCache.analytics = analytics
+	trainingCache.optimizer = optimizer
+	trainingCache.hitRatioTarget = 0.85 // 85% target hit ratio
+
+	// Initialize enhanced data collector components
+	realTimeAnalyzer := NewRealTimeAnalyzer(cache)
+	conversationTracker := NewConversationTracker()
+	performanceMonitor := NewDataCollectionMetrics()
+	cacheWarmer := NewCacheWarmer(cache, trainingCache)
+
+	// Update collector with enhanced features
+	collector.realTimeAnalyzer = realTimeAnalyzer
+	collector.conversationTracker = conversationTracker
+	collector.performanceMonitor = performanceMonitor
+	collector.cacheWarmer = cacheWarmer
 
 	performanceMetrics := NewPerformanceMetrics()
 
@@ -149,10 +175,12 @@ func NewService(db *database.Service, cache *cache.Service) (*Service, error) {
 	// Set service reference in collector
 	collector.service = service
 
-	// Start batch processing goroutine
+	// Start enhanced background processes
 	go service.startBatchProcessor()
+	go service.startCacheOptimization()
+	go service.startCacheWarming()
 
-	logrus.Info("✅ Enhanced training service initialized successfully with Phase 1 architecture")
+	logrus.Info("✅ Enhanced training service initialized successfully with Phase 1 Day 3-4 architecture")
 	return service, nil
 }
 
@@ -765,6 +793,22 @@ func (s *Service) startBatchProcessor() {
 
 	for range ticker.C {
 		s.collector.processBatch()
+	}
+}
+
+// startCacheOptimization starts the cache optimization process
+func (s *Service) startCacheOptimization() {
+	if s.cache != nil && s.cache.optimizer != nil {
+		ctx := context.Background()
+		s.cache.optimizer.StartOptimization(ctx)
+	}
+}
+
+// startCacheWarming starts the cache warming process
+func (s *Service) startCacheWarming() {
+	if s.collector != nil && s.collector.cacheWarmer != nil {
+		ctx := context.Background()
+		s.collector.cacheWarmer.StartCacheWarming(ctx)
 	}
 }
 

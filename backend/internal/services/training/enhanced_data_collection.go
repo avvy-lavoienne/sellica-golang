@@ -1,0 +1,602 @@
+package training
+
+import (
+	"context"
+	"fmt"
+	"strings"
+	"sync"
+	"time"
+
+	"selly-backend/internal/services/cache"
+
+	"github.com/sirupsen/logrus"
+)
+
+// RealTimeAnalyzer provides real-time query analysis for training data collection
+type RealTimeAnalyzer struct {
+	serviceTypePatterns map[string][]string
+	intentPatterns      map[string][]string
+	complexityThresholds map[string]int
+	cache              *cache.Service
+	mu                 sync.RWMutex
+}
+
+// ConversationTracker tracks conversation flows for enhanced training data
+type ConversationTracker struct {
+	sessions           map[string]*ConversationSession
+	sessionTimeout     time.Duration
+	maxSessionHistory  int
+	mu                sync.RWMutex
+}
+
+// DataCollectionMetrics tracks performance metrics for data collection operations
+type DataCollectionMetrics struct {
+	totalQueries       int64
+	processedQueries   int64
+	cachedQueries      int64
+	averageProcessTime time.Duration
+	cacheHitRatio      float64
+	mu                sync.RWMutex
+}
+
+// CacheWarmer implements intelligent cache warming strategies
+type CacheWarmer struct {
+	cache              *cache.Service
+	trainingCache      *TrainingCache
+	warmingSchedule    map[string]time.Duration
+	popularQueries     []string
+	mu                sync.RWMutex
+}
+
+// ConversationSession represents a user conversation session
+type ConversationSession struct {
+	SessionID      string                 `json:"session_id"`
+	UserID         string                 `json:"user_id"`
+	StartTime      time.Time              `json:"start_time"`
+	LastActivity   time.Time              `json:"last_activity"`
+	Steps          []ConversationStep     `json:"steps"`
+	Context        map[string]interface{} `json:"context"`
+	TotalQueries   int                    `json:"total_queries"`
+}
+
+// ConversationStep represents a single step in a conversation
+type ConversationStep struct {
+	StepID         string                 `json:"step_id"`
+	Timestamp      time.Time              `json:"timestamp"`
+	UserInput      string                 `json:"user_input"`
+	SystemResponse string                 `json:"system_response"`
+	ResponseType   string                 `json:"response_type"`
+	ProcessingTime time.Duration          `json:"processing_time"`
+	Confidence     float64                `json:"confidence"`
+	ContextUsed    []string               `json:"context_used"`
+	Metadata       map[string]interface{} `json:"metadata"`
+}
+
+// AnalysisResult represents the result of real-time query analysis
+type AnalysisResult struct {
+	Classification     ServiceClassification  `json:"classification"`
+	SemanticAnalysis   SemanticAnalysis      `json:"semantic_analysis"`
+	ProcessingTime     time.Duration         `json:"processing_time"`
+	Confidence         float64               `json:"confidence"`
+	RecommendedActions []string              `json:"recommended_actions"`
+}
+
+// ServiceClassification represents service type classification
+type ServiceClassification struct {
+	ServiceType    string  `json:"service_type"`
+	Confidence     float64 `json:"confidence"`
+	AlternativeTypes []string `json:"alternative_types"`
+}
+
+// SemanticAnalysis represents semantic analysis of a query
+type SemanticAnalysis struct {
+	Intent         string                 `json:"intent"`
+	Entities       []string               `json:"entities"`
+	Sentiment      string                 `json:"sentiment"`
+	Complexity     int                    `json:"complexity"`
+	Keywords       []string               `json:"keywords"`
+	Topics         []string               `json:"topics"`
+	Metadata       map[string]interface{} `json:"metadata"`
+}
+
+// NewRealTimeAnalyzer creates a new real-time analyzer
+func NewRealTimeAnalyzer(cache *cache.Service) *RealTimeAnalyzer {
+	return &RealTimeAnalyzer{
+		serviceTypePatterns: map[string][]string{
+			"ktp": {"ktp", "kartu tanda penduduk", "identitas", "penduduk"},
+			"kk":  {"kk", "kartu keluarga", "keluarga", "anggota keluarga"},
+			"akta": {"akta", "kelahiran", "kematian", "perkawinan"},
+			"general": {"bantuan", "informasi", "layanan"},
+		},
+		intentPatterns: map[string][]string{
+			"request_info": {"bagaimana", "cara", "prosedur", "syarat"},
+			"complaint": {"masalah", "error", "tidak bisa", "gagal"},
+			"status_check": {"status", "progress", "sudah", "belum"},
+		},
+		complexityThresholds: map[string]int{
+			"simple":   50,
+			"moderate": 150,
+			"complex":  300,
+		},
+		cache: cache,
+	}
+}
+
+// NewConversationTracker creates a new conversation tracker
+func NewConversationTracker() *ConversationTracker {
+	return &ConversationTracker{
+		sessions:          make(map[string]*ConversationSession),
+		sessionTimeout:    30 * time.Minute,
+		maxSessionHistory: 50,
+	}
+}
+
+// NewDataCollectionMetrics creates a new metrics tracker
+func NewDataCollectionMetrics() *DataCollectionMetrics {
+	return &DataCollectionMetrics{}
+}
+
+// NewCacheWarmer creates a new cache warmer
+func NewCacheWarmer(cache *cache.Service, trainingCache *TrainingCache) *CacheWarmer {
+	return &CacheWarmer{
+		cache:         cache,
+		trainingCache: trainingCache,
+		warmingSchedule: map[string]time.Duration{
+			"popular_queries":    5 * time.Minute,
+			"recent_training":    10 * time.Minute,
+			"user_patterns":      15 * time.Minute,
+		},
+		popularQueries: []string{
+			"cara membuat ktp",
+			"syarat kartu keluarga",
+			"prosedur akta kelahiran",
+		},
+	}
+}
+
+// AnalyzeQuery performs real-time analysis of a query
+func (rta *RealTimeAnalyzer) AnalyzeQuery(ctx context.Context, query string, context map[string]interface{}) (*AnalysisResult, error) {
+	startTime := time.Now()
+
+	// Check cache first
+	cacheKey := fmt.Sprintf("analysis:%s", query)
+	if cached, err := rta.cache.Get(cacheKey); err == nil {
+		if result, ok := cached.(*AnalysisResult); ok {
+			return result, nil
+		}
+	}
+
+	// Perform classification
+	classification := rta.classifyService(query)
+	
+	// Perform semantic analysis
+	semanticAnalysis := rta.analyzeSemantics(query)
+	
+	// Calculate confidence
+	confidence := rta.calculateConfidence(classification, semanticAnalysis)
+	
+	// Generate recommendations
+	recommendations := rta.generateRecommendations(classification, semanticAnalysis)
+
+	result := &AnalysisResult{
+		Classification:     classification,
+		SemanticAnalysis:   semanticAnalysis,
+		ProcessingTime:     time.Since(startTime),
+		Confidence:         confidence,
+		RecommendedActions: recommendations,
+	}
+
+	// Cache the result
+	rta.cache.Set(cacheKey, result, 10*time.Minute)
+
+	return result, nil
+}
+
+// classifyService classifies the service type of a query
+func (rta *RealTimeAnalyzer) classifyService(query string) ServiceClassification {
+	rta.mu.RLock()
+	defer rta.mu.RUnlock()
+
+	queryLower := strings.ToLower(query)
+	scores := make(map[string]float64)
+
+	for serviceType, patterns := range rta.serviceTypePatterns {
+		score := 0.0
+		for _, pattern := range patterns {
+			if strings.Contains(queryLower, pattern) {
+				score += 1.0
+			}
+		}
+		if score > 0 {
+			scores[serviceType] = score / float64(len(patterns))
+		}
+	}
+
+	// Find best match
+	bestType := "general"
+	bestScore := 0.0
+	var alternatives []string
+
+	for serviceType, score := range scores {
+		if score > bestScore {
+			if bestScore > 0 {
+				alternatives = append(alternatives, bestType)
+			}
+			bestType = serviceType
+			bestScore = score
+		} else if score > 0.3 {
+			alternatives = append(alternatives, serviceType)
+		}
+	}
+
+	return ServiceClassification{
+		ServiceType:      bestType,
+		Confidence:       bestScore,
+		AlternativeTypes: alternatives,
+	}
+}
+
+// analyzeSemantics performs semantic analysis of a query
+func (rta *RealTimeAnalyzer) analyzeSemantics(query string) SemanticAnalysis {
+	queryLower := strings.ToLower(query)
+	words := strings.Fields(queryLower)
+
+	// Detect intent
+	intent := "unknown"
+	for intentType, patterns := range rta.intentPatterns {
+		for _, pattern := range patterns {
+			if strings.Contains(queryLower, pattern) {
+				intent = intentType
+				break
+			}
+		}
+		if intent != "unknown" {
+			break
+		}
+	}
+
+	// Extract entities (simplified)
+	entities := rta.extractEntities(queryLower)
+	
+	// Determine sentiment (simplified)
+	sentiment := rta.determineSentiment(queryLower)
+	
+	// Calculate complexity
+	complexity := len(words)
+	if complexity <= rta.complexityThresholds["simple"] {
+		// Simple query
+	} else if complexity <= rta.complexityThresholds["moderate"] {
+		// Moderate complexity
+	} else {
+		// Complex query
+	}
+
+	// Extract keywords
+	keywords := rta.extractKeywords(words)
+	
+	// Identify topics
+	topics := rta.identifyTopics(queryLower)
+
+	return SemanticAnalysis{
+		Intent:     intent,
+		Entities:   entities,
+		Sentiment:  sentiment,
+		Complexity: complexity,
+		Keywords:   keywords,
+		Topics:     topics,
+		Metadata: map[string]interface{}{
+			"word_count": len(words),
+			"char_count": len(query),
+		},
+	}
+}
+
+// extractEntities extracts entities from a query (simplified implementation)
+func (rta *RealTimeAnalyzer) extractEntities(query string) []string {
+	entities := []string{}
+	
+	// Government document entities
+	if strings.Contains(query, "ktp") {
+		entities = append(entities, "KTP")
+	}
+	if strings.Contains(query, "kartu keluarga") || strings.Contains(query, "kk") {
+		entities = append(entities, "KK")
+	}
+	if strings.Contains(query, "akta") {
+		entities = append(entities, "AKTA")
+	}
+	
+	return entities
+}
+
+// determineSentiment determines the sentiment of a query (simplified)
+func (rta *RealTimeAnalyzer) determineSentiment(query string) string {
+	negativeWords := []string{"tidak", "gagal", "error", "masalah", "susah"}
+	positiveWords := []string{"terima kasih", "bagus", "baik", "senang"}
+	
+	negativeCount := 0
+	positiveCount := 0
+	
+	for _, word := range negativeWords {
+		if strings.Contains(query, word) {
+			negativeCount++
+		}
+	}
+	
+	for _, word := range positiveWords {
+		if strings.Contains(query, word) {
+			positiveCount++
+		}
+	}
+	
+	if negativeCount > positiveCount {
+		return "negative"
+	} else if positiveCount > negativeCount {
+		return "positive"
+	}
+	return "neutral"
+}
+
+// extractKeywords extracts important keywords from words
+func (rta *RealTimeAnalyzer) extractKeywords(words []string) []string {
+	stopWords := map[string]bool{
+		"dan": true, "atau": true, "yang": true, "untuk": true,
+		"dari": true, "ke": true, "di": true, "pada": true,
+		"dengan": true, "oleh": true, "dalam": true,
+	}
+	
+	keywords := []string{}
+	for _, word := range words {
+		if len(word) > 3 && !stopWords[word] {
+			keywords = append(keywords, word)
+		}
+	}
+	
+	return keywords
+}
+
+// identifyTopics identifies topics in a query
+func (rta *RealTimeAnalyzer) identifyTopics(query string) []string {
+	topics := []string{}
+	
+	topicPatterns := map[string][]string{
+		"dokumen": {"ktp", "kk", "akta", "surat", "dokumen"},
+		"prosedur": {"cara", "prosedur", "syarat", "langkah"},
+		"status": {"status", "progress", "sudah", "belum"},
+		"masalah": {"masalah", "error", "tidak bisa", "gagal"},
+	}
+	
+	for topic, patterns := range topicPatterns {
+		for _, pattern := range patterns {
+			if strings.Contains(query, pattern) {
+				topics = append(topics, topic)
+				break
+			}
+		}
+	}
+	
+	return topics
+}
+
+// calculateConfidence calculates overall confidence score
+func (rta *RealTimeAnalyzer) calculateConfidence(classification ServiceClassification, semantic SemanticAnalysis) float64 {
+	// Weighted confidence calculation
+	classificationWeight := 0.4
+	semanticWeight := 0.3
+	complexityWeight := 0.3
+	
+	classificationScore := classification.Confidence
+	semanticScore := 0.8 // Simplified semantic confidence
+	if semantic.Intent != "unknown" {
+		semanticScore = 0.9
+	}
+	
+	complexityScore := 1.0
+	if semantic.Complexity > 200 {
+		complexityScore = 0.7
+	}
+	
+	return (classificationScore*classificationWeight + 
+		   semanticScore*semanticWeight + 
+		   complexityScore*complexityWeight)
+}
+
+// generateRecommendations generates action recommendations
+func (rta *RealTimeAnalyzer) generateRecommendations(classification ServiceClassification, semantic SemanticAnalysis) []string {
+	recommendations := []string{}
+	
+	if classification.Confidence < 0.7 {
+		recommendations = append(recommendations, "request_clarification")
+	}
+	
+	if semantic.Sentiment == "negative" {
+		recommendations = append(recommendations, "escalate_to_human")
+	}
+	
+	if semantic.Complexity > 200 {
+		recommendations = append(recommendations, "break_down_query")
+	}
+	
+	if len(semantic.Entities) > 0 {
+		recommendations = append(recommendations, "use_entity_context")
+	}
+	
+	return recommendations
+}
+
+// TrackConversation tracks a conversation step
+func (ct *ConversationTracker) TrackConversation(ctx context.Context, sessionID, userID string, step ConversationStep) error {
+	ct.mu.Lock()
+	defer ct.mu.Unlock()
+
+	session, exists := ct.sessions[sessionID]
+	if !exists {
+		session = &ConversationSession{
+			SessionID:    sessionID,
+			UserID:       userID,
+			StartTime:    time.Now(),
+			LastActivity: time.Now(),
+			Steps:        []ConversationStep{},
+			Context:      make(map[string]interface{}),
+			TotalQueries: 0,
+		}
+		ct.sessions[sessionID] = session
+	}
+
+	// Update session
+	session.LastActivity = time.Now()
+	session.Steps = append(session.Steps, step)
+	session.TotalQueries++
+
+	// Limit session history
+	if len(session.Steps) > ct.maxSessionHistory {
+		session.Steps = session.Steps[len(session.Steps)-ct.maxSessionHistory:]
+	}
+
+	return nil
+}
+
+// GetConversationContext retrieves conversation context for a session
+func (ct *ConversationTracker) GetConversationContext(sessionID string) (*ConversationSession, bool) {
+	ct.mu.RLock()
+	defer ct.mu.RUnlock()
+
+	session, exists := ct.sessions[sessionID]
+	if !exists {
+		return nil, false
+	}
+
+	// Check if session is expired
+	if time.Since(session.LastActivity) > ct.sessionTimeout {
+		delete(ct.sessions, sessionID)
+		return nil, false
+	}
+
+	return session, true
+}
+
+// RecordMetric records a performance metric
+func (dcm *DataCollectionMetrics) RecordMetric(metricType string, value interface{}, duration time.Duration) {
+	dcm.mu.Lock()
+	defer dcm.mu.Unlock()
+
+	switch metricType {
+	case "query_processed":
+		dcm.processedQueries++
+		dcm.totalQueries++
+	case "query_cached":
+		dcm.cachedQueries++
+	case "processing_time":
+		if d, ok := value.(time.Duration); ok {
+			// Update average processing time
+			if dcm.averageProcessTime == 0 {
+				dcm.averageProcessTime = d
+			} else {
+				dcm.averageProcessTime = (dcm.averageProcessTime + d) / 2
+			}
+		}
+	}
+
+	// Update cache hit ratio
+	if dcm.totalQueries > 0 {
+		dcm.cacheHitRatio = float64(dcm.cachedQueries) / float64(dcm.totalQueries)
+	}
+}
+
+// GetMetrics returns current metrics
+func (dcm *DataCollectionMetrics) GetMetrics() map[string]interface{} {
+	dcm.mu.RLock()
+	defer dcm.mu.RUnlock()
+
+	return map[string]interface{}{
+		"total_queries":        dcm.totalQueries,
+		"processed_queries":    dcm.processedQueries,
+		"cached_queries":       dcm.cachedQueries,
+		"average_process_time": dcm.averageProcessTime,
+		"cache_hit_ratio":      dcm.cacheHitRatio,
+	}
+}
+
+// WarmCache performs intelligent cache warming
+func (cw *CacheWarmer) WarmCache(ctx context.Context) error {
+	cw.mu.Lock()
+	defer cw.mu.Unlock()
+
+	logrus.Info("🔥 Starting intelligent cache warming...")
+
+	// Warm popular queries
+	for _, query := range cw.popularQueries {
+		cacheKey := fmt.Sprintf("analysis:%s", query)
+
+		// Check if already cached
+		if _, err := cw.cache.Get(cacheKey); err != nil {
+			// Generate analysis for popular query
+			analyzer := &RealTimeAnalyzer{
+				serviceTypePatterns: map[string][]string{
+					"ktp": {"ktp", "kartu tanda penduduk"},
+					"kk":  {"kk", "kartu keluarga"},
+					"akta": {"akta", "kelahiran"},
+				},
+				cache: cw.cache,
+			}
+
+			if result, err := analyzer.AnalyzeQuery(ctx, query, nil); err == nil {
+				cw.cache.Set(cacheKey, result, 30*time.Minute)
+				logrus.Debugf("🔥 Warmed cache for query: %s", query)
+			}
+		}
+	}
+
+	// Warm training data patterns
+	if err := cw.warmTrainingPatterns(ctx); err != nil {
+		logrus.Errorf("Failed to warm training patterns: %v", err)
+	}
+
+	logrus.Info("✅ Cache warming completed")
+	return nil
+}
+
+// warmTrainingPatterns warms cache with common training data patterns
+func (cw *CacheWarmer) warmTrainingPatterns(ctx context.Context) error {
+	patterns := []string{
+		"training:recent:ktp",
+		"training:recent:kk",
+		"training:recent:akta",
+		"training:popular:queries",
+		"training:user:patterns",
+	}
+
+	for _, pattern := range patterns {
+		// Simulate training data for cache warming
+		trainingData := map[string]interface{}{
+			"pattern":   pattern,
+			"timestamp": time.Now(),
+			"warmed":    true,
+		}
+
+		if err := cw.trainingCache.Set(ctx, pattern, trainingData, 15*time.Minute); err != nil {
+			logrus.Errorf("Failed to warm pattern %s: %v", pattern, err)
+		}
+	}
+
+	return nil
+}
+
+// StartCacheWarming starts the cache warming scheduler
+func (cw *CacheWarmer) StartCacheWarming(ctx context.Context) {
+	go func() {
+		ticker := time.NewTicker(5 * time.Minute)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				if err := cw.WarmCache(ctx); err != nil {
+					logrus.Errorf("Cache warming failed: %v", err)
+				}
+			}
+		}
+	}()
+}
