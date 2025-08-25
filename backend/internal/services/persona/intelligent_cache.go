@@ -58,7 +58,6 @@ type CacheAnalyzer struct {
 type PrefetchEngine struct {
 	enabled bool
 	rules   []PrefetchRule
-	mu      sync.RWMutex
 }
 
 // CacheEntry represents a cached item

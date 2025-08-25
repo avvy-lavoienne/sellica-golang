@@ -18,7 +18,6 @@ type MonitoringService struct {
 	errorTracker       *ErrorTracker
 	enabled            bool
 	monitoringInterval time.Duration
-	mu                 sync.RWMutex
 }
 
 // HealthChecker monitors system health

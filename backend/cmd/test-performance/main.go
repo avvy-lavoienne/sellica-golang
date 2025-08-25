@@ -181,11 +181,12 @@ func testProviderPerformance(_ context.Context) *ProviderMetrics {
 	sellyProvider := providers.NewGroqSELLYProvider("test-key")
 	defer sellyProvider.Close()
 
-	// Test request structure (not used in simulation but validates structure)
-	_ = &providers.AIRequest{
+	// Test request structure (validates structure without unused writes)
+	testRequest := &providers.AIRequest{
 		Query:  "Selamat pagi, bagaimana cara mengurus KTP?",
 		UserID: "test-user",
 	}
+	_ = testRequest // Use the variable to avoid unused variable warning
 
 	// Test standard Groq provider (mock - no actual API call)
 	startTime := time.Now()

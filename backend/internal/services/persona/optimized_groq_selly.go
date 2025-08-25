@@ -27,7 +27,6 @@ type OptimizedCulturalAnalyzer struct {
 	cache         *IntelligentCache
 	analysisRules []OptimizedCulturalRule
 	enabled       bool
-	mu            sync.RWMutex
 }
 
 // PerformanceMonitor tracks performance metrics

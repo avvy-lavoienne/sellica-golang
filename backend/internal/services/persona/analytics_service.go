@@ -17,7 +17,6 @@ type AnalyticsService struct {
 	dataAggregator    *DataAggregator
 	enabled           bool
 	reportingInterval time.Duration
-	mu                sync.RWMutex
 }
 
 // MetricsCollector collects various performance metrics
@@ -50,7 +49,6 @@ type DataAggregator struct {
 	aggregationRules []AggregationRule
 	aggregatedData   map[string]*AggregatedData
 	enabled          bool
-	mu               sync.RWMutex
 }
 
 // MetricSeries represents a time series of metrics
