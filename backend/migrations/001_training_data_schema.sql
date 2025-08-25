@@ -55,8 +55,9 @@ CREATE INDEX IF NOT EXISTS idx_training_data_status ON training_data(status);
 CREATE INDEX IF NOT EXISTS idx_training_data_created_at ON training_data(created_at DESC);
 
 -- JSONB indexes for classification and metadata queries
-CREATE INDEX IF NOT EXISTS idx_training_data_service_type ON training_data USING GIN ((classification->>'service_type'));
-CREATE INDEX IF NOT EXISTS idx_training_data_intent ON training_data USING GIN ((classification->>'intent'));
+CREATE INDEX IF NOT EXISTS idx_training_data_classification ON training_data USING GIN (classification);
+CREATE INDEX IF NOT EXISTS idx_training_data_metadata ON training_data USING GIN (metadata);
+CREATE INDEX IF NOT EXISTS idx_training_data_quality ON training_data USING GIN (quality);
 CREATE INDEX IF NOT EXISTS idx_training_data_quality_score ON training_data USING BTREE (CAST(quality->>'overall_score' AS DECIMAL));
 
 -- Training sessions indexes
