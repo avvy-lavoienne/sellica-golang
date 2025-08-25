@@ -164,6 +164,7 @@
     "@upstash/redis": "^1.35.3",
     "apexcharts": "^5.3.1",
     "autoprefixer": "^10.4.21",
+    "axios": "^1.11.0",
     "browser-image-compression": "^2.0.2",
     "canvas": "^3.1.2",
     "chart.js": "^4.5.0",
