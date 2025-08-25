@@ -15,8 +15,12 @@ import (
 
 // AIService provides AI model integration and processing
 type AIService struct {
-	providers map[string]AIProvider
-	fallback  AIProvider
+	providers              map[string]AIProvider
+	fallback               AIProvider
+	variationEngine        *ResponseVariationEngine
+	providerSelector       *EnhancedProviderSelector
+	variationEnabled       bool
+	enhancedSelectionEnabled bool
 }
 
 // AIProvider interface for different AI providers
@@ -45,14 +49,15 @@ type SessionAIRequest struct {
 
 // AIResponse represents AI service response
 type AIResponse struct {
-	Content         string   `json:"content"`
-	Type            string   `json:"type"`
-	Confidence      float64  `json:"confidence"`
-	Model           string   `json:"model"`
-	ProcessingTime  float64  `json:"processingTime"`
-	CacheHit        bool     `json:"cacheHit"`
-	CacheLayer      string   `json:"cacheLayer"`
-	Recommendations []string `json:"recommendations,omitempty"`
+	Content         string                 `json:"content"`
+	Type            string                 `json:"type"`
+	Confidence      float64                `json:"confidence"`
+	Model           string                 `json:"model"`
+	ProcessingTime  float64                `json:"processingTime"`
+	CacheHit        bool                   `json:"cacheHit"`
+	CacheLayer      string                 `json:"cacheLayer"`
+	Recommendations []string               `json:"recommendations,omitempty"`
+	Metadata        map[string]interface{} `json:"metadata,omitempty"`
 }
 
 // SimpleAIProvider implements basic AI functionality
@@ -83,8 +88,12 @@ type GroqSELLYProviderAdapter struct {
 // NewAIService creates a new AI service with multiple providers
 func NewAIService() *AIService {
 	service := &AIService{
-		providers: make(map[string]AIProvider),
-		fallback:  &SimpleAIProvider{name: "simple-fallback"},
+		providers:                make(map[string]AIProvider),
+		fallback:                 &SimpleAIProvider{name: "simple-fallback"},
+		variationEngine:          NewResponseVariationEngine(),
+		providerSelector:         NewEnhancedProviderSelector(),
+		variationEnabled:         true,
+		enhancedSelectionEnabled: true,
 	}
 
 	// Initialize real AI providers
@@ -125,15 +134,86 @@ func NewAIService() *AIService {
 	// Note: HuggingFace code preserved for future Indonesian NLP specialization
 
 	logrus.Info("✅ AI service initialized with multiple providers")
+	logrus.Info("✅ AI service enhanced with response variation engine and intelligent provider selection")
 	return service
+}
+
+// getAvailableProviders returns a list of available provider names
+func (s *AIService) getAvailableProviders() []string {
+	providers := make([]string, 0, len(s.providers))
+	for name, provider := range s.providers {
+		if provider.IsHealthy() {
+			providers = append(providers, name)
+		}
+	}
+	return providers
+}
+
+// determineQueryType determines the type of query for variation processing
+func (s *AIService) determineQueryType(query string) string {
+	query = strings.ToLower(strings.TrimSpace(query))
+
+	// Greeting patterns
+	greetingPatterns := []string{"halo", "selamat", "assalamualaikum", "hai", "hello"}
+	for _, pattern := range greetingPatterns {
+		if strings.Contains(query, pattern) {
+			return "greeting"
+		}
+	}
+
+	// Service patterns
+	servicePatterns := []string{"ktp", "kartu keluarga", "akta", "domisili", "pindah", "daftar", "buat", "urus"}
+	for _, pattern := range servicePatterns {
+		if strings.Contains(query, pattern) {
+			return "service"
+		}
+	}
+
+	// Question patterns
+	questionPatterns := []string{"apa", "bagaimana", "dimana", "kapan", "siapa", "mengapa", "?"}
+	for _, pattern := range questionPatterns {
+		if strings.Contains(query, pattern) {
+			return "factual"
+		}
+	}
+
+	// Default to conversational
+	return "conversational"
 }
 
 // ProcessQuery processes a query using the best available AI provider
 func (s *AIService) ProcessQuery(ctx context.Context, req *AIRequest) (*AIResponse, error) {
 	startTime := time.Now()
 
-	// Determine best provider based on enhancement mode and query complexity
-	providerName := s.selectBestProvider(req)
+	// Use enhanced provider selection if enabled
+	var providerName string
+	if s.enhancedSelectionEnabled && s.providerSelector.IsEnabled() {
+		selectionReq := &ProviderSelectionRequest{
+			Query:              req.Query,
+			UserID:             req.UserID,
+			SessionID:          req.SessionID,
+			Context:            req.Context,
+			AvailableProviders: s.getAvailableProviders(),
+		}
+
+		selectionResp, err := s.providerSelector.SelectProvider(ctx, selectionReq)
+		if err != nil {
+			logrus.WithError(err).Warn("Enhanced provider selection failed, using fallback")
+			providerName = s.selectBestProvider(req)
+		} else {
+			providerName = selectionResp.SelectedProvider
+			logrus.WithFields(logrus.Fields{
+				"selected_provider": providerName,
+				"confidence":        selectionResp.Confidence,
+				"reasoning":         selectionResp.Reasoning,
+				"complexity_level":  selectionResp.QueryComplexity.Level,
+			}).Debug("Enhanced provider selection completed")
+		}
+	} else {
+		// Fallback to simple provider selection
+		providerName = s.selectBestProvider(req)
+	}
+
 	provider, exists := s.providers[providerName]
 	if !exists || !provider.IsHealthy() {
 		logrus.WithField("provider", providerName).Warn("Provider not available, using fallback")
@@ -149,6 +229,47 @@ func (s *AIService) ProcessQuery(ctx context.Context, req *AIRequest) (*AIRespon
 	response, err := provider.ProcessQuery(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("AI processing failed: %w", err)
+	}
+
+	// Apply response variation if enabled
+	if s.variationEnabled && s.variationEngine.IsEnabled() {
+		variationReq := &VariationRequest{
+			BaseQuery:           req.Query,
+			BaseResponse:        response.Content,
+			UserID:              req.UserID,
+			SessionID:           req.SessionID,
+			QueryType:           s.determineQueryType(req.Query),
+			UserContext:         req.Context,
+			ConversationHistory: []string{}, // Could be enhanced with actual history
+			MaxVariations:       3,
+		}
+
+		variationResp, err := s.variationEngine.GenerateVariations(ctx, variationReq)
+		if err != nil {
+			logrus.WithError(err).Warn("Response variation failed, using original response")
+		} else if variationResp.SelectedVariation != nil {
+			// Use the selected variation
+			response.Content = variationResp.SelectedVariation.Content
+			response.Confidence = variationResp.SelectedVariation.Confidence
+
+			// Add variation metadata
+			if response.Metadata == nil {
+				response.Metadata = make(map[string]interface{})
+			}
+			response.Metadata["variation_applied"] = true
+			response.Metadata["variation_style"] = variationResp.SelectedVariation.Style.Name
+			response.Metadata["variation_processing_time"] = variationResp.ProcessingTime
+			response.Metadata["variations_generated"] = len(variationResp.Variations)
+
+			logrus.WithFields(logrus.Fields{
+				"user_id":              req.UserID,
+				"session_id":           req.SessionID,
+				"variation_style":      variationResp.SelectedVariation.Style.Name,
+				"variations_generated": len(variationResp.Variations),
+				"variation_confidence": variationResp.SelectedVariation.Confidence,
+				"processing_time_ms":   variationResp.ProcessingTime,
+			}).Debug("Response variation applied successfully")
+		}
 	}
 
 	response.ProcessingTime = time.Since(startTime).Seconds() * 1000
