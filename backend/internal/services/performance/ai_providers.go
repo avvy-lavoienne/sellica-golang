@@ -3,6 +3,7 @@ package performance
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -35,9 +36,12 @@ func (sap *SimpleAIProvider) ProcessQuery(ctx context.Context, req *AIRequest) (
 	// Simulate fast processing
 	time.Sleep(10 * time.Millisecond)
 
+	// Generate appropriate Indonesian response based on query
+	responseText := sap.generateIndonesianResponse(req.Query)
+
 	response := &AIResponse{
 		ID:          req.ID,
-		Response:    fmt.Sprintf("Simple AI response to: %s", req.Query),
+		Response:    responseText,
 		Confidence:  0.85,
 		WorkerType:  WorkerTypeSimple,
 		GeneratedAt: time.Now(),
@@ -64,6 +68,58 @@ func (sap *SimpleAIProvider) IsHealthy() bool {
 // GetCapabilities returns provider capabilities
 func (sap *SimpleAIProvider) GetCapabilities() map[string]interface{} {
 	return sap.capabilities
+}
+
+// generateIndonesianResponse generates appropriate Indonesian responses
+func (sap *SimpleAIProvider) generateIndonesianResponse(query string) string {
+	query = strings.ToLower(strings.TrimSpace(query))
+
+	// Greeting responses
+	if sap.isGreeting(query) {
+		return sap.generateGreetingResponse()
+	}
+
+	// Service-specific responses
+	if strings.Contains(query, "ktp") || strings.Contains(query, "kartu tanda penduduk") {
+		return "Untuk informasi KTP, Anda dapat mengunjungi Dinas Kependudukan dan Pencatatan Sipil terdekat atau mengakses layanan online."
+	}
+
+	if strings.Contains(query, "kk") || strings.Contains(query, "kartu keluarga") {
+		return "Untuk informasi Kartu Keluarga, silakan datang ke Dinas Kependudukan dengan membawa dokumen yang diperlukan."
+	}
+
+	if strings.Contains(query, "akta") || strings.Contains(query, "kelahiran") {
+		return "Untuk informasi akta kelahiran, Anda dapat mengunjungi Dinas Kependudukan dengan membawa dokumen persyaratan."
+	}
+
+	// General administrative response
+	return "Bagaimana saya dapat membantu Anda dengan layanan administrasi?"
+}
+
+// isGreeting checks if the query is a greeting
+func (sap *SimpleAIProvider) isGreeting(query string) bool {
+	greetingWords := []string{"halo", "hai", "hello", "selamat", "assalamualaikum", "salam", "pagi", "siang", "sore", "malam"}
+	for _, word := range greetingWords {
+		if strings.Contains(query, word) {
+			return true
+		}
+	}
+	return false
+}
+
+// generateGreetingResponse generates appropriate greeting response based on time
+func (sap *SimpleAIProvider) generateGreetingResponse() string {
+	hour := time.Now().Hour()
+
+	if hour >= 5 && hour < 12 {
+		return "Selamat pagi! Bagaimana saya dapat membantu Anda dengan layanan administrasi?"
+	} else if hour >= 12 && hour < 17 {
+		return "Selamat siang! Bagaimana saya dapat membantu Anda dengan layanan administrasi?"
+	} else if hour >= 17 && hour < 21 {
+		return "Selamat sore! Bagaimana saya dapat membantu Anda dengan layanan administrasi?"
+	} else {
+		return "Selamat malam! Bagaimana saya dapat membantu Anda dengan layanan administrasi?"
+	}
 }
 
 // ComplexAIProvider provides advanced AI processing

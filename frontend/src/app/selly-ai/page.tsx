@@ -29,6 +29,7 @@ import { QUICK_ACTIONS } from '@/types/chatbot';
 import { SellyWelcomeCard } from './components/SellyWelcomeCard'; // Disabled for core build
 import { MobileSellyInterface } from './components/MobileSellyInterface'; // Disabled for core build
 import { isMobile } from '@/utils/mobile';
+import { SellyApiService } from '@/services/selly/sellyApiService';
 
 interface SellyAIPageContentProps {
   className?: string;
@@ -557,12 +558,12 @@ export default function SellyAIPage() {
     try {
       console.log('🚀 [SELLY_AI_PAGE] Processing message with enhanced workflow:', message);
 
-      // Enhanced context with proper metadata (matching dashboard implementation)
+      // Enhanced context with proper metadata (using shared service)
       const enhancedContext = {
         userId: userId,
         timestamp: new Date().toISOString(),
-        enhancedMode: enhancedMode, // Use actual enhancement mode state
-        source: 'selly-ai-page',
+        enhancedMode: enhancedMode,
+        source: 'selly-ai-page' as const,
         sessionId: `selly-ai-${userId}`,
         userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : '',
         metadata: {
@@ -572,68 +573,11 @@ export default function SellyAIPage() {
         }
       };
 
-      // First tier: Try Go Backend API endpoint for AI-powered responses
-      try {
-        console.log('🔄 [SELLY_AI_PAGE] Attempting Go Backend API call...');
-        const response = await fetch('http://localhost:8080/chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message,
-            context: enhancedContext,
-            enhancementMode: enhancedMode ? 'enhanced' : 'standard', // Dynamic enhancement mode
-          }),
-        });
+      // Use unified SELLY API service for Go backend integration
+      const response = await SellyApiService.processMessage(message, enhancedContext);
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.response) {
-            console.log('✅ [SELLY_AI_PAGE] Go Backend API call successful');
-            return data.response;
-          }
-        }
-
-        console.log('⚠️ [SELLY_AI_PAGE] Primary API call failed, trying fallback...');
-      } catch (apiError) {
-        console.log('⚠️ [SELLY_AI_PAGE] Primary API error, trying fallback:', apiError);
-      }
-
-      // Second tier: Fallback with basic Indonesian response
-      try {
-        console.log('🔄 [SELLY_AI_PAGE] Using intelligent fallback response...');
-
-        // Provide intelligent Indonesian response based on query content
-        const lowerMessage = message.toLowerCase();
-        let fallbackResponse = '';
-
-        if (lowerMessage.includes('ktp')) {
-          fallbackResponse = 'Untuk mengurus KTP, Anda perlu membawa dokumen persyaratan ke Dinas Kependudukan dan Pencatatan Sipil. Apakah ada hal spesifik yang ingin Anda tanyakan tentang KTP?';
-        } else if (lowerMessage.includes('kk') || lowerMessage.includes('kartu keluarga')) {
-          fallbackResponse = 'Untuk mengurus Kartu Keluarga, silakan datang ke Dinas Kependudukan dengan membawa dokumen yang diperlukan. Ada yang bisa saya bantu lebih lanjut?';
-        } else if (lowerMessage.includes('akta')) {
-          fallbackResponse = 'Untuk mengurus akta kelahiran, Anda perlu membawa dokumen persyaratan ke Dinas Kependudukan. Apakah Anda memerlukan informasi lebih detail?';
-        } else {
-          fallbackResponse = 'Halo! Saya SELLY, asisten virtual Dinas Kependudukan dan Pencatatan Sipil. Bagaimana saya bisa membantu Anda hari ini?';
-        }
-
-        console.log('✅ [SELLY_AI_PAGE] Intelligent fallback response generated');
-        return fallbackResponse;
-      } catch (localError) {
-        console.log('⚠️ [SELLY_AI_PAGE] Fallback processing failed:', localError);
-      }
-
-      // Third tier: Final fallback with helpful message
-      console.log('⚠️ [SELLY_AI_PAGE] All processing methods failed, using fallback message');
-      return `Maaf, saya sedang mengalami gangguan teknis sementara.
-
-Silakan coba:
-• Muat ulang halaman dan kirim pesan lagi
-• Periksa koneksi internet Anda
-• Coba lagi dalam beberapa menit
-
-Jika masalah berlanjut, silakan hubungi administrator sistem.`;
+      console.log('✅ [SELLY_AI_PAGE] SELLY API response received');
+      return response;
 
     } catch (error) {
       console.error('❌ [SELLY_AI_PAGE] Critical error in message processing:', error);

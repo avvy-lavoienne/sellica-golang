@@ -99,6 +99,38 @@ export function useGoAuth(): UseGoAuthReturn {
         error: 'Failed to initialize authentication',
       });
     }
+  }, [updateState]); // setupAutoRefresh is stable and doesn't need to be in dependencies
+
+  /**
+   * Refresh JWT token
+   */
+  const refreshToken = useCallback(async (): Promise<AuthResponse> => {
+    try {
+      const result = await GoAuthAPI.refreshToken();
+
+      if (!result.success) {
+        // Token refresh failed, logout user
+        updateState({
+          isAuthenticated: false,
+          user: null,
+          error: result.error || 'Session expired',
+        });
+        console.warn('⚠️ Token refresh failed, logging out user');
+      } else {
+        console.log('✅ Token refreshed successfully');
+      }
+
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Token refresh failed';
+      updateState({
+        isAuthenticated: false,
+        user: null,
+        error: errorMessage,
+      });
+      console.error('❌ Token refresh error:', error);
+      return { success: false, error: errorMessage };
+    }
   }, [updateState]);
 
   /**
@@ -140,7 +172,7 @@ export function useGoAuth(): UseGoAuthReturn {
         }
       }, 1000); // Small delay to avoid blocking
     }
-  }, []);
+  }, [refreshToken]);
 
   /**
    * Login user with email and password
@@ -249,38 +281,6 @@ export function useGoAuth(): UseGoAuthReturn {
         loading: false,
         error: null,
       });
-    }
-  }, [updateState]);
-
-  /**
-   * Refresh JWT token
-   */
-  const refreshToken = useCallback(async (): Promise<AuthResponse> => {
-    try {
-      const result = await GoAuthAPI.refreshToken();
-      
-      if (!result.success) {
-        // Token refresh failed, logout user
-        updateState({
-          isAuthenticated: false,
-          user: null,
-          error: result.error || 'Session expired',
-        });
-        console.warn('⚠️ Token refresh failed, logging out user');
-      } else {
-        console.log('✅ Token refreshed successfully');
-      }
-      
-      return result;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Token refresh failed';
-      updateState({
-        isAuthenticated: false,
-        user: null,
-        error: errorMessage,
-      });
-      console.error('❌ Token refresh error:', error);
-      return { success: false, error: errorMessage };
     }
   }, [updateState]);
 

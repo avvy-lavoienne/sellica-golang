@@ -3,39 +3,8 @@
 import React, { useCallback, useState, useEffect } from "react";
 import { UnifiedChatProvider, useUnifiedChat } from "@/contexts/UnifiedChatContext";
 import { UnifiedChatInterface } from "./UnifiedChatInterface";
-// DISABLED FOR CORE BUILD - Using simplified chat functionality
-// // DISABLED FOR CORE BUILD
-// // DISABLED FOR CORE BUILD
-// import { aiService } from "../../../selly-legacy-nextjs-backend/business-logic/chatbot/core/aiService";
-
-// Mock aiService for core build
-const aiService = {
-  processQuery: async (message: string) => ({
-    content: `Mock response for: ${message}`,
-    response: 'Mock response for core build'
-  }),
-  getProviderStatus: () => ({ status: 'available' }),
-  getPerformanceMetrics: () => ({ responseTime: 100 }),
-  clearCache: () => {},
-  resetProviders: () => {},
-  validateConfiguration: () => true,
-  getProviderCapabilities: () => ({}),
-  optimizePerformance: () => {},
-  getSystemHealth: () => ({ status: 'healthy' }),
-  updateConfig: (config: any) => {},
-  getProviders: () => [],
-  switchProvider: (provider: string) => {},
-  getProviderMetrics: (provider: string) => ({}),
-  testProvider: (provider: string) => Promise.resolve(true),
-  getConfiguration: () => ({}),
-  updateProviderConfig: (provider: string, config: any) => {},
-  isConfigured: () => true,
-  testConnection: () => Promise.resolve(true),
-  getStatus: () => ({ status: 'ready' }),
-  getCurrentProvider: () => 'mock',
-  getAvailableProviders: () => ['mock']
-};
-import { useAuthenticatedUser } from "@/hooks/useAuthenticatedUser";
+import { SellyApiService } from "@/services/selly/sellyApiService";
+import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
 import { cn } from "@/lib/conn/utils";
 
 interface ChatbotIntegrationProps {
@@ -73,10 +42,10 @@ export function ChatbotIntegration({
     performanceMode: 'balanced' as 'fast' | 'balanced' | 'comprehensive'
   });
 
-  // Configure AI service if API key is provided
+  // API key configuration (Go backend doesn't require API key setup)
   React.useEffect(() => {
     if (apiKey) {
-      aiService.updateConfig({ apiKey });
+      console.log('API key provided for Go backend integration:', apiKey ? 'configured' : 'not configured');
     }
   }, [apiKey]);
 
@@ -101,60 +70,33 @@ export function ChatbotIntegration({
   const handleMessageSent = useCallback(
     async (message: string): Promise<string> => {
       try {
-        // Prepare enhanced context with enhancement settings
+        console.log("🚀 [DASHBOARD_CHATBOT] Processing message:", message);
+
+        // Enhanced context with proper metadata (matching selly-ai page implementation)
         const enhancedContext = {
-          userId,
+          userId: userId,
           timestamp: new Date().toISOString(),
-          enhancedMode,
-          ...advancedOptions,
-          // Additional context for complex queries
-          complexQuery: message.length > 50 || message.includes('bagaimana') || message.includes('jelaskan'),
-          enableAI: enhancedMode && advancedOptions.performanceMode !== 'fast',
-          generateVariations: enhancedMode && advancedOptions.enableVariations,
-          performanceMode: advancedOptions.performanceMode
+          enhancedMode: enhancedMode,
+          source: 'dashboard' as const,
+          sessionId: `dashboard-${userId}`,
+          userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : '',
+          metadata: {
+            standalone: false,
+            pageType: 'dashboard',
+            enhanced: enhancedMode,
+            ...advancedOptions
+          }
         };
 
-        // Development-only logging for debugging
-        // if (process.env.NODE_ENV === 'development') {
-        //   // }
+        // Use unified SELLY API service for Go backend integration
+        const response = await SellyApiService.processMessage(message, enhancedContext);
 
-        // First try to use the API endpoint for AI-powered responses
-        const response = await fetch("/api/chat", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            message,
-            context: enhancedContext,
-            enhancementMode: enhancedMode ? 'enhanced' : 'standard',
-          }),
-        });
+        console.log("✅ [DASHBOARD_CHATBOT] SELLY API response received");
+        return response;
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success) {
-            // Development-only logging for enhancement metadata
-            // if (process.env.NODE_ENV === 'development' && data.metadata?.enhancedMode) {
-            //   // }
-            return data.response;
-          }
-        }
-
-        // Fallback to local processing if API fails
-        const localResponse = await aiService.processQuery(message);
-        return localResponse.content;
       } catch (error) {
-        console.error("Error processing message:", error);
-
-        // Final fallback to local processing
-        try {
-          const localResponse = await aiService.processQuery(message);
-          return localResponse.content;
-        } catch (localError) {
-          console.error("Local processing also failed:", localError);
-          return "Maaf, terjadi kesalahan saat memproses permintaan Anda. Silakan coba lagi.";
-        }
+        console.error("❌ [DASHBOARD_CHATBOT] Error processing message:", error);
+        return "Maaf, terjadi kesalahan saat memproses permintaan Anda. Silakan coba lagi.";
       }
     },
     [userId, enhancedMode, advancedOptions],
@@ -225,7 +167,6 @@ export function useChatbotIntegration() {
     setIsEnabled(true);
     if (key) {
       setApiKey(key);
-      aiService.updateConfig({ apiKey: key });
     }
   }, []);
 
@@ -235,7 +176,6 @@ export function useChatbotIntegration() {
 
   const updateApiKey = useCallback((key: string) => {
     setApiKey(key);
-    aiService.updateConfig({ apiKey: key });
   }, []);
 
   return {
@@ -244,7 +184,7 @@ export function useChatbotIntegration() {
     enableChatbot,
     disableChatbot,
     updateApiKey,
-    isConfigured: aiService.isConfigured(),
+    isConfigured: true, // Always configured with Go backend
   };
 }
 
@@ -273,14 +213,14 @@ export function ChatbotSettings({
       e.preventDefault();
       if (!apiKey.trim()) return;
 
-      // Update AI service configuration
-      aiService.updateConfig({ apiKey: apiKey.trim() });
+      // Update API key (Go backend doesn't need API key configuration)
       onApiKeyChange?.(apiKey.trim());
 
       // Test connection
       setIsTestingConnection(true);
       try {
-        const isConnected = await aiService.testConnection();
+        // Test Go backend connection instead of aiService
+        const isConnected = await SellyApiService.healthCheck();
         setConnectionStatus(isConnected ? "success" : "error");
       } catch (error) {
         setConnectionStatus("error");
@@ -371,10 +311,10 @@ export function ChatbotSettings({
             <span
               className={cn(
                 "font-medium",
-                aiService.isConfigured() ? "text-green-600 dark:text-green-400" : "text-orange-600 dark:text-orange-400"
+                "text-green-600 dark:text-green-400" // Always configured with Go backend
               )}
             >
-              {aiService.isConfigured() ? "Terkonfigurasi" : "Mode Placeholder"}
+              Terkonfigurasi (Go Backend)
             </span>
           </div>
           <div className="flex justify-between sm:flex-col sm:gap-1">
@@ -433,7 +373,7 @@ export function ChatbotSettings({
  * Simple chatbot status indicator
  */
 export function ChatbotStatus({ className }: { className?: string }) {
-  const isConfigured = aiService.isConfigured();
+  const isConfigured = true; // Always configured with Go backend
 
   return (
     <div className={cn("flex items-center space-x-2 text-sm", className)}>
