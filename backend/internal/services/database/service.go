@@ -97,10 +97,10 @@ func (s *Service) Ping() error {
 		return fmt.Errorf("database client not initialized")
 	}
 
-	// Enhanced health check - use a more reliable table
-	// Use information_schema.tables which is always available in PostgreSQL
-	_, _, err := s.client.From("information_schema.tables").
-		Select("table_name", "", false).
+	// Enhanced health check - use our training_data table
+	// This verifies both connection and that our migration was successful
+	_, _, err := s.client.From("training_data").
+		Select("id", "", false).
 		Limit(1, "").
 		Execute()
 
