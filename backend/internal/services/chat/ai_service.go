@@ -75,6 +75,11 @@ type HuggingFaceProviderAdapter struct {
 	provider *providers.HuggingFaceProvider
 }
 
+// GroqSELLYProviderAdapter adapts GroqSELLY provider to AIProvider interface
+type GroqSELLYProviderAdapter struct {
+	provider *providers.GroqSELLYProvider
+}
+
 // NewAIService creates a new AI service with multiple providers
 func NewAIService() *AIService {
 	service := &AIService{
@@ -88,11 +93,17 @@ func NewAIService() *AIService {
 
 	// Register Groq provider if API key is available
 	if groqAPIKey != "" {
+		// Create standard Groq provider
 		groqProvider := providers.NewGroqProvider(groqAPIKey)
 		service.providers["groq"] = &GroqProviderAdapter{provider: groqProvider}
-		service.providers["enhanced"] = &GroqProviderAdapter{provider: groqProvider} // Use Groq as enhanced provider
-		service.providers["simple"] = &GroqProviderAdapter{provider: groqProvider}   // Use Groq for all modes
-		logrus.Info("✅ Groq AI provider registered for all modes (simple, enhanced, groq)")
+		service.providers["simple"] = &GroqProviderAdapter{provider: groqProvider}
+
+		// Create SELLY-enhanced Groq provider for enhanced mode
+		groqSELLYProvider := providers.NewGroqSELLYProvider(groqAPIKey)
+		service.providers["enhanced"] = &GroqSELLYProviderAdapter{provider: groqSELLYProvider}
+		service.providers["selly"] = &GroqSELLYProviderAdapter{provider: groqSELLYProvider}
+
+		logrus.Info("✅ Groq AI providers registered: standard (simple, groq) and SELLY-enhanced (enhanced, selly)")
 	} else {
 		logrus.Warn("⚠️ Groq API key not found, using mock providers")
 		service.providers["simple"] = &SimpleAIProvider{name: "simple-response-service"}
@@ -374,6 +385,45 @@ func (a *GroqProviderAdapter) GetProviderName() string {
 }
 
 func (a *GroqProviderAdapter) IsHealthy() bool {
+	return a.provider.IsHealthy()
+}
+
+// GroqSELLYProviderAdapter implementation
+
+func (a *GroqSELLYProviderAdapter) ProcessQuery(ctx context.Context, req *AIRequest) (*AIResponse, error) {
+	// Convert chat.AIRequest to providers.AIRequest
+	providerReq := &providers.AIRequest{
+		Query:           req.Query,
+		UserID:          req.UserID,
+		SessionID:       req.SessionID,
+		Context:         req.Context,
+		EnhancementMode: req.EnhancementMode,
+	}
+
+	// Call the SELLY-enhanced provider
+	providerResp, err := a.provider.ProcessQuery(ctx, providerReq)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert providers.AIResponse to chat.AIResponse
+	return &AIResponse{
+		Content:         providerResp.Content,
+		Type:            providerResp.Type,
+		Confidence:      providerResp.Confidence,
+		Model:           providerResp.Model,
+		ProcessingTime:  providerResp.ProcessingTime,
+		CacheHit:        providerResp.CacheHit,
+		CacheLayer:      providerResp.CacheLayer,
+		Recommendations: providerResp.Recommendations,
+	}, nil
+}
+
+func (a *GroqSELLYProviderAdapter) GetProviderName() string {
+	return a.provider.GetProviderName()
+}
+
+func (a *GroqSELLYProviderAdapter) IsHealthy() bool {
 	return a.provider.IsHealthy()
 }
 
