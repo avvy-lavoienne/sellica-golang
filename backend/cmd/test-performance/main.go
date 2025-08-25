@@ -91,7 +91,7 @@ func main() {
 	generatePerformanceReport(metrics)
 }
 
-func testDatabasePerformance(ctx context.Context) *DatabaseMetrics {
+func testDatabasePerformance(_ context.Context) *DatabaseMetrics {
 	metrics := &DatabaseMetrics{}
 
 	// Simulate database performance testing since we don't have actual database in test
@@ -174,13 +174,14 @@ func testPersonaPerformance(ctx context.Context) *PersonaMetrics {
 	return metrics
 }
 
-func testProviderPerformance(ctx context.Context) *ProviderMetrics {
+func testProviderPerformance(_ context.Context) *ProviderMetrics {
 	metrics := &ProviderMetrics{}
 
 	// Create test providers
 	sellyProvider := providers.NewGroqSELLYProvider("test-key")
 	defer sellyProvider.Close()
 
+	// Test request structure (not used in simulation but validates structure)
 	_ = &providers.AIRequest{
 		Query:  "Selamat pagi, bagaimana cara mengurus KTP?",
 		UserID: "test-user",
@@ -270,7 +271,7 @@ func testConcurrencyPerformance(ctx context.Context) *ConcurrencyMetrics {
 	return metrics
 }
 
-func testMemoryUsage(ctx context.Context) *MemoryMetrics {
+func testMemoryUsage(_ context.Context) *MemoryMetrics {
 	metrics := &MemoryMetrics{}
 
 	// Get initial memory
