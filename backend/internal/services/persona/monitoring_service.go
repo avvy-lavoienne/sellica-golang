@@ -11,42 +11,42 @@ import (
 
 // MonitoringService provides comprehensive monitoring for SELLY persona services
 type MonitoringService struct {
-	analyticsService    *AnalyticsService
-	healthChecker       *HealthChecker
-	performanceTracker  *PerformanceTracker
-	usageTracker        *UsageTracker
-	errorTracker        *ErrorTracker
-	enabled             bool
-	monitoringInterval  time.Duration
-	mu                  sync.RWMutex
+	analyticsService   *AnalyticsService
+	healthChecker      *HealthChecker
+	performanceTracker *PerformanceTracker
+	usageTracker       *UsageTracker
+	errorTracker       *ErrorTracker
+	enabled            bool
+	monitoringInterval time.Duration
+	mu                 sync.RWMutex
 }
 
 // HealthChecker monitors system health
 type HealthChecker struct {
-	checks          map[string]*HealthCheck
-	overallHealth   *HealthStatus
-	enabled         bool
-	checkInterval   time.Duration
-	mu              sync.RWMutex
+	checks        map[string]*HealthCheck
+	overallHealth *HealthStatus
+	enabled       bool
+	checkInterval time.Duration
+	mu            sync.RWMutex
 }
 
 // PerformanceTracker tracks performance metrics
 type PerformanceTracker struct {
-	metrics         map[string]*PerformanceMetrics
-	benchmarks      map[string]*PerformanceBenchmark
-	enabled         bool
+	metrics          map[string]*PerformanceMetrics
+	benchmarks       map[string]*PerformanceBenchmark
+	enabled          bool
 	trackingInterval time.Duration
-	mu              sync.RWMutex
+	mu               sync.RWMutex
 }
 
 // UsageTracker tracks usage patterns
 type UsageTracker struct {
-	userSessions    map[string]*UserSession
-	serviceUsage    map[string]*ServiceUsage
-	patterns        map[string]*UsagePattern
-	enabled         bool
+	userSessions     map[string]*UserSession
+	serviceUsage     map[string]*ServiceUsage
+	patterns         map[string]*UsagePattern
+	enabled          bool
 	trackingInterval time.Duration
-	mu              sync.RWMutex
+	mu               sync.RWMutex
 }
 
 // ErrorTracker tracks and analyzes errors
@@ -61,21 +61,21 @@ type ErrorTracker struct {
 
 // HealthCheck represents a health check
 type HealthCheck struct {
-	Name            string                 `json:"name"`
-	Type            string                 `json:"type"` // service, database, cache, external
-	Status          string                 `json:"status"` // healthy, degraded, unhealthy
-	LastCheck       time.Time              `json:"last_check"`
-	ResponseTime    time.Duration          `json:"response_time"`
-	ErrorMessage    string                 `json:"error_message,omitempty"`
-	CheckFunction   func() HealthResult    `json:"-"`
-	Metadata        map[string]interface{} `json:"metadata"`
+	Name          string                 `json:"name"`
+	Type          string                 `json:"type"`   // service, database, cache, external
+	Status        string                 `json:"status"` // healthy, degraded, unhealthy
+	LastCheck     time.Time              `json:"last_check"`
+	ResponseTime  time.Duration          `json:"response_time"`
+	ErrorMessage  string                 `json:"error_message,omitempty"`
+	CheckFunction func() HealthResult    `json:"-"`
+	Metadata      map[string]interface{} `json:"metadata"`
 }
 
 // HealthResult represents the result of a health check
 type HealthResult struct {
-	Status       string        `json:"status"`
-	ResponseTime time.Duration `json:"response_time"`
-	Error        error         `json:"error,omitempty"`
+	Status       string                 `json:"status"`
+	ResponseTime time.Duration          `json:"response_time"`
+	Error        error                  `json:"error,omitempty"`
 	Metadata     map[string]interface{} `json:"metadata"`
 }
 
@@ -91,12 +91,12 @@ type HealthStatus struct {
 
 // PerformanceMetrics represents performance metrics for a component
 type PerformanceMetrics struct {
-	ComponentName   string                 `json:"component_name"`
-	ResponseTime    *TimeMetrics           `json:"response_time"`
-	Throughput      *ThroughputMetrics     `json:"throughput"`
-	ResourceUsage   *ResourceMetrics       `json:"resource_usage"`
-	LastUpdated     time.Time              `json:"last_updated"`
-	Metadata        map[string]interface{} `json:"metadata"`
+	ComponentName string                 `json:"component_name"`
+	ResponseTime  *TimeMetrics           `json:"response_time"`
+	Throughput    *ThroughputMetrics     `json:"throughput"`
+	ResourceUsage *ResourceMetrics       `json:"resource_usage"`
+	LastUpdated   time.Time              `json:"last_updated"`
+	Metadata      map[string]interface{} `json:"metadata"`
 }
 
 // TimeMetrics represents time-based metrics
@@ -121,68 +121,68 @@ type ThroughputMetrics struct {
 
 // ResourceMetrics represents resource usage metrics
 type ResourceMetrics struct {
-	CPUUsage    float64   `json:"cpu_usage"`
-	MemoryUsage int64     `json:"memory_usage"`
-	GoroutineCount int    `json:"goroutine_count"`
-	LastUpdated time.Time `json:"last_updated"`
+	CPUUsage       float64   `json:"cpu_usage"`
+	MemoryUsage    int64     `json:"memory_usage"`
+	GoroutineCount int       `json:"goroutine_count"`
+	LastUpdated    time.Time `json:"last_updated"`
 }
 
 // PerformanceBenchmark represents performance benchmarks
 type PerformanceBenchmark struct {
-	Name            string        `json:"name"`
-	TargetValue     float64       `json:"target_value"`
-	CurrentValue    float64       `json:"current_value"`
-	Unit            string        `json:"unit"`
-	Status          string        `json:"status"` // meeting, exceeding, failing
-	LastUpdated     time.Time     `json:"last_updated"`
+	Name         string    `json:"name"`
+	TargetValue  float64   `json:"target_value"`
+	CurrentValue float64   `json:"current_value"`
+	Unit         string    `json:"unit"`
+	Status       string    `json:"status"` // meeting, exceeding, failing
+	LastUpdated  time.Time `json:"last_updated"`
 }
 
 // UserSession represents a user session
 type UserSession struct {
-	UserID          string                 `json:"user_id"`
-	SessionID       string                 `json:"session_id"`
-	StartTime       time.Time              `json:"start_time"`
-	LastActivity    time.Time              `json:"last_activity"`
-	RequestCount    int                    `json:"request_count"`
-	ServiceTypes    []string               `json:"service_types"`
-	Metadata        map[string]interface{} `json:"metadata"`
+	UserID       string                 `json:"user_id"`
+	SessionID    string                 `json:"session_id"`
+	StartTime    time.Time              `json:"start_time"`
+	LastActivity time.Time              `json:"last_activity"`
+	RequestCount int                    `json:"request_count"`
+	ServiceTypes []string               `json:"service_types"`
+	Metadata     map[string]interface{} `json:"metadata"`
 }
 
 // ServiceUsage represents service usage statistics
 type ServiceUsage struct {
-	ServiceType     string                 `json:"service_type"`
-	RequestCount    int64                  `json:"request_count"`
-	UniqueUsers     int64                  `json:"unique_users"`
-	AverageResponseTime time.Duration      `json:"average_response_time"`
-	SuccessRate     float64                `json:"success_rate"`
-	LastUpdated     time.Time              `json:"last_updated"`
-	Metadata        map[string]interface{} `json:"metadata"`
+	ServiceType         string                 `json:"service_type"`
+	RequestCount        int64                  `json:"request_count"`
+	UniqueUsers         int64                  `json:"unique_users"`
+	AverageResponseTime time.Duration          `json:"average_response_time"`
+	SuccessRate         float64                `json:"success_rate"`
+	LastUpdated         time.Time              `json:"last_updated"`
+	Metadata            map[string]interface{} `json:"metadata"`
 }
 
 // UsagePattern represents usage patterns
 type UsagePattern struct {
-	PatternType     string                 `json:"pattern_type"` // hourly, daily, weekly
-	Data            map[string]float64     `json:"data"`
-	PeakHours       []int                  `json:"peak_hours"`
-	LowHours        []int                  `json:"low_hours"`
-	Trend           string                 `json:"trend"` // increasing, decreasing, stable
-	LastUpdated     time.Time              `json:"last_updated"`
-	Metadata        map[string]interface{} `json:"metadata"`
+	PatternType string                 `json:"pattern_type"` // hourly, daily, weekly
+	Data        map[string]float64     `json:"data"`
+	PeakHours   []int                  `json:"peak_hours"`
+	LowHours    []int                  `json:"low_hours"`
+	Trend       string                 `json:"trend"` // increasing, decreasing, stable
+	LastUpdated time.Time              `json:"last_updated"`
+	Metadata    map[string]interface{} `json:"metadata"`
 }
 
 // ErrorEvent represents an error event
 type ErrorEvent struct {
-	ID              string                 `json:"id"`
-	Timestamp       time.Time              `json:"timestamp"`
-	ErrorType       string                 `json:"error_type"`
-	ErrorMessage    string                 `json:"error_message"`
-	Component       string                 `json:"component"`
-	UserID          string                 `json:"user_id,omitempty"`
-	SessionID       string                 `json:"session_id,omitempty"`
-	StackTrace      string                 `json:"stack_trace,omitempty"`
-	Severity        string                 `json:"severity"` // low, medium, high, critical
-	Resolved        bool                   `json:"resolved"`
-	Metadata        map[string]interface{} `json:"metadata"`
+	ID           string                 `json:"id"`
+	Timestamp    time.Time              `json:"timestamp"`
+	ErrorType    string                 `json:"error_type"`
+	ErrorMessage string                 `json:"error_message"`
+	Component    string                 `json:"component"`
+	UserID       string                 `json:"user_id,omitempty"`
+	SessionID    string                 `json:"session_id,omitempty"`
+	StackTrace   string                 `json:"stack_trace,omitempty"`
+	Severity     string                 `json:"severity"` // low, medium, high, critical
+	Resolved     bool                   `json:"resolved"`
+	Metadata     map[string]interface{} `json:"metadata"`
 }
 
 // ErrorPattern represents error patterns
@@ -211,7 +211,7 @@ func NewMonitoringService() *MonitoringService {
 	return &MonitoringService{
 		analyticsService: NewAnalyticsService(),
 		healthChecker: &HealthChecker{
-			checks:        make(map[string]*HealthCheck),
+			checks: make(map[string]*HealthCheck),
 			overallHealth: &HealthStatus{
 				Status:          "healthy",
 				Score:           100.0,
@@ -378,10 +378,10 @@ func (ms *MonitoringService) RecordError(ctx context.Context, errorType, errorMe
 	})
 
 	logrus.WithFields(logrus.Fields{
-		"error_id":      errorEvent.ID,
-		"error_type":    errorType,
-		"component":     component,
-		"severity":      severity,
+		"error_id":   errorEvent.ID,
+		"error_type": errorType,
+		"component":  component,
+		"severity":   severity,
 	}).Error("Error recorded")
 }
 
@@ -487,7 +487,7 @@ func (ms *MonitoringService) performHealthChecks() {
 			check.Status = result.Status
 			check.ResponseTime = result.ResponseTime
 			check.LastCheck = time.Now()
-			
+
 			if result.Error != nil {
 				check.ErrorMessage = result.Error.Error()
 			} else {
@@ -495,11 +495,12 @@ func (ms *MonitoringService) performHealthChecks() {
 			}
 
 			ms.healthChecker.overallHealth.ComponentHealth[name] = result.Status
-			
-			if result.Status == "healthy" {
+
+			switch result.Status {
+			case "healthy":
 				healthyCount++
 				totalScore += 100
-			} else if result.Status == "degraded" {
+			case "degraded":
 				totalScore += 50
 			}
 			totalCount++
@@ -509,7 +510,7 @@ func (ms *MonitoringService) performHealthChecks() {
 	// Calculate overall health
 	if totalCount > 0 {
 		ms.healthChecker.overallHealth.Score = totalScore / float64(totalCount)
-		
+
 		if ms.healthChecker.overallHealth.Score >= 90 {
 			ms.healthChecker.overallHealth.Status = "healthy"
 		} else if ms.healthChecker.overallHealth.Score >= 70 {
@@ -564,7 +565,7 @@ func (ms *MonitoringService) startErrorTracking(ctx context.Context) {
 	}
 }
 
-func (ms *MonitoringService) updatePerformanceMetrics(operation string, duration time.Duration, success bool) {
+func (ms *MonitoringService) updatePerformanceMetrics(operation string, duration time.Duration, _ bool) {
 	ms.performanceTracker.mu.Lock()
 	defer ms.performanceTracker.mu.Unlock()
 
@@ -573,8 +574,8 @@ func (ms *MonitoringService) updatePerformanceMetrics(operation string, duration
 		metrics = &PerformanceMetrics{
 			ComponentName: operation,
 			ResponseTime: &TimeMetrics{
-				Min: duration,
-				Max: duration,
+				Min:         duration,
+				Max:         duration,
 				SampleCount: 0,
 			},
 			Throughput: &ThroughputMetrics{
@@ -626,7 +627,7 @@ func (ms *MonitoringService) updateServiceUsage(serviceType string) {
 
 func (ms *MonitoringService) updateErrorPatterns(errorEvent *ErrorEvent) {
 	patternID := fmt.Sprintf("%s_%s", errorEvent.ErrorType, errorEvent.Component)
-	
+
 	pattern, exists := ms.errorTracker.errorPatterns[patternID]
 	if !exists {
 		pattern = &ErrorPattern{
@@ -695,18 +696,18 @@ func (ms *MonitoringService) cleanupOldErrors() {
 func createDefaultBenchmarks() map[string]*PerformanceBenchmark {
 	return map[string]*PerformanceBenchmark{
 		"persona_processing": {
-			Name:         "Persona Processing Time",
-			TargetValue:  10.0,
-			Unit:         "ms",
-			Status:       "meeting",
-			LastUpdated:  time.Now(),
+			Name:        "Persona Processing Time",
+			TargetValue: 10.0,
+			Unit:        "ms",
+			Status:      "meeting",
+			LastUpdated: time.Now(),
 		},
 		"response_time": {
-			Name:         "Overall Response Time",
-			TargetValue:  100.0,
-			Unit:         "ms",
-			Status:       "meeting",
-			LastUpdated:  time.Now(),
+			Name:        "Overall Response Time",
+			TargetValue: 100.0,
+			Unit:        "ms",
+			Status:      "meeting",
+			LastUpdated: time.Now(),
 		},
 	}
 }

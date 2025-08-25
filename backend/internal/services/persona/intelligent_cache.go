@@ -342,7 +342,7 @@ func (ic *IntelligentCache) calculateSize(value interface{}) int {
 	return len(data)
 }
 
-func (ic *IntelligentCache) generateTags(key string, value interface{}) []string {
+func (ic *IntelligentCache) generateTags(key string, _ interface{}) []string {
 	tags := []string{}
 
 	// Generate tags based on key patterns
@@ -393,7 +393,7 @@ func (ic *IntelligentCache) calculateFrequency(accessTimes []time.Time) float64 
 	return float64(len(accessTimes)) / duration.Hours()
 }
 
-func (ic *IntelligentCache) triggerPrefetch(key string, value interface{}) {
+func (ic *IntelligentCache) triggerPrefetch(key string, _ interface{}) {
 	// Simple prefetch logic - in a real implementation, this would be more sophisticated
 	for _, rule := range ic.prefetchEngine.rules {
 		if rule.Enabled && strings.Contains(key, rule.Pattern) {

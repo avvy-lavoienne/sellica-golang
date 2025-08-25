@@ -335,18 +335,16 @@ func (ogsp *OptimizedGroqSELLYProvider) optimizeResponse(content string, cultura
 	optimized := content
 
 	// Apply cultural optimizations
-	if culturalContext != nil {
-		for _, rule := range culturalContext {
-			if ruleData, ok := rule.(map[string]interface{}); ok {
-				if action, exists := ruleData["action"].(string); exists {
-					switch action {
-					case "enhance_formality":
-						optimized = ogsp.enhanceFormality(optimized)
-					case "add_courtesy":
-						optimized = ogsp.addCourtesyLanguage(optimized)
-					case "simplify_language":
-						optimized = ogsp.simplifyLanguage(optimized)
-					}
+	for _, rule := range culturalContext {
+		if ruleData, ok := rule.(map[string]interface{}); ok {
+			if action, exists := ruleData["action"].(string); exists {
+				switch action {
+				case "enhance_formality":
+					optimized = ogsp.enhanceFormality(optimized)
+				case "add_courtesy":
+					optimized = ogsp.addCourtesyLanguage(optimized)
+				case "simplify_language":
+					optimized = ogsp.simplifyLanguage(optimized)
 				}
 			}
 		}

@@ -273,7 +273,7 @@ func (aps *AdvancedPersonaService) GetCapabilities() map[string]bool {
 }
 
 // detectUserMood analyzes user mood from conversation patterns and current query
-func (aps *AdvancedPersonaService) detectUserMood(ctx context.Context, req *AdvancedPersonaRequest) (*UserMood, error) {
+func (aps *AdvancedPersonaService) detectUserMood(_ context.Context, req *AdvancedPersonaRequest) (*UserMood, error) {
 	if !aps.moodDetector.enabled {
 		return &UserMood{
 			Primary:    "neutral",
@@ -397,7 +397,7 @@ func (aps *AdvancedPersonaService) detectUserMood(ctx context.Context, req *Adva
 }
 
 // analyzeConversationContext analyzes the conversation context and stage
-func (aps *AdvancedPersonaService) analyzeConversationContext(ctx context.Context, req *AdvancedPersonaRequest) (*ConversationContext, error) {
+func (aps *AdvancedPersonaService) analyzeConversationContext(_ context.Context, req *AdvancedPersonaRequest) (*ConversationContext, error) {
 	if !aps.contextAnalyzer.enabled {
 		return &ConversationContext{
 			SessionID:          req.SessionID,
@@ -691,7 +691,7 @@ func (aps *AdvancedPersonaService) extractUserPreferences(req *AdvancedPersonaRe
 }
 
 // analyzeUserPattern analyzes user interaction patterns
-func (aps *AdvancedPersonaService) analyzeUserPattern(ctx context.Context, req *AdvancedPersonaRequest) (*UserInteractionPattern, error) {
+func (aps *AdvancedPersonaService) analyzeUserPattern(_ context.Context, req *AdvancedPersonaRequest) (*UserInteractionPattern, error) {
 	if !aps.userPatternAnalyzer.enabled {
 		return &UserInteractionPattern{
 			UserID:             req.UserID,
@@ -794,7 +794,7 @@ func (aps *AdvancedPersonaService) enhancePersonaRequest(req *AdvancedPersonaReq
 }
 
 // generateAdaptiveResponse generates adaptive response based on mood, context, and patterns
-func (aps *AdvancedPersonaService) generateAdaptiveResponse(ctx context.Context, baseContent string, mood *UserMood, context *ConversationContext, pattern *UserInteractionPattern) (string, []string, error) {
+func (aps *AdvancedPersonaService) generateAdaptiveResponse(_ context.Context, baseContent string, mood *UserMood, context *ConversationContext, pattern *UserInteractionPattern) (string, []string, error) {
 	if !aps.adaptiveGenerator.enabled {
 		return baseContent, []string{}, nil
 	}

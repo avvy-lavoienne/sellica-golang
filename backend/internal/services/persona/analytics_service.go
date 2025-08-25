@@ -537,7 +537,7 @@ func (as *AnalyticsService) generateAlertsSection(section ReportSection, timeRan
 }
 
 // generatePerformanceSection generates performance section
-func (as *AnalyticsService) generatePerformanceSection(section ReportSection, timeRange TimeRange) ReportSection {
+func (as *AnalyticsService) generatePerformanceSection(section ReportSection, _ TimeRange) ReportSection {
 	as.metricsCollector.mu.RLock()
 	defer as.metricsCollector.mu.RUnlock()
 
