@@ -97,9 +97,13 @@ func (s *Service) Ping() error {
 		return fmt.Errorf("database client not initialized")
 	}
 
-	// Simple query to test connection - using a basic health check
-	// Note: This is a simplified health check since we don't have a specific health_check table
-	_, _, err := s.client.From("auth.users").Select("id", "", false).Limit(1, "").Execute()
+	// Enhanced health check - use a more reliable table
+	// Use information_schema.tables which is always available in PostgreSQL
+	_, _, err := s.client.From("information_schema.tables").
+		Select("table_name", "", false).
+		Limit(1, "").
+		Execute()
+
 	if err != nil {
 		s.mu.Lock()
 		s.isHealthy = false
