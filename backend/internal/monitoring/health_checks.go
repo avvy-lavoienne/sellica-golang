@@ -13,28 +13,19 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// HealthStatus represents the health status of a component
-type HealthStatus string
-
-const (
-	HealthStatusHealthy   HealthStatus = "healthy"
-	HealthStatusDegraded  HealthStatus = "degraded"
-	HealthStatusUnhealthy HealthStatus = "unhealthy"
-)
-
 // ComponentHealth represents the health of a single component
 type ComponentHealth struct {
 	Name        string                 `json:"name"`
-	Status      HealthStatus           `json:"status"`
+	Status      string                 `json:"status"`
 	LastChecked time.Time              `json:"lastChecked"`
 	ResponseTime time.Duration         `json:"responseTime"`
 	Details     map[string]interface{} `json:"details,omitempty"`
 	Error       string                 `json:"error,omitempty"`
 }
 
-// SystemHealth represents the overall system health
-type SystemHealth struct {
-	Status           HealthStatus                   `json:"status"`
+// SystemHealthExtended represents the overall system health with additional monitoring features
+type SystemHealthExtended struct {
+	Status           string                         `json:"status"`
 	Timestamp        time.Time                      `json:"timestamp"`
 	Uptime           time.Duration                  `json:"uptime"`
 	Version          string                         `json:"version"`
@@ -42,14 +33,6 @@ type SystemHealth struct {
 	SystemMetrics    *SystemMetrics                 `json:"systemMetrics"`
 	PerformanceStats *PerformanceStats              `json:"performanceStats"`
 	Alerts           []Alert                        `json:"alerts,omitempty"`
-}
-
-// SystemMetrics represents system-level metrics
-type SystemMetrics struct {
-	MemoryUsage    *MemoryMetrics `json:"memoryUsage"`
-	CPUUsage       float64        `json:"cpuUsage"`
-	GoroutineCount int            `json:"goroutineCount"`
-	GCStats        *GCMetrics     `json:"gcStats"`
 }
 
 // MemoryMetrics represents memory usage metrics
@@ -95,23 +78,23 @@ type Alert struct {
 	ResolvedAt  *time.Time `json:"resolvedAt,omitempty"`
 }
 
-// HealthChecker interface for health check implementations
-type HealthChecker interface {
+// ComponentHealthChecker interface for health check implementations
+type ComponentHealthChecker interface {
 	Name() string
 	Check(ctx context.Context) *ComponentHealth
 }
 
 // HealthMonitor manages health checks and system monitoring
 type HealthMonitor struct {
-	checkers         map[string]HealthChecker
-	systemHealth     *SystemHealth
+	checkers         map[string]ComponentHealthChecker
+	systemHealth     *SystemHealthExtended
 	startTime        time.Time
 	version          string
 	alertThresholds  *AlertThresholds
 	alerts           []Alert
 	performanceStats *PerformanceStats
 	mutex            sync.RWMutex
-	
+
 	// Metrics collection
 	requestCount     int64
 	errorCount       int64
@@ -134,10 +117,10 @@ type AlertThresholds struct {
 // NewHealthMonitor creates a new health monitor
 func NewHealthMonitor(version string) *HealthMonitor {
 	return &HealthMonitor{
-		checkers:    make(map[string]HealthChecker),
+		checkers:    make(map[string]ComponentHealthChecker),
 		startTime:   time.Now(),
 		version:     version,
-		systemHealth: &SystemHealth{
+		systemHealth: &SystemHealthExtended{
 			Status:     HealthStatusHealthy,
 			Version:    version,
 			Components: make(map[string]*ComponentHealth),
@@ -158,28 +141,28 @@ func NewHealthMonitor(version string) *HealthMonitor {
 }
 
 // RegisterChecker registers a health checker
-func (hm *HealthMonitor) RegisterChecker(checker HealthChecker) {
+func (hm *HealthMonitor) RegisterChecker(checker ComponentHealthChecker) {
 	hm.mutex.Lock()
 	defer hm.mutex.Unlock()
-	
+
 	hm.checkers[checker.Name()] = checker
 	logrus.WithField("checker", checker.Name()).Info("Health checker registered")
 }
 
 // CheckHealth performs health checks on all registered components
-func (hm *HealthMonitor) CheckHealth(ctx context.Context) *SystemHealth {
+func (hm *HealthMonitor) CheckHealth(ctx context.Context) *SystemHealthExtended {
 	hm.mutex.Lock()
 	defer hm.mutex.Unlock()
-	
+
 	// Update system metrics
 	hm.updateSystemMetrics()
-	
+
 	// Check all components
 	overallStatus := HealthStatusHealthy
 	for name, checker := range hm.checkers {
 		componentHealth := checker.Check(ctx)
 		hm.systemHealth.Components[name] = componentHealth
-		
+
 		// Determine overall status
 		if componentHealth.Status == HealthStatusUnhealthy {
 			overallStatus = HealthStatusUnhealthy
@@ -205,22 +188,18 @@ func (hm *HealthMonitor) CheckHealth(ctx context.Context) *SystemHealth {
 func (hm *HealthMonitor) updateSystemMetrics() {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
-	
+
 	hm.systemHealth.SystemMetrics = &SystemMetrics{
-		MemoryUsage: &MemoryMetrics{
-			AllocBytes:      m.Alloc,
-			TotalAllocBytes: m.TotalAlloc,
-			SysBytes:        m.Sys,
-			NumGC:           m.NumGC,
-			AllocMB:         float64(m.Alloc) / 1024 / 1024,
-			SysMB:           float64(m.Sys) / 1024 / 1024,
-			HeapInUseMB:     float64(m.HeapInuse) / 1024 / 1024,
-		},
+		MemoryUsage:    int64(m.Alloc),
+		MemoryTotal:    int64(m.Sys),
+		MemoryPercent:  float64(m.Alloc) / float64(m.Sys) * 100,
+		CPUUsage:       0.0, // CPU usage would need additional monitoring
 		GoroutineCount: runtime.NumGoroutine(),
-		GCStats: &GCMetrics{
-			NumGC:     m.NumGC,
-			NextGC:    m.NextGC,
-			EnabledGC: m.EnableGC,
+		GCStats: &GCStats{
+			NumGC:      m.NumGC,
+			PauseTotal: time.Duration(m.PauseTotalNs),
+			LastGC:     time.Unix(0, int64(m.LastGC)),
+			NextGC:     m.NextGC,
 		},
 	}
 }
@@ -327,16 +306,15 @@ func (hm *HealthMonitor) checkAlerts() {
 	
 	// Check memory alerts
 	if hm.systemHealth.SystemMetrics != nil {
-		memoryUsagePercent := (float64(hm.systemHealth.SystemMetrics.MemoryUsage.AllocBytes) / 
-			float64(hm.systemHealth.SystemMetrics.MemoryUsage.SysBytes)) * 100
-		
+		memoryUsagePercent := hm.systemHealth.SystemMetrics.MemoryPercent
+
 		if memoryUsagePercent > hm.alertThresholds.MemoryCritical {
-			hm.addAlert("memory-critical", "critical", "system", 
-				fmt.Sprintf("Memory usage is %.2f%% (threshold: %.2f%%)", 
+			hm.addAlert("memory-critical", "critical", "system",
+				fmt.Sprintf("Memory usage is %.2f%% (threshold: %.2f%%)",
 					memoryUsagePercent, hm.alertThresholds.MemoryCritical), now)
 		} else if memoryUsagePercent > hm.alertThresholds.MemoryWarning {
-			hm.addAlert("memory-warning", "warning", "system", 
-				fmt.Sprintf("Memory usage is %.2f%% (threshold: %.2f%%)", 
+			hm.addAlert("memory-warning", "warning", "system",
+				fmt.Sprintf("Memory usage is %.2f%% (threshold: %.2f%%)",
 					memoryUsagePercent, hm.alertThresholds.MemoryWarning), now)
 		}
 	}
@@ -459,7 +437,7 @@ func (dhc *DatabaseHealthChecker) Check(ctx context.Context) *ComponentHealth {
 		LastChecked: start,
 		Details:     make(map[string]interface{}),
 	}
-	
+
 	// Test database connection
 	if err := dhc.db.PingContext(ctx); err != nil {
 		health.Status = HealthStatusUnhealthy
@@ -467,14 +445,14 @@ func (dhc *DatabaseHealthChecker) Check(ctx context.Context) *ComponentHealth {
 		health.ResponseTime = time.Since(start)
 		return health
 	}
-	
+
 	// Get database stats
 	stats := dhc.db.Stats()
 	health.Details["openConnections"] = stats.OpenConnections
 	health.Details["inUse"] = stats.InUse
 	health.Details["idle"] = stats.Idle
 	health.Details["maxOpenConnections"] = stats.MaxOpenConnections
-	
+
 	// Check if we're running low on connections
 	if stats.OpenConnections > int(float64(stats.MaxOpenConnections)*0.8) {
 		health.Status = HealthStatusDegraded

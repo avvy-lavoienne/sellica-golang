@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -560,8 +561,8 @@ func (wnc *WebhookNotificationChannel) Send(ctx context.Context, event *AlertEve
 		wnc.healthy = false
 		return fmt.Errorf("failed to marshal alert event: %w", err)
 	}
-	
-	req, err := http.NewRequestWithContext(ctx, "POST", wnc.url, nil)
+
+	req, err := http.NewRequestWithContext(ctx, "POST", wnc.url, strings.NewReader(string(payload)))
 	if err != nil {
 		wnc.healthy = false
 		return fmt.Errorf("failed to create webhook request: %w", err)
