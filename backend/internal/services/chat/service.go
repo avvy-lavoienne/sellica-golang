@@ -13,6 +13,7 @@ import (
 	"selly-backend/internal/services/cache"
 	"selly-backend/internal/services/database"
 	"selly-backend/internal/services/performance"
+	"selly-backend/internal/services/persona"
 	"selly-backend/pkg/types"
 )
 
@@ -24,6 +25,7 @@ type Service struct {
 	aiService             *AIService
 	sessions              *SessionManager
 	highPerformanceEngine *performance.HighPerformanceIntegration
+	personaIntegration    *persona.PersonaIntegrationService
 	mu                    sync.RWMutex
 	isHealthy             bool
 }
@@ -111,9 +113,9 @@ func NewService(db *database.Service, cache *cache.Service, auth *auth.Service) 
 	// Initialize high-performance integration
 	hpIntegration, err := performance.NewHighPerformanceIntegration(&performance.IntegrationConfig{
 		EnableHighPerformance: true,
-		FallbackToStandard:   true,
-		PerformanceThreshold: 200 * time.Millisecond,
-		MaxRetries:           3,
+		FallbackToStandard:    true,
+		PerformanceThreshold:  200 * time.Millisecond,
+		MaxRetries:            3,
 	})
 	if err != nil {
 		logrus.WithError(err).Warn("⚠️ Failed to initialize high-performance engine, using standard processing")
@@ -128,6 +130,10 @@ func NewService(db *database.Service, cache *cache.Service, auth *auth.Service) 
 		}
 	}
 
+	// Initialize SELLY persona integration
+	personaIntegration := persona.NewPersonaIntegrationService()
+	logrus.Info("✅ SELLY Persona Integration initialized successfully")
+
 	service := &Service{
 		db:                    db,
 		cache:                 cache,
@@ -135,6 +141,7 @@ func NewService(db *database.Service, cache *cache.Service, auth *auth.Service) 
 		aiService:             NewAIService(),
 		sessions:              NewSessionManager(cache, db),
 		highPerformanceEngine: hpIntegration,
+		personaIntegration:    personaIntegration,
 		isHealthy:             true,
 	}
 
@@ -186,7 +193,7 @@ func (s *Service) ProcessChat(ctx context.Context, req *ChatRequest, authContext
 				Type:           "text",
 				Model:          "high-performance-engine",
 				ProcessingTime: hpResponse.ProcessingTime.Seconds() * 1000, // Convert to milliseconds
-				CacheHit:       false, // Will be set by high-performance engine if applicable
+				CacheHit:       false,                                      // Will be set by high-performance engine if applicable
 				CacheLayer:     "high-performance",
 			}
 
@@ -219,6 +226,46 @@ func (s *Service) ProcessChat(ctx context.Context, req *ChatRequest, authContext
 		})
 		if err != nil {
 			return nil, fmt.Errorf("AI processing failed: %w", err)
+		}
+	}
+
+	// Apply SELLY persona enhancement
+	if s.personaIntegration != nil && s.personaIntegration.IsEnabled() {
+		personaRequest := &persona.AIRequest{
+			Query:           req.Message,
+			UserID:          authContext.UserID,
+			SessionID:       sessionID,
+			Context:         req.Context,
+			EnhancementMode: req.EnhancementMode,
+		}
+
+		enhancedResponse, err := s.personaIntegration.EnhanceAIResponse(ctx, personaRequest, &persona.AIResponse{
+			Content:         aiResponse.Content,
+			Type:            aiResponse.Type,
+			Confidence:      aiResponse.Confidence,
+			Model:           aiResponse.Model,
+			ProcessingTime:  aiResponse.ProcessingTime,
+			CacheHit:        aiResponse.CacheHit,
+			CacheLayer:      aiResponse.CacheLayer,
+			Recommendations: aiResponse.Recommendations,
+		})
+
+		if err != nil {
+			logrus.WithError(err).Warn("Failed to apply SELLY persona, using original response")
+		} else {
+			// Update the AI response with persona-enhanced content
+			originalModel := aiResponse.Model
+			aiResponse.Content = enhancedResponse.Content
+			aiResponse.Model = enhancedResponse.Model
+			aiResponse.ProcessingTime = enhancedResponse.ProcessingTime
+			aiResponse.Recommendations = enhancedResponse.Recommendations
+
+			logrus.WithFields(logrus.Fields{
+				"persona_applied":       true,
+				"original_model":        originalModel,
+				"enhanced_model":        enhancedResponse.Model,
+				"recommendations_count": len(enhancedResponse.Recommendations),
+			}).Debug("SELLY persona applied to chat response")
 		}
 	}
 
@@ -357,6 +404,56 @@ func (s *Service) ProcessSessionChat(ctx context.Context, req *SessionChatReques
 		}
 	}
 
+	// Apply SELLY persona enhancement for session-aware chat
+	if s.personaIntegration != nil && s.personaIntegration.IsEnabled() {
+		sessionRequest := &persona.SessionAIRequest{
+			Query:   req.Message,
+			UserID:  authContext.UserID,
+			Context: req.Context,
+			Session: &persona.Session{
+				ID:                     session.ID,
+				UserID:                 session.UserID,
+				ConversationHistory:    convertConversationHistory(session.ConversationHistory),
+				UserExpertiseLevel:     session.UserExpertiseLevel,
+				PreferredResponseStyle: "conversational",             // Default value
+				ServiceContext:         make(map[string]interface{}), // Default empty map
+				CreatedAt:              session.CreatedAt,
+				UpdatedAt:              session.LastAccessedAt, // Use LastAccessedAt as UpdatedAt
+			},
+		}
+
+		enhancedResponse, err := s.personaIntegration.EnhanceSessionAIResponse(ctx, sessionRequest, &persona.AIResponse{
+			Content:         aiResponse.Content,
+			Type:            aiResponse.Type,
+			Confidence:      aiResponse.Confidence,
+			Model:           aiResponse.Model,
+			ProcessingTime:  aiResponse.ProcessingTime,
+			CacheHit:        aiResponse.CacheHit,
+			CacheLayer:      aiResponse.CacheLayer,
+			Recommendations: aiResponse.Recommendations,
+		})
+
+		if err != nil {
+			logrus.WithError(err).Warn("Failed to apply SELLY persona to session response")
+		} else {
+			// Update the AI response with persona-enhanced content
+			originalModel := aiResponse.Model
+			aiResponse.Content = enhancedResponse.Content
+			aiResponse.Model = enhancedResponse.Model
+			aiResponse.ProcessingTime = enhancedResponse.ProcessingTime
+			aiResponse.Recommendations = enhancedResponse.Recommendations
+
+			logrus.WithFields(logrus.Fields{
+				"persona_applied":       true,
+				"session_enhanced":      true,
+				"original_model":        originalModel,
+				"enhanced_model":        enhancedResponse.Model,
+				"conversation_turns":    len(session.ConversationHistory),
+				"recommendations_count": len(enhancedResponse.Recommendations),
+			}).Debug("SELLY persona applied to session chat response")
+		}
+	}
+
 	// Update session with new conversation turn
 	err = s.sessions.AddConversationTurn(ctx, session.ID, req.Message, aiResponse.Content)
 	if err != nil {
@@ -432,7 +529,7 @@ func (s *Service) storeMessage(ctx context.Context, sessionID, userID, message, 
 	logrus.WithFields(logrus.Fields{
 		"session_id": sessionID,
 		"user_id":    userID,
-		"message":    message[:min(len(message), 100)], // Log first 100 chars
+		"message":    message[:min(len(message), 100)],   // Log first 100 chars
 		"response":   response[:min(len(response), 100)], // Log first 100 chars
 	}).Debug("Storing message in database")
 }
@@ -510,4 +607,51 @@ func (s *Service) Stop() error {
 	s.isHealthy = false
 	logrus.Info("🛑 Chat service stopped")
 	return nil
+}
+
+// convertConversationHistory converts chat session conversation history to persona conversation history
+func convertConversationHistory(chatHistory []ConversationTurn) []persona.ConversationTurn {
+	personaHistory := make([]persona.ConversationTurn, len(chatHistory))
+
+	for i, turn := range chatHistory {
+		personaHistory[i] = persona.ConversationTurn{
+			UserMessage: turn.Query,
+			AIResponse:  turn.Response,
+			Timestamp:   turn.Timestamp,
+			ServiceType: extractServiceType(turn.Metadata),
+			Confidence:  extractConfidence(turn.Metadata),
+		}
+	}
+
+	return personaHistory
+}
+
+// extractServiceType extracts service type from conversation turn metadata
+func extractServiceType(metadata map[string]interface{}) string {
+	if metadata == nil {
+		return "umum"
+	}
+
+	if serviceType, exists := metadata["serviceType"]; exists {
+		if st, ok := serviceType.(string); ok {
+			return st
+		}
+	}
+
+	return "umum"
+}
+
+// extractConfidence extracts confidence score from conversation turn metadata
+func extractConfidence(metadata map[string]interface{}) float64 {
+	if metadata == nil {
+		return 0.9 // Default confidence
+	}
+
+	if confidence, exists := metadata["confidence"]; exists {
+		if conf, ok := confidence.(float64); ok {
+			return conf
+		}
+	}
+
+	return 0.9 // Default confidence
 }

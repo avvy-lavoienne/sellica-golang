@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -112,7 +111,7 @@ func (mr *MigrationRunner) executeStatement(ctx context.Context, statement strin
 func (mr *MigrationRunner) splitSQLStatements(sql string) []string {
 	// Simple statement splitting - this could be improved for complex SQL
 	statements := strings.Split(sql, ";")
-	
+
 	var cleanStatements []string
 	for _, stmt := range statements {
 		cleaned := strings.TrimSpace(stmt)
@@ -120,7 +119,7 @@ func (mr *MigrationRunner) splitSQLStatements(sql string) []string {
 			cleanStatements = append(cleanStatements, cleaned)
 		}
 	}
-	
+
 	return cleanStatements
 }
 
