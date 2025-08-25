@@ -80,7 +80,7 @@ func (mr *MigrationRunner) ExecuteMigration(ctx context.Context, migrationPath s
 }
 
 // executeStatement executes a single SQL statement
-func (mr *MigrationRunner) executeStatement(ctx context.Context, statement string) error {
+func (mr *MigrationRunner) executeStatement(_ context.Context, statement string) error {
 	// Clean up the statement
 	statement = strings.TrimSpace(statement)
 	if statement == "" || strings.HasPrefix(statement, "--") {

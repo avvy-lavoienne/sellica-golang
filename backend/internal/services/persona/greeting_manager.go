@@ -352,7 +352,7 @@ func (gm *GreetingManager) analyzeInteractionPattern(history map[string]interfac
 }
 
 // determineFormalityFromHistory determines formality level from conversation history
-func (gm *GreetingManager) determineFormalityFromHistory(conversationHistory []string, userHistory map[string]interface{}) string {
+func (gm *GreetingManager) determineFormalityFromHistory(conversationHistory []string, _ map[string]interface{}) string {
 	// Default to formal for government services
 	defaultFormality := "formal"
 
@@ -422,7 +422,7 @@ func (gm *GreetingManager) generateFrequentUserGreeting(serviceType, timeOfDay s
 }
 
 // generateReturningUserGreeting generates greeting for returning users
-func (gm *GreetingManager) generateReturningUserGreeting(serviceType, timeOfDay, formalityLevel string) string {
+func (gm *GreetingManager) generateReturningUserGreeting(_ string, timeOfDay, formalityLevel string) string {
 	timeGreetings := map[string]string{
 		"morning":   "Selamat pagi",
 		"afternoon": "Selamat siang",
