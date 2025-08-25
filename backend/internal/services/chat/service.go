@@ -229,43 +229,76 @@ func (s *Service) ProcessChat(ctx context.Context, req *ChatRequest, authContext
 		}
 	}
 
-	// Apply SELLY persona enhancement
-	if s.personaIntegration != nil && s.personaIntegration.IsEnabled() {
-		personaRequest := &persona.AIRequest{
-			Query:           req.Message,
-			UserID:          authContext.UserID,
-			SessionID:       sessionID,
-			Context:         req.Context,
-			EnhancementMode: req.EnhancementMode,
+	// Apply SELLY persona enhancement with new enhanced system
+	enhancedPersonaService := persona.GetGlobalPersonaService()
+	if enhancedPersonaService.IsEnabled() {
+		personaRequest := &persona.PersonaProcessingRequest{
+			Query:               req.Message,
+			UserID:              authContext.UserID,
+			SessionID:           sessionID,
+			BaseResponse:        aiResponse.Content,
+			IsFirstContact:      true, // Could be improved with session tracking
+			ConversationHistory: []string{}, // Could be improved with history
+			Context:             req.Context,
 		}
 
-		enhancedResponse, err := s.personaIntegration.EnhanceAIResponse(ctx, personaRequest, &persona.AIResponse{
-			Content:         aiResponse.Content,
-			Type:            aiResponse.Type,
-			Confidence:      aiResponse.Confidence,
-			Model:           aiResponse.Model,
-			ProcessingTime:  aiResponse.ProcessingTime,
-			CacheHit:        aiResponse.CacheHit,
-			CacheLayer:      aiResponse.CacheLayer,
-			Recommendations: aiResponse.Recommendations,
-		})
-
+		enhancedResponse, err := enhancedPersonaService.ProcessWithPersona(ctx, personaRequest)
 		if err != nil {
-			logrus.WithError(err).Warn("Failed to apply SELLY persona, using original response")
+			logrus.WithError(err).Warn("Failed to apply enhanced SELLY persona, using original response")
 		} else {
 			// Update the AI response with persona-enhanced content
-			originalModel := aiResponse.Model
-			aiResponse.Content = enhancedResponse.Content
-			aiResponse.Model = enhancedResponse.Model
-			aiResponse.ProcessingTime = enhancedResponse.ProcessingTime
-			aiResponse.Recommendations = enhancedResponse.Recommendations
+			originalContent := aiResponse.Content
+			aiResponse.Content = enhancedResponse.ProcessedResponse
 
 			logrus.WithFields(logrus.Fields{
-				"persona_applied":       true,
-				"original_model":        originalModel,
-				"enhanced_model":        enhancedResponse.Model,
-				"recommendations_count": len(enhancedResponse.Recommendations),
-			}).Debug("SELLY persona applied to chat response")
+				"persona_applied":       enhancedResponse.PersonalityApplied,
+				"mood_detected":         enhancedResponse.MoodDetected,
+				"service_recognized":    enhancedResponse.ServiceRecognized,
+				"cultural_context":      enhancedResponse.CulturalContext,
+				"persona_processing_time": enhancedResponse.ProcessingTime,
+				"original_length":       len(originalContent),
+				"enhanced_length":       len(enhancedResponse.ProcessedResponse),
+			}).Info("SELLY persona enhancement completed")
+		}
+	} else {
+		// Fallback to existing persona integration
+		if s.personaIntegration != nil && s.personaIntegration.IsEnabled() {
+			personaRequest := &persona.AIRequest{
+				Query:           req.Message,
+				UserID:          authContext.UserID,
+				SessionID:       sessionID,
+				Context:         req.Context,
+				EnhancementMode: req.EnhancementMode,
+			}
+
+			enhancedResponse, err := s.personaIntegration.EnhanceAIResponse(ctx, personaRequest, &persona.AIResponse{
+				Content:         aiResponse.Content,
+				Type:            aiResponse.Type,
+				Confidence:      aiResponse.Confidence,
+				Model:           aiResponse.Model,
+				ProcessingTime:  aiResponse.ProcessingTime,
+				CacheHit:        aiResponse.CacheHit,
+				CacheLayer:      aiResponse.CacheLayer,
+				Recommendations: aiResponse.Recommendations,
+			})
+
+			if err != nil {
+				logrus.WithError(err).Warn("Failed to apply SELLY persona, using original response")
+			} else {
+				// Update the AI response with persona-enhanced content
+				originalModel := aiResponse.Model
+				aiResponse.Content = enhancedResponse.Content
+				aiResponse.Model = enhancedResponse.Model
+				aiResponse.ProcessingTime = enhancedResponse.ProcessingTime
+				aiResponse.Recommendations = enhancedResponse.Recommendations
+
+				logrus.WithFields(logrus.Fields{
+					"persona_applied":       true,
+					"original_model":        originalModel,
+					"enhanced_model":        enhancedResponse.Model,
+					"recommendations_count": len(enhancedResponse.Recommendations),
+				}).Debug("SELLY persona applied to chat response")
+			}
 		}
 	}
 
