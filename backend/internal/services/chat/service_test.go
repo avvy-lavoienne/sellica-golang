@@ -10,6 +10,7 @@ import (
 	"selly-backend/internal/services/auth"
 	"selly-backend/internal/services/cache"
 	"selly-backend/internal/services/database"
+	"selly-backend/internal/services/rag"
 )
 
 // TestService_NewService tests chat service initialization
@@ -25,8 +26,11 @@ func TestService_NewService(t *testing.T) {
 	authService := auth.NewService("test-jwt-secret", dbService)
 	require.NotNil(t, authService)
 
+	// Initialize RAG service for chat
+	ragService := rag.NewRedisRAGService(cacheService.GetRedisClient())
+
 	// Test service creation
-	chatService := NewService(dbService, cacheService, authService)
+	chatService := NewService(dbService, cacheService, authService, ragService)
 	assert.NotNil(t, chatService)
 }
 
@@ -42,7 +46,10 @@ func TestService_ProcessChat(t *testing.T) {
 	authService := auth.NewService("test-jwt-secret", dbService)
 	require.NotNil(t, authService)
 
-	chatService := NewService(dbService, cacheService, authService)
+	// Initialize RAG service for chat
+	ragService := rag.NewRedisRAGService(cacheService.GetRedisClient())
+
+	chatService := NewService(dbService, cacheService, authService, ragService)
 
 	// Test data
 	req := &ChatRequest{
@@ -81,7 +88,10 @@ func TestService_ProcessSessionChat(t *testing.T) {
 	authService := auth.NewService("test-jwt-secret", dbService)
 	require.NotNil(t, authService)
 
-	chatService := NewService(dbService, cacheService, authService)
+	// Initialize RAG service for chat
+	ragService := rag.NewRedisRAGService(cacheService.GetRedisClient())
+
+	chatService := NewService(dbService, cacheService, authService, ragService)
 
 	// Test data
 	req := &SessionChatRequest{

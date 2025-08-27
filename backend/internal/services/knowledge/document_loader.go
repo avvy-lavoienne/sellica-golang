@@ -19,7 +19,7 @@ import (
 
 // DocumentLoaderService handles loading and indexing of training documents
 type DocumentLoaderService struct {
-	vectorOps     *rag.VectorOperations
+	ragService    *rag.RedisRAGService
 	cache         *cache.Service
 	fileWatcher   *fsnotify.Watcher
 	indexManager  *IndexManager
@@ -56,7 +56,7 @@ type IndexManager struct {
 }
 
 // NewDocumentLoaderService creates a new document loader service
-func NewDocumentLoaderService(vectorOps *rag.VectorOperations, cache *cache.Service, documentsPath string) (*DocumentLoaderService, error) {
+func NewDocumentLoaderService(ragService *rag.RedisRAGService, cache *cache.Service, documentsPath string) (*DocumentLoaderService, error) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create file watcher: %w", err)
@@ -69,7 +69,7 @@ func NewDocumentLoaderService(vectorOps *rag.VectorOperations, cache *cache.Serv
 	}
 
 	service := &DocumentLoaderService{
-		vectorOps:     vectorOps,
+		ragService:    ragService,
 		cache:         cache,
 		fileWatcher:   watcher,
 		indexManager:  indexManager,
@@ -79,7 +79,7 @@ func NewDocumentLoaderService(vectorOps *rag.VectorOperations, cache *cache.Serv
 
 	// Start file watching
 	go service.watchDocuments()
-	
+
 	// Start indexing workers
 	go service.startIndexingWorkers()
 
@@ -135,7 +135,7 @@ func (dls *DocumentLoaderService) LoadTrainingDocument(filePath string) error {
 
 	// Cache document metadata
 	cacheKey := fmt.Sprintf("document_metadata:%s", filepath.Base(filePath))
-	err = dls.cache.Set(context.Background(), cacheKey, metadata, 24*time.Hour)
+	err = dls.cache.Set(cacheKey, metadata, 24*time.Hour)
 	if err != nil {
 		logrus.WithError(err).Warn("Failed to cache document metadata")
 	}
@@ -339,6 +339,16 @@ func (dls *DocumentLoaderService) detectScenario(section, title string) string {
 
 // indexDocumentChunk indexes a document chunk in the vector database
 func (dls *DocumentLoaderService) indexDocumentChunk(chunk *DocumentChunk) error {
+	// Create metadata map with string values
+	metadata := make(map[string]string)
+	for k, v := range chunk.Metadata {
+		metadata[k] = v
+	}
+	metadata["scenario"] = chunk.Scenario
+	metadata["chunk_index"] = fmt.Sprintf("%d", chunk.ChunkIndex)
+	metadata["total_chunks"] = fmt.Sprintf("%d", chunk.TotalChunks)
+	metadata["indexed_at"] = time.Now().Format(time.RFC3339)
+
 	// Create RAG document
 	doc := &rag.RAGDocument{
 		ID:          chunk.ID,
@@ -346,21 +356,16 @@ func (dls *DocumentLoaderService) indexDocumentChunk(chunk *DocumentChunk) error
 		Title:       chunk.Title,
 		ServiceType: chunk.ServiceType,
 		Keywords:    chunk.Keywords,
-		Metadata: map[string]interface{}{
-			"scenario":     chunk.Scenario,
-			"chunk_index":  chunk.ChunkIndex,
-			"total_chunks": chunk.TotalChunks,
-			"indexed_at":   time.Now(),
-		},
-		IndexedAt: time.Now(),
+		Metadata:    metadata,
+		IndexedAt:   time.Now(),
 	}
-	
-	// Store in vector database
-	err := dls.vectorOps.StoreDocument(context.Background(), doc)
+
+	// Store in vector database using RAG service
+	err := dls.ragService.IndexDocument(context.Background(), doc)
 	if err != nil {
 		return fmt.Errorf("failed to store document in vector database: %w", err)
 	}
-	
+
 	return nil
 }
 

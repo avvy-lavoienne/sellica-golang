@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"selly-backend/internal/services/database"
 	"selly-backend/internal/services/performance"
 	"selly-backend/internal/services/persona"
+	"selly-backend/internal/services/rag"
 	"selly-backend/pkg/types"
 )
 
@@ -23,6 +25,7 @@ type Service struct {
 	cache                 *cache.Service
 	auth                  *auth.Service
 	aiService             *AIService
+	ragService            *rag.RedisRAGService
 	sessions              *SessionManager
 	highPerformanceEngine *performance.HighPerformanceIntegration
 	personaIntegration    *persona.PersonaIntegrationService
@@ -109,7 +112,7 @@ type SessionMetadata struct {
 }
 
 // NewService creates a new chat service
-func NewService(db *database.Service, cache *cache.Service, auth *auth.Service) *Service {
+func NewService(db *database.Service, cache *cache.Service, auth *auth.Service, ragService *rag.RedisRAGService) *Service {
 	// Initialize high-performance integration
 	hpIntegration, err := performance.NewHighPerformanceIntegration(&performance.IntegrationConfig{
 		EnableHighPerformance: true,
@@ -139,6 +142,7 @@ func NewService(db *database.Service, cache *cache.Service, auth *auth.Service) 
 		cache:                 cache,
 		auth:                  auth,
 		aiService:             NewAIService(),
+		ragService:            ragService,
 		sessions:              NewSessionManager(cache, db),
 		highPerformanceEngine: hpIntegration,
 		personaIntegration:    personaIntegration,
@@ -147,6 +151,161 @@ func NewService(db *database.Service, cache *cache.Service, auth *auth.Service) 
 
 	logrus.Info("✅ Chat service initialized with high-performance capabilities")
 	return service
+}
+
+// QueryAnalysis represents the analysis of a user query
+type QueryAnalysis struct {
+	ServiceType        string
+	Scenario          string
+	QuestionType      string
+	RequiresRAG       bool
+	Keywords          []string
+	GovernmentService bool
+	Confidence        float64
+	SpecialCases      []string
+}
+
+// analyzeQuery analyzes a user query to determine if RAG retrieval is needed
+func (s *Service) analyzeQuery(query string) *QueryAnalysis {
+	lowerQuery := strings.ToLower(query)
+
+	analysis := &QueryAnalysis{
+		Keywords:     []string{},
+		SpecialCases: []string{},
+		Confidence:   0.0,
+	}
+
+	// Check for government service keywords (including alternative spellings)
+	governmentKeywords := []string{
+		"akta", "akte", "kelahiran", "kk", "kartu keluarga", "ktp", "elektronik",
+		"disdukcapil", "administrasi", "kependudukan", "dokumen", "persyaratan",
+		"hilang", "rusak", "penggantian", "duplikat", "koreksi", "syarat",
+		"prosedur", "biaya", "gratis", "waktu", "hari kerja", "undang-undang",
+	}
+
+	for _, keyword := range governmentKeywords {
+		if strings.Contains(lowerQuery, keyword) {
+			analysis.Keywords = append(analysis.Keywords, keyword)
+			analysis.GovernmentService = true
+		}
+	}
+
+	// Detect service type and scenarios (including alternative spellings)
+	if (strings.Contains(lowerQuery, "akta") || strings.Contains(lowerQuery, "akte")) && strings.Contains(lowerQuery, "kelahiran") {
+		analysis.ServiceType = "akta_kelahiran"
+		analysis.RequiresRAG = true
+		analysis.Confidence = 0.9
+
+		// Comprehensive scenario detection
+		if strings.Contains(lowerQuery, "hilang") || strings.Contains(lowerQuery, "rusak") ||
+		   strings.Contains(lowerQuery, "penggantian") || strings.Contains(lowerQuery, "duplikat") {
+			analysis.Scenario = "C" // Lost/damaged certificate
+			analysis.Confidence = 1.0
+		} else if strings.Contains(lowerQuery, "baru lahir") || strings.Contains(lowerQuery, "bayi baru") ||
+				  (strings.Contains(lowerQuery, "baru") && strings.Contains(lowerQuery, "lahir")) ||
+				  strings.Contains(lowerQuery, "60 hari") {
+			analysis.Scenario = "A" // Normal birth certificate (≤60 days)
+			analysis.Confidence = 0.95
+		} else if strings.Contains(lowerQuery, "terlambat") || strings.Contains(lowerQuery, "telat") ||
+				  strings.Contains(lowerQuery, "lebih dari 60") || strings.Contains(lowerQuery, "lewat 60") {
+			analysis.Scenario = "B" // Late registration (>60 days)
+			analysis.Confidence = 0.95
+		} else if strings.Contains(lowerQuery, "koreksi") || strings.Contains(lowerQuery, "salah") ||
+				  strings.Contains(lowerQuery, "perbaikan") || strings.Contains(lowerQuery, "ubah data") {
+			analysis.Scenario = "D" // Data correction
+			analysis.Confidence = 0.95
+		} else if strings.Contains(lowerQuery, "luar negeri") || strings.Contains(lowerQuery, "lahir di luar") ||
+				  strings.Contains(lowerQuery, "wni luar negeri") || strings.Contains(lowerQuery, "kbri") {
+			analysis.Scenario = "E" // Foreign births
+			analysis.Confidence = 0.95
+		}
+
+		// Detect question types
+		if strings.Contains(lowerQuery, "persyaratan") || strings.Contains(lowerQuery, "syarat") ||
+		   strings.Contains(lowerQuery, "dokumen") || strings.Contains(lowerQuery, "perlu apa") {
+			analysis.QuestionType = "requirements"
+		} else if strings.Contains(lowerQuery, "prosedur") || strings.Contains(lowerQuery, "langkah") ||
+				  strings.Contains(lowerQuery, "cara") || strings.Contains(lowerQuery, "bagaimana") {
+			analysis.QuestionType = "process"
+		} else if strings.Contains(lowerQuery, "biaya") || strings.Contains(lowerQuery, "gratis") ||
+				  strings.Contains(lowerQuery, "bayar") || strings.Contains(lowerQuery, "tarif") {
+			analysis.QuestionType = "cost"
+		} else if strings.Contains(lowerQuery, "berapa lama") || strings.Contains(lowerQuery, "waktu") ||
+				  strings.Contains(lowerQuery, "hari kerja") || strings.Contains(lowerQuery, "selesai") {
+			analysis.QuestionType = "time"
+		} else if strings.Contains(lowerQuery, "dasar hukum") || strings.Contains(lowerQuery, "undang-undang") ||
+				  strings.Contains(lowerQuery, "peraturan") || strings.Contains(lowerQuery, "uu") {
+			analysis.QuestionType = "legal"
+		} else {
+			analysis.QuestionType = "general"
+		}
+
+		// Detect special cases
+		if strings.Contains(lowerQuery, "luar nikah") || strings.Contains(lowerQuery, "tidak menikah") {
+			analysis.SpecialCases = append(analysis.SpecialCases, "unmarried_parents")
+		}
+		if strings.Contains(lowerQuery, "kembar") || strings.Contains(lowerQuery, "twin") {
+			analysis.SpecialCases = append(analysis.SpecialCases, "twins")
+		}
+		if strings.Contains(lowerQuery, "wna") || strings.Contains(lowerQuery, "warga negara asing") {
+			analysis.SpecialCases = append(analysis.SpecialCases, "foreign_nationals")
+		}
+
+	} else if strings.Contains(lowerQuery, "kk") || strings.Contains(lowerQuery, "kartu keluarga") {
+		analysis.ServiceType = "kartu_keluarga"
+		analysis.RequiresRAG = true
+		analysis.Confidence = 0.8
+	} else if strings.Contains(lowerQuery, "ktp") {
+		analysis.ServiceType = "ktp_elektronik"
+		analysis.RequiresRAG = true
+		analysis.Confidence = 0.8
+	}
+
+	// If it's a government service query, enable RAG
+	if analysis.GovernmentService {
+		analysis.RequiresRAG = true
+		if analysis.Confidence == 0.0 {
+			analysis.Confidence = 0.7
+		}
+	}
+
+	return analysis
+}
+
+// retrieveRelevantContent retrieves relevant content from the knowledge base
+func (s *Service) retrieveRelevantContent(ctx context.Context, query string, analysis *QueryAnalysis) (string, error) {
+	if s.ragService == nil || !analysis.RequiresRAG {
+		return "", nil
+	}
+
+	// Search for relevant documents
+	searchResults, err := s.ragService.SearchSimilar(ctx, query, 5)
+	if err != nil {
+		logrus.WithError(err).Warn("Failed to retrieve content from RAG service")
+		return "", nil // Don't fail the entire request
+	}
+
+	if len(searchResults.Documents) == 0 {
+		return "", nil
+	}
+
+	// Build context from retrieved documents
+	var contextBuilder strings.Builder
+	contextBuilder.WriteString("OFFICIAL GOVERNMENT PROCEDURES:\n\n")
+
+	for i, doc := range searchResults.Documents {
+		if i >= 3 { // Limit to top 3 most relevant documents
+			break
+		}
+
+		contextBuilder.WriteString(fmt.Sprintf("Document %d (Relevance: %.2f):\n", i+1, searchResults.Scores[i]))
+		contextBuilder.WriteString(doc.Content)
+		contextBuilder.WriteString("\n\n")
+	}
+
+	contextBuilder.WriteString("IMPORTANT: Use the above official procedures to provide accurate, step-by-step guidance. Include legal references, required documents, processing times, and contact information as specified in the official procedures.")
+
+	return contextBuilder.String(), nil
 }
 
 // ProcessChat processes a chat message with full compatibility
@@ -172,18 +331,55 @@ func (s *Service) ProcessChat(ctx context.Context, req *ChatRequest, authContext
 		sessionID = s.generateSessionID(authContext.UserID)
 	}
 
+	// Phase 3.2: Analyze query and retrieve relevant content from knowledge base
+	queryAnalysis := s.analyzeQuery(req.Message)
+	var ragContext string
+
+	if queryAnalysis.RequiresRAG {
+		logrus.WithFields(logrus.Fields{
+			"service_type":   queryAnalysis.ServiceType,
+			"scenario":       queryAnalysis.Scenario,
+			"question_type":  queryAnalysis.QuestionType,
+			"keywords":       queryAnalysis.Keywords,
+			"confidence":     queryAnalysis.Confidence,
+			"special_cases":  queryAnalysis.SpecialCases,
+		}).Info("🔍 RAG retrieval required for government service query")
+
+		ragContent, ragErr := s.retrieveRelevantContent(ctx, req.Message, queryAnalysis)
+		if ragErr != nil {
+			logrus.WithError(ragErr).Warn("Failed to retrieve RAG content, proceeding without knowledge base")
+		} else if ragContent != "" {
+			ragContext = ragContent
+			logrus.WithField("context_length", len(ragContext)).Info("📚 Retrieved relevant content from knowledge base")
+		}
+	}
+
+	// Enhance request context with RAG content and comprehensive analysis
+	enhancedContext := req.Context
+	if enhancedContext == nil {
+		enhancedContext = make(map[string]interface{})
+	}
+	if ragContext != "" {
+		enhancedContext["knowledge_base_context"] = ragContext
+		enhancedContext["service_type"] = queryAnalysis.ServiceType
+		enhancedContext["scenario"] = queryAnalysis.Scenario
+		enhancedContext["question_type"] = queryAnalysis.QuestionType
+		enhancedContext["confidence"] = queryAnalysis.Confidence
+		enhancedContext["special_cases"] = queryAnalysis.SpecialCases
+	}
+
 	// Process with high-performance engine if available, otherwise use standard AI service
 	var aiResponse *AIResponse
 	var err error
 
 	if s.highPerformanceEngine != nil {
-		// Use high-performance processing
+		// Use high-performance processing with enhanced context
 		hpResponse, hpErr := s.highPerformanceEngine.ProcessChatRequest(
 			ctx,
 			authContext.UserID,
 			sessionID,
 			req.Message,
-			req.Context,
+			enhancedContext,
 		)
 		if hpErr == nil {
 			// Convert high-performance response to standard AI response
@@ -221,7 +417,7 @@ func (s *Service) ProcessChat(ctx context.Context, req *ChatRequest, authContext
 			Query:           req.Message,
 			UserID:          authContext.UserID,
 			SessionID:       sessionID,
-			Context:         req.Context,
+			Context:         enhancedContext,
 			EnhancementMode: req.EnhancementMode,
 		})
 		if err != nil {

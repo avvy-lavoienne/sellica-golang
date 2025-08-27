@@ -16,6 +16,7 @@ type Config struct {
 	Auth       AuthConfig
 	Monitoring MonitoringConfig
 	Logging    LoggingConfig
+	Knowledge  KnowledgeConfig
 }
 
 // ServerConfig holds server-related configuration
@@ -66,6 +67,15 @@ type LoggingConfig struct {
 	Format string
 }
 
+// KnowledgeConfig holds knowledge base and document loading configuration
+type KnowledgeConfig struct {
+	DocumentsPath    string
+	AutoIndexing     bool
+	ChunkSize        int
+	OverlapSize      int
+	MaxConcurrency   int
+}
+
 // Load loads configuration from environment variables with sensible defaults
 func Load() *Config {
 	cfg := &Config{
@@ -104,6 +114,13 @@ func Load() *Config {
 		Logging: LoggingConfig{
 			Level:  getEnv("LOG_LEVEL", "info"),
 			Format: getEnv("LOG_FORMAT", "text"),
+		},
+		Knowledge: KnowledgeConfig{
+			DocumentsPath:  getEnv("KNOWLEDGE_DOCUMENTS_PATH", "data/training/documents"),
+			AutoIndexing:   getEnvAsBool("KNOWLEDGE_AUTO_INDEXING", true),
+			ChunkSize:      getEnvAsInt("KNOWLEDGE_CHUNK_SIZE", 800),
+			OverlapSize:    getEnvAsInt("KNOWLEDGE_OVERLAP_SIZE", 100),
+			MaxConcurrency: getEnvAsInt("KNOWLEDGE_MAX_CONCURRENCY", 5),
 		},
 	}
 

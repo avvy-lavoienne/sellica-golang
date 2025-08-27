@@ -78,12 +78,17 @@ func main() {
 		logrus.WithError(err).Fatal("❌ Failed to initialize RAG service")
 	}
 
-	// Create performance validator
+	// Create performance validator with type assertion
+	vectorOps, ok := tester.ragService.GetVectorOperations().(*rag.VectorOperations)
+	if !ok {
+		logrus.Fatal("❌ Failed to get vector operations as concrete type")
+	}
+
 	tester.performanceValidator = rag.NewPerformanceValidator(
 		tester.ragService,
 		tester.ragService.GetEmbeddingService(),
 		tester.ragService.GetCacheOptimizer(),
-		tester.ragService.GetVectorOperations(),
+		vectorOps,
 	)
 
 	// Run comprehensive performance validation

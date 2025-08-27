@@ -325,3 +325,10 @@ func (s *Service) Close() {
 
 	logrus.Info("🗄️ Cache service closed")
 }
+
+// GetRedisClient returns the Redis client for advanced operations
+func (s *Service) GetRedisClient() *redis.Client {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.redis
+}

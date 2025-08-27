@@ -20,7 +20,9 @@ import (
 	"selly-backend/internal/services/chat"
 	"selly-backend/internal/services/concurrent"
 	"selly-backend/internal/services/database"
+	"selly-backend/internal/services/knowledge"
 	"selly-backend/internal/services/monitoring"
+	"selly-backend/internal/services/rag"
 	"selly-backend/internal/services/training"
 )
 
@@ -110,10 +112,15 @@ type Services struct {
 	Monitoring *monitoring.Service
 	Training   *training.Service
 	Concurrent *concurrent.Service
+	RAG        *rag.RedisRAGService
+	Knowledge  *knowledge.DocumentLoaderService
 }
 
 // Cleanup performs cleanup operations for all services
 func (s *Services) Cleanup() {
+	if s.Knowledge != nil {
+		s.Knowledge.Close()
+	}
 	if s.Cache != nil {
 		s.Cache.Close()
 	}
@@ -142,9 +149,6 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	// Initialize auth service
 	authService := auth.NewService(cfg.Auth.JWTSecret, dbService)
 
-	// Initialize chat service
-	chatService := chat.NewService(dbService, cacheService, authService)
-
 	// Initialize monitoring service
 	monitoringService := monitoring.NewService()
 
@@ -165,6 +169,33 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		logrus.WithError(err).Warn("Failed to start concurrent service")
 	}
 
+	// Initialize RAG service
+	ragService := rag.NewRedisRAGService(cacheService.GetRedisClient())
+
+	// Initialize RAG service
+	if err := ragService.Initialize(context.Background()); err != nil {
+		return nil, fmt.Errorf("failed to initialize RAG service: %w", err)
+	}
+
+	// Initialize Knowledge service (Document Loader)
+	knowledgeService, err := knowledge.NewDocumentLoaderService(
+		ragService,
+		cacheService,
+		cfg.Knowledge.DocumentsPath,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize knowledge service: %w", err)
+	}
+
+	// Load all training documents on startup
+	logrus.Info("📚 Loading training documents...")
+	if err := knowledgeService.LoadAllDocuments(); err != nil {
+		logrus.WithError(err).Warn("Failed to load some training documents")
+	}
+
+	// Initialize chat service with RAG integration (after RAG service is ready)
+	chatService := chat.NewService(dbService, cacheService, authService, ragService)
+
 	logrus.Info("✅ All services initialized successfully")
 
 	return &Services{
@@ -175,6 +206,8 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		Monitoring: monitoringService,
 		Training:   trainingService,
 		Concurrent: concurrentService,
+		RAG:        ragService,
+		Knowledge:  knowledgeService,
 	}, nil
 }
 
