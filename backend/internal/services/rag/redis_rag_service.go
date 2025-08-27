@@ -112,7 +112,10 @@ func NewRedisRAGService(redisClient *redis.Client) *RedisRAGService {
 
 	// Initialize components with optimizations
 	service.embeddingService = NewEmbeddingServiceWithRedis(redisClient)
-	service.vectorOperations = NewVectorOperations(redisClient, config) // Use optimized vector operations
+
+	// Use HNSW vector operations for improved performance
+	service.vectorOperations = NewHNSWVectorOperations(redisClient, config)
+
 	service.cacheOptimizer = NewRAGCacheOptimizer(redisClient, config)
 	service.performanceMonitor = NewRAGPerformanceMonitor()
 
@@ -180,15 +183,15 @@ func (rrs *RedisRAGService) IndexDocument(ctx context.Context, doc *RAGDocument)
 	doc.Embedding = embedding
 	doc.IndexedAt = time.Now()
 
-	// Store document using Upstash vector operations
-	if upstashOps, ok := rrs.vectorOperations.(*UpstashVectorOperations); ok {
-		if err := upstashOps.StoreDocument(ctx, doc); err != nil {
+	// Store document using HNSW vector operations
+	if hnswOps, ok := rrs.vectorOperations.(*HNSWVectorOperations); ok {
+		if err := hnswOps.StoreDocument(ctx, doc); err != nil {
 			rrs.performanceMonitor.RecordError("document_storage")
 			return fmt.Errorf("failed to store document: %w", err)
 		}
 	} else {
 		rrs.performanceMonitor.RecordError("document_storage")
-		return fmt.Errorf("unsupported vector operations type")
+		return fmt.Errorf("HNSW vector operations required for document storage")
 	}
 
 	logrus.WithFields(logrus.Fields{
@@ -290,9 +293,14 @@ func (rrs *RedisRAGService) GetCacheOptimizer() *RAGCacheOptimizer {
 }
 
 // GetVectorOperations returns the vector operations interface
-func (rrs *RedisRAGService) GetVectorOperations() *VectorOperations {
-	if vo, ok := rrs.vectorOperations.(*VectorOperations); ok {
-		return vo
+func (rrs *RedisRAGService) GetVectorOperations() VectorOperationsInterface {
+	return rrs.vectorOperations
+}
+
+// GetHNSWVectorOperations returns the HNSW vector operations if available
+func (rrs *RedisRAGService) GetHNSWVectorOperations() *HNSWVectorOperations {
+	if hvo, ok := rrs.vectorOperations.(*HNSWVectorOperations); ok {
+		return hvo
 	}
 	return nil
 }
