@@ -11,31 +11,35 @@ import (
 
 // ConcurrentVectorSearch provides concurrent vector search capabilities using HNSW
 type ConcurrentVectorSearch struct {
-	hnswIndex     *HNSWIndex
-	workerPool    *VectorWorkerPool
-	cache         *VectorSearchCache
-	
+	hnswIndex         *HNSWIndex
+	workerPool        *VectorWorkerPool  // Legacy worker pool (deprecated)
+	dynamicWorkerPool *DynamicWorkerPool // New dynamic worker pool
+	cache             *VectorSearchCache
+
 	// Performance tracking
 	searchCount   int64
 	cacheHits     int64
 	cacheMisses   int64
 	performanceMu sync.RWMutex
-	
+
 	// Configuration
-	config        *ConcurrentSearchConfig
-	
+	config *ConcurrentSearchConfig
+
 	// Memory monitoring
 	memoryMonitor *MemoryMonitor
+
+	// Dynamic scaling
+	useDynamicPool bool
 }
 
 // ConcurrentSearchConfig holds configuration for concurrent vector search
 type ConcurrentSearchConfig struct {
-	WorkerPoolSize    int           `json:"worker_pool_size"`    // Number of concurrent workers
-	CacheSize         int           `json:"cache_size"`          // Cache size for search results
-	CacheTTL          time.Duration `json:"cache_ttl"`           // Cache time-to-live
-	BatchSize         int           `json:"batch_size"`          // Batch size for concurrent processing
-	SearchTimeout     time.Duration `json:"search_timeout"`      // Timeout for individual searches
-	EnablePrefetching bool          `json:"enable_prefetching"`  // Enable result prefetching
+	WorkerPoolSize    int           `json:"worker_pool_size"`   // Number of concurrent workers
+	CacheSize         int           `json:"cache_size"`         // Cache size for search results
+	CacheTTL          time.Duration `json:"cache_ttl"`          // Cache time-to-live
+	BatchSize         int           `json:"batch_size"`         // Batch size for concurrent processing
+	SearchTimeout     time.Duration `json:"search_timeout"`     // Timeout for individual searches
+	EnablePrefetching bool          `json:"enable_prefetching"` // Enable result prefetching
 }
 
 // VectorWorkerPool manages concurrent vector search workers
@@ -43,7 +47,7 @@ type VectorWorkerPool struct {
 	workers    []*VectorWorker
 	taskQueue  chan *VectorSearchTask
 	resultPool sync.Pool
-	
+
 	// Worker management
 	workerCount int
 	isRunning   bool
@@ -72,19 +76,19 @@ type VectorSearchTask struct {
 
 // VectorSearchTaskResult represents the result of a vector search task
 type VectorSearchTaskResult struct {
-	Results []HNSWSearchResult
-	Error   error
+	Results  []HNSWSearchResult
+	Error    error
 	CacheHit bool
 	Duration time.Duration
 }
 
 // VectorSearchCache provides caching for vector search results
 type VectorSearchCache struct {
-	cache     sync.Map
-	ttl       time.Duration
-	hits      int64
-	misses    int64
-	mutex     sync.RWMutex
+	cache  sync.Map
+	ttl    time.Duration
+	hits   int64
+	misses int64
+	mutex  sync.RWMutex
 }
 
 // CacheEntry represents a cached search result
@@ -108,14 +112,15 @@ func NewConcurrentVectorSearch(hnswIndex *HNSWIndex, config *ConcurrentSearchCon
 	}
 
 	cvs := &ConcurrentVectorSearch{
-		hnswIndex: hnswIndex,
-		config:    config,
-		cache:     NewVectorSearchCache(config.CacheSize, config.CacheTTL),
+		hnswIndex:      hnswIndex,
+		config:         config,
+		cache:          NewVectorSearchCache(config.CacheSize, config.CacheTTL),
+		useDynamicPool: false, // Use legacy pool by default for backward compatibility
 	}
 
 	// Initialize worker pool
 	cvs.workerPool = NewVectorWorkerPool(hnswIndex, config.WorkerPoolSize)
-	
+
 	// Initialize memory monitoring
 	cvs.memoryMonitor = NewMemoryMonitor()
 	cvs.memoryMonitor.StartMonitoring(30 * time.Second)
@@ -130,6 +135,45 @@ func NewConcurrentVectorSearch(hnswIndex *HNSWIndex, config *ConcurrentSearchCon
 	return cvs
 }
 
+// NewConcurrentVectorSearchWithDynamicPool creates a new concurrent vector search service with dynamic worker pool
+func NewConcurrentVectorSearchWithDynamicPool(hnswIndex *HNSWIndex, config *ConcurrentSearchConfig, dynamicConfig *DynamicPoolConfig) *ConcurrentVectorSearch {
+	if config == nil {
+		config = &ConcurrentSearchConfig{
+			WorkerPoolSize:    8,
+			CacheSize:         1000,
+			CacheTTL:          5 * time.Minute,
+			BatchSize:         10,
+			SearchTimeout:     5 * time.Second,
+			EnablePrefetching: true,
+		}
+	}
+
+	cvs := &ConcurrentVectorSearch{
+		hnswIndex:      hnswIndex,
+		config:         config,
+		cache:          NewVectorSearchCache(config.CacheSize, config.CacheTTL),
+		useDynamicPool: true, // Use dynamic pool
+	}
+
+	// Initialize dynamic worker pool
+	cvs.dynamicWorkerPool = NewDynamicWorkerPool(hnswIndex, dynamicConfig)
+
+	// Initialize memory monitoring
+	cvs.memoryMonitor = NewMemoryMonitor()
+	cvs.memoryMonitor.StartMonitoring(30 * time.Second)
+
+	logrus.WithFields(logrus.Fields{
+		"dynamic_pool":    true,
+		"min_workers":     dynamicConfig.MinWorkers,
+		"max_workers":     dynamicConfig.MaxWorkers,
+		"initial_workers": dynamicConfig.InitialWorkers,
+		"cache_size":      config.CacheSize,
+		"cache_ttl":       config.CacheTTL,
+	}).Info("🚀 Concurrent vector search with dynamic pool initialized")
+
+	return cvs
+}
+
 // SearchSimilarConcurrent performs concurrent vector similarity search
 func (cvs *ConcurrentVectorSearch) SearchSimilarConcurrent(
 	ctx context.Context,
@@ -137,7 +181,7 @@ func (cvs *ConcurrentVectorSearch) SearchSimilarConcurrent(
 	k int,
 ) ([]HNSWSearchResult, error) {
 	startTime := time.Now()
-	
+
 	// Check context cancellation
 	select {
 	case <-ctx.Done():
@@ -147,7 +191,7 @@ func (cvs *ConcurrentVectorSearch) SearchSimilarConcurrent(
 
 	// Generate cache key
 	cacheKey := cvs.generateCacheKey(query, k)
-	
+
 	// Check cache first
 	if cached := cvs.cache.Get(cacheKey); cached != nil {
 		cvs.recordCacheHit()
@@ -170,14 +214,24 @@ func (cvs *ConcurrentVectorSearch) SearchSimilarConcurrent(
 		Result:  make(chan *VectorSearchTaskResult, 1),
 	}
 
-	// Submit task to worker pool
-	select {
-	case cvs.workerPool.taskQueue <- task:
-		// Task submitted successfully
-	case <-ctx.Done():
-		return nil, fmt.Errorf("context cancelled during task submission: %w", ctx.Err())
-	case <-time.After(cvs.config.SearchTimeout):
-		return nil, fmt.Errorf("search timeout: failed to submit task within %v", cvs.config.SearchTimeout)
+	// Submit task to appropriate worker pool
+	var submitErr error
+	if cvs.useDynamicPool && cvs.dynamicWorkerPool != nil {
+		// Use dynamic worker pool
+		submitErr = cvs.dynamicWorkerPool.SubmitTask(task)
+		if submitErr != nil {
+			return nil, fmt.Errorf("failed to submit task to dynamic worker pool: %w", submitErr)
+		}
+	} else {
+		// Use legacy worker pool
+		select {
+		case cvs.workerPool.taskQueue <- task:
+			// Task submitted successfully
+		case <-ctx.Done():
+			return nil, fmt.Errorf("context cancelled during task submission: %w", ctx.Err())
+		case <-time.After(cvs.config.SearchTimeout):
+			return nil, fmt.Errorf("search timeout: failed to submit task within %v", cvs.config.SearchTimeout)
+		}
 	}
 
 	// Wait for result
@@ -219,7 +273,7 @@ func (cvs *ConcurrentVectorSearch) BatchSearchConcurrent(
 
 	results := make([][]HNSWSearchResult, len(queries))
 	errors := make([]error, len(queries))
-	
+
 	// Process in batches
 	batchSize := cvs.config.BatchSize
 	var wg sync.WaitGroup
@@ -233,7 +287,7 @@ func (cvs *ConcurrentVectorSearch) BatchSearchConcurrent(
 		wg.Add(1)
 		go func(start, end int) {
 			defer wg.Done()
-			
+
 			for j := start; j < end; j++ {
 				// Check context cancellation
 				select {
@@ -339,8 +393,12 @@ func (cvs *ConcurrentVectorSearch) Close() error {
 		cvs.memoryMonitor.StopMonitoring()
 	}
 
-	// Stop worker pool
-	if cvs.workerPool != nil {
+	// Stop appropriate worker pool
+	if cvs.useDynamicPool && cvs.dynamicWorkerPool != nil {
+		if err := cvs.dynamicWorkerPool.Stop(); err != nil {
+			logrus.WithError(err).Warn("Error stopping dynamic worker pool")
+		}
+	} else if cvs.workerPool != nil {
 		cvs.workerPool.Stop()
 	}
 
@@ -376,13 +434,13 @@ func NewVectorWorkerPool(hnswIndex *HNSWIndex, workerCount int) *VectorWorkerPoo
 			stopChan:  pool.stopChan,
 		}
 		pool.workers[i] = worker
-		
+
 		pool.wg.Add(1)
 		go worker.run(&pool.wg)
 	}
 
 	pool.isRunning = true
-	
+
 	logrus.WithField("worker_count", workerCount).Info("🔧 Vector worker pool started")
 	return pool
 }
@@ -405,8 +463,13 @@ func (vwp *VectorWorkerPool) Stop() {
 }
 
 // run executes the worker loop
-func (vw *VectorWorker) run(wg *sync.WaitGroup) {
+func (vw *VectorWorker) run(wg *sync.WaitGroup, metrics ...*PoolMetrics) {
 	defer wg.Done()
+
+	var poolMetrics *PoolMetrics
+	if len(metrics) > 0 {
+		poolMetrics = metrics[0]
+	}
 
 	logrus.WithField("worker_id", vw.id).Debug("Vector worker started")
 
@@ -416,7 +479,7 @@ func (vw *VectorWorker) run(wg *sync.WaitGroup) {
 			if task == nil {
 				return // Channel closed
 			}
-			vw.processTask(task)
+			vw.processTaskWithMetrics(task, poolMetrics)
 
 		case <-vw.stopChan:
 			logrus.WithField("worker_id", vw.id).Debug("Vector worker stopped")
@@ -425,10 +488,23 @@ func (vw *VectorWorker) run(wg *sync.WaitGroup) {
 	}
 }
 
+// GetDynamicWorkerPool returns the dynamic worker pool if available
+func (cvs *ConcurrentVectorSearch) GetDynamicWorkerPool() *DynamicWorkerPool {
+	if cvs.useDynamicPool {
+		return cvs.dynamicWorkerPool
+	}
+	return nil
+}
+
 // processTask processes a vector search task
 func (vw *VectorWorker) processTask(task *VectorSearchTask) {
+	vw.processTaskWithMetrics(task, nil)
+}
+
+// processTaskWithMetrics processes a vector search task with optional metrics recording
+func (vw *VectorWorker) processTaskWithMetrics(task *VectorSearchTask, metrics *PoolMetrics) {
 	startTime := time.Now()
-	
+
 	result := &VectorSearchTaskResult{
 		Duration: 0,
 		CacheHit: false,
@@ -443,6 +519,18 @@ func (vw *VectorWorker) processTask(task *VectorSearchTask) {
 	}
 
 	result.Duration = time.Since(startTime)
+
+	// Record metrics if available
+	if metrics != nil {
+		metrics.RecordResponseTime(result.Duration)
+
+		// Update tasks per second calculation
+		if result.Error == nil {
+			// This is a simplified TPS calculation - in production you might want more sophisticated tracking
+			currentTPS := 1.0 / result.Duration.Seconds()
+			metrics.UpdateTasksPerSecond(currentTPS)
+		}
+	}
 
 	// Send result back
 	select {
@@ -467,7 +555,7 @@ func NewVectorSearchCache(size int, ttl time.Duration) *VectorSearchCache {
 func (vsc *VectorSearchCache) Get(key string) []HNSWSearchResult {
 	if value, ok := vsc.cache.Load(key); ok {
 		entry := value.(*CacheEntry)
-		
+
 		// Check if entry is still valid
 		if time.Since(entry.Timestamp) < entry.TTL {
 			vsc.mutex.Lock()
@@ -475,11 +563,11 @@ func (vsc *VectorSearchCache) Get(key string) []HNSWSearchResult {
 			vsc.mutex.Unlock()
 			return entry.Results
 		}
-		
+
 		// Entry expired, remove it
 		vsc.cache.Delete(key)
 	}
-	
+
 	vsc.mutex.Lock()
 	vsc.misses++
 	vsc.mutex.Unlock()
