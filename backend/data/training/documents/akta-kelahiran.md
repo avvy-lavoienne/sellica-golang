@@ -109,10 +109,72 @@ Keywords: biaya akta kelahiran, gratis pelayanan kependudukan, denda keterlambat
 - Waktu: 3-7 hari kerja.
 
 ### Skenario C: Penggantian Akta Hilang atau Rusak
-- Prioritas: Sedang.
-- Proses: Verifikasi data existing, tanpa surat pengantar (sesuai Permendagri 108/2019).
-- Dokumen: Surat kehilangan/kerusakan + identitas pemohon.
-- Waktu: 1-3 hari kerja.
+- **Prioritas**: Sedang
+- **Proses**: Verifikasi data existing, tanpa surat pengantar (sesuai Permendagri 108/2019)
+- **Dokumen**: Surat kehilangan/kerusakan + identitas pemohon
+- **Waktu**: 1-3 hari kerja
+- **Biaya**: GRATIS (sesuai UU No. 24 Tahun 2013)
+
+#### **Persyaratan Lengkap Skenario C:**
+1. **Surat Kehilangan dari Kepolisian**
+   - Lapor ke polisi terdekat dengan membawa KTP-el
+   - Minta surat kehilangan resmi (biaya sekitar Rp 10.000-30.000)
+   - Surat harus menyebutkan dokumen yang hilang: "Akta Kelahiran"
+
+2. **Dokumen Identitas Pemohon:**
+   - KTP-el asli dan fotokopi pemohon (jika dewasa)
+   - KTP-el asli dan fotokopi orang tua (jika anak di bawah 17 tahun)
+   - Kartu Keluarga (KK) asli dan fotokopi
+
+3. **Surat Pernyataan Bermaterai:**
+   - Surat pernyataan kehilangan bermaterai Rp 10.000
+   - Menyatakan bahwa akta kelahiran benar-benar hilang/rusak
+   - Ditandatangani pemohon atau orang tua
+
+4. **Dokumen Pendukung (jika ada):**
+   - Fotokopi akta kelahiran yang hilang (jika pernah difotokopi)
+   - Dokumen lain yang memuat data kelahiran
+
+#### **Langkah-langkah Pengurusan:**
+1. **Persiapan Dokumen** (30 menit)
+   - Kumpulkan semua dokumen yang diperlukan
+   - Pastikan fotokopi jelas dan terbaca
+
+2. **Lapor Kehilangan ke Polisi** (1-2 jam)
+   - Datang ke polsek terdekat
+   - Bawa KTP-el dan KK asli
+   - Isi formulir laporan kehilangan
+   - Bayar biaya administrasi
+   - Terima surat kehilangan
+
+3. **Pengajuan ke Disdukcapil** (1 hari kerja)
+   - Datang ke Disdukcapil Kabupaten Garut
+   - Bawa semua dokumen lengkap
+   - Isi formulir permohonan duplikat akta kelahiran
+   - Serahkan dokumen untuk verifikasi
+   - Tunggu proses verifikasi data di SIAK
+
+4. **Verifikasi dan Pencetakan** (1-2 hari kerja)
+   - Petugas verifikasi data existing di database
+   - Pencetakan akta kelahiran duplikat
+   - Penandatanganan oleh Kepala Disdukcapil
+
+5. **Pengambilan Dokumen** (langsung)
+   - Ambil akta kelahiran yang sudah jadi
+   - Periksa kebenaran data
+   - Simpan dengan baik
+
+#### **Tips Khusus Skenario C:**
+- **Backup Digital**: Scan/foto akta baru untuk backup
+- **Waktu Terbaik**: Pagi hari untuk menghindari antrian
+- **Dokumen Cadangan**: Simpan fotokopi di tempat terpisah
+- **Verifikasi Data**: Periksa kebenaran semua data sebelum menerima
+
+#### **Kemudahan Khusus:**
+- **Tidak Perlu Surat Pengantar** (sesuai Permendagri 108/2019)
+- **Proses Lebih Cepat** karena data sudah ada di sistem
+- **Biaya Tetap Gratis** untuk penggantian dokumen hilang
+- **Layanan Jemput Bola** tersedia di lokasi tertentu
 
 ### Skenario D: Koreksi Data Akta
 - Prioritas: Tinggi.
@@ -209,6 +271,111 @@ Keywords: tips pemohon akta kelahiran, persiapan dokumen.
 - **Apa aturan penulisan tempat lahir?** Hanya nama kabupaten/kota, bukan desa atau kecamatan.
 
 Keywords: faq akta kelahiran, pertanyaan umum.
+
+## Variasi Query Pengguna dan Pola Respons (Optimized for AI Training)
+
+### **Skenario C - Akta Hilang/Rusak: Query Variations**
+
+#### **Query Patterns - Formal:**
+- "Bagaimana cara mengurus akta kelahiran yang hilang?"
+- "Prosedur penggantian akta kelahiran yang rusak"
+- "Persyaratan untuk membuat duplikat akta kelahiran"
+- "Langkah-langkah pengurusan akta kelahiran hilang"
+
+#### **Query Patterns - Informal:**
+- "Akta kelahiran hilang gimana ngurusnya?"
+- "Akta anak saya ilang, bisa diurus ga?"
+- "Akta rusak kena air, gimana ya?"
+- "Mau bikin akta lagi yang hilang"
+
+#### **Query Patterns - Specific Situations:**
+- "Akta kelahiran hilang saat pindahan rumah"
+- "Akta sobek karena dimakan rayap"
+- "Kehilangan akta saat banjir"
+- "Akta rusak tidak bisa dibaca"
+
+#### **Expected Response Pattern for Scenario C:**
+```
+🔍 **Penggantian Akta Kelahiran Hilang/Rusak**
+
+📋 **Persyaratan:**
+• Surat kehilangan dari kepolisian
+• KTP-el asli + fotokopi (pemohon/orang tua)
+• Kartu Keluarga (KK) asli + fotokopi
+• Surat pernyataan bermaterai Rp 10.000
+
+⏱️ **Waktu Penyelesaian:** 1-3 hari kerja
+💰 **Biaya:** GRATIS (UU No. 24 Tahun 2013)
+
+📍 **Lokasi:** Disdukcapil Kabupaten Garut
+📞 **Kontak:** (0262) 234638
+🌐 **Website:** disdukcapil.garutkab.go.id
+
+💡 **Kemudahan:**
+• Tidak perlu surat pengantar (Permendagri 108/2019)
+• Data sudah ada di sistem SIAK
+• Proses lebih cepat dari pembuatan baru
+
+🎯 **Tips:** Buat backup digital setelah selesai ya kak!
+
+Ada yang ingin ditanyakan lebih lanjut tentang prosesnya?
+```
+
+#### **Response Variations by User Tone:**
+
+**For Anxious/Worried Users:**
+- "Tenang kak, akta yang hilang bisa diganti kok! 😊"
+- "Jangan khawatir, prosesnya mudah dan gratis"
+- "Ini hal yang sering terjadi, ada solusinya"
+
+**For Urgent Requests:**
+- "Untuk kasus mendesak, bisa datang pagi-pagi ke Disdukcapil"
+- "Proses tercepat 1 hari kerja jika dokumen lengkap"
+- "Bisa hubungi (0262) 234638 untuk konfirmasi ketersediaan"
+
+**For Cost-Conscious Users:**
+- "Kabar baiknya, penggantian akta GRATIS sesuai undang-undang"
+- "Biaya hanya untuk surat kehilangan di polisi (sekitar Rp 10-30rb)"
+- "Total biaya maksimal Rp 40.000 (surat kehilangan + materai)"
+
+### **Common Follow-up Questions and Responses:**
+
+**Q: "Berapa lama prosesnya?"**
+**A:** "1-3 hari kerja kak. Kalau dokumen lengkap dan datang pagi, bisa selesai dalam 1 hari."
+
+**Q: "Mahal ga biayanya?"**
+**A:** "Gratis kak! Sesuai UU No. 24 Tahun 2013. Biaya cuma untuk surat kehilangan di polisi sekitar Rp 10-30 ribu."
+
+**Q: "Harus ke polisi dulu ya?"**
+**A:** "Iya kak, wajib lapor kehilangan dulu ke polisi terdekat. Nanti dapat surat kehilangan resmi."
+
+**Q: "Dokumen apa aja yang perlu dibawa?"**
+**A:** "KTP-el, KK, surat kehilangan dari polisi, sama surat pernyataan bermaterai Rp 10.000."
+
+**Q: "Bisa diwakilkan ga?"**
+**A:** "Bisa kak, tapi perlu surat kuasa bermaterai dan KTP-el yang mewakilkan."
+
+### **Error Prevention Patterns:**
+
+**Common Mistakes to Address:**
+- "Jangan lupa bawa dokumen asli ya kak, bukan cuma fotokopi"
+- "Surat kehilangan harus dari polisi, bukan dari RT/RW"
+- "Materai yang dipakai Rp 10.000, bukan Rp 6.000"
+- "Datang ke Disdukcapil Garut, bukan ke kecamatan"
+
+### **Cultural Context Enhancements:**
+
+**Indonesian Conversational Style:**
+- Use "kak" for friendly address
+- Include empathetic responses: "Pasti repot ya kak akta hilang"
+- Provide reassurance: "Tenang, bisa diurus kok"
+- End with helpful question: "Ada yang mau ditanyakan lagi?"
+
+**Government Service Context:**
+- Always mention legal basis (UU No. 24 Tahun 2013)
+- Emphasize free service
+- Provide official contact information
+- Mention office hours and best times to visit
 
 ## Referensi Tambahan
 - Panduan Teknis Pencatatan Sipil Kementerian Dalam Negeri (dukcapil.kemendagri.go.id).
