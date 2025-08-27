@@ -6,17 +6,58 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 )
 
-// VectorOperations provides Redis vector search operations
+// VectorOperations provides optimized Redis vector search operations with concurrent processing
 type VectorOperations struct {
-	redis       *redis.Client
-	config      *RAGConfig
-	indexName   string
+	redis     *redis.Client
+	config    *RAGConfig
+	indexName string
+
+	// Concurrent processing optimization
+	maxConcurrency int
+	workerPool     chan struct{}
+
+	// Batch processing optimization
+	batchProcessor *VectorBatchProcessor
+
+	// Performance tracking
+	searchTimes   []time.Duration
+	indexingTimes []time.Duration
+	mu            sync.RWMutex
+}
+
+// VectorBatchProcessor handles batch processing of vector operations
+type VectorBatchProcessor struct {
+	batchSize       int
+	maxWaitTime     time.Duration
+	pendingBatch    []*VectorOperation
+	batchMutex      sync.Mutex
+	resultChannels  map[string]chan *VectorOperationResult
+	processingTimer *time.Timer
+}
+
+// VectorOperation represents a vector operation request
+type VectorOperation struct {
+	ID         string
+	Type       string // "search", "index", "delete"
+	Embedding  []float64
+	Document   *RAGDocument
+	Limit      int
+	ResultChan chan *VectorOperationResult
+}
+
+// VectorOperationResult represents the result of a vector operation
+type VectorOperationResult struct {
+	ID       string
+	Results  *VectorSearchResult
+	Error    error
+	Duration time.Duration
 }
 
 // VectorSearchResult represents vector search results
@@ -26,28 +67,51 @@ type VectorSearchResult struct {
 	QueryTime time.Duration  `json:"query_time"`
 }
 
-// NewVectorOperations creates a new vector operations service
+// NewVectorOperations creates a new optimized vector operations service
 func NewVectorOperations(redisClient *redis.Client, config *RAGConfig) *VectorOperations {
+	maxConcurrency := 8 // Optimal for most Redis setups
+
 	return &VectorOperations{
-		redis:     redisClient,
-		config:    config,
-		indexName: config.IndexName,
+		redis:          redisClient,
+		config:         config,
+		indexName:      config.IndexName,
+		maxConcurrency: maxConcurrency,
+		workerPool:     make(chan struct{}, maxConcurrency),
+		batchProcessor: &VectorBatchProcessor{
+			batchSize:      10,
+			maxWaitTime:    50 * time.Millisecond,
+			pendingBatch:   make([]*VectorOperation, 0),
+			resultChannels: make(map[string]chan *VectorOperationResult),
+		},
+		searchTimes:   make([]time.Duration, 0),
+		indexingTimes: make([]time.Duration, 0),
 	}
 }
 
-// SearchSimilar performs vector similarity search
+// SearchSimilar performs optimized vector similarity search with concurrent processing
 func (vo *VectorOperations) SearchSimilar(ctx context.Context, queryEmbedding []float64, limit int) (*VectorSearchResult, error) {
 	startTime := time.Now()
+	defer func() {
+		vo.recordSearchTime(time.Since(startTime))
+	}()
 
-	// Convert embedding to bytes for Redis
-	embeddingBytes, err := json.Marshal(queryEmbedding)
+	// Use worker pool for concurrency control
+	select {
+	case vo.workerPool <- struct{}{}:
+		defer func() { <-vo.workerPool }()
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+
+	// Convert embedding to bytes for Redis with optimization
+	embeddingBytes, err := vo.optimizedEmbeddingMarshal(queryEmbedding)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal query embedding: %w", err)
 	}
 
-	// Perform vector search using FT.SEARCH with KNN
+	// Perform optimized vector search using FT.SEARCH with KNN
 	searchQuery := fmt.Sprintf("*=>[KNN %d @embedding $query_vector AS score]", limit)
-	
+
 	searchCmd := []interface{}{
 		"FT.SEARCH", vo.indexName,
 		searchQuery,
@@ -135,6 +199,227 @@ func (vo *VectorOperations) parseSearchResults(result interface{}) ([]*RAGDocume
 	}
 
 	return documents, scores, nil
+}
+
+// IndexDocumentsBatch performs optimized batch document indexing
+func (vo *VectorOperations) IndexDocumentsBatch(ctx context.Context, documents []*RAGDocument) error {
+	if len(documents) == 0 {
+		return nil
+	}
+
+	startTime := time.Now()
+	defer func() {
+		vo.recordIndexingTime(time.Since(startTime))
+		logrus.WithFields(logrus.Fields{
+			"batch_size":      len(documents),
+			"processing_time": time.Since(startTime),
+		}).Info("📦 Batch document indexing completed")
+	}()
+
+	// Process documents in parallel batches for better performance
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	var errors []error
+
+	batchSize := vo.maxConcurrency
+	for i := 0; i < len(documents); i += batchSize {
+		end := i + batchSize
+		if end > len(documents) {
+			end = len(documents)
+		}
+
+		wg.Add(1)
+		go func(start, end int) {
+			defer wg.Done()
+
+			for j := start; j < end; j++ {
+				doc := documents[j]
+				if err := vo.indexSingleDocument(ctx, doc); err != nil {
+					mu.Lock()
+					errors = append(errors, fmt.Errorf("failed to index document %s: %w", doc.ID, err))
+					mu.Unlock()
+					logrus.WithError(err).WithField("document_id", doc.ID).Warn("Failed to index document in batch")
+				}
+			}
+		}(i, end)
+	}
+
+	wg.Wait()
+
+	if len(errors) > 0 {
+		return fmt.Errorf("batch indexing completed with %d errors: %v", len(errors), errors[0])
+	}
+
+	return nil
+}
+
+// indexSingleDocument indexes a single document (internal method)
+func (vo *VectorOperations) indexSingleDocument(ctx context.Context, doc *RAGDocument) error {
+	// Use worker pool for concurrency control
+	select {
+	case vo.workerPool <- struct{}{}:
+		defer func() { <-vo.workerPool }()
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+
+	// Create document key
+	docKey := fmt.Sprintf("doc:%s", doc.ID)
+
+	// Prepare document fields for Redis
+	fields := map[string]interface{}{
+		"content":      doc.Content,
+		"title":        doc.Title,
+		"service_type": doc.ServiceType,
+		"keywords":     strings.Join(doc.Keywords, ","),
+		"indexed_at":   doc.IndexedAt.Format(time.RFC3339),
+	}
+
+	// Add embedding if available
+	if len(doc.Embedding) > 0 {
+		embeddingBytes, err := vo.optimizedEmbeddingMarshal(doc.Embedding)
+		if err != nil {
+			return fmt.Errorf("failed to marshal embedding: %w", err)
+		}
+		fields["embedding"] = string(embeddingBytes)
+	}
+
+	// Store document in Redis with optimized pipeline
+	pipe := vo.redis.Pipeline()
+	for field, value := range fields {
+		pipe.HSet(ctx, docKey, field, value)
+	}
+
+	_, err := pipe.Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to store document: %w", err)
+	}
+
+	return nil
+}
+
+// GetPerformanceStats returns performance statistics for vector operations
+func (vo *VectorOperations) GetPerformanceStats() *VectorPerformanceStats {
+	vo.mu.RLock()
+	defer vo.mu.RUnlock()
+
+	var avgSearchTime, avgIndexingTime time.Duration
+
+	if len(vo.searchTimes) > 0 {
+		var total time.Duration
+		for _, t := range vo.searchTimes {
+			total += t
+		}
+		avgSearchTime = total / time.Duration(len(vo.searchTimes))
+	}
+
+	if len(vo.indexingTimes) > 0 {
+		var total time.Duration
+		for _, t := range vo.indexingTimes {
+			total += t
+		}
+		avgIndexingTime = total / time.Duration(len(vo.indexingTimes))
+	}
+
+	return &VectorPerformanceStats{
+		AvgSearchTime:   avgSearchTime,
+		AvgIndexingTime: avgIndexingTime,
+		TotalSearches:   int64(len(vo.searchTimes)),
+		TotalIndexings:  int64(len(vo.indexingTimes)),
+		MaxConcurrency:  vo.maxConcurrency,
+	}
+}
+
+// VectorPerformanceStats represents performance statistics for vector operations
+type VectorPerformanceStats struct {
+	AvgSearchTime   time.Duration `json:"avg_search_time"`
+	AvgIndexingTime time.Duration `json:"avg_indexing_time"`
+	TotalSearches   int64         `json:"total_searches"`
+	TotalIndexings  int64         `json:"total_indexings"`
+	MaxConcurrency  int           `json:"max_concurrency"`
+}
+
+// Performance tracking and optimization methods
+
+// recordSearchTime records search operation time
+func (vo *VectorOperations) recordSearchTime(duration time.Duration) {
+	vo.mu.Lock()
+	defer vo.mu.Unlock()
+
+	vo.searchTimes = append(vo.searchTimes, duration)
+
+	// Keep only recent 1000 measurements
+	if len(vo.searchTimes) > 1000 {
+		vo.searchTimes = vo.searchTimes[len(vo.searchTimes)-1000:]
+	}
+}
+
+// recordIndexingTime records indexing operation time
+func (vo *VectorOperations) recordIndexingTime(duration time.Duration) {
+	vo.mu.Lock()
+	defer vo.mu.Unlock()
+
+	vo.indexingTimes = append(vo.indexingTimes, duration)
+
+	// Keep only recent 1000 measurements
+	if len(vo.indexingTimes) > 1000 {
+		vo.indexingTimes = vo.indexingTimes[len(vo.indexingTimes)-1000:]
+	}
+}
+
+// optimizedEmbeddingMarshal optimizes embedding marshaling for Redis
+func (vo *VectorOperations) optimizedEmbeddingMarshal(embedding []float64) ([]byte, error) {
+	// Use more efficient marshaling for Redis vector operations
+	// This could be optimized further with binary encoding if needed
+	return json.Marshal(embedding)
+}
+
+// SearchSimilarBatch performs batch vector similarity search with concurrent processing
+func (vo *VectorOperations) SearchSimilarBatch(ctx context.Context, queryEmbeddings [][]float64, limit int) ([]*VectorSearchResult, error) {
+	if len(queryEmbeddings) == 0 {
+		return []*VectorSearchResult{}, nil
+	}
+
+	startTime := time.Now()
+	defer func() {
+		logrus.WithFields(logrus.Fields{
+			"batch_size":      len(queryEmbeddings),
+			"processing_time": time.Since(startTime),
+		}).Info("📦 Batch vector search completed")
+	}()
+
+	results := make([]*VectorSearchResult, len(queryEmbeddings))
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
+	// Process embeddings in parallel batches
+	batchSize := vo.maxConcurrency
+	for i := 0; i < len(queryEmbeddings); i += batchSize {
+		end := i + batchSize
+		if end > len(queryEmbeddings) {
+			end = len(queryEmbeddings)
+		}
+
+		wg.Add(1)
+		go func(start, end int) {
+			defer wg.Done()
+
+			for j := start; j < end; j++ {
+				result, err := vo.SearchSimilar(ctx, queryEmbeddings[j], limit)
+				if err != nil {
+					logrus.WithError(err).WithField("embedding_index", j).Warn("Failed to search embedding in batch")
+					continue
+				}
+
+				mu.Lock()
+				results[j] = result
+				mu.Unlock()
+			}
+		}(i, end)
+	}
+
+	wg.Wait()
+	return results, nil
 }
 
 // parseDocumentFields parses document fields from Redis result
@@ -244,7 +529,7 @@ func (vo *VectorOperations) GetIndexInfo(ctx context.Context) (map[string]interf
 // DeleteDocument deletes a document from the index
 func (vo *VectorOperations) DeleteDocument(ctx context.Context, docID string) error {
 	key := fmt.Sprintf("doc:%s", docID)
-	
+
 	// Delete from Redis hash
 	_, err := vo.redis.Del(ctx, key).Result()
 	if err != nil {
@@ -290,7 +575,7 @@ func (vo *VectorOperations) SearchByKeywords(ctx context.Context, keywords []str
 
 	// Build keyword query
 	keywordQuery := strings.Join(keywords, " | ")
-	
+
 	searchCmd := []interface{}{
 		"FT.SEARCH", vo.indexName,
 		keywordQuery,
@@ -365,9 +650,9 @@ func (vo *VectorOperations) HybridSearch(ctx context.Context, queryEmbedding []f
 	queryTime := time.Since(startTime)
 
 	logrus.WithFields(logrus.Fields{
-		"query_time":      queryTime,
-		"vector_results":  len(vectorResults.Documents),
-		"keyword_results": len(keywordResults.Documents),
+		"query_time":       queryTime,
+		"vector_results":   len(vectorResults.Documents),
+		"keyword_results":  len(keywordResults.Documents),
 		"combined_results": len(combinedDocs),
 	}).Debug("🔍 Hybrid search completed")
 

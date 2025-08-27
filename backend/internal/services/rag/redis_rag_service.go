@@ -20,21 +20,21 @@ type VectorOperationsInterface interface {
 
 // RedisRAGService provides Redis-based RAG capabilities for SELLY AI
 type RedisRAGService struct {
-	redis               *redis.Client
-	embeddingService    *EmbeddingService
-	vectorOperations    VectorOperationsInterface
-	cacheOptimizer      *RAGCacheOptimizer
-	performanceMonitor  *RAGPerformanceMonitor
-	
+	redis              *redis.Client
+	embeddingService   *EmbeddingService
+	vectorOperations   VectorOperationsInterface
+	cacheOptimizer     *RAGCacheOptimizer
+	performanceMonitor *RAGPerformanceMonitor
+
 	// Configuration
-	config              *RAGConfig
-	
+	config *RAGConfig
+
 	// State management
-	mu                  sync.RWMutex
-	isInitialized       bool
-	indexName           string
-	vectorDimensions    int
-	maxVectors          int
+	mu               sync.RWMutex
+	isInitialized    bool
+	indexName        string
+	vectorDimensions int
+	maxVectors       int
 }
 
 // RAGConfig holds configuration for Redis RAG service
@@ -100,9 +100,9 @@ func NewRedisRAGService(redisClient *redis.Client) *RedisRAGService {
 		maxVectors:       config.MaxVectors,
 	}
 
-	// Initialize components
-	service.embeddingService = NewEmbeddingService()
-	service.vectorOperations = NewUpstashVectorOperations(redisClient, config)
+	// Initialize components with optimizations
+	service.embeddingService = NewEmbeddingServiceWithRedis(redisClient)
+	service.vectorOperations = NewVectorOperations(redisClient, config) // Use optimized vector operations
 	service.cacheOptimizer = NewRAGCacheOptimizer(redisClient, config)
 	service.performanceMonitor = NewRAGPerformanceMonitor()
 
@@ -198,11 +198,19 @@ func (rrs *RedisRAGService) SearchSimilar(ctx context.Context, query string, lim
 		return nil, fmt.Errorf("RAG service not initialized")
 	}
 
-	// Check cache first
+	// Check intelligent multi-level cache first (L1 -> L2 -> L3)
 	if rrs.config.CacheEnabled {
 		if cached := rrs.cacheOptimizer.GetCachedResult(query, limit); cached != nil {
 			cached.CacheHit = true
 			rrs.performanceMonitor.RecordCacheHit()
+
+			// Log cache performance for monitoring
+			logrus.WithFields(logrus.Fields{
+				"query":         query[:min(50, len(query))],
+				"cache_hit":     true,
+				"response_time": time.Since(startTime),
+			}).Debug("🎯 RAG cache hit - optimized response")
+
 			return cached, nil
 		}
 	}
@@ -229,13 +237,55 @@ func (rrs *RedisRAGService) SearchSimilar(ctx context.Context, query string, lim
 		CacheHit:     false,
 	}
 
-	// Cache result
+	// Cache result with intelligent multi-level caching and predictive warming
 	if rrs.config.CacheEnabled {
 		rrs.cacheOptimizer.CacheResult(query, limit, searchResult)
 	}
 
 	rrs.performanceMonitor.RecordCacheMiss()
+
+	// Log performance metrics for optimization tracking
+	logrus.WithFields(logrus.Fields{
+		"query":         query[:min(50, len(query))],
+		"cache_hit":     false,
+		"response_time": time.Since(startTime),
+		"results_count": len(searchResult.Documents),
+	}).Debug("🔍 RAG search completed - optimized processing")
+
 	return searchResult, nil
+}
+
+// min helper function
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+// Getter methods for accessing internal components
+
+// GetEmbeddingService returns the embedding service
+func (rrs *RedisRAGService) GetEmbeddingService() *EmbeddingService {
+	return rrs.embeddingService
+}
+
+// GetCacheOptimizer returns the cache optimizer
+func (rrs *RedisRAGService) GetCacheOptimizer() *RAGCacheOptimizer {
+	return rrs.cacheOptimizer
+}
+
+// GetVectorOperations returns the vector operations interface
+func (rrs *RedisRAGService) GetVectorOperations() *VectorOperations {
+	if vo, ok := rrs.vectorOperations.(*VectorOperations); ok {
+		return vo
+	}
+	return nil
+}
+
+// GetPerformanceMonitor returns the performance monitor
+func (rrs *RedisRAGService) GetPerformanceMonitor() *RAGPerformanceMonitor {
+	return rrs.performanceMonitor
 }
 
 // RetrieveContext retrieves RAG context for AI processing
@@ -275,10 +325,10 @@ func (rrs *RedisRAGService) RetrieveContext(ctx context.Context, query string, m
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"query":            query,
-		"documents_found":  len(relevantDocs),
-		"processing_time":  context.ProcessingTime,
-		"cache_hit":        searchResult.CacheHit,
+		"query":           query,
+		"documents_found": len(relevantDocs),
+		"processing_time": context.ProcessingTime,
+		"cache_hit":       searchResult.CacheHit,
 	}).Info("🔍 RAG context retrieved")
 
 	return context, nil
@@ -303,11 +353,11 @@ func (rrs *RedisRAGService) GetStats() *RAGStats {
 
 // RAGStats represents RAG service statistics
 type RAGStats struct {
-	IsInitialized    bool                      `json:"is_initialized"`
-	IndexName        string                    `json:"index_name"`
-	VectorDimensions int                       `json:"vector_dimensions"`
-	MaxVectors       int                       `json:"max_vectors"`
-	Performance      *RAGPerformanceStats      `json:"performance"`
+	IsInitialized    bool                 `json:"is_initialized"`
+	IndexName        string               `json:"index_name"`
+	VectorDimensions int                  `json:"vector_dimensions"`
+	MaxVectors       int                  `json:"max_vectors"`
+	Performance      *RAGPerformanceStats `json:"performance"`
 }
 
 // Close closes the RAG service
