@@ -72,12 +72,87 @@ export const ErrorMessages = {
 
 ### Automated Git Workflow
 **Rule**: After completing each logical unit of work, automatically execute:
-1. `git add .` - Stage all changes
-2. `git commit -m "<descriptive message>"` - Use conventional commit format
-3. `git push` - Push to remote repository
+1. **Documentation Update** - Update relevant documentation (see Mandatory Documentation Updates)
+2. `git add .` - Stage all changes including documentation updates
+3. `git commit -m "<descriptive message>"` - Use conventional commit format
+4. `git push` - Push to remote repository
 
 **Commit Message Format**: `type(scope): description`
 - Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+
+### Mandatory Documentation Updates
+**Rule**: Documentation updates are REQUIRED before committing any successful implementation that was based on existing documentation.
+
+**Pre-Commit Documentation Requirements**:
+1. **Source Documentation Update**: Update the original documentation that guided the implementation
+2. **Implementation Notes**: Add lessons learned, corrections, or clarifications discovered during execution
+3. **Deviation Documentation**: Record any deviations from the original plan with rationale
+4. **Version Control**: Update version numbers and modification dates in affected documentation
+5. **Accuracy Verification**: Ensure documentation reflects the current state after implementation
+
+**Documentation Update Process**:
+```typescript
+interface DocumentationUpdateProcess {
+  sourceDocuments: string[];           // Original docs that guided implementation
+  implementationNotes: string[];       // Lessons learned during execution
+  deviations: {                       // Any changes from original plan
+    original: string;
+    actual: string;
+    rationale: string;
+  }[];
+  versionUpdates: {                   // Version control updates
+    document: string;
+    oldVersion: string;
+    newVersion: string;
+    modificationDate: string;
+  }[];
+  accuracyVerification: boolean;      // Confirmation docs match current state
+}
+```
+
+**Enforcement Integration**:
+- Documentation updates are mandatory before `git add .`
+- Commit messages must include `docs:` type when documentation is updated
+- Failed documentation updates block the automated git workflow
+- Documentation quality gates must pass before push
+
+**Examples of Required Updates**:
+```markdown
+# BEFORE Implementation (Original Plan)
+**Status**: 🔄 In Progress
+**Version**: 1.0
+**Last Modified**: 2025-08-20
+
+## Implementation Plan
+- Set up Redis connection
+- Configure caching layer
+- Test performance improvements
+
+# AFTER Implementation (Updated Documentation)
+**Status**: ✅ Complete
+**Version**: 1.1
+**Last Modified**: 2025-08-27
+
+## Implementation Plan
+- ✅ Set up Redis connection
+- ✅ Configure caching layer
+- ✅ Test performance improvements
+
+## Implementation Notes
+- Redis connection required additional timeout configuration (30s)
+- Caching layer needed custom serialization for complex objects
+- Performance improvements: 15x faster response times achieved
+
+## Deviations from Original Plan
+- **Original**: Use default Redis configuration
+- **Actual**: Custom timeout and connection pooling required
+- **Rationale**: Default settings caused connection timeouts under load
+
+## Validation Results
+- All tests passing
+- Performance targets exceeded (15x vs 10x target)
+- No regression in existing functionality
+```
 
 ### Build Recovery System
 **Rule**: Automatically diagnose and fix build errors up to 3 attempts:
@@ -343,6 +418,8 @@ export const Component: React.FC<ComponentProps> = ({
 - [ ] Accessibility compliance verified
 - [ ] Government integration standards met
 - [ ] Documentation created and complete
+- [ ] Documentation updates completed for implementation-based work
+- [ ] Source documentation reflects current implementation state
 
 ## IMPLEMENTATION EXAMPLES
 
