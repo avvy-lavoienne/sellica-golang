@@ -2,7 +2,6 @@ package rag
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -15,19 +14,19 @@ import (
 
 // IntegrationTestSuite provides comprehensive RAG optimization integration testing
 type IntegrationTestSuite struct {
-	ragService         *RedisRAGService
-	embeddingService   *EmbeddingService
-	cacheOptimizer     *RAGCacheOptimizer
-	vectorOperations   *VectorOperations
+	ragService           *RedisRAGService
+	embeddingService     *EmbeddingService
+	cacheOptimizer       *RAGCacheOptimizer
+	vectorOperations     *VectorOperations
 	performanceValidator *PerformanceValidator
-	redisClient        *redis.Client
-	testDocuments      []*RAGDocument
+	redisClient          *redis.Client
+	testDocuments        []*RAGDocument
 }
 
 // NewIntegrationTestSuite creates a new integration test suite
 func NewIntegrationTestSuite(redisClient *redis.Client) *IntegrationTestSuite {
 	ragService := NewRedisRAGService(redisClient)
-	
+
 	// Create performance validator
 	performanceValidator := NewPerformanceValidator(
 		ragService,
@@ -35,7 +34,7 @@ func NewIntegrationTestSuite(redisClient *redis.Client) *IntegrationTestSuite {
 		ragService.cacheOptimizer,
 		ragService.vectorOperations.(*VectorOperations),
 	)
-	
+
 	return &IntegrationTestSuite{
 		ragService:           ragService,
 		embeddingService:     ragService.embeddingService,
@@ -115,7 +114,7 @@ func TestPhase1Integration(t *testing.T) {
 	t.Run("1.1 Service Initialization", func(t *testing.T) {
 		err := suite.ragService.Initialize(ctx)
 		require.NoError(t, err, "RAG service initialization should succeed")
-		
+
 		logrus.Info("✅ Phase 1.1: Service initialization completed")
 	})
 
@@ -132,12 +131,12 @@ func TestPhase1Integration(t *testing.T) {
 
 		// Store in L1 cache
 		suite.cacheOptimizer.setL1CachedResult(testKey, testResult)
-		
+
 		// Retrieve from L1 cache
 		cached := suite.cacheOptimizer.getL1CachedResult(testKey)
 		assert.NotNil(t, cached, "L1 cache should return cached result")
 		assert.Equal(t, 2, len(cached.Documents), "Cached result should have correct document count")
-		
+
 		logrus.Info("✅ Phase 1.2: Multi-level caching system validated")
 	})
 
@@ -145,14 +144,14 @@ func TestPhase1Integration(t *testing.T) {
 		// Test query pattern recording
 		testQuery := "cara membuat akta kelahiran"
 		suite.cacheOptimizer.recordQueryPattern(testQuery)
-		
+
 		// Verify pattern was recorded
 		patterns := suite.cacheOptimizer.queryPatterns.patterns
 		assert.Greater(t, patterns[testQuery], 0, "Query pattern should be recorded")
-		
+
 		// Test predictive caching trigger
 		suite.cacheOptimizer.triggerPredictiveCaching(testQuery)
-		
+
 		logrus.Info("✅ Phase 1.3: Intelligent cache warming validated")
 	})
 
@@ -166,7 +165,7 @@ func TestPhase1Integration(t *testing.T) {
 
 		var wg sync.WaitGroup
 		results := make([][]float64, len(queries))
-		
+
 		for i, query := range queries {
 			wg.Add(1)
 			go func(index int, q string) {
@@ -176,15 +175,15 @@ func TestPhase1Integration(t *testing.T) {
 				results[index] = embedding
 			}(i, query)
 		}
-		
+
 		wg.Wait()
-		
+
 		// Verify all embeddings were generated
 		for i, result := range results {
 			assert.NotNil(t, result, "Embedding %d should be generated", i)
 			assert.Equal(t, 768, len(result), "Embedding should have correct dimensions")
 		}
-		
+
 		logrus.Info("✅ Phase 1.4: Concurrent processing validated")
 	})
 
@@ -200,16 +199,16 @@ func TestPhase1Integration(t *testing.T) {
 		startTime := time.Now()
 		embeddings, err := suite.embeddingService.GenerateEmbeddingsBatch(ctx, queries)
 		batchTime := time.Since(startTime)
-		
+
 		require.NoError(t, err, "Batch embedding generation should succeed")
 		assert.Equal(t, len(queries), len(embeddings), "Should generate embeddings for all queries")
-		
+
 		// Verify batch processing is faster than sequential
 		logrus.WithFields(logrus.Fields{
 			"batch_size": len(queries),
 			"batch_time": batchTime,
 		}).Info("📦 Batch processing performance")
-		
+
 		logrus.Info("✅ Phase 1.5: Batch operations validated")
 	})
 
@@ -223,26 +222,26 @@ func TestPhase1Integration(t *testing.T) {
 		// Test RAG context retrieval
 		testQuery := "cara membuat akta kelahiran"
 		ragContext, err := suite.ragService.RetrieveContext(ctx, testQuery, 3)
-		
+
 		require.NoError(t, err, "RAG context retrieval should succeed")
 		assert.NotNil(t, ragContext, "RAG context should not be nil")
 		assert.Greater(t, len(ragContext.Documents), 0, "Should retrieve relevant documents")
-		
+
 		// Test cache hit on second request
 		startTime := time.Now()
 		cachedContext, err := suite.ragService.RetrieveContext(ctx, testQuery, 3)
 		cacheTime := time.Since(startTime)
-		
+
 		require.NoError(t, err, "Cached RAG context retrieval should succeed")
 		assert.NotNil(t, cachedContext, "Cached RAG context should not be nil")
 		assert.Less(t, cacheTime, 10*time.Millisecond, "Cache hit should be very fast")
-		
+
 		logrus.WithFields(logrus.Fields{
 			"query":           testQuery,
 			"documents_found": len(ragContext.Documents),
 			"cache_time":      cacheTime,
 		}).Info("🎯 End-to-end integration validated")
-		
+
 		logrus.Info("✅ Phase 1.6: End-to-end integration validated")
 	})
 
@@ -279,18 +278,18 @@ func TestMultiLevelCachePerformance(t *testing.T) {
 
 	// Measure L1 cache performance
 	cacheKey := suite.cacheOptimizer.generateResultCacheKey(testQuery, 5)
-	
+
 	// Store in L1
 	suite.cacheOptimizer.setL1CachedResult(cacheKey, testResult)
-	
+
 	// Measure L1 retrieval time
 	startTime := time.Now()
 	l1Result := suite.cacheOptimizer.getL1CachedResult(cacheKey)
 	l1Time := time.Since(startTime)
-	
+
 	assert.NotNil(t, l1Result, "L1 cache should return result")
 	assert.Less(t, l1Time, 1*time.Millisecond, "L1 cache should be ultra-fast")
-	
+
 	logrus.WithFields(logrus.Fields{
 		"l1_cache_time": l1Time,
 		"cache_level":   "L1 (memory)",

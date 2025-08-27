@@ -549,8 +549,54 @@ func (rco *RAGCacheOptimizer) predictRelatedQueries(query string) []string {
 	return relatedQueries
 }
 
-// Close closes the cache optimizer
+// Close closes the cache optimizer and cleans up resources
 func (rco *RAGCacheOptimizer) Close() error {
-	logrus.Info("🔒 RAG cache optimizer closed")
+	logrus.Info("🔒 Closing RAG cache optimizer...")
+
+	// Clear L1 cache (in-memory)
+	if rco.l1Cache != nil {
+		rco.l1Cache.Range(func(key, value interface{}) bool {
+			rco.l1Cache.Delete(key)
+			return true
+		})
+		logrus.Info("✅ L1 cache cleared")
+	}
+
+	// Clear query pattern analyzer
+	if rco.queryPatterns != nil {
+		rco.queryPatterns.mu.Lock()
+		rco.queryPatterns.patterns = make(map[string]int)
+		rco.queryPatterns.recentQueries = nil
+		rco.queryPatterns.mu.Unlock()
+		logrus.Info("✅ Query pattern analyzer cleared")
+	}
+
+	// Clear predictive cache
+	if rco.predictiveCache != nil {
+		rco.predictiveCache.mu.Lock()
+		rco.predictiveCache.predictions = make(map[string]float64)
+		rco.predictiveCache.mu.Unlock()
+		logrus.Info("✅ Predictive cache cleared")
+	}
+
+	// Clear eviction policy data
+	if rco.evictionPolicy != nil {
+		rco.evictionPolicy.mu.Lock()
+		rco.evictionPolicy.accessFrequency = make(map[string]int)
+		rco.evictionPolicy.lastAccess = make(map[string]time.Time)
+		rco.evictionPolicy.mu.Unlock()
+		logrus.Info("✅ Eviction policy data cleared")
+	}
+
+	// Reset performance metrics
+	rco.mu.Lock()
+	rco.cacheHits = 0
+	rco.cacheMisses = 0
+	rco.l1Hits = 0
+	rco.l2Hits = 0
+	rco.l3Hits = 0
+	rco.mu.Unlock()
+
+	logrus.Info("🔒 RAG cache optimizer closed successfully")
 	return nil
 }

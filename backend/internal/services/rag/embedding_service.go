@@ -822,3 +822,61 @@ type EmbeddingStats struct {
 	AvgGenerationTime time.Duration `json:"avg_generation_time"`
 	TotalGenerations  int64         `json:"total_generations"`
 }
+
+// Close cleans up resources used by the EmbeddingService
+func (es *EmbeddingService) Close() error {
+	es.mu.Lock()
+	defer es.mu.Unlock()
+
+	logrus.Info("🔒 Closing EmbeddingService...")
+
+	// Stop batch processor if running
+	if es.batchProcessor != nil {
+		// Cancel any pending batch processing
+		es.batchProcessor.batchMutex.Lock()
+		if es.batchProcessor.processingTimer != nil {
+			es.batchProcessor.processingTimer.Stop()
+		}
+
+		// Clear pending batches and close result channels
+		for id, ch := range es.batchProcessor.resultChannels {
+			close(ch)
+			delete(es.batchProcessor.resultChannels, id)
+		}
+		es.batchProcessor.pendingBatch = nil
+		es.batchProcessor.batchMutex.Unlock()
+
+		logrus.Info("✅ Batch processor stopped")
+	}
+
+	// Close worker pool
+	if es.workerPool != nil {
+		close(es.workerPool)
+		logrus.Info("✅ Worker pool closed")
+	}
+
+	// Clear caches to free memory
+	if es.l1Cache != nil {
+		es.l1Cache.Range(func(key, value interface{}) bool {
+			es.l1Cache.Delete(key)
+			return true
+		})
+		logrus.Info("✅ L1 cache cleared")
+	}
+
+	// Clear legacy cache
+	es.cacheMutex.Lock()
+	es.embeddingCache = make(map[string][]float64)
+	es.cacheMutex.Unlock()
+	logrus.Info("✅ Legacy cache cleared")
+
+	// Reset performance tracking
+	es.performanceMutex.Lock()
+	es.generationTimes = nil
+	es.performanceMutex.Unlock()
+
+	es.isInitialized = false
+	logrus.Info("🔒 EmbeddingService closed successfully")
+
+	return nil
+}

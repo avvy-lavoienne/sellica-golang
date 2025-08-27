@@ -25,6 +25,7 @@ type RedisRAGService struct {
 	vectorOperations   VectorOperationsInterface
 	cacheOptimizer     *RAGCacheOptimizer
 	performanceMonitor *RAGPerformanceMonitor
+	memoryMonitor      *MemoryMonitor
 
 	// Configuration
 	config *RAGConfig
@@ -35,6 +36,10 @@ type RedisRAGService struct {
 	indexName        string
 	vectorDimensions int
 	maxVectors       int
+
+	// Context for graceful shutdown
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 
 // RAGConfig holds configuration for Redis RAG service
@@ -92,12 +97,17 @@ func NewRedisRAGService(redisClient *redis.Client) *RedisRAGService {
 		CompressionEnabled:  true,
 	}
 
+	// Create context for graceful shutdown
+	ctx, cancel := context.WithCancel(context.Background())
+
 	service := &RedisRAGService{
 		redis:            redisClient,
 		config:           config,
 		indexName:        config.IndexName,
 		vectorDimensions: config.VectorDimensions,
 		maxVectors:       config.MaxVectors,
+		ctx:              ctx,
+		cancel:           cancel,
 	}
 
 	// Initialize components with optimizations
@@ -105,6 +115,10 @@ func NewRedisRAGService(redisClient *redis.Client) *RedisRAGService {
 	service.vectorOperations = NewVectorOperations(redisClient, config) // Use optimized vector operations
 	service.cacheOptimizer = NewRAGCacheOptimizer(redisClient, config)
 	service.performanceMonitor = NewRAGPerformanceMonitor()
+
+	// Initialize memory monitor with 30-second monitoring interval
+	service.memoryMonitor = NewMemoryMonitor()
+	service.memoryMonitor.StartMonitoring(30 * time.Second)
 
 	return service
 }
@@ -288,14 +302,43 @@ func (rrs *RedisRAGService) GetPerformanceMonitor() *RAGPerformanceMonitor {
 	return rrs.performanceMonitor
 }
 
-// RetrieveContext retrieves RAG context for AI processing
+// RetrieveContext retrieves RAG context for AI processing with context cancellation support
 func (rrs *RedisRAGService) RetrieveContext(ctx context.Context, query string, maxDocuments int) (*RAGContext, error) {
 	startTime := time.Now()
 
-	// Search for similar documents
+	// Check if context is already cancelled
+	select {
+	case <-ctx.Done():
+		return nil, fmt.Errorf("context cancelled before processing: %w", ctx.Err())
+	default:
+	}
+
+	// Record memory usage before processing
+	if rrs.memoryMonitor != nil {
+		beforeStats := rrs.memoryMonitor.GetCurrentStats()
+		defer func() {
+			afterStats := rrs.memoryMonitor.GetCurrentStats()
+			memoryDelta := afterStats.AllocMB - beforeStats.AllocMB
+			if memoryDelta > 10 { // Log if memory usage increased by more than 10MB
+				logrus.WithFields(logrus.Fields{
+					"memory_delta_mb": memoryDelta,
+					"query":           query,
+				}).Debug("High memory usage detected during RAG context retrieval")
+			}
+		}()
+	}
+
+	// Search for similar documents with context cancellation check
 	searchResult, err := rrs.SearchSimilar(ctx, query, maxDocuments)
 	if err != nil {
 		return nil, fmt.Errorf("failed to search similar documents: %w", err)
+	}
+
+	// Check context cancellation after search
+	select {
+	case <-ctx.Done():
+		return nil, fmt.Errorf("context cancelled during search: %w", ctx.Err())
+	default:
 	}
 
 	// Filter documents by relevance threshold
@@ -303,13 +346,20 @@ func (rrs *RedisRAGService) RetrieveContext(ctx context.Context, query string, m
 	var relevanceScores []float64
 
 	for i, doc := range searchResult.Documents {
+		// Check context cancellation during filtering
+		select {
+		case <-ctx.Done():
+			return nil, fmt.Errorf("context cancelled during filtering: %w", ctx.Err())
+		default:
+		}
+
 		if i < len(searchResult.Scores) && searchResult.Scores[i] >= rrs.config.SimilarityThreshold {
 			relevantDocs = append(relevantDocs, doc)
 			relevanceScores = append(relevanceScores, searchResult.Scores[i])
 		}
 	}
 
-	// Generate query embedding for context
+	// Generate query embedding for context with cancellation check
 	queryEmbedding, err := rrs.embeddingService.GenerateEmbedding(ctx, query)
 	if err != nil {
 		logrus.WithError(err).Warn("Failed to generate query embedding for context")
@@ -332,6 +382,16 @@ func (rrs *RedisRAGService) RetrieveContext(ctx context.Context, query string, m
 	}).Info("🔍 RAG context retrieved")
 
 	return context, nil
+}
+
+// RetrieveContextWithTimeout retrieves RAG context with explicit timeout control
+func (rrs *RedisRAGService) RetrieveContextWithTimeout(ctx context.Context, query string, maxDocuments int, timeout time.Duration) (*RAGContext, error) {
+	// Create context with timeout
+	timeoutCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	// Use the regular RetrieveContext method with timeout context
+	return rrs.RetrieveContext(timeoutCtx, query, maxDocuments)
 }
 
 // Note: Vector index creation not needed for Upstash Redis
@@ -360,17 +420,56 @@ type RAGStats struct {
 	Performance      *RAGPerformanceStats `json:"performance"`
 }
 
-// Close closes the RAG service
+// Close closes the RAG service and cleans up all resources
 func (rrs *RedisRAGService) Close() error {
 	rrs.mu.Lock()
 	defer rrs.mu.Unlock()
 
+	logrus.Info("🔒 Shutting down Redis RAG service...")
+
+	// Stop memory monitoring
+	if rrs.memoryMonitor != nil {
+		rrs.memoryMonitor.StopMonitoring()
+		logrus.Info("✅ Memory monitor stopped")
+	}
+
+	// Stop performance monitoring
 	if rrs.performanceMonitor != nil {
 		rrs.performanceMonitor.Stop()
+		logrus.Info("✅ Performance monitor stopped")
+	}
+
+	// Cleanup embedding service resources
+	if rrs.embeddingService != nil {
+		if err := rrs.embeddingService.Close(); err != nil {
+			logrus.WithError(err).Warn("⚠️ Error closing embedding service")
+		} else {
+			logrus.Info("✅ Embedding service closed")
+		}
+	}
+
+	// Cleanup cache optimizer resources
+	if rrs.cacheOptimizer != nil {
+		if err := rrs.cacheOptimizer.Close(); err != nil {
+			logrus.WithError(err).Warn("⚠️ Error closing cache optimizer")
+		} else {
+			logrus.Info("✅ Cache optimizer closed")
+		}
+	}
+
+	// Cancel context to stop all background operations
+	if rrs.cancel != nil {
+		rrs.cancel()
+		logrus.Info("✅ Background operations cancelled")
+	}
+
+	// Force garbage collection to clean up resources
+	if rrs.memoryMonitor != nil {
+		rrs.memoryMonitor.ForceGarbageCollection()
 	}
 
 	rrs.isInitialized = false
-	logrus.Info("🔒 Redis RAG service closed")
+	logrus.Info("🔒 Redis RAG service closed successfully")
 
 	return nil
 }
