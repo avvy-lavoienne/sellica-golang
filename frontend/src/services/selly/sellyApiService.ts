@@ -67,19 +67,31 @@ export class SellyApiService {
         console.log(`⚠️ [SELLY_API] Attempt ${attempt} failed, trying again...`);
       } catch (error) {
         console.log(`⚠️ [SELLY_API] Attempt ${attempt} error:`, error);
-        
-        if (attempt === this.MAX_RETRIES) {
-          break;
+
+        // Check for specific backend disconnection errors
+        if (error instanceof Error &&
+            (error.message === 'BACKEND_DISCONNECTED' || error.message === 'BACKEND_TIMEOUT')) {
+          console.log('🔌 [SELLY_API] Backend disconnection detected');
+
+          if (attempt === this.MAX_RETRIES) {
+            // Use backend disconnection fallback after all retries
+            console.log('🔄 [SELLY_API] All retries failed - using backend disconnection fallback...');
+            return this.generateBackendDisconnectionFallback(message);
+          }
+        } else if (attempt === this.MAX_RETRIES) {
+          // Use general fallback for other errors
+          console.log('🔄 [SELLY_API] All retries failed - using general fallback...');
+          return this.generateIntelligentFallback(message);
         }
-        
+
         // Wait before retry
         await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
       }
     }
 
-    // Fallback to intelligent Indonesian response
-    console.log('🔄 [SELLY_API] Using intelligent Indonesian fallback...');
-    return this.generateIntelligentFallback(message);
+    // Final fallback (should not reach here due to error handling in retry loop)
+    console.log('🔄 [SELLY_API] Final fallback - using backend disconnection fallback...');
+    return this.generateBackendDisconnectionFallback(message);
   }
 
   /**
@@ -116,6 +128,23 @@ export class SellyApiService {
       return data;
     } catch (error) {
       clearTimeout(timeoutId);
+
+      // Enhanced error handling with specific error types for better fallback detection
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new Error('BACKEND_TIMEOUT');
+        }
+        if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
+          throw new Error('BACKEND_DISCONNECTED');
+        }
+        if (error.message.includes('ECONNREFUSED') || error.message.includes('ERR_CONNECTION_REFUSED')) {
+          throw new Error('BACKEND_DISCONNECTED');
+        }
+        if (error.message.includes('NetworkError') || error.message.includes('ERR_NETWORK')) {
+          throw new Error('BACKEND_DISCONNECTED');
+        }
+      }
+
       throw error;
     }
   }
@@ -201,6 +230,36 @@ export class SellyApiService {
     }
 
     return `${timeGreeting}! Saya SELLY, asisten AI dari Dinas Kependudukan dan Pencatatan Sipil Kabupaten Garut. Saya di sini untuk membantu Anda dengan layanan administrasi kependudukan. Bagaimana saya bisa membantu Anda hari ini?`;
+  }
+
+  /**
+   * Generate backend disconnection fallback response
+   */
+  private static generateBackendDisconnectionFallback(message: string): string {
+    const greeting = this.getGreeting();
+
+    return `🤖 **SELLY AI Assistant - Disdukcapil Garut**
+
+Selamat ${greeting}! Saya SELLY, asisten digital untuk layanan administrasi kependudukan.
+
+⚠️ **Pemberitahuan Sistem**:
+SELLY sedang mengalami gangguan koneksi sementara dan tidak dapat terhubung ke server utama saat ini.
+
+🔄 **Status Pemulihan**:
+- Sistem akan otomatis mencoba menyambung kembali
+- SELLY akan merespons segera setelah koneksi pulih
+- Tidak ada data yang hilang dari percakapan Anda
+
+⏰ **Estimasi Pemulihan**: 1-3 menit
+
+📞 **Bantuan Alternatif**:
+Jika Anda memerlukan bantuan segera, silakan hubungi admin kami:
+**WhatsApp: +62-851-8304-3205**
+
+🙏 **Terima kasih atas kesabaran Anda**. SELLY akan kembali melayani dengan sepenuh hati begitu koneksi pulih.
+
+---
+*Dinas Kependudukan dan Pencatatan Sipil Kabupaten Garut*`;
   }
 
   /**

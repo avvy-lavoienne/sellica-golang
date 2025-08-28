@@ -205,6 +205,29 @@ Berikan respons yang membantu dan informatif.`
 			}
 		}
 
+		// Check for knowledge gap scenario
+		if knowledgeGap, ok := req.Context["knowledge_gap_detected"].(bool); ok && knowledgeGap {
+			basePrompt += "\n\nSITUASI KNOWLEDGE GAP TERDETEKSI:"
+			basePrompt += "\nAnda sedang menghadapi pertanyaan yang tidak memiliki informasi dalam knowledge base."
+
+			if requestedService, ok := req.Context["requested_service"].(string); ok && requestedService != "" {
+				basePrompt += "\nLayanan yang diminta: " + requestedService
+			}
+
+			if keywords, ok := req.Context["user_keywords"].([]string); ok && len(keywords) > 0 {
+				basePrompt += "\nKata kunci pengguna: " + strings.Join(keywords, ", ")
+			}
+
+			basePrompt += "\n\nRESPON KNOWLEDGE GAP YANG DIPERLUKAN:"
+			basePrompt += "\n1. Akui dengan sopan bahwa Anda belum memiliki informasi spesifik tentang pertanyaan tersebut"
+			basePrompt += "\n2. Jelaskan bahwa SELLY perlu mempelajari topik ini untuk memberikan jawaban yang akurat"
+			basePrompt += "\n3. Sampaikan bahwa pertanyaan mereka sangat berharga untuk meningkatkan knowledge base SELLY"
+			basePrompt += "\n4. Berikan kontak admin WhatsApp untuk bantuan langsung: +62-851-8304-3205"
+			basePrompt += "\n5. Gunakan nada layanan pemerintah Indonesia yang sopan, membantu, dan profesional"
+			basePrompt += "\n6. Tetap pertahankan persona SELLY sebagai asisten digital Disdukcapil Garut"
+			basePrompt += "\n7. Berikan apresiasi atas kesabaran pengguna"
+		}
+
 		// Add other context-specific information
 		if userLevel, ok := req.Context["userExpertiseLevel"].(string); ok {
 			if userLevel == "beginner" {

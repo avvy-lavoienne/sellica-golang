@@ -335,6 +335,12 @@ func (s *Service) ProcessChat(ctx context.Context, req *ChatRequest, authContext
 	queryAnalysis := s.analyzeQuery(req.Message)
 	var ragContext string
 
+	// Initialize enhanced context early for knowledge gap handling
+	enhancedContext := req.Context
+	if enhancedContext == nil {
+		enhancedContext = make(map[string]interface{})
+	}
+
 	if queryAnalysis.RequiresRAG {
 		logrus.WithFields(logrus.Fields{
 			"service_type":   queryAnalysis.ServiceType,
@@ -351,14 +357,21 @@ func (s *Service) ProcessChat(ctx context.Context, req *ChatRequest, authContext
 		} else if ragContent != "" {
 			ragContext = ragContent
 			logrus.WithField("context_length", len(ragContext)).Info("📚 Retrieved relevant content from knowledge base")
+		} else {
+			// Knowledge gap detected - no relevant content found
+			logrus.WithFields(logrus.Fields{
+				"service_type": queryAnalysis.ServiceType,
+				"keywords":     queryAnalysis.Keywords,
+			}).Info("🔍 Knowledge gap detected - no relevant content found in knowledge base")
+
+			// Add knowledge gap indicator to context for fallback response
+			enhancedContext["knowledge_gap_detected"] = true
+			enhancedContext["requested_service"] = queryAnalysis.ServiceType
+			enhancedContext["user_keywords"] = queryAnalysis.Keywords
 		}
 	}
 
 	// Enhance request context with RAG content and comprehensive analysis
-	enhancedContext := req.Context
-	if enhancedContext == nil {
-		enhancedContext = make(map[string]interface{})
-	}
 	if ragContext != "" {
 		enhancedContext["knowledge_base_context"] = ragContext
 		enhancedContext["service_type"] = queryAnalysis.ServiceType
