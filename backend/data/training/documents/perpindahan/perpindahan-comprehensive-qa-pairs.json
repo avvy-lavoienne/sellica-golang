@@ -1,0 +1,162 @@
+[
+  {
+    "query": "Apa itu perpindahan penduduk?",
+    "expectedResponse": "Halo kak! 😊 Perpindahan penduduk adalah peristiwa kependudukan yang harus dilaporkan karena membawa akibat terhadap penerbitan atau perubahan KK, KTP-el, dan dokumen kependudukan lainnya.\n\n**🏠 Perpindahan penduduk meliputi:**\n• Pindah dalam satu kabupaten/kota\n• Pindah antar kabupaten/kota\n• Pindah antar provinsi\n• Pindah ke luar negeri\n\n**📋 Proses utama:**\n• **Pindah keluar** - pelaporan di daerah asal\n• **Pindah datang** - pendaftaran di daerah tujuan\n\nSemua layanan perpindahan penduduk **GRATIS** sesuai UU No. 24 Tahun 2013! SELLY siap bantu kakak dengan prosedur lengkapnya! 🤝",
+    "serviceType": "perpindahan",
+    "category": "definisi",
+    "priority": "high",
+    "scenario": "A"
+  },
+  {
+    "query": "Syarat pindah domisili apa saja?",
+    "expectedResponse": "Halo kak! 😊 Syarat pindah domisili tergantung jenis perpindahannya:\n\n**🏘️ Pindah dalam satu kabupaten/kota:**\n• KK asli\n• KTP-el asli\n• Tidak perlu SKPWNI\n\n**🏙️ Pindah antar kabupaten/kota/provinsi:**\n• KK asli\n• KTP-el asli\n• **SKPWNI** (Surat Keterangan Pindah WNI)\n• Formulir F-1.03\n\n**⚠️ Syarat wajib:**\nKakak harus sudah melakukan **perekaman KTP-el** (usia 17+ atau sudah/pernah kawin). Tanpa perekaman, data belum bisa diproses dalam sistem SIAK.\n\n**💰 Biaya:** Semua GRATIS!\n\nSELLY siap bantu kakak sesuai jenis perpindahan yang dibutuhkan! 🤝",
+    "serviceType": "perpindahan",
+    "category": "persyaratan",
+    "priority": "high",
+    "scenario": "A"
+  },
+  {
+    "query": "Bagaimana cara pindah dalam satu kota?",
+    "expectedResponse": "Halo kak! 😊 Pindah dalam satu kota/kabupaten prosesnya sangat mudah!\n\n**📋 Langkah-langkah:**\n1. **Datang ke Disdukcapil** atau UPT kecamatan\n2. **Bawa dokumen:**\n   • KK asli\n   • KTP-el asli\n3. **Lapor perubahan alamat** ke petugas\n4. **Terima KK baru** dengan alamat yang diperbarui\n5. **Terima KTP-el baru** dengan alamat baru\n6. **KTP-el lama ditarik** untuk dimusnahkan\n\n**✨ Keuntungan:**\n• Tidak perlu SKPWNI\n• Proses lebih cepat\n• Bisa selesai hari itu juga\n• Bisa via layanan online di beberapa daerah\n\n**💰 Biaya:** GRATIS!\n\nSELLY siap bantu kakak dengan prosedur lengkapnya! 🤝",
+    "serviceType": "perpindahan",
+    "category": "proses_dalam_kota",
+    "priority": "high",
+    "scenario": "A"
+  },
+  {
+    "query": "Cara pindah antar kota bagaimana?",
+    "expectedResponse": "Halo kak! 😊 Pindah antar kota memerlukan 2 tahap proses:\n\n**🏠 TAHAP 1 - Di daerah ASAL:**\n1. Datang ke Disdukcapil daerah asal\n2. Bawa KK asli + KTP-el asli\n3. Isi Formulir F-1.03\n4. Terima **SKPWNI** (Surat Keterangan Pindah WNI)\n5. KTP-el lama TIDAK ditarik\n\n**🏙️ TAHAP 2 - Di daerah TUJUAN:**\n1. Datang ke Disdukcapil tujuan (maks 30 hari)\n2. Serahkan SKPWNI asli\n3. Terima KK baru + KTP-el baru\n4. KTP-el lama ditarik dan dimusnahkan\n\n**🚀 Alternatif: Fasilitasi dari daerah tujuan**\nBisa diurus dari kota tujuan tanpa balik ke kota asal!\n\n**💰 Biaya:** GRATIS!\n\nSELLY siap bantu kakak dengan prosedur detailnya! 🤝",
+    "serviceType": "perpindahan",
+    "category": "proses_antar_kota",
+    "priority": "high",
+    "scenario": "A"
+  },
+  {
+    "query": "Apa itu SKPWNI?",
+    "expectedResponse": "Halo kak! 😊 SKPWNI adalah **Surat Keterangan Pindah Warga Negara Indonesia**!\n\n**📄 Fungsi SKPWNI:**\n• Dokumen resmi dari Disdukcapil daerah asal\n• \"Tiket\" untuk mendaftar di daerah tujuan\n• Bukti bahwa data sudah dilepas dari daerah asal\n• Otorisasi transfer data antar daerah\n\n**🎯 Kapan perlu SKPWNI:**\n• Pindah antar kabupaten/kota\n• Pindah antar provinsi\n• Pindah ke luar negeri\n\n**❌ Tidak perlu SKPWNI:**\n• Pindah dalam satu kabupaten/kota\n• Pindah antar desa/kelurahan dalam satu kecamatan\n\n**⏰ Batas waktu:**\nHarus lapor ke daerah tujuan maksimal **30 hari** sejak SKPWNI diterbitkan.\n\n**💰 Biaya:** GRATIS!\n\nSELLY siap bantu kakak dengan prosedur SKPWNI! 🤝",
+    "serviceType": "perpindahan",
+    "category": "skpwni",
+    "priority": "high",
+    "scenario": "A"
+  },
+  {
+    "query": "Biaya pindah domisili berapa?",
+    "expectedResponse": "Halo kak! 😊 Kabar baiknya, semua layanan perpindahan domisili **100% GRATIS**!\n\n**💰 Yang GRATIS:**\n• Pengurusan SKPWNI\n• Penerbitan KK baru\n• Penerbitan KTP-el baru\n• Formulir F-1.03\n• Semua proses administrasi\n\n**📜 Dasar hukum:**\n**UU No. 24 Tahun 2013** secara tegas menghapuskan segala bentuk pungutan biaya untuk penerbitan dokumen kependudukan dasar.\n\n**⚠️ Waspada pungli!**\nJika ada yang minta bayar, itu ILEGAL! Laporkan ke:\n• Hotline Disdukcapil\n• SP4N-LAPOR!\n• Ombudsman RI\n• Satgas Saber Pungli\n\n**🎯 Ingat:**\nLayanan Adminduk yang GRATIS adalah hak kakak sebagai warga negara!\n\nSELLY siap bantu kakak dengan prosedur resmi yang gratis! 🤝",
+    "serviceType": "perpindahan",
+    "category": "biaya",
+    "priority": "high",
+    "scenario": "A"
+  },
+  {
+    "query": "Pindah domisili tanpa cabut berkas gimana?",
+    "expectedResponse": "Halo kak! 😊 Ada cara mudah pindah tanpa perlu balik ke kota asal!\n\n**🚀 Fasilitasi Pindah dari Daerah Tujuan:**\n\n**📋 Prosedur:**\n1. **Datang ke Disdukcapil kota TUJUAN** (bukan asal)\n2. **Bawa dokumen:**\n   • Fotokopi KK (atau cukup kasih NIK + No. KK)\n3. **Isi Formulir F-1.03**\n4. **Disdukcapil tujuan** akan kirim surat ke Disdukcapil asal\n5. **SKPWNI diterbitkan** oleh daerah asal (sering digital)\n6. **Proses pindah datang** dilanjutkan di daerah tujuan\n\n**✨ Keuntungan:**\n• Tidak perlu balik ke kota asal\n• Hemat waktu dan biaya transportasi\n• Proses terintegrasi via SIAK Terpusat\n• Komunikasi antar-dinas otomatis\n\n**💰 Biaya:** GRATIS!\n\nIni bukti sistem Adminduk sudah canggih dan fleksibel! SELLY siap bantu kakak! 🤝",
+    "serviceType": "perpindahan",
+    "category": "tanpa_cabut_berkas",
+    "priority": "high",
+    "scenario": "B"
+  },
+  {
+    "query": "Kenapa harus perekaman KTP dulu sebelum pindah?",
+    "expectedResponse": "Halo kak! 😊 Perekaman KTP-el itu syarat WAJIB dan ada alasan teknisnya!\n\n**🔐 Alasan Teknis:**\n• **SIAK** (sistem Adminduk) berbasis data digital\n• Perpindahan = **mutasi data** dalam database\n• Data harus **tervalidasi biometrik** dulu (sidik jari, iris mata)\n• Tanpa perekaman = data belum \"siap dimutasi\"\n\n**📜 Dasar Hukum:**\n**Pasal 63 ayat (1) UU No. 24 Tahun 2013:**\nPenduduk usia 17+ atau sudah/pernah kawin **WAJIB memiliki KTP-el**\n\n**⚠️ Konsekuensi tanpa perekaman:**\n• Data dinonaktifkan sistem\n• Tidak bisa akses layanan publik\n• Tidak bisa pindah domisili\n• Tidak bisa buat SIM, paspor, BPJS\n\n**🎯 Solusi:**\nSegera lakukan perekaman KTP-el di Disdukcapil terdekat!\n\n**💰 Biaya perekaman:** GRATIS!\n\nSELLY siap bantu kakak dengan prosedur perekaman! 🤝",
+    "serviceType": "perpindahan",
+    "category": "perekaman_ktp",
+    "priority": "high",
+    "scenario": "C"
+  },
+  {
+    "query": "Formulir F-1.03 itu apa?",
+    "expectedResponse": "Halo kak! 😊 Formulir F-1.03 adalah formulir resmi untuk perpindahan penduduk!\n\n**📄 Tentang F-1.03:**\n• **Nama lengkap:** Formulir Pendaftaran Perpindahan Penduduk\n• **Standar nasional** sesuai Permendagri No. 109 Tahun 2019\n• **Format seragam** di seluruh Indonesia\n• **Wajib diisi** untuk pindah antar kabupaten/kota/provinsi\n\n**📝 Isi formulir:**\n• Data pribadi pemohon\n• Alamat asal dan tujuan\n• Alasan perpindahan\n• Tanda tangan pemohon\n\n**🏢 Dimana mengisi:**\n• Di Disdukcapil daerah asal (untuk SKPWNI)\n• Di Disdukcapil daerah tujuan (untuk fasilitasi)\n• Disediakan GRATIS oleh petugas\n\n**❌ Tidak perlu F-1.03:**\n• Pindah dalam satu kabupaten/kota\n\n**💰 Biaya:** GRATIS!\n\nSELLY siap bantu kakak dengan pengisian formulir! 🤝",
+    "serviceType": "perpindahan",
+    "category": "formulir",
+    "priority": "medium",
+    "scenario": "A"
+  },
+  {
+    "query": "Berapa lama proses pindah domisili?",
+    "expectedResponse": "Halo kak! 😊 Waktu proses tergantung jenis perpindahannya:\n\n**⚡ Pindah dalam satu kabupaten/kota:**\n• **1 hari** (bisa selesai hari itu juga)\n• Langsung dapat KK dan KTP-el baru\n\n**🏙️ Pindah antar kabupaten/kota/provinsi:**\n• **Tahap 1 (daerah asal):** 1-3 hari kerja untuk SKPWNI\n• **Tahap 2 (daerah tujuan):** 1-7 hari kerja untuk KK + KTP-el baru\n• **Total:** 2-10 hari kerja\n\n**🚀 Fasilitasi tanpa cabut berkas:**\n• **3-7 hari kerja** (koordinasi antar-dinas)\n\n**⏰ Batas waktu penting:**\n• Lapor ke daerah tujuan: **maksimal 30 hari** sejak SKPWNI terbit\n\n**📱 Layanan online:**\n• Bisa lebih cepat dengan IKD atau WhatsApp resmi\n\n**🎯 Tips cepat:**\n• Siapkan dokumen lengkap\n• Datang pagi hari\n• Gunakan layanan online jika tersedia\n\nSELLY siap bantu kakak dengan prosedur tercepat! 🤝",
+    "serviceType": "perpindahan",
+    "category": "waktu_proses",
+    "priority": "medium",
+    "scenario": "A"
+  },
+  {
+    "query": "Pindah ke luar negeri prosedurnya gimana?",
+    "expectedResponse": "Halo kak! 😊 Pindah ke luar negeri ada prosedur khususnya!\n\n**📋 Prosedur pindah ke luar negeri:**\n1. **Lapor ke Disdukcapil** daerah asal\n2. **Bawa dokumen:**\n   • KK asli\n   • KTP-el asli\n   • Paspor\n   • Visa/dokumen imigrasi\n3. **Isi Formulir F-1.03**\n4. **Terima SKPWNI** khusus luar negeri\n\n**🌍 Kewajiban di luar negeri:**\n• Daftar di **Konjen/KBRI** dalam 30 hari\n• Lapor keberadaan berkala\n• Urus **Kartu Identitas WNI** di luar negeri\n\n**🏠 Jika kembali ke Indonesia:**\n• Lapor ke Disdukcapil dengan SKPWNI\n• Bawa surat keterangan dari Konjen/KBRI\n• Proses seperti pindah datang biasa\n\n**💰 Biaya:** GRATIS di Indonesia!\n\n**📞 Info lebih lanjut:**\nHubungi Disdukcapil atau Kemlu untuk prosedur detail.\n\nSELLY siap bantu kakak dengan persiapan dokumen! 🤝",
+    "serviceType": "perpindahan",
+    "category": "luar_negeri",
+    "priority": "medium",
+    "scenario": "E"
+  },
+  {
+    "query": "Apa itu IKD untuk pindah domisili?",
+    "expectedResponse": "Halo kak! 😊 IKD adalah **Identitas Kependudukan Digital** - KTP digital di smartphone!\n\n**📱 Tentang IKD:**\n• Aplikasi resmi Kemendagri\n• KTP-el dan KK dalam format digital\n• Dilengkapi QR Code untuk verifikasi\n• Bisa untuk berbagai layanan online\n\n**🏠 IKD untuk pindah domisili:**\n• Bisa ajukan permohonan pindah online\n• Upload dokumen persyaratan\n• Terima SKPWNI digital\n• Proses tanpa datang ke kantor\n\n**📋 Cara aktivasi IKD:**\n1. Download aplikasi \"Identitas Kependudukan Digital\"\n2. **Datang ke Disdukcapil** untuk aktivasi awal\n3. Scan QR Code aktivasi dengan petugas\n4. Verifikasi biometrik\n5. IKD siap digunakan\n\n**⚠️ Catatan:**\n• Aktivasi awal harus datang langsung\n• Belum semua daerah support layanan pindah via IKD\n• Perlu smartphone dan internet stabil\n\n**💰 Biaya:** GRATIS!\n\nSELLY siap bantu kakak dengan aktivasi IKD! 🤝",
+    "serviceType": "perpindahan",
+    "category": "ikd_digital",
+    "priority": "medium",
+    "scenario": "A"
+  },
+  {
+    "query": "Pindah domisili via WhatsApp bisa?",
+    "expectedResponse": "Halo kak! 😊 Banyak Disdukcapil sudah sediakan layanan via WhatsApp!\n\n**📱 Layanan WhatsApp Disdukcapil:**\n• Konsultasi prosedur pindah\n• Kirim foto/scan dokumen persyaratan\n• Proses verifikasi online\n• Terima konfirmasi dan jadwal\n\n**📋 Cara menggunakan:**\n1. **Cari nomor WA resmi** Disdukcapil daerah kakak\n2. **Kirim pesan** dengan format yang diminta\n3. **Upload foto dokumen:**\n   • KK asli\n   • KTP-el asli\n   • Foto selfie (jika diminta)\n4. **Tunggu verifikasi** dari petugas\n5. **Ikuti instruksi** selanjutnya\n\n**✨ Keuntungan:**\n• Tidak perlu antre\n• Bisa konsultasi 24/7\n• Hemat waktu dan transportasi\n• Proses lebih cepat\n\n**⚠️ Pastikan:**\n• Gunakan nomor WA **resmi** Disdukcapil\n• Jangan kirim data ke nomor tidak jelas\n• Waspada penipuan!\n\n**💰 Biaya:** GRATIS!\n\nSELLY siap bantu kakak cari nomor WA resmi Disdukcapil! 🤝",
+    "serviceType": "perpindahan",
+    "category": "whatsapp_online",
+    "priority": "medium",
+    "scenario": "A"
+  },
+  {
+    "query": "Kalau KTP hilang saat mau pindah gimana?",
+    "expectedResponse": "Halo kak! 😊 Jangan khawatir, KTP hilang bisa diatasi!\n\n**🆘 Langkah-langkah:**\n1. **Buat surat kehilangan** di kepolisian\n2. **Datang ke Disdukcapil** dengan:\n   • Surat kehilangan dari polisi\n   • KK asli\n   • Akta kelahiran\n   • Foto 4x6 (2 lembar)\n3. **Urus KTP-el pengganti** dulu\n4. **Setelah dapat KTP-el baru**, baru bisa proses pindah\n\n**⏰ Waktu proses:**\n• KTP-el pengganti: 1-7 hari kerja\n• Proses pindah: sesuai jenis perpindahan\n\n**💡 Tips:**\n• Jangan tunda urus KTP hilang\n• Simpan fotokopi KTP di tempat terpisah\n• Aktifkan IKD sebagai backup digital\n\n**⚠️ Penting:**\n• Tanpa KTP-el, tidak bisa proses pindah\n• Semua layanan pengganti dokumen GRATIS\n\n**💰 Biaya:** GRATIS!\n\nSELLY siap bantu kakak dengan prosedur pengganti KTP! 🤝",
+    "serviceType": "perpindahan",
+    "category": "ktp_hilang",
+    "priority": "high",
+    "scenario": "C"
+  },
+  {
+    "query": "Pindah domisili untuk mahasiswa gimana?",
+    "expectedResponse": "Halo kak! 😊 Mahasiswa punya beberapa pilihan untuk pindah domisili!\n\n**🎓 Opsi untuk mahasiswa:**\n\n**1️⃣ Pindah domisili resmi:**\n• Ikuti prosedur pindah antar kota biasa\n• Dapat KK dan KTP-el baru di kota kuliah\n• Cocok untuk kuliah 4+ tahun\n\n**2️⃣ Tetap domisili asal:**\n• KTP tetap alamat orang tua\n• Buat **Surat Keterangan Domisili** dari RT/RW kota kuliah\n• Untuk keperluan administrasi kampus\n\n**3️⃣ Surat Keterangan Tempat Tinggal:**\n• Dari kelurahan kota kuliah\n• Untuk keperluan tertentu (beasiswa, dll)\n• Tidak mengubah KTP\n\n**💡 Pertimbangan:**\n• **Pindah resmi:** Akses layanan publik di kota kuliah\n• **Tetap asal:** Lebih praktis, tidak ribet balik\n\n**📋 Dokumen yang sama:**\n• KK asli + KTP-el asli\n• SKPWNI (jika pindah resmi)\n\n**💰 Biaya:** GRATIS!\n\nSELLY siap bantu kakak pilih opsi terbaik! 🤝",
+    "serviceType": "perpindahan",
+    "category": "mahasiswa",
+    "priority": "medium",
+    "scenario": "A"
+  },
+  {
+    "query": "Pindah karena kerja prosedurnya sama?",
+    "expectedResponse": "Halo kak! 😊 Pindah karena kerja prosedurnya sama dengan pindah biasa!\n\n**💼 Pindah karena kerja:**\n• **Prosedur sama** dengan pindah domisili biasa\n• **Dokumen sama:** KK asli + KTP-el asli\n• **Alasan pindah:** Tulis \"pekerjaan\" di formulir\n\n**📋 Langkah-langkah:**\n1. **Tentukan jenis pindah:**\n   • Dalam kota: langsung ke Disdukcapil tujuan\n   • Antar kota: perlu SKPWNI\n2. **Siapkan dokumen** persyaratan\n3. **Ikuti prosedur** sesuai jenis perpindahan\n\n**💡 Tips untuk pekerja:**\n• **Pindah resmi** jika kerja jangka panjang (>2 tahun)\n• **Pertimbangan:** akses BPJS, layanan kesehatan, sekolah anak\n• **Surat keterangan domisili** cukup untuk keperluan administrasi kantor\n\n**⏰ Waktu terbaik:**\n• Urus setelah kontrak kerja pasti\n• Jangan tunda jika sudah yakin menetap\n\n**💰 Biaya:** GRATIS!\n\nSELLY siap bantu kakak dengan prosedur pindah untuk kerja! 🤝",
+    "serviceType": "perpindahan",
+    "category": "pindah_kerja",
+    "priority": "medium",
+    "scenario": "A"
+  },
+  {
+    "query": "Kalau sudah terlanjur pindah tapi belum lapor gimana?",
+    "expectedResponse": "Halo kak! 😊 Jangan khawatir, masih bisa diurus meskipun terlanjur pindah!\n\n**🚀 Solusi: Fasilitasi dari daerah tujuan**\n\n**📋 Langkah-langkah:**\n1. **Datang ke Disdukcapil kota TUJUAN** (tempat tinggal sekarang)\n2. **Jelaskan situasi** ke petugas\n3. **Bawa dokumen:**\n   • Fotokopi KK (atau kasih NIK + No. KK)\n   • KTP-el asli\n4. **Isi Formulir F-1.03**\n5. **Disdukcapil tujuan** akan koordinasi dengan daerah asal\n6. **SKPWNI diterbitkan** oleh daerah asal\n7. **Proses pindah datang** selesai di daerah tujuan\n\n**✨ Keuntungan:**\n• Tidak perlu balik ke kota asal\n• Proses terintegrasi via SIAK\n• Hemat waktu dan biaya\n\n**⏰ Tidak ada denda:**\n• Layanan tetap GRATIS\n• Tidak ada sanksi administratif\n\n**💡 Tips ke depan:**\n• Lapor pindah sebelum atau segera setelah pindah\n• Simpan dokumen penting dengan baik\n\nSELLY siap bantu kakak dengan prosedur ini! 🤝",
+    "serviceType": "perpindahan",
+    "category": "terlambat_lapor",
+    "priority": "high",
+    "scenario": "B"
+  },
+  {
+    "query": "Pindah domisili bisa diwakilkan?",
+    "expectedResponse": "Halo kak! 😊 Pindah domisili **TIDAK BISA diwakilkan** untuk keamanan data!\n\n**❌ Tidak bisa diwakilkan:**\n• Pengurusan SKPWNI\n• Pelaporan pindah datang\n• Pengambilan KK dan KTP-el baru\n• Verifikasi data biometrik\n\n**🔐 Alasan keamanan:**\n• Perlu verifikasi identitas langsung\n• Mencegah penyalahgunaan data\n• Memastikan keakuratan informasi\n• Sesuai protokol keamanan SIAK\n\n**👨‍👩‍👧‍👦 Khusus keluarga:**\n• **Kepala keluarga** bisa wakili anggota keluarga dalam 1 KK\n• **Anak di bawah 17 tahun** diwakili orang tua\n• **Suami/istri** bisa saling mewakili dengan surat kuasa bermaterai\n\n**🆘 Kondisi khusus:**\n• **Sakit/cacat:** Petugas bisa datang ke rumah (home service)\n• **Lanjut usia:** Ada layanan khusus di beberapa daerah\n\n**💡 Solusi:**\n• Manfaatkan layanan online (IKD, WhatsApp)\n• Koordinasi jadwal dengan Disdukcapil\n• Minta bantuan keluarga untuk antar-jemput\n\nSELLY siap bantu kakak dengan alternatif solusi! 🤝",
+    "serviceType": "perpindahan",
+    "category": "perwakilan",
+    "priority": "medium",
+    "scenario": "D"
+  },
+  {
+    "query": "Kalau ada masalah saat pindah domisili ke mana lapor?",
+    "expectedResponse": "Halo kak! 😊 Ada beberapa jalur pengaduan jika ada masalah!\n\n**📞 Jalur pengaduan resmi:**\n\n**1️⃣ Disdukcapil langsung:**\n• Hotline Disdukcapil daerah\n• WhatsApp pengaduan resmi\n• Email atau website resmi\n• Datang langsung ke kantor\n\n**2️⃣ SP4N-LAPOR!:**\n• Platform pengaduan nasional\n• Website: lapor.go.id\n• Terintegrasi dengan instansi terkait\n• Bisa track status pengaduan\n\n**3️⃣ Ombudsman RI:**\n• Lembaga pengawas pelayanan publik\n• Untuk maladministrasi serius\n• Bisa online atau datang langsung\n\n**4️⃣ Satgas Saber Pungli:**\n• Khusus untuk pungutan liar\n• Hotline: 198\n• WhatsApp: 0811-9893-737\n\n**📝 Yang perlu dilaporkan:**\n• Permintaan biaya (pungli)\n• Pelayanan lambat tanpa alasan\n• Petugas tidak profesional\n• Persyaratan berbelit-belit\n• Diskriminasi pelayanan\n\n**💡 Tips lapor:**\n• Siapkan bukti (foto, chat, dokumen)\n• Catat nama petugas dan waktu kejadian\n• Simpan nomor tiket pengaduan\n\nSELLY siap bantu kakak dengan prosedur pengaduan! 🤝",
+    "serviceType": "perpindahan",
+    "category": "pengaduan",
+    "priority": "high",
+    "scenario": "C"
+  },
+  {
+    "query": "Pindah domisili untuk orang asing gimana?",
+    "expectedResponse": "Halo kak! 😊 Orang asing dengan Izin Tinggal Tetap bisa pindah domisili!\n\n**🌍 Syarat untuk orang asing:**\n• **Izin Tinggal Tetap (ITAP)** yang masih berlaku\n• **KTP-el** (wajib untuk pemegang ITAP)\n• **KK** (jika sudah terdaftar dalam KK)\n• **Paspor** dengan visa/izin yang sah\n\n**📋 Prosedur sama dengan WNI:**\n• Pindah dalam kota: langsung ke Disdukcapil\n• Pindah antar kota: perlu SKPWNI\n• Formulir F-1.03\n• Proses di daerah asal dan tujuan\n\n**📄 Dokumen tambahan:**\n• **Surat keterangan** dari Imigrasi (jika diperlukan)\n• **Dokumen izin tinggal** yang lengkap\n\n**⚠️ Kewajiban tambahan:**\n• **Lapor ke Imigrasi** dalam 24 jam setelah pindah\n• **Update alamat** di semua dokumen imigrasi\n• **Koordinasi** dengan sponsor/penjamin (jika ada)\n\n**💰 Biaya:** GRATIS untuk layanan Disdukcapil!\n\n**📞 Info lebih lanjut:**\nKonsultasi dengan Disdukcapil dan Imigrasi setempat.\n\nSELLY siap bantu kakak dengan prosedur untuk orang asing! 🤝",
+    "serviceType": "perpindahan",
+    "category": "orang_asing",
+    "priority": "low",
+    "scenario": "E"
+  }
+]

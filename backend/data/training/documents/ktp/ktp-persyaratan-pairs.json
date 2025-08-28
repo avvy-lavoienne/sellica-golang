@@ -1,0 +1,23 @@
+[
+  {
+    "query": "Dokumen apa saja yang perlu dibawa untuk buat KTP baru?",
+    "expectedResponse": "Untuk membuat e-KTP baru, Anda hanya perlu membawa fotokopi Kartu Keluarga (KK) yang sudah mencantumkan nama Anda dengan NIK. Disarankan juga bawa Akta Kelahiran asli sebagai antisipasi jika ada perbedaan data.",
+    "serviceType": "ktp",
+    "category": "persyaratan",
+    "priority": "high"
+  },
+  {
+    "query": "KTP saya hilang, gimana cara ngurusnya?",
+    "expectedResponse": "Untuk KTP hilang, Anda perlu: 1) Buat Surat Keterangan Kehilangan di Polsek/Polres, 2) Bawa surat kehilangan + fotokopi KK ke Disdukcapil. Tidak perlu surat pengantar RT/RW. Prosesnya gratis dan memakan waktu sekitar 14 hari kerja.",
+    "serviceType": "ktp",
+    "category": "ktp_hilang",
+    "priority": "high"
+  },
+  {
+    "query": "KTP rusak, apa bedanya sama KTP hilang?",
+    "expectedResponse": "Untuk KTP rusak lebih mudah: Anda cukup bawa KTP fisik yang rusak + fotokopi KK ke Disdukcapil. Tidak perlu lapor polisi dan tidak perlu surat pengantar RT/RW. KTP lama akan ditarik petugas saat pengurusan.",
+    "serviceType": "ktp",
+    "category": "ktp_rusak",
+    "priority": "medium"
+  }
+]

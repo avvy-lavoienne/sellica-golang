@@ -1,0 +1,213 @@
+[
+  {
+    "query": "Nama saya di KTP-el dan di Akta Kelahiran berbeda satu huruf. Mana yang akan digunakan saat saya membuat KK baru setelah menikah?",
+    "expectedResponse": "Data yang akan menjadi acuan utama adalah data pada Akta Kelahiran kak.\n\n📋 **Prioritas Dokumen:**\n• **Akta Kelahiran** = dokumen dasar/primer\n• **KTP-el** = dokumen turunan dari akta kelahiran\n• Jadi akta kelahiran yang jadi patokan\n\n🔄 **Yang Harus Dilakukan:**\n1. **Segera urus pembetulan nama di KTP-el** di Disdukcapil\n2. **Bawa dokumen:**\n   • Akta Kelahiran asli + fotokopi\n   • KTP-el lama\n   • Surat pernyataan koreksi bermaterai\n\n⏱️ **Waktu:** 3-7 hari kerja\n💰 **Biaya:** GRATIS (hanya materai Rp 10.000)\n\n⚠️ **Kenapa Harus Diperbaiki:**\n• Hindari masalah saat buat KK baru\n• Semua dokumen harus sinkron\n• Mencegah penolakan administrasi\n\n💡 **Tips:** Selesaikan dulu koreksi KTP-el sebelum mengurus KK baru setelah menikah.\n\nBeda huruf apa kak di nama?",
+    "serviceType": "kartu_keluarga",
+    "category": "koreksi_nama_dokumen",
+    "priority": "high"
+  },
+  {
+    "query": "Kami pasangan nikah siri, dan suami saya menolak menandatangani SPTJM untuk membuat KK. Apa yang bisa saya lakukan?",
+    "expectedResponse": "Kalau suami menolak tanda tangan SPTJM, memang tidak bisa buat KK bersama kak.\n\n❌ **Yang Tidak Bisa Dilakukan:**\n• Buat KK bersama dengan status 'Kawin Belum Tercatat'\n• Paksa suami untuk tanda tangan\n• Buat SPTJM tanpa persetujuan suami\n\n✅ **Solusi Alternatif:**\n1. **Buat KK sendiri** dengan kak sebagai Kepala Keluarga\n2. **Anak (jika ada)** masuk sebagai anggota keluarga\n3. **Status di KK:** 'Belum Kawin' atau sesuai status sebelumnya\n\n📋 **Dokumen yang Diperlukan:**\n• KK lama kak\n• KTP-el kak\n• Akta kelahiran anak (jika ada)\n• Formulir pendaftaran\n\n💡 **Keuntungan KK Sendiri:**\n• Kak jadi Kepala Keluarga mandiri\n• Bisa urus semua administrasi sendiri\n• Tidak tergantung persetujuan suami\n\n🤔 **Pertimbangan:** Mungkin suami bisa diajak diskusi lagi tentang pentingnya tertib administrasi?\n\nKak sudah punya anak atau belum?",
+    "serviceType": "kartu_keluarga",
+    "category": "nikah_siri_masalah",
+    "priority": "high"
+  },
+  {
+    "query": "Setelah orang tua saya bercerai, saya tinggal dengan ibu. Namun di KK ayah, nama saya masih tercantum. Apa akibatnya?",
+    "expectedResponse": "Wah, ini bisa menyebabkan data ganda kak! Harus segera dibenahi.\n\n⚠️ **Masalah Data Ganda:**\n• Nama kak tercatat di 2 KK sekaligus\n• Bisa bermasalah untuk administrasi\n• Data tidak akurat di sistem\n\n🔄 **Yang Seharusnya Terjadi Setelah Cerai:**\n1. **Ayah buat KK baru** (tanpa nama kak)\n2. **Ibu buat KK baru** (dengan nama kak sebagai anggota)\n3. **KK lama ditarik** dan diperbarui\n\n📋 **Langkah Perbaikan:**\n1. **Urus penghapusan nama kak dari KK ayah** dengan membawa:\n   • Akta cerai orang tua\n   • KK baru ibu (yang sudah ada nama kak)\n   • KTP-el kak\n2. **Datang ke Disdukcapil** untuk koordinasi\n\n⏱️ **Waktu:** 1-3 hari kerja\n💰 **Biaya:** GRATIS\n\n💡 **Tips:** Koordinasi dengan kedua orang tua agar proses berjalan lancar.\n\nKK ibu yang baru sudah ada nama kak belum?",
+    "serviceType": "kartu_keluarga",
+    "category": "data_ganda_perceraian",
+    "priority": "high"
+  },
+  {
+    "query": "Buku nikah kami hilang karena musibah banjir. Bisakah kami tetap melakukan perubahan data anggota keluarga di KK?",
+    "expectedResponse": "Bisa kak! Meski buku nikah hilang, masih ada solusinya.\n\n🔄 **Langkah yang Harus Dilakukan:**\n1. **Urus duplikat buku nikah dulu** di KUA tempat menikah\n2. **Bawa dokumen:**\n   • KTP-el kedua pihak\n   • Surat kehilangan dari polisi\n   • Surat pernyataan bermaterai\n   • Foto/dokumen pendukung pernikahan (jika ada)\n\n📋 **Proses di KUA:**\n• Dapat duplikat kutipan akta perkawinan\n• Atau duplikat buku nikah\n• Waktu: 3-7 hari kerja\n• Biaya: Sesuai tarif KUA (biasanya Rp 50.000-100.000)\n\n✅ **Setelah Dapat Duplikat:**\n• Bisa langsung urus perubahan data di KK\n• Bawa duplikat buku nikah ke Disdukcapil\n• Proses normal seperti biasa\n\n💡 **Tips:**\n• Simpan scan/foto dokumen penting sebagai backup\n• Buat beberapa fotokopi duplikat untuk jaga-jaga\n\nKak sudah ke KUA untuk urus duplikat belum?",
+    "serviceType": "kartu_keluarga",
+    "category": "buku_nikah_hilang",
+    "priority": "medium"
+  },
+  {
+    "query": "Saya ingin memasukkan keponakan saya yang yatim piatu ke dalam KK saya. Apa saja syaratnya?",
+    "expectedResponse": "Bisa kak! Ini tindakan mulia untuk membantu keponakan yang yatim piatu.\n\n📋 **Dokumen yang Diperlukan:**\n1. **KK dan KTP-el kak** (asli + fotokopi)\n2. **Akta Kelahiran keponakan**\n3. **Akta Kematian kedua orang tua keponakan**\n4. **SPTJM sebagai wali** (jika diminta)\n5. **Penetapan perwalian dari pengadilan** (jika diminta)\n\n📋 **Status di KK:**\n• Hubungan keluarga: \"Famili Lain\" atau \"Keponakan\"\n• Kak tetap sebagai Kepala Keluarga\n• Keponakan sebagai anggota keluarga\n\n⚠️ **Pertimbangan Hukum:**\n• Kak akan bertanggung jawab penuh\n• Untuk keperluan formal mungkin perlu penetapan pengadilan\n• Konsultasi dengan pengacara jika diperlukan\n\n💡 **Keuntungan untuk Keponakan:**\n• Dapat akses layanan publik\n• Bisa sekolah dengan mudah\n• Akses BPJS dan layanan kesehatan\n• Perlindungan hukum yang lebih baik\n\n⏱️ **Waktu:** 1-3 hari kerja\n💰 **Biaya:** GRATIS (kecuali biaya penetapan pengadilan jika perlu)\n\nUmur keponakan kak berapa?",
+    "serviceType": "kartu_keluarga",
+    "category": "keponakan_yatim_piatu",
+    "priority": "medium"
+  },
+  {
+    "question": "Saya WNI, menikah dengan WNA dan perkawinan kami tercatat sah. Anak kami lahir di Indonesia. Bagaimana status anak di KK?",
+    "answer": "Anak Anda akan tercatat di KK sebagai Warga Negara Indonesia, dengan status hubungan 'Anak'. Anda perlu melampirkan surat keterangan lahir, buku nikah/akta perkawinan yang sudah dilaporkan di Indonesia, KK Anda, serta paspor dan KITAS/KITAP pasangan WNA Anda."
+  },
+  {
+    "question": "Suami saya berpoligami secara siri dan ingin memasukkan istri keduanya ke KK kami. Apakah bisa?",
+    "answer": "Tidak bisa. Sistem Adminduk menganut asas monogami. Dalam satu Kartu Keluarga, hanya bisa ada satu orang dengan status 'Istri'. Istri kedua tidak dapat dimasukkan ke dalam KK yang sama."
+  },
+  {
+    "question": "Saya sudah melakukan proses Isbat Nikah. Bagaimana cara mengubah status di KK dari 'Kawin Belum Tercatat' menjadi 'Kawin Tercatat'?",
+    "answer": "Anda harus mengajukan permohonan perubahan data ke Dinas Dukcapil dengan membawa KK lama, KTP, dan yang terpenting adalah Salinan Penetapan Isbat Nikah dari Pengadilan Agama serta Buku Nikah baru yang telah diterbitkan oleh KUA."
+  },
+  {
+    "question": "KK saya masih menggunakan tanda tangan Camat dan belum ada QR code. Apakah masih berlaku?",
+    "answer": "Ya, KK tersebut masih sah dan berlaku selama tidak ada perubahan data. Namun, jika Anda melakukan perubahan data apapun (misalnya penambahan anak atau perubahan alamat), KK baru akan diterbitkan dengan format Tanda Tangan Elektronik (TTE) berupa QR code."
+  },
+  {
+    "question": "Petugas Dukcapil menolak permohonan saya karena tanda tangan saya di formulir dianggap tidak mirip dengan di KTP-el. Apa solusinya?",
+    "answer": "Anda bisa melakukan verifikasi dengan menandatangani ulang di hadapan petugas. Jika tanda tangan Anda memang sudah berubah, Anda bisa sekaligus mengajukan permohonan penggantian KTP-el dengan tanda tangan yang baru agar data menjadi konsisten."
+  },
+  {
+    "question": "Seorang anggota keluarga kami menjadi transgender dan sudah ada penetapan pengadilan mengenai perubahan jenis kelamin. Bagaimana mengubah datanya di KK?",
+    "answer": "Anda dapat mengajukan permohonan perubahan data di KK dan KTP-el dengan melampirkan salinan sah penetapan pengadilan negeri mengenai perubahan jenis kelamin tersebut. Data jenis kelamin di KK akan diubah sesuai putusan pengadilan."
+  },
+  {
+    "question": "Saya menemukan anak terlantar dan ingin mengurus dokumen kependudukannya. Bagaimana caranya?",
+    "answer": "Anda harus melaporkan penemuan anak tersebut ke pihak kepolisian untuk dibuatkan Berita Acara Pemeriksaan (BAP). BAP ini kemudian menjadi dasar bagi Dinas Sosial dan Dinas Dukcapil untuk memproses penerbitan NIK dan Akta Kelahiran bagi anak tersebut sebagai 'anak temuan'."
+  },
+  {
+    "question": "Ayah saya, sebagai kepala keluarga, sudah pikun dan tidak bisa mengurus administrasi. Bisakah saya menggantikannya sebagai kepala keluarga?",
+    "answer": "Bisa. Anda dapat mengajukan permohonan perubahan kepala keluarga di Dinas Dukcapil. Proses ini biasanya memerlukan surat pernyataan dari seluruh anggota keluarga dewasa yang menyetujui perubahan tersebut, atau surat keterangan medis jika kondisi ayah Anda tidak memungkinkan untuk memberi persetujuan."
+  },
+  {
+    "question": "Apakah seorang asisten rumah tangga (ART) yang tinggal bersama kami bisa dimasukkan ke dalam KK kami?",
+    "answer": "Bisa, jika ada kesepakatan. Ia bisa dimasukkan dengan status hubungan 'Lainnya' atau 'Pembantu'. Namun, opsi yang lebih umum adalah ART tersebut tetap menggunakan KK keluarganya sendiri atau membuat KK sendiri jika ia pindah domisili secara permanen."
+  },
+  {
+    "question": "Data alamat di KK saya sudah tidak sesuai karena ada pemekaran wilayah (nama jalan berubah). Apakah saya harus mengurusnya?",
+    "answer": "Ya, Anda wajib mengurusnya. Biasanya pemerintah daerah akan memfasilitasi perubahan data massal akibat pemekaran wilayah. Anda perlu datang ke Dukcapil untuk memperbarui data alamat di KK dan KTP-el Anda agar sesuai dengan wilayah yang baru."
+  },
+  {
+    "question": "Saya sudah keluar dari sebuah aliran kepercayaan dan kembali ke agama asal. Bagaimana cara mengubah data agama di KK?",
+    "answer": "Anda dapat mengajukan permohonan perubahan data agama dengan membuat surat pernyataan pribadi di atas materai yang menyatakan perubahan keyakinan Anda. Lampirkan KK dan KTP lama saat mengajukan ke Dinas Dukcapil."
+  },
+  {
+    "question": "Setelah pecah KK, apakah NIK saya berubah?",
+    "answer": "Tidak. Nomor Induk Kependudukan (NIK) bersifat unik, permanen, dan berlaku seumur hidup. Meskipun Anda pecah KK, pindah alamat, atau berganti status, NIK Anda akan tetap sama."
+  },
+  {
+    "question": "Saya tinggal di apartemen. Bagaimana format penulisan alamat di KK?",
+    "answer": "Formatnya akan mencakup nama jalan, nama gedung apartemen, nomor tower, nomor lantai, dan nomor unit. Contoh: Jl. Jenderal Sudirman Kav. 5, Apartemen Sejahtera, Tower A Lt. 10 No. 10A."
+  },
+  {
+    "question": "Suami saya meninggal di luar negeri. Dokumen apa yang diperlukan untuk mengurangi namanya dari KK?",
+    "answer": "Anda memerlukan Surat Keterangan Kematian yang dikeluarkan oleh otoritas negara setempat. Dokumen tersebut harus diterjemahkan oleh penerjemah tersumpah dan dilaporkan ke perwakilan RI (KBRI/KJRI) untuk kemudian didaftarkan di Dinas Dukcapil di Indonesia."
+  },
+  {
+    "question": "Apakah mungkin dalam satu KK terdapat dua generasi yang melompat, misalnya Kakek sebagai kepala keluarga dan Cucu sebagai anggota, tanpa ada Ayah/Ibu si cucu?",
+    "answer": "Sangat mungkin. Misalnya, jika orang tua si cucu meninggal dunia atau bekerja di luar negeri, maka cucu tersebut bisa dimasukkan ke dalam KK kakeknya dengan status hubungan 'Cucu'."
+  },
+  {
+    "question": "Saya ingin memisahkan anak saya yang sudah dewasa ke KK sendiri, tapi dia tidak mau. Bisakah saya melakukannya tanpa persetujuannya?",
+    "answer": "Secara teknis sulit, karena pembuatan KK baru memerlukan kehadiran atau setidaknya dokumen dari yang bersangkutan (KTP). Sebaiknya diselesaikan secara kekeluargaan. Anda tidak bisa secara sepihak mengeluarkan anggota keluarga dewasa dari KK tanpa proses pindah atau pecah KK yang diajukan olehnya."
+  },
+  {
+    "question": "Apakah saya bisa memblokir data mantan pasangan di KK setelah cerai untuk mencegah penyalahgunaan?",
+    "answer": "Anda tidak bisa 'memblokir' datanya. Cara yang benar adalah segera mengurus pecah KK berdasarkan akta cerai. Dengan begitu, namanya akan secara resmi dihapus dari KK Anda dan ia akan terdaftar di KK miliknya sendiri, sehingga data tidak lagi terhubung."
+  },
+  {
+    "question": "Bagaimana jika saksi untuk SPTJM nikah siri kami tidak bisa baca tulis?",
+    "answer": "Saksi yang tidak bisa baca tulis tetap bisa menjadi saksi. Sebagai pengganti tanda tangan, ia dapat membubuhkan cap jempol pada formulir SPTJM di hadapan petugas Dukcapil yang akan memberikan catatan/paraf."
+  },
+  {
+    "question": "Pekerjaan saya adalah 'freelancer' atau 'content creator'. Apa yang harus saya tulis di kolom pekerjaan pada KK?",
+    "answer": "Anda bisa memilih opsi pekerjaan yang paling mendekati. Pilihan yang umum digunakan adalah 'Wiraswasta' atau 'Pekerja Seni'. Beberapa formulir online terbaru mungkin sudah memiliki opsi seperti 'Pekerja Lepas'."
+  },
+  {
+    "question": "Setelah pindah KK ke alamat baru, apakah data saya di bank, BPJS, dan NPWP otomatis berubah?",
+    "answer": "Tidak otomatis. Anda bertanggung jawab untuk melaporkan perubahan data alamat berdasarkan KK dan KTP baru Anda ke setiap instansi tersebut (bank, BPJS, kantor pajak, dll) secara terpisah."
+  },
+  {
+    "question": "Saya kehilangan KK dan KTP sekaligus. Mana yang harus saya urus lebih dulu?",
+    "answer": "Urus Surat Keterangan Kehilangan dari Kepolisian untuk kedua dokumen tersebut. Kemudian datang ke Dukcapil. Anda bisa mengajukan keduanya secara bersamaan. Petugas bisa memverifikasi data Anda melalui database biometrik untuk menerbitkan KTP baru, yang kemudian bisa digunakan untuk mempermudah proses penerbitan KK baru."
+  },
+  {
+    "question": "Dalam KK, status anak saya adalah 'Anak'. Jika saya meninggal, apakah statusnya otomatis berubah?",
+    "answer": "Statusnya sebagai 'Anak' tidak otomatis berubah. Yang berubah adalah struktur keluarga. Jika pasangan Anda masih hidup, ia akan menjadi Kepala Keluarga. Jika Anda orang tua tunggal, maka anak Anda yang paling dewasa atau wali yang ditunjuk bisa menjadi Kepala Keluarga baru."
+  },
+  {
+    "question": "Apakah bisa mengurus KK jika NIK saya dibekukan karena belum melakukan perekaman KTP-el?",
+    "answer": "Anda harus mengaktifkan NIK Anda terlebih dahulu. Proses pengurusan KK akan terhambat jika NIK non-aktif. Prioritaskan untuk datang ke Dukcapil dan melakukan perekaman biometrik KTP-el untuk mengaktifkan kembali NIK Anda."
+  },
+  {
+    "question": "KK kami dibuat dengan status 'Kawin Belum Tercatat'. Jika kami bercerai secara agama, bagaimana cara pisah KK?",
+    "answer": "Karena perkawinan tidak tercatat negara, Anda tidak akan memiliki akta cerai. Untuk pisah KK, Anda berdua harus membuat 'Surat Pernyataan Perceraian' yang ditandatangani bersama di atas materai, atau masing-masing membuat surat pernyataan pisah rumah tangga, untuk diajukan ke Dukcapil sebagai dasar pecah KK."
+  },
+  {
+    "question": "Apakah riwayat pindah alamat saya tercatat oleh Dukcapil?",
+    "answer": "Ya. Setiap kali Anda mengurus Surat Keterangan Pindah (SKP) dan memperbarui domisili, riwayat pergerakan alamat Anda akan tercatat dalam Sistem Informasi Administrasi Kependudukan (SIAK)."
+  },
+  {
+    "question": "Jika saya mengurus KK secara online, bagaimana saya menyerahkan dokumen asli seperti KK lama atau buku nikah?",
+    "answer": "Prosedurnya bervariasi. Beberapa Dukcapil meminta Anda mengunggah pindaian (scan) dokumen asli. Dokumen fisik (seperti KK lama) mungkin harus diserahkan saat Anda mengambil KK baru yang sudah jadi, atau ada mekanisme pengiriman tersendiri."
+  },
+  {
+    "question": "Suami saya dipenjara dalam waktu yang lama. Bisakah saya mengubah status menjadi kepala keluarga untuk mempermudah urusan?",
+    "answer": "Bisa. Anda dapat mengajukan permohonan perubahan kepala keluarga dengan melampirkan surat keterangan dari lembaga pemasyarakatan (Lapas) yang menyatakan bahwa suami Anda sedang menjalani masa hukuman."
+  },
+  {
+    "question": "Apakah gelar pendidikan (misal: S.Kom, M.H.) bisa dicantumkan pada nama di KK?",
+    "answer": "Tidak. Kolom nama pada KK dan KTP-el hanya mencantumkan nama lahir sesuai akta kelahiran, tanpa gelar akademik, keagamaan, atau kebangsawanan."
+  },
+  {
+    "question": "Data tanggal lahir saya di KK salah satu hari. Apakah perbaikannya memerlukan putusan pengadilan?",
+    "answer": "Ya. Karena tanggal lahir adalah elemen data vital, setiap perubahan atau perbaikannya harus didasarkan pada penetapan dari Pengadilan Negeri. Dengan salinan penetapan tersebut, Anda baru bisa mengajukan perbaikan di Dukcapil."
+  },
+  {
+    "question": "Anggota keluarga kami ada yang penyandang disabilitas. Apakah ada kolom khusus di KK untuk ini?",
+    "answer": "Ya. Dalam formulir biodata (F-1.01), terdapat kolom 'Penyandang Cacat' yang bisa diisi sesuai dengan jenis disabilitas yang dialami untuk kelengkapan data kependudukan nasional."
+  },
+  {
+    "question": "Setelah menikah, saya tidak melakukan pecah KK dan masih tergabung dengan orang tua. Apa saja potensi masalahnya?",
+    "answer": "Potensi masalahnya adalah data Anda tidak akurat. Ini bisa menyulitkan saat Anda mengurus tunjangan keluarga (jika PNS/TNI/Polri), pendaftaran sekolah anak, pengajuan KPR, atau layanan lain yang memerlukan data keluarga inti yang valid."
+  },
+  {
+    "question": "Apakah saya bisa mengetahui siapa saja yang terdaftar di KK orang lain tanpa izin?",
+    "answer": "Tidak bisa. Data kependudukan bersifat rahasia dan dilindungi undang-undang. Hanya pemilik data, aparat penegak hukum, atau lembaga berwenang yang dapat mengaksesnya sesuai dengan peraturan yang berlaku."
+  },
+  {
+    "question": "Saya lahir di atas kapal laut dalam perjalanan antar pulau di Indonesia. Bagaimana pencatatan tempat lahir saya di dokumen?",
+    "answer": "Tempat lahir Anda akan dicatatkan sesuai dengan wilayah administratif pelabuhan pertama yang disinggahi atau sesuai keterangan dari nakhoda kapal. Ini akan menjadi dasar data tempat lahir di Akta Kelahiran dan KK Anda."
+  },
+  {
+    "question": "Apakah bisa mengajukan pembuatan KK melalui calo?",
+    "answer": "Sangat tidak disarankan. Mengurus dokumen kependudukan kini dipermudah dan gratis. Menggunakan calo berisiko tinggi terhadap penipuan, pemalsuan data, dan penyalahgunaan data pribadi Anda."
+  },
+  {
+    "question": "Bagaimana jika KK saya yang ber-QR code rusak atau luntur tintanya sehingga tidak terbaca?",
+    "answer": "Anda dapat mengajukan permohonan cetak ulang ke Dinas Dukcapil. Karena data Anda sudah tersimpan di sistem, proses cetak ulang biasanya lebih cepat dan mudah."
+  },
+  {
+    "question": "Saya seorang duda, anak ikut saya. Lalu saya menikah lagi. Bagaimana struktur KK saya?",
+    "answer": "Anda akan menjadi Kepala Keluarga, istri baru Anda akan berstatus 'Istri', dan anak dari perkawinan sebelumnya akan tetap berstatus 'Anak'. Anda akan membuat KK baru bersama istri baru Anda."
+  },
+  {
+    "question": "Apakah ada batas maksimal jumlah anggota keluarga dalam satu KK?",
+    "answer": "Tidak ada batasan jumlah anggota keluarga yang bisa didaftarkan dalam satu Kartu Keluarga, selama mereka benar-benar tinggal di alamat yang sama dan memiliki hubungan keluarga."
+  },
+  {
+    "question": "Istri saya meninggal saat melahirkan, dan bayinya juga meninggal beberapa jam kemudian. Dokumen apa yang harus saya urus?",
+    "answer": "Anda harus mengurus dua peristiwa penting: Pertama, Akta Kelahiran dan Akta Kematian untuk bayi Anda. Kedua, Akta Kematian untuk istri Anda. Setelah itu, Anda harus memperbarui KK Anda dengan mengurangi nama istri dan bayi Anda."
+  },
+  {
+    "question": "Apakah nomor telepon dan alamat email wajib diisi saat mendaftar KK?",
+    "answer": "Ya, pada formulir dan sistem online terbaru, nomor telepon dan alamat email pemohon wajib diisi. Ini digunakan untuk mengirim notifikasi status permohonan dan mengirimkan dokumen digital (file PDF)."
+  },
+  {
+    "question": "Bisakah saya menolak untuk dimasukkan ke dalam KK seseorang meskipun saya tinggal di rumahnya?",
+    "answer": "Bisa. Pendaftaran kependudukan harus berdasarkan persetujuan Anda. Jika Anda tidak ingin masuk ke KK pemilik rumah, Anda bisa membuat KK sendiri di alamat tersebut jika memenuhi syarat, atau tetap menggunakan KK lama Anda jika hanya tinggal sementara."
+  },
+  {
+    "question": "Akibat sengketa keluarga, paman saya memegang KK asli orang tua saya dan tidak mau memberikan. Bagaimana solusinya?",
+    "answer": "Orang tua Anda dapat melaporkan kehilangan dokumen ke polisi, meskipun tidak benar-benar hilang, sebagai dasar untuk mengajukan penerbitan KK baru karena hilang/rusak di Dinas Dukcapil. Data mereka yang sah ada di database Dukcapil."
+  },
+  {
+    "question": "Apakah bisa mengurus perubahan KK di layanan mobil keliling Dukcapil?",
+    "answer": "Tergantung jenis layanannya. Untuk perubahan sederhana seperti penambahan anak atau perubahan data non-vital, biasanya bisa. Namun untuk kasus kompleks seperti pecah KK karena cerai atau perbaikan data vital, Anda mungkin akan diarahkan ke kantor Dukcapil utama."
+  },
+  {
+    "question": "Suami saya WNA dan kami menikah di luar negeri tapi belum lapor di Indonesia. Bisakah kami membuat KK?",
+    "answer": "Langkah pertama adalah melaporkan perkawinan luar negeri Anda ke Dinas Dukcapil untuk mendapatkan Surat Keterangan Pelaporan Perkawinan Luar Negeri. Dokumen inilah yang akan menjadi dasar Anda untuk dapat membuat KK bersama di Indonesia."
+  },
+  {
+    "question": "Di kolom status hubungan, ada pilihan 'Famili Lain'. Siapa saja yang termasuk dalam kategori ini?",
+    "answer": "'Famili Lain' adalah untuk anggota keluarga yang memiliki hubungan darah tetapi tidak termasuk dalam kategori inti (istri, anak, orang tua, mertua, menantu, cucu), misalnya paman, bibi, atau sepupu yang tinggal bersama dalam satu rumah."
+  }
+]

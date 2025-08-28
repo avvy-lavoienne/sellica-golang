@@ -1,0 +1,44 @@
+[
+  {
+    "query": "Saya WNI, menikah dengan WNA dan perkawinan kami tercatat sah. Anak kami lahir di Indonesia. Bagaimana status anak di KK?",
+    "expectedResponse": "Anak kak akan tercatat di KK sebagai Warga Negara Indonesia dengan status hubungan 'Anak'.\n\n🇮🇩 **Status Kewarganegaraan Anak:**\n• **WNI** berdasarkan kelahiran di Indonesia\n• Mengikuti prinsip ius soli (hak tanah kelahiran)\n• Status hubungan: 'Anak' di KK\n\n📋 **Dokumen yang Diperlukan:**\n• Surat keterangan kelahiran dari RS/dokter/bidan\n• Buku nikah/akta perkawinan yang sudah dilaporkan di Indonesia\n• KK kak (WNI)\n• Paspor dan KITAS/KITAP pasangan WNA\n• KTP-el kak\n\n⚠️ **Catatan Penting:**\n• Perkawinan harus sudah tercatat resmi di Indonesia\n• Jika belum, harus lapor perkawinan dulu\n• Anak otomatis jadi WNI karena lahir di Indonesia\n\n🎯 **Keuntungan Status WNI:**\n• Akses penuh layanan publik Indonesia\n• Bisa sekolah di sekolah negeri\n• BPJS dan layanan kesehatan\n• Tidak perlu visa untuk tinggal di Indonesia\n\n💡 **Tips:** Pastikan semua dokumen perkawinan sudah dilaporkan ke Disdukcapil Indonesia ya kak.\n\nPerkawinan kak sudah dilaporkan di Indonesia belum?",
+    "serviceType": "kartu_keluarga",
+    "category": "wni_wna_anak",
+    "priority": "medium"
+  },
+  {
+    "query": "Suami saya berpoligami secara siri dan ingin memasukkan istri keduanya ke KK kami. Apakah bisa?",
+    "expectedResponse": "Tidak bisa kak. Sistem Adminduk Indonesia menganut asas monogami.\n\n❌ **Aturan Sistem Adminduk:**\n• Dalam satu KK hanya boleh ada **satu orang dengan status 'Istri'**\n• Sistem tidak mengakui poligami\n• Istri kedua tidak bisa dimasukkan ke KK yang sama\n\n📋 **Alternatif Solusi:**\n1. **Istri kedua buat KK sendiri** sebagai Kepala Keluarga\n2. **Status di KK:** 'Belum Kawin' atau 'Cerai Hidup'\n3. **Anak dari istri kedua** masuk ke KK istri kedua\n\n⚠️ **Konsekuensi Hukum:**\n• Poligami siri tidak diakui negara\n• Tidak ada perlindungan hukum untuk istri kedua\n• Anak dari istri kedua bisa dapat akta kelahiran tapi dengan status khusus\n\n💡 **Saran:**\n• Pertimbangkan untuk melegalkan poligami melalui Pengadilan Agama (jika Muslim)\n• Atau urus Isbat Nikah untuk istri kedua\n• Konsultasi dengan ahli hukum keluarga\n\n🤔 **Pertanyaan:** Apakah suami kak berencana melegalkan poligami melalui jalur hukum?",
+    "serviceType": "kartu_keluarga",
+    "category": "poligami_siri",
+    "priority": "high"
+  },
+  {
+    "query": "Saya sudah melakukan proses Isbat Nikah. Bagaimana cara mengubah status di KK dari 'Kawin Belum Tercatat' menjadi 'Kawin Tercatat'?",
+    "expectedResponse": "Selamat kak! Setelah Isbat Nikah, status bisa diubah jadi 'Kawin Tercatat'.\n\n📋 **Dokumen yang Diperlukan:**\n1. **KK lama** (yang statusnya 'Kawin Belum Tercatat')\n2. **KTP-el** kedua pihak\n3. **Salinan Penetapan Isbat Nikah** dari Pengadilan Agama (yang terpenting!)\n4. **Buku Nikah baru** yang diterbitkan KUA setelah Isbat\n\n🔄 **Proses di Disdukcapil:**\n• Ajukan permohonan perubahan data\n• Petugas akan verifikasi dokumen Isbat\n• Status diubah dari 'Kawin Belum Tercatat' ke 'Kawin Tercatat'\n• KK baru diterbitkan\n\n⏱️ **Waktu:** 1-3 hari kerja\n💰 **Biaya:** GRATIS\n\n🎯 **Keuntungan Setelah Status Berubah:**\n• Perkawinan diakui penuh secara hukum\n• Akses semua program pemerintah untuk pasangan\n• Anak-anak dapat akta kelahiran normal\n• Perlindungan hukum perkawinan penuh\n\n💡 **Tips:** Bawa semua dokumen asli untuk verifikasi, fotokopi untuk arsip.\n\nKak sudah dapat Buku Nikah baru dari KUA belum?",
+    "serviceType": "kartu_keluarga",
+    "category": "isbat_nikah",
+    "priority": "high"
+  },
+  {
+    "query": "KK saya masih menggunakan tanda tangan Camat dan belum ada QR code. Apakah masih berlaku?",
+    "expectedResponse": "Ya kak, KK tersebut masih sah dan berlaku!\n\n✅ **Status KK Lama:**\n• Masih berlaku selama tidak ada perubahan data\n• Bisa digunakan untuk semua keperluan administrasi\n• Tidak perlu diganti jika tidak ada perubahan\n\n🔄 **Kapan Akan Berubah Format:**\n• Saat ada perubahan data apapun:\n  - Penambahan anak\n  - Perubahan alamat\n  - Koreksi data\n  - Perubahan status perkawinan\n• KK baru otomatis pakai format TTE (QR code)\n\n📋 **Perbedaan Format:**\n\n**KK Lama:**\n• Tanda tangan basah Camat\n• Stempel resmi\n• Kertas khusus\n\n**KK Baru:**\n• Tanda Tangan Elektronik (TTE)\n• QR code untuk verifikasi\n• Lebih aman dari pemalsuan\n\n💡 **Keuntungan QR Code:**\n• Bisa discan untuk verifikasi online\n• Lebih sulit dipalsukan\n• Data terintegrasi dengan sistem nasional\n\n🤔 **Rekomendasi:** Tidak perlu buru-buru ganti, tunggu sampai ada perubahan data saja.\n\nAda rencana perubahan data di KK kak?",
+    "serviceType": "kartu_keluarga",
+    "category": "kk_format_lama",
+    "priority": "low"
+  },
+  {
+    "query": "Petugas Dukcapil menolak permohonan saya karena tanda tangan saya di formulir dianggap tidak mirip dengan di KTP-el. Apa solusinya?",
+    "expectedResponse": "Ini masalah yang sering terjadi kak! Ada beberapa solusi.\n\n🔄 **Solusi Langsung:**\n1. **Tanda tangan ulang** di hadapan petugas\n2. **Verifikasi langsung** dengan petugas\n3. **Bawa dokumen pendukung** lain sebagai bukti identitas\n\n📋 **Jika Tanda Tangan Memang Berubah:**\n• **Ajukan penggantian KTP-el** dengan tanda tangan baru\n• **Proses bersamaan** dengan permohonan KK\n• **Data jadi konsisten** antara KTP dan formulir\n\n⚠️ **Penyebab Tanda Tangan Berubah:**\n• Usia (tangan gemetar)\n• Cedera/sakit\n• Perubahan kebiasaan menulis\n• Stress/terburu-buru\n\n💡 **Tips Mencegah Masalah:**\n• **Latihan tanda tangan** sebelum ke kantor\n• **Bawa KTP-el** untuk referensi\n• **Tanda tangan pelan-pelan** dan hati-hati\n• **Minta kertas latihan** dulu jika perlu\n\n🤝 **Komunikasi dengan Petugas:**\n• Jelaskan situasi dengan sopan\n• Minta kesempatan tanda tangan ulang\n• Tunjukkan dokumen identitas lain\n\nTanda tangan kak berubah karena apa?",
+    "serviceType": "kartu_keluarga",
+    "category": "masalah_tanda_tangan",
+    "priority": "medium"
+  },
+  {
+    "query": "Seorang anggota keluarga kami menjadi transgender dan sudah ada penetapan pengadilan mengenai perubahan jenis kelamin. Bagaimana mengubah datanya di KK?",
+    "expectedResponse": "Bisa diubah kak, karena sudah ada penetapan pengadilan yang sah.\n\n📋 **Dokumen yang Diperlukan:**\n1. **KK lama** yang akan diubah\n2. **Salinan sah penetapan pengadilan negeri** tentang perubahan jenis kelamin\n3. **KTP-el** yang bersangkutan\n4. **Akta kelahiran** (jika perlu diubah juga)\n\n🔄 **Proses Perubahan:**\n• Ajukan permohonan perubahan data di Disdukcapil\n• Petugas akan verifikasi penetapan pengadilan\n• Data jenis kelamin di KK akan diubah\n• KTP-el juga harus diubah bersamaan\n\n⏱️ **Waktu:** 3-7 hari kerja\n💰 **Biaya:** GRATIS (hanya biaya penetapan pengadilan sebelumnya)\n\n⚖️ **Dasar Hukum:**\n• Penetapan pengadilan negeri adalah dasar hukum yang kuat\n• Disdukcapil wajib mengikuti putusan pengadilan\n• Perubahan berlaku untuk semua dokumen kependudukan\n\n🤝 **Dukungan:**\n• Proses ini legal dan diakui negara\n• Data akan konsisten di semua dokumen\n• Hak-hak sipil tetap terlindungi\n\n💡 **Tips:** Bawa semua dokumen asli dan fotokopi, serta siapkan mental untuk proses administratif.\n\nSudah ada penetapan pengadilan yang final kak?",
+    "serviceType": "kartu_keluarga",
+    "category": "perubahan_jenis_kelamin",
+    "priority": "medium"
+  }
+]
