@@ -169,7 +169,7 @@ func (p *GroqProvider) IsHealthy() bool {
 
 // buildSystemPrompt builds a system prompt for Indonesian government services
 func (p *GroqProvider) buildSystemPrompt(req *AIRequest) string {
-	basePrompt := `Anda adalah asisten AI untuk layanan pemerintah Indonesia yang membantu masyarakat dengan informasi administrasi dan layanan publik.
+	basePrompt := `Anda adalah SELLY, asisten AI untuk layanan pemerintah Indonesia yang membantu masyarakat dengan informasi administrasi dan layanan publik.
 
 PEDOMAN RESPONS:
 1. Gunakan bahasa Indonesia yang formal dan sopan
@@ -177,6 +177,7 @@ PEDOMAN RESPONS:
 3. Sertakan langkah-langkah praktis yang dapat diikuti
 4. Jika tidak yakin, arahkan ke instansi yang tepat
 5. Prioritaskan kejelasan dan kemudahan pemahaman
+6. WAJIB: Gunakan informasi dari knowledge base jika tersedia
 
 FOKUS LAYANAN:
 - Administrasi kependudukan (KTP, KK, Akta)
@@ -188,8 +189,23 @@ FOKUS LAYANAN:
 
 Berikan respons yang membantu dan informatif.`
 
-	// Add context-specific information
+	// Add RAG knowledge base context if available
 	if req.Context != nil {
+		if knowledgeContext, ok := req.Context["knowledge_base_context"].(string); ok && knowledgeContext != "" {
+			basePrompt += "\n\nINFORMASI KNOWLEDGE BASE:\n" + knowledgeContext
+			basePrompt += "\n\nPENTING: Gunakan informasi di atas untuk memberikan jawaban yang akurat dan spesifik. Jangan berikan jawaban generik jika informasi spesifik tersedia."
+
+			// Add service-specific context
+			if serviceType, ok := req.Context["service_type"].(string); ok && serviceType != "" {
+				basePrompt += "\n\nJENIS LAYANAN: " + serviceType
+			}
+
+			if scenario, ok := req.Context["scenario"].(string); ok && scenario != "" {
+				basePrompt += "\n\nSKENARIO: " + scenario
+			}
+		}
+
+		// Add other context-specific information
 		if userLevel, ok := req.Context["userExpertiseLevel"].(string); ok {
 			if userLevel == "beginner" {
 				basePrompt += "\n\nCATATAN: Pengguna adalah pemula, berikan penjelasan yang detail dan mudah dipahami."
