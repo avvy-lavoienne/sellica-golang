@@ -334,14 +334,16 @@ func (s *Service) ProcessChat(ctx context.Context, req *ChatRequest, authContext
 	// Phase 3.2: Analyze query and retrieve relevant content from knowledge base
 	queryAnalysis := s.analyzeQuery(req.Message)
 	var ragContext string
+	var knowledgeGapDetected bool
 
-	// Initialize enhanced context early for knowledge gap handling
-	enhancedContext := req.Context
-	if enhancedContext == nil {
-		enhancedContext = make(map[string]interface{})
+	// Check for out-of-scope service keywords first
+	outOfScopeDetected := s.detectOutOfScopeServices(req.Message)
+	if outOfScopeDetected {
+		logrus.WithField("message", req.Message).Info("🚫 Out-of-scope service detected - triggering knowledge gap fallback")
+		knowledgeGapDetected = true
 	}
 
-	if queryAnalysis.RequiresRAG {
+	if queryAnalysis.RequiresRAG && !knowledgeGapDetected {
 		logrus.WithFields(logrus.Fields{
 			"service_type":   queryAnalysis.ServiceType,
 			"scenario":       queryAnalysis.Scenario,
@@ -358,20 +360,17 @@ func (s *Service) ProcessChat(ctx context.Context, req *ChatRequest, authContext
 			ragContext = ragContent
 			logrus.WithField("context_length", len(ragContext)).Info("📚 Retrieved relevant content from knowledge base")
 		} else {
-			// Knowledge gap detected - no relevant content found
-			logrus.WithFields(logrus.Fields{
-				"service_type": queryAnalysis.ServiceType,
-				"keywords":     queryAnalysis.Keywords,
-			}).Info("🔍 Knowledge gap detected - no relevant content found in knowledge base")
-
-			// Add knowledge gap indicator to context for fallback response
-			enhancedContext["knowledge_gap_detected"] = true
-			enhancedContext["requested_service"] = queryAnalysis.ServiceType
-			enhancedContext["user_keywords"] = queryAnalysis.Keywords
+			// Knowledge gap detected - no relevant content found in knowledge base
+			logrus.Info("🔍 Knowledge gap detected - no relevant content found")
+			knowledgeGapDetected = true
 		}
 	}
 
 	// Enhance request context with RAG content and comprehensive analysis
+	enhancedContext := req.Context
+	if enhancedContext == nil {
+		enhancedContext = make(map[string]interface{})
+	}
 	if ragContext != "" {
 		enhancedContext["knowledge_base_context"] = ragContext
 		enhancedContext["service_type"] = queryAnalysis.ServiceType
@@ -379,6 +378,13 @@ func (s *Service) ProcessChat(ctx context.Context, req *ChatRequest, authContext
 		enhancedContext["question_type"] = queryAnalysis.QuestionType
 		enhancedContext["confidence"] = queryAnalysis.Confidence
 		enhancedContext["special_cases"] = queryAnalysis.SpecialCases
+	}
+
+	// Add knowledge gap detection context
+	if knowledgeGapDetected {
+		enhancedContext["knowledge_gap_detected"] = true
+		enhancedContext["requested_service"] = queryAnalysis.ServiceType
+		enhancedContext["user_keywords"] = queryAnalysis.Keywords
 	}
 
 	// Process with high-performance engine if available, otherwise use standard AI service
@@ -896,4 +902,112 @@ func extractConfidence(metadata map[string]interface{}) float64 {
 	}
 
 	return 0.9 // Default confidence
+}
+
+// detectOutOfScopeServices checks if the query contains keywords for services outside Disdukcapil scope
+func (s *Service) detectOutOfScopeServices(message string) bool {
+	// Convert message to lowercase for case-insensitive matching
+	lowerMessage := strings.ToLower(message)
+
+	// Define comprehensive out-of-scope service keywords
+	outOfScopeKeywords := []string{
+		// Immigration and Travel Documents
+		"visa", "paspor", "passport", "imigrasi", "immigration", "perjalanan luar negeri",
+		"travel document", "dokumen perjalanan", "kedutaan", "embassy", "konsulat", "consulate",
+
+		// Building and Construction Permits
+		"imb", "izin mendirikan bangunan", "building permit", "izin konstruksi", "construction permit",
+		"izin bangunan", "sertifikat laik fungsi", "slf", "izin renovasi", "renovation permit",
+
+		// Business and Commercial Licenses
+		"siup", "surat izin usaha", "business license", "izin usaha", "commercial license",
+		"tdup", "izin perdagangan", "trading license", "npwp", "tax registration",
+		"izin komersial", "commercial permit", "ho", "hinderordonantie",
+
+		// Tax and Financial Services
+		"pajak", "tax", "spt", "tax return", "pph", "ppn", "pbb", "bphtb",
+		"tax payment", "pembayaran pajak", "tax office", "kantor pajak",
+
+		// Customs and Import/Export
+		"bea cukai", "customs", "import", "export", "ekspor", "impor",
+		"customs clearance", "clearance", "duty", "tariff", "tarif",
+
+		// Foreign Affairs and Diplomatic Services
+		"kemenlu", "foreign affairs", "diplomatic", "diplomasi", "hubungan luar negeri",
+		"international relations", "hubungan internasional",
+
+		// Education Credentials and Certification
+		"ijazah luar negeri", "foreign degree", "credential evaluation", "evaluasi ijazah",
+		"academic credential", "diploma recognition", "pengakuan ijazah",
+
+		// Health and Medical Services (non-civil registration)
+		"rumah sakit", "hospital", "puskesmas", "medical certificate", "surat keterangan sehat",
+		"health permit", "izin kesehatan", "medical license", "izin praktek",
+
+		// Transportation and Vehicle Services
+		"sim", "stnk", "bpkb", "driving license", "vehicle registration", "kendaraan bermotor",
+		"motor vehicle", "transportation permit", "izin transportasi",
+
+		// Land and Property (non-civil registration)
+		"sertifikat tanah", "land certificate", "property deed", "akta jual beli",
+		"property registration", "pendaftaran properti", "real estate",
+
+		// Banking and Financial Institution Services
+		"bank", "banking", "kredit", "loan", "pinjaman", "financial services",
+		"layanan keuangan", "asuransi", "insurance",
+
+		// Judicial and Legal Services
+		"pengadilan", "court", "legal services", "layanan hukum", "notaris", "notary",
+		"legal document", "dokumen hukum", "litigation", "litigasi",
+
+		// Employment and Labor Services
+		"tenaga kerja", "employment", "work permit", "izin kerja", "labor services",
+		"layanan ketenagakerjaan", "job placement", "penempatan kerja",
+
+		// Social Services (non-civil registration)
+		"bantuan sosial", "social assistance", "welfare", "kesejahteraan", "subsidi", "subsidy",
+
+		// Telecommunications and IT Services
+		"telekomunikasi", "telecommunications", "internet", "provider", "izin telkom",
+		"telecom permit", "frequency", "frekuensi",
+
+		// Environmental and Natural Resources
+		"lingkungan", "environment", "amdal", "environmental impact", "natural resources",
+		"sumber daya alam", "mining", "pertambangan",
+
+		// Agriculture and Fisheries
+		"pertanian", "agriculture", "perikanan", "fisheries", "perkebunan", "plantation",
+		"agricultural permit", "izin pertanian",
+
+		// Tourism and Hospitality
+		"pariwisata", "tourism", "hotel", "hospitality", "travel agency", "agen perjalanan",
+		"tourism permit", "izin pariwisata",
+
+		// Religious Affairs (non-civil registration)
+		"agama", "religious", "haji", "hajj", "umrah", "religious permit", "izin keagamaan",
+
+		// Sports and Recreation
+		"olahraga", "sports", "recreation", "rekreasi", "sports permit", "izin olahraga",
+
+		// Media and Broadcasting
+		"media", "broadcasting", "penyiaran", "pers", "press", "journalism", "jurnalistik",
+		"broadcast permit", "izin penyiaran",
+
+		// General Non-Disdukcapil Keywords
+		"kementerian lain", "other ministry", "instansi lain", "other agency",
+		"bukan disdukcapil", "non-disdukcapil", "outside scope", "di luar kewenangan",
+	}
+
+	// Check if any out-of-scope keywords are present in the message
+	for _, keyword := range outOfScopeKeywords {
+		if strings.Contains(lowerMessage, keyword) {
+			logrus.WithFields(logrus.Fields{
+				"detected_keyword": keyword,
+				"message":          message,
+			}).Info("🚫 Out-of-scope service keyword detected")
+			return true
+		}
+	}
+
+	return false
 }
