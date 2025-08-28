@@ -296,6 +296,26 @@ func (ecp *EnhancedCulturalProcessor) detectRegion(query string, indicators *[]s
 
 // detectReligiousContext detects religious context from query
 func (ecp *EnhancedCulturalProcessor) detectReligiousContext(query string, indicators *[]string) string {
+	// Check if this is a government service context first
+	// If "agama" appears with government service keywords, treat it as administrative, not religious
+	governmentServiceKeywords := []string{"akta", "perkawinan", "nikah", "disdukcapil", "administrasi", "dokumen", "berkas", "persyaratan"}
+	lowerQuery := strings.ToLower(query)
+
+	hasGovernmentContext := false
+	for _, keyword := range governmentServiceKeywords {
+		if strings.Contains(lowerQuery, keyword) {
+			hasGovernmentContext = true
+			break
+		}
+	}
+
+	// If this is a government service context and contains "agama", don't flag as religious
+	if hasGovernmentContext && strings.Contains(lowerQuery, "agama") {
+		// This is administrative use of "agama" (religion field in documents)
+		*indicators = append(*indicators, "administrative_religion_field")
+		return "secular" // Treat as secular/administrative context
+	}
+
 	for context, patterns := range ecp.religiousPatterns {
 		for _, pattern := range patterns {
 			if pattern.MatchString(query) {
