@@ -200,10 +200,13 @@ func setupTrainingRoutes(router *gin.Engine, handler *handlers.TrainingHandler, 
 
 // setupPerformanceRoutes configures performance monitoring endpoints
 func setupPerformanceRoutes(router *gin.Engine, handler *handlers.PerformanceHandler) {
-	// Performance monitoring endpoints (public)
+	// Documented performance endpoint (primary path)
+	router.GET("/performance", handler.GetPerformanceMetrics) // GET /performance - Documented performance endpoint
+
+	// Performance monitoring endpoints (public) - backward compatibility
 	api := router.Group("/api/performance")
 	{
-		api.GET("/metrics", handler.GetHighPerformanceMetrics)  // GET /api/performance/metrics - High-performance AI metrics
+		api.GET("/metrics", handler.GetHighPerformanceMetrics) // GET /api/performance/metrics - High-performance AI metrics
 		api.GET("/health", handler.GetPerformanceHealth)       // GET /api/performance/health - Performance health check
 		api.GET("/stats", handler.GetPerformanceStats)         // GET /api/performance/stats - Performance statistics
 		api.POST("/test", handler.PostPerformanceTest)         // POST /api/performance/test - Performance test endpoint
