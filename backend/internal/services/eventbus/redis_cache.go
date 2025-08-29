@@ -11,7 +11,6 @@ import (
 // RedisCache provides Redis-based distributed caching
 type RedisCache struct {
 	client *redis.Client
-	config *AdvancedCacheConfig // Reserved for future advanced caching features
 }
 
 // NewRedisCache creates a new Redis cache instance

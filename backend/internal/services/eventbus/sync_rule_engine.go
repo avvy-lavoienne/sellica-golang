@@ -21,11 +21,7 @@ type SyncRuleEngine struct {
 	strategyTemplates map[string]*SyncStrategy
 
 	// Metrics and monitoring
-	metrics       *RuleEngineMetrics
-	lastUpdate    time.Time // Tracks last rule update time
-
-	// Thread safety
-	mu            sync.RWMutex // Used for thread-safe rule operations
+	metrics *RuleEngineMetrics
 }
 
 // RuleEngineConfig holds configuration for the rule engine

@@ -33,11 +33,7 @@ type SynchronizationService struct {
 	stopChan         chan struct{}
 
 	// Metrics and monitoring
-	metrics          *SyncMetrics
-	lastMetricsUpdate time.Time
-
-	// Thread safety
-	mu               sync.RWMutex // Used for thread-safe operations
+	metrics *SyncMetrics
 }
 
 // SyncConfig holds configuration for the synchronization service
@@ -624,8 +620,6 @@ func (ss *SynchronizationService) updateMetrics() {
 		totalQueued += 1 // placeholder
 	}
 	atomic.StoreInt64(&ss.metrics.QueueDepth, totalQueued)
-
-	ss.lastMetricsUpdate = time.Now()
 }
 
 // consistencyCheckRoutine performs periodic consistency checks

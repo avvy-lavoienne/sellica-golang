@@ -32,8 +32,7 @@ type Service struct {
 	mu            sync.RWMutex
 
 	// Metrics and monitoring
-	metrics       *EventMetrics
-	lastMetricsUpdate time.Time // Tracks last metrics collection time
+	metrics *EventMetrics
 
 	// Components
 	publisher     *Publisher
