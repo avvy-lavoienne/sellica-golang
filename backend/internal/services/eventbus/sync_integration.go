@@ -433,6 +433,7 @@ func (sai *SELLYAISyncIntegration) HandleGovernmentDocumentSync(ctx context.Cont
 // HandleUserProfileSync handles user profile synchronization with SELLY AI specifics
 func (sai *SELLYAISyncIntegration) HandleUserProfileSync(ctx context.Context, userID string, profileData map[string]interface{}) error {
 	logrus.WithField("user_id", userID).Info("Processing SELLY AI user profile sync")
+	_ = ctx // Context is available for future use
 
 	// Add SELLY AI specific metadata
 	profileData["platform"] = "selly_ai"

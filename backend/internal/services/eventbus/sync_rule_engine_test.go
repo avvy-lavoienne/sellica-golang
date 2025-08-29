@@ -314,7 +314,7 @@ func TestSyncRuleEngine_GetMetrics(t *testing.T) {
 	require.NoError(t, err)
 
 	metrics := engine.GetMetrics()
-	assert.NotNil(t, metrics)
+	assert.NotNil(t, &metrics) // Use pointer to avoid copying lock
 	assert.True(t, metrics.RulesEvaluated >= 0)
 	assert.True(t, metrics.RulesMatched >= 0)
 }

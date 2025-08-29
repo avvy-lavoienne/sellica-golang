@@ -172,7 +172,7 @@ func TestSynchronizationService_Metrics(t *testing.T) {
 
 	// Get initial metrics
 	metrics := service.GetSyncMetrics()
-	assert.NotNil(t, metrics)
+	assert.NotNil(t, &metrics) // Use pointer to avoid copying lock
 
 	// Create and register a sync process
 	strategy := &SyncStrategy{

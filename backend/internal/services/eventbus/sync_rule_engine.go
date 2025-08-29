@@ -22,10 +22,10 @@ type SyncRuleEngine struct {
 
 	// Metrics and monitoring
 	metrics       *RuleEngineMetrics
-	lastUpdate    time.Time
+	lastUpdate    time.Time // Tracks last rule update time
 
 	// Thread safety
-	mu            sync.RWMutex
+	mu            sync.RWMutex // Used for thread-safe rule operations
 }
 
 // RuleEngineConfig holds configuration for the rule engine
@@ -446,6 +446,8 @@ func (sre *SyncRuleEngine) evaluateCondition(condition *RuleCondition, event *Ev
 
 // getDefaultStrategy returns a default strategy for an event
 func (sre *SyncRuleEngine) getDefaultStrategy(event *Event) *SyncStrategy {
+	// Log the event type for debugging purposes
+	logrus.WithField("event_type", event.Type).Debug("Using default sync strategy")
 	// Use immediate sync as default
 	template, exists := sre.strategyTemplates["immediate_sync"]
 	if exists {

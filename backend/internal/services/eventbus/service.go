@@ -33,7 +33,7 @@ type Service struct {
 
 	// Metrics and monitoring
 	metrics       *EventMetrics
-	lastMetricsUpdate time.Time
+	lastMetricsUpdate time.Time // Tracks last metrics collection time
 
 	// Components
 	publisher     *Publisher

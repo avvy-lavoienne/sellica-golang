@@ -26,7 +26,7 @@ type DataConsistencyChecker struct {
 	lastCheck    time.Time
 
 	// Thread safety
-	mu           sync.RWMutex
+	mu           sync.RWMutex // Used for thread-safe operations
 }
 
 // ConsistencyConfig holds configuration for consistency checking

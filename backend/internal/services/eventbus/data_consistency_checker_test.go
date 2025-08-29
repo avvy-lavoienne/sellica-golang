@@ -437,7 +437,7 @@ func TestDataConsistencyChecker_GetMetrics(t *testing.T) {
 	require.NoError(t, err)
 
 	metrics := checker.GetMetrics()
-	assert.NotNil(t, metrics)
+	assert.NotNil(t, &metrics) // Use pointer to avoid copying lock
 	assert.True(t, metrics.ChecksPerformed >= 0)
 	assert.True(t, metrics.ChecksPassed >= 0)
 	assert.True(t, metrics.ChecksFailed >= 0)

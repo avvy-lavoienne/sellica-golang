@@ -37,7 +37,7 @@ type SynchronizationService struct {
 	lastMetricsUpdate time.Time
 
 	// Thread safety
-	mu               sync.RWMutex
+	mu               sync.RWMutex // Used for thread-safe operations
 }
 
 // SyncConfig holds configuration for the synchronization service
@@ -825,6 +825,7 @@ func (sw *SyncWorker) executeSyncStep(process *SyncProcess, step *SyncStep) erro
 
 // executeValidateStep validates data before sync
 func (sw *SyncWorker) executeValidateStep(process *SyncProcess, step *SyncStep) error {
+	logrus.WithField("process_id", process.ID).Debug("Executing validation step")
 	// Implementation would validate data integrity
 	time.Sleep(100 * time.Millisecond) // Simulate work
 	step.Status = StepCompleted
@@ -833,6 +834,7 @@ func (sw *SyncWorker) executeValidateStep(process *SyncProcess, step *SyncStep) 
 
 // executeFetchStep fetches data from source
 func (sw *SyncWorker) executeFetchStep(process *SyncProcess, step *SyncStep) error {
+	logrus.WithField("process_id", process.ID).Debug("Executing fetch step")
 	// Implementation would fetch data from source systems
 	time.Sleep(200 * time.Millisecond) // Simulate work
 	step.Status = StepCompleted
@@ -841,6 +843,7 @@ func (sw *SyncWorker) executeFetchStep(process *SyncProcess, step *SyncStep) err
 
 // executeTransformStep transforms data format
 func (sw *SyncWorker) executeTransformStep(process *SyncProcess, step *SyncStep) error {
+	logrus.WithField("process_id", process.ID).Debug("Executing transform step")
 	// Implementation would transform data between formats
 	time.Sleep(150 * time.Millisecond) // Simulate work
 	step.Status = StepCompleted
@@ -849,6 +852,7 @@ func (sw *SyncWorker) executeTransformStep(process *SyncProcess, step *SyncStep)
 
 // executeConflictCheckStep checks for data conflicts
 func (sw *SyncWorker) executeConflictCheckStep(process *SyncProcess, step *SyncStep) error {
+	logrus.WithField("process_id", process.ID).Debug("Executing conflict check step")
 	// Implementation would check for conflicts using consistency checker
 	time.Sleep(100 * time.Millisecond) // Simulate work
 	step.Status = StepCompleted
@@ -857,6 +861,7 @@ func (sw *SyncWorker) executeConflictCheckStep(process *SyncProcess, step *SyncS
 
 // executeApplyStep applies changes to target system
 func (sw *SyncWorker) executeApplyStep(process *SyncProcess, step *SyncStep) error {
+	logrus.WithField("process_id", process.ID).Debug("Executing apply step")
 	// Implementation would apply changes to target systems
 	time.Sleep(300 * time.Millisecond) // Simulate work
 	step.Status = StepCompleted
@@ -865,6 +870,7 @@ func (sw *SyncWorker) executeApplyStep(process *SyncProcess, step *SyncStep) err
 
 // executeVerifyStep verifies sync completion
 func (sw *SyncWorker) executeVerifyStep(process *SyncProcess, step *SyncStep) error {
+	logrus.WithField("process_id", process.ID).Debug("Executing verify step")
 	// Implementation would verify sync was successful
 	time.Sleep(100 * time.Millisecond) // Simulate work
 	step.Status = StepCompleted
@@ -873,6 +879,7 @@ func (sw *SyncWorker) executeVerifyStep(process *SyncProcess, step *SyncStep) er
 
 // executeCleanupStep cleans up temporary resources
 func (sw *SyncWorker) executeCleanupStep(process *SyncProcess, step *SyncStep) error {
+	logrus.WithField("process_id", process.ID).Debug("Executing cleanup step")
 	// Implementation would clean up temporary resources
 	time.Sleep(50 * time.Millisecond) // Simulate work
 	step.Status = StepCompleted
