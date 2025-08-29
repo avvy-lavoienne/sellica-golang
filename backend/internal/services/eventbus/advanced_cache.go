@@ -439,15 +439,35 @@ func (acs *AdvancedCacheService) GetMetrics() CacheMetrics {
 	defer acs.metrics.mu.RUnlock()
 
 	// Calculate utilization
+	var currentSize, maxSize int
+	var utilization float64
 	if acs.l1Cache != nil {
-		acs.metrics.CurrentSize = acs.l1Cache.Size()
-		acs.metrics.MaxSize = acs.l1Cache.MaxSize()
-		if acs.metrics.MaxSize > 0 {
-			acs.metrics.Utilization = float64(acs.metrics.CurrentSize) / float64(acs.metrics.MaxSize)
+		currentSize = acs.l1Cache.Size()
+		maxSize = acs.l1Cache.MaxSize()
+		if maxSize > 0 {
+			utilization = float64(currentSize) / float64(maxSize)
 		}
 	}
 
-	return *acs.metrics
+	// Return a copy without the mutex
+	return CacheMetrics{
+		L1Hits:         acs.metrics.L1Hits,
+		L1Misses:       acs.metrics.L1Misses,
+		L2Hits:         acs.metrics.L2Hits,
+		L2Misses:       acs.metrics.L2Misses,
+		Sets:           acs.metrics.Sets,
+		Gets:           acs.metrics.Gets,
+		Deletes:        acs.metrics.Deletes,
+		Evictions:      acs.metrics.Evictions,
+		AverageGetTime: acs.metrics.AverageGetTime,
+		AverageSetTime: acs.metrics.AverageSetTime,
+		CurrentSize:    currentSize,
+		MaxSize:        maxSize,
+		Utilization:    utilization,
+		WarmedItems:    acs.metrics.WarmedItems,
+		WarmingHits:    acs.metrics.WarmingHits,
+		WarmingMisses:  acs.metrics.WarmingMisses,
+	}
 }
 
 // GetStats returns comprehensive cache statistics

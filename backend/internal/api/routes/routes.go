@@ -177,7 +177,7 @@ func setupAuthRoutes(router *gin.Engine, authService *auth.Service, dbService *d
 }
 
 // setupChatRoutes configures chat endpoints
-func setupChatRoutes(router *gin.Engine, handler *handlers.ChatHandler, authService *auth.Service) {
+func setupChatRoutes(router *gin.Engine, handler *handlers.ChatHandler, _ *auth.Service) {
 	// Public chat endpoints (with optional auth)
 	router.POST("/chat", handler.ProcessChat)
 	router.POST("/chat/session", handler.ProcessSessionChat)

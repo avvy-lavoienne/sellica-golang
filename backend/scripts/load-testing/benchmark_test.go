@@ -228,7 +228,7 @@ func TestPerformanceMetrics(t *testing.T) {
 }
 
 // measureEndpointPerformance measures performance metrics for an endpoint
-func measureEndpointPerformance(t *testing.T, router *gin.Engine, method, endpoint string, payload interface{}) BenchmarkResult {
+func measureEndpointPerformance(_ *testing.T, router *gin.Engine, method, endpoint string, payload interface{}) BenchmarkResult {
 	const numRequests = 1000
 	const concurrency = 10
 

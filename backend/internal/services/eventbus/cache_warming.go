@@ -278,7 +278,8 @@ func (cwe *CacheWarmingEngine) ClearQueue() {
 		select {
 		case <-cwe.warmingQueue:
 		default:
-			break
+			// Queue is empty, exit the loop
+			return
 		}
 	}
 
