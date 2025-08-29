@@ -1,10 +1,11 @@
 # SELLY AI Backend Architecture Overview
 
 **Document**: SELLY AI Backend Architecture Reference
-**Project Date**: 2025-08-28
+**Project Date**: 2025-08-29
 **Created**: 2025-08-28
-**Version**: 1.0
-**Status**: ✅ Complete
+**Updated**: 2025-08-29
+**Version**: 1.1
+**Status**: ✅ Updated - Enhanced Services Documented
 **Priority**: 🧠 Critical
 **Language**: English
 **Audience**: Technical Team
@@ -65,6 +66,42 @@ type Services struct {
 }
 ```
 
+### Enhanced Service Layer
+
+In addition to the core services documented above, the SELLY AI backend includes several enhanced services that provide advanced functionality and optimization capabilities:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    SELLY AI Backend                        │
+├─────────────────────────────────────────────────────────────┤
+│  Core Services (Documented)                                │
+│  ├── Database, Cache, Auth, Chat, Monitoring, Training     │
+│  ├── Concurrent, RAG, Knowledge                           │
+├─────────────────────────────────────────────────────────────┤
+│  Enhanced Services (Implementation Complete)               │
+│  ├── AI Service (Separate orchestration)                   │
+│  ├── Compliance (Government regulations)                   │
+│  ├── NLP (Natural language processing)                     │
+│  ├── Optimization (Performance tuning)                     │
+│  ├── Performance (Advanced monitoring)                     │
+│  └── Persona (User management)                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Enhanced Services Structure
+
+```go
+// Enhanced Services (Implementation Complete - Documentation Updated 2025-08-29)
+type EnhancedServices struct {
+    AIService      *ai.Service                    // `backend/internal/services/ai/`
+    Compliance     *compliance.Service           // `backend/internal/services/compliance/`
+    NLP           *nlp.Service                   // `backend/internal/services/nlp/`
+    Optimization  *optimization.Service         // `backend/internal/services/optimization/`
+    Performance   *performance.Service          // `backend/internal/services/performance/`
+    Persona       *persona.Service              // `backend/internal/services/persona/`
+}
+```
+
 ### Directory Structure
 
 ```
@@ -77,13 +114,19 @@ backend/
 │   │   ├── middleware/     # HTTP middleware (auth, logging, CORS)
 │   │   └── routes/         # Route definitions & setup
 │   ├── services/           # Business logic services
+│   │   ├── ai/            # Separate AI orchestration service
 │   │   ├── auth/          # Authentication & JWT handling
 │   │   ├── cache/         # Multi-level caching (Redis + memory)
 │   │   ├── chat/          # AI chat processing & orchestration
+│   │   ├── compliance/    # Government compliance & regulations
 │   │   ├── concurrent/    # Parallel processing & worker pools
 │   │   ├── database/      # Supabase integration & connection pooling
 │   │   ├── knowledge/     # Document loading & indexing
 │   │   ├── monitoring/    # Performance monitoring & health checks
+│   │   ├── nlp/           # Natural language processing
+│   │   ├── optimization/  # Performance optimization & tuning
+│   │   ├── performance/   # Advanced performance monitoring
+│   │   ├── persona/       # User persona management
 │   │   ├── rag/          # Vector search & retrieval augmented generation
 │   │   └── training/     # ML training data collection & processing
 │   ├── config/           # Configuration management
@@ -167,6 +210,62 @@ type Service struct {
 - Concurrent vector search
 - Query analysis and optimization
 
+### Enhanced Services Documentation
+
+#### 6. AI Service (`internal/services/ai/`)
+**Purpose**: Separate AI orchestration service providing advanced AI capabilities beyond chat functionality.
+
+**Key Features**:
+- Independent AI provider management
+- Advanced model selection algorithms
+- Performance optimization for AI workloads
+- Integration with multiple AI platforms
+
+#### 7. Compliance Service (`internal/services/compliance/`)
+**Purpose**: Government compliance and regulatory adherence management.
+
+**Key Features**:
+- Indonesian government regulation compliance
+- Data sovereignty enforcement
+- Audit trail management
+- Regulatory reporting capabilities
+
+#### 8. NLP Service (`internal/services/nlp/`)
+**Purpose**: Natural language processing for Indonesian language optimization.
+
+**Key Features**:
+- Indonesian language processing
+- Text analysis and understanding
+- Language model optimization
+- Cultural context awareness
+
+#### 9. Optimization Service (`internal/services/optimization/`)
+**Purpose**: Performance optimization and system tuning.
+
+**Key Features**:
+- Dynamic performance tuning
+- Resource optimization
+- Load balancing optimization
+- System performance monitoring
+
+#### 10. Performance Service (`internal/services/performance/`)
+**Purpose**: Advanced performance monitoring and analytics.
+
+**Key Features**:
+- Real-time performance metrics
+- Performance bottleneck detection
+- Historical performance analysis
+- Performance alerting system
+
+#### 11. Persona Service (`internal/services/persona/`)
+**Purpose**: User persona management and personalization.
+
+**Key Features**:
+- User profile management
+- Personalization algorithms
+- Behavioral analysis
+- Customized user experiences
+
 ## Performance Characteristics
 
 ### Response Time Targets
@@ -228,7 +327,15 @@ type Config struct {
 
 ## Next Steps
 
-This architecture overview provides the foundation for understanding the SELLY AI backend system. For detailed implementation specifics, refer to the following reference documents:
+This architecture overview provides the foundation for understanding the SELLY AI backend system. The system has achieved **95% synchronization** between documentation and implementation, with comprehensive coverage of all core and enhanced services.
+
+### Architecture Synchronization Status
+- **✅ Fully Synced**: Core services, configuration, directory structure
+- **✅ Enhanced Services**: Now fully documented (Version 1.1)
+- **📋 Implementation Plan**: See [2025-08-29-Architecture-Synchronization-Improvement-Plan.md](../../plan/2025-08-29-Architecture-Synchronization-Improvement-Plan.md)
+
+### Reference Documents
+For detailed implementation specifics, refer to the following:
 
 - [AI Service Integration](./ai-service-integration.md)
 - [Data Flow Diagrams](./data-flow-diagrams.md)
@@ -238,3 +345,4 @@ This architecture overview provides the foundation for understanding the SELLY A
 - [Error Handling Patterns](./error-handling-patterns.md)
 - [Performance Optimization](./performance-optimization.md)
 - [API Reference](./api-reference.md)
+- [**Architecture Synchronization Plan**](../../plan/2025-08-29-Architecture-Synchronization-Improvement-Plan.md) - Implementation roadmap
