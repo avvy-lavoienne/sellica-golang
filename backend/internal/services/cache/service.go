@@ -16,12 +16,16 @@ import (
 
 // Service provides multi-level caching with Redis and in-memory cache
 type Service struct {
-	redis     *redis.Client
-	memory    *cache.Cache
-	redisURL  string
-	isHealthy bool
-	mu        sync.RWMutex
-	stats     *CacheStats
+	redis        *redis.Client
+	memory       *cache.Cache
+	redisURL     string
+	isHealthy    bool
+	mu           sync.RWMutex
+	stats        *CacheStats
+	smartTTL     *SmartTTLManager
+	enableSmartTTL bool
+	intelligentWarmer *IntelligentWarmer
+	enableWarming    bool
 }
 
 // CacheStats tracks cache performance metrics
@@ -331,4 +335,162 @@ func (s *Service) GetRedisClient() *redis.Client {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.redis
+}
+
+// EnableSmartTTL enables intelligent TTL management
+func (s *Service) EnableSmartTTL(config *SmartTTLConfig) error {
+	if config == nil {
+		config = &SmartTTLConfig{
+			Enabled:                    true,
+			BaseTimeToLive:            5 * time.Minute,
+			ConfidenceMultiplier:      2.0,
+			ComplexityMultiplier:      1.5,
+			FreshnessMultiplier:       1.3,
+			AccessFrequencyMultiplier: 1.8,
+			QueryPatternMultiplier:    1.4,
+			TimeOfDayMultiplier:       1.2,
+			UserBehaviorMultiplier:    1.6,
+			MinTTL:                   30 * time.Second,
+			MaxTTL:                   2 * time.Hour,
+		}
+	}
+
+	s.smartTTL = NewSmartTTLManager(config)
+	s.enableSmartTTL = true
+
+	logrus.Info("🧠 Smart TTL management enabled")
+	return nil
+}
+
+// SetWithSmartTTL stores a value using intelligent TTL calculation
+func (s *Service) SetWithSmartTTL(ctx context.Context, key string, value interface{}, metadata *CacheMetadata) error {
+	if !s.enableSmartTTL || s.smartTTL == nil {
+		// Fallback to default TTL
+		return s.Set(key, value, 5*time.Minute)
+	}
+
+	// Calculate optimal TTL using Smart TTL Manager
+	optimalTTL, factors, err := s.smartTTL.CalculateOptimalTTL(ctx, metadata)
+	if err != nil {
+		logrus.WithError(err).WithField("key", key).Warn("Smart TTL calculation failed, using default")
+		return s.Set(key, value, 5*time.Minute)
+	}
+
+	// Update access patterns for learning
+	s.smartTTL.UpdateAccessPattern(key, metadata.UserID)
+
+	logrus.WithFields(logrus.Fields{
+		"key":           key,
+		"optimal_ttl":   optimalTTL,
+		"multiplier":    factors.FinalMultiplier,
+		"confidence":    metadata.Confidence,
+		"complexity":    metadata.Complexity,
+	}).Debug("🧠 Using smart TTL for cache set")
+
+	return s.Set(key, value, optimalTTL)
+}
+
+// GetWithMetadata retrieves a value and records metadata for Smart TTL learning
+func (s *Service) GetWithMetadata(key, userID string) (interface{}, error) {
+	value, err := s.Get(key)
+
+	// Record access pattern for Smart TTL learning
+	if s.enableSmartTTL && s.smartTTL != nil {
+		s.smartTTL.UpdateAccessPattern(key, userID)
+	}
+
+	return value, err
+}
+
+// GetSmartTTLStats returns Smart TTL performance statistics
+func (s *Service) GetSmartTTLStats() map[string]interface{} {
+	if !s.enableSmartTTL || s.smartTTL == nil {
+		return map[string]interface{}{
+			"enabled": false,
+		}
+	}
+
+	return s.smartTTL.GetPerformanceStats()
+}
+
+// GetSmartTTLInsights returns insights from Smart TTL performance data
+func (s *Service) GetSmartTTLInsights() (*TTLInsights, error) {
+	if !s.enableSmartTTL || s.smartTTL == nil {
+		return nil, fmt.Errorf("Smart TTL not enabled")
+	}
+
+	return s.smartTTL.GetTTLInsights()
+}
+
+// EnableIntelligentWarming enables intelligent cache warming
+func (s *Service) EnableIntelligentWarming(config *WarmingConfig) error {
+	if config == nil {
+		config = &WarmingConfig{
+			Enabled:              true,
+			WorkerCount:          3,
+			WarmingInterval:      5 * time.Minute,
+			PredictionWindow:     1 * time.Hour,
+			MaxWarmingQueueSize:  1000,
+			PerformanceThreshold: 0.8,
+			MinPredictionScore:   0.7,
+			MaxPredictions:       50,
+			RateLimitPerMinute:   100,
+			GovernmentServices: []string{
+				"akta kelahiran", "ktp", "akta kematian", "akta perkawinan",
+				"kia", "kk", "perpindahan", "aku sah",
+			},
+		}
+	}
+
+	s.intelligentWarmer = NewIntelligentWarmer(s, config)
+	s.enableWarming = true
+
+	logrus.Info("🔥 Intelligent cache warming enabled")
+	return nil
+}
+
+// StartIntelligentWarming starts the intelligent warming system
+func (s *Service) StartIntelligentWarming(ctx context.Context) error {
+	if !s.enableWarming || s.intelligentWarmer == nil {
+		return fmt.Errorf("intelligent warming not enabled")
+	}
+
+	return s.intelligentWarmer.StartIntelligentWarming(ctx)
+}
+
+// StopIntelligentWarming stops the intelligent warming system
+func (s *Service) StopIntelligentWarming() error {
+	if !s.enableWarming || s.intelligentWarmer == nil {
+		return nil
+	}
+
+	return s.intelligentWarmer.StopIntelligentWarming()
+}
+
+// GetWarmingStats returns intelligent warming statistics
+func (s *Service) GetWarmingStats() map[string]interface{} {
+	if !s.enableWarming || s.intelligentWarmer == nil {
+		return map[string]interface{}{
+			"enabled": false,
+		}
+	}
+
+	return s.intelligentWarmer.GetWarmingStats()
+}
+
+// RecordQueryForPrediction records a query for warming prediction learning
+func (s *Service) RecordQueryForPrediction(query, userID string) {
+	if s.enableWarming && s.intelligentWarmer != nil {
+		s.intelligentWarmer.queryPredictor.RecordQuery(query, userID, time.Now())
+	}
+
+	// Also record for Smart TTL learning
+	if s.enableSmartTTL && s.smartTTL != nil {
+		s.smartTTL.UpdateAccessPattern(query, userID)
+	}
+}
+
+// GetIntelligentWarmer returns the intelligent warmer instance
+func (s *Service) GetIntelligentWarmer() *IntelligentWarmer {
+	return s.intelligentWarmer
 }

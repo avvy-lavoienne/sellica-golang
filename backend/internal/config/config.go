@@ -45,6 +45,46 @@ type CacheConfig struct {
 	RedisDB      int
 	TTLSeconds   int
 	MemoryMaxMB  int
+
+	// Smart TTL Configuration
+	SmartTTL SmartTTLConfig
+
+	// Intelligent Warming Configuration
+	Warming WarmingConfig
+}
+
+// SmartTTLConfig holds intelligent TTL management configuration
+type SmartTTLConfig struct {
+	Enabled                    bool
+	BaseTimeToLive            time.Duration
+	ConfidenceMultiplier      float64
+	ComplexityMultiplier      float64
+	FreshnessMultiplier       float64
+	AccessFrequencyMultiplier float64
+	QueryPatternMultiplier    float64
+	TimeOfDayMultiplier       float64
+	UserBehaviorMultiplier    float64
+	MinTTL                    time.Duration
+	MaxTTL                    time.Duration
+	DataFreshnessWeight       float64
+	QueryPatternWeight        float64
+	AccessFrequencyWeight     float64
+	TimeOfDayWeight          float64
+	UserBehaviorWeight       float64
+}
+
+// WarmingConfig holds intelligent cache warming configuration
+type WarmingConfig struct {
+	Enabled              bool
+	WorkerCount          int
+	WarmingInterval      time.Duration
+	PredictionWindow     time.Duration
+	MaxWarmingQueueSize  int
+	PerformanceThreshold float64
+	MinPredictionScore   float64
+	MaxPredictions       int
+	RateLimitPerMinute   int
+	GovernmentServices   []string
 }
 
 // AuthConfig holds authentication-related configuration
@@ -100,6 +140,39 @@ func Load() *Config {
 			RedisDB:     getEnvAsInt("REDIS_DB", 0),
 			TTLSeconds:  getEnvAsInt("CACHE_TTL_SECONDS", 300),
 			MemoryMaxMB: getEnvAsInt("CACHE_MEMORY_MAX_MB", 100),
+			SmartTTL: SmartTTLConfig{
+				Enabled:                    getEnvAsBool("CACHE_SMART_TTL_ENABLED", true),
+				BaseTimeToLive:            getEnvAsDuration("CACHE_SMART_TTL_BASE", 5*time.Minute),
+				ConfidenceMultiplier:      getEnvAsFloat("CACHE_SMART_TTL_CONFIDENCE_MULT", 2.0),
+				ComplexityMultiplier:      getEnvAsFloat("CACHE_SMART_TTL_COMPLEXITY_MULT", 1.5),
+				FreshnessMultiplier:       getEnvAsFloat("CACHE_SMART_TTL_FRESHNESS_MULT", 1.3),
+				AccessFrequencyMultiplier: getEnvAsFloat("CACHE_SMART_TTL_ACCESS_FREQ_MULT", 1.8),
+				QueryPatternMultiplier:    getEnvAsFloat("CACHE_SMART_TTL_PATTERN_MULT", 1.4),
+				TimeOfDayMultiplier:       getEnvAsFloat("CACHE_SMART_TTL_TIME_MULT", 1.2),
+				UserBehaviorMultiplier:    getEnvAsFloat("CACHE_SMART_TTL_USER_MULT", 1.6),
+				MinTTL:                    getEnvAsDuration("CACHE_SMART_TTL_MIN", 30*time.Second),
+				MaxTTL:                    getEnvAsDuration("CACHE_SMART_TTL_MAX", 2*time.Hour),
+				DataFreshnessWeight:       getEnvAsFloat("CACHE_SMART_TTL_FRESHNESS_WEIGHT", 0.3),
+				QueryPatternWeight:        getEnvAsFloat("CACHE_SMART_TTL_PATTERN_WEIGHT", 0.2),
+				AccessFrequencyWeight:     getEnvAsFloat("CACHE_SMART_TTL_ACCESS_FREQ_WEIGHT", 0.2),
+				TimeOfDayWeight:          getEnvAsFloat("CACHE_SMART_TTL_TIME_WEIGHT", 0.15),
+				UserBehaviorWeight:       getEnvAsFloat("CACHE_SMART_TTL_USER_WEIGHT", 0.15),
+			},
+			Warming: WarmingConfig{
+				Enabled:              getEnvAsBool("CACHE_WARMING_ENABLED", true),
+				WorkerCount:          getEnvAsInt("CACHE_WARMING_WORKERS", 3),
+				WarmingInterval:      getEnvAsDuration("CACHE_WARMING_INTERVAL", 5*time.Minute),
+				PredictionWindow:     getEnvAsDuration("CACHE_WARMING_PREDICTION_WINDOW", 1*time.Hour),
+				MaxWarmingQueueSize:  getEnvAsInt("CACHE_WARMING_QUEUE_SIZE", 1000),
+				PerformanceThreshold: getEnvAsFloat("CACHE_WARMING_PERF_THRESHOLD", 0.8),
+				MinPredictionScore:   getEnvAsFloat("CACHE_WARMING_MIN_SCORE", 0.7),
+				MaxPredictions:       getEnvAsInt("CACHE_WARMING_MAX_PREDS", 50),
+				RateLimitPerMinute:   getEnvAsInt("CACHE_WARMING_RATE_LIMIT", 100),
+				GovernmentServices: []string{
+					"akta kelahiran", "ktp", "akta kematian", "akta perkawinan",
+					"kia", "kk", "perpindahan", "aku sah",
+				},
+			},
 		},
 		Auth: AuthConfig{
 			JWTSecret:         getEnv("SUPABASE_JWT_SECRET", ""),
@@ -178,6 +251,15 @@ func getEnvAsDuration(key string, defaultValue time.Duration) time.Duration {
 	if value := os.Getenv(key); value != "" {
 		if duration, err := time.ParseDuration(value); err == nil {
 			return duration
+		}
+	}
+	return defaultValue
+}
+
+func getEnvAsFloat(key string, defaultValue float64) float64 {
+	if value := os.Getenv(key); value != "" {
+		if floatValue, err := strconv.ParseFloat(value, 64); err == nil {
+			return floatValue
 		}
 	}
 	return defaultValue
