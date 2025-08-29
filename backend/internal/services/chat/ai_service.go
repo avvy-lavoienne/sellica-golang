@@ -15,12 +15,15 @@ import (
 
 // AIService provides AI model integration and processing
 type AIService struct {
-	providers              map[string]AIProvider
-	fallback               AIProvider
-	variationEngine        *ResponseVariationEngine
-	providerSelector       *EnhancedProviderSelector
-	variationEnabled       bool
+	providers                map[string]AIProvider
+	fallback                 AIProvider
+	variationEngine          *ResponseVariationEngine
+	providerSelector         *EnhancedProviderSelector
+	variationEnabled         bool
 	enhancedSelectionEnabled bool
+	config                   *AIServiceConfig  // Add configuration field
+	metrics                  *AIServiceMetrics // Add metrics field
+	metricsBridge            *MetricsBridge    // Add metrics bridge
 }
 
 // AIProvider interface for different AI providers
@@ -85,57 +88,119 @@ type GroqSELLYProviderAdapter struct {
 	provider *providers.GroqSELLYProvider
 }
 
-// NewAIService creates a new AI service with multiple providers
-func NewAIService() *AIService {
-	service := &AIService{
-		providers:                make(map[string]AIProvider),
-		fallback:                 &SimpleAIProvider{name: "simple-fallback"},
-		variationEngine:          NewResponseVariationEngine(),
-		providerSelector:         NewEnhancedProviderSelector(),
-		variationEnabled:         true,
-		enhancedSelectionEnabled: true,
+// NewAIServiceWithConfig creates a new AI service with configuration
+func NewAIServiceWithConfig(config *AIServiceConfig) (*AIService, error) {
+	if config == nil {
+		config = NewDefaultAIServiceConfig()
 	}
 
-	// Initialize real AI providers
+	if err := config.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid configuration: %w", err)
+	}
+
+	service := &AIService{
+		providers:                make(map[string]AIProvider),
+		fallback:                 &SimpleAIProvider{name: config.FallbackProvider},
+		variationEngine:          NewResponseVariationEngine(),
+		providerSelector:         NewEnhancedProviderSelector(),
+		variationEnabled:         config.EnableVariation,
+		enhancedSelectionEnabled: config.EnableEnhancedSelection,
+		config:                   config,
+		metrics:                  NewAIServiceMetrics(),
+		metricsBridge:            nil, // Will be initialized after provider selector is ready
+	}
+
+	// Initialize providers based on configuration
+	if err := service.initializeProviders(config); err != nil {
+		return nil, fmt.Errorf("failed to initialize providers: %w", err)
+	}
+
+	// Initialize metrics bridge if performance tracking is enabled
+	if config.EnablePerformanceTracking {
+		service.metricsBridge = NewMetricsBridge(service.metrics, service.providerSelector.performanceSelector)
+		// Start periodic sync if concurrent processing is enabled
+		if config.EnableConcurrentProcessing {
+			service.metricsBridge.StartPeriodicSync(5 * time.Minute) // Sync every 5 minutes
+		}
+	}
+
+	return service, nil
+}
+
+// NewAIService creates a new AI service with default configuration (backward compatibility)
+func NewAIService() *AIService {
+	config := NewDefaultAIServiceConfig()
+
+	// Load configuration from environment for backward compatibility
+	if err := config.LoadFromEnvironment(); err != nil {
+		logrus.WithError(err).Warn("Failed to load configuration from environment, using defaults")
+	}
+
+	service, err := NewAIServiceWithConfig(config)
+	if err != nil {
+		logrus.WithError(err).Fatal("Failed to create AI service")
+	}
+
+	return service
+}
+
+// initializeProviders initializes AI providers based on configuration
+func (s *AIService) initializeProviders(config *AIServiceConfig) error {
+	// Initialize Simple provider
+	if simpleConfig, exists := config.ProviderConfigs["simple"]; exists && simpleConfig.Enabled {
+		s.providers["simple"] = &SimpleAIProvider{name: "simple-response-service"}
+		logrus.Info("✅ Simple AI provider initialized")
+	}
+
+	// Initialize Enhanced provider
+	if enhancedConfig, exists := config.ProviderConfigs["enhanced"]; exists && enhancedConfig.Enabled {
+		s.providers["enhanced"] = &EnhancedAIProvider{name: "enhanced-indonesian-ai"}
+		logrus.Info("✅ Enhanced AI provider initialized")
+	}
+
+	// Initialize Groq providers (conditionally)
 	groqAPIKey := os.Getenv("GROQ_API_KEY")
-	hfAPIKey := os.Getenv("HUGGINGFACE_API_KEY")
-
-	// Register Groq provider if API key is available
 	if groqAPIKey != "" {
-		// Create standard Groq provider
-		groqProvider := providers.NewGroqProvider(groqAPIKey)
-		service.providers["groq"] = &GroqProviderAdapter{provider: groqProvider}
-		service.providers["simple"] = &GroqProviderAdapter{provider: groqProvider}
+		if groqConfig, exists := config.ProviderConfigs["groq"]; exists && groqConfig.Enabled {
+			groqProvider := providers.NewGroqProvider(groqAPIKey)
+			s.providers["groq"] = &GroqProviderAdapter{provider: groqProvider}
+			s.providers["simple"] = &GroqProviderAdapter{provider: groqProvider}
+			logrus.Info("✅ Groq AI provider initialized")
+		}
 
-		// Create SELLY-enhanced Groq provider for enhanced mode
-		groqSELLYProvider := providers.NewGroqSELLYProvider(groqAPIKey)
-		service.providers["enhanced"] = &GroqSELLYProviderAdapter{provider: groqSELLYProvider}
-		service.providers["selly"] = &GroqSELLYProviderAdapter{provider: groqSELLYProvider}
-
-		logrus.Info("✅ Groq AI providers registered: standard (simple, groq) and SELLY-enhanced (enhanced, selly)")
+		if groqSELLYConfig, exists := config.ProviderConfigs["groq-selly"]; exists && groqSELLYConfig.Enabled {
+			groqSELLYProvider := providers.NewGroqSELLYProvider(groqAPIKey)
+			s.providers["enhanced"] = &GroqSELLYProviderAdapter{provider: groqSELLYProvider}
+			s.providers["selly"] = &GroqSELLYProviderAdapter{provider: groqSELLYProvider}
+			logrus.Info("✅ Groq SELLY AI provider initialized")
+		}
 	} else {
 		logrus.Warn("⚠️ Groq API key not found, using mock providers")
-		service.providers["simple"] = &SimpleAIProvider{name: "simple-response-service"}
-		service.providers["enhanced"] = &EnhancedAIProvider{name: "enhanced-indonesian-ai"}
+		if _, exists := s.providers["simple"]; !exists {
+			s.providers["simple"] = &SimpleAIProvider{name: "simple-response-service"}
+		}
+		if _, exists := s.providers["enhanced"]; !exists {
+			s.providers["enhanced"] = &EnhancedAIProvider{name: "enhanced-indonesian-ai"}
+		}
 	}
 
 	// HuggingFace provider - conditionally disabled (Option B: Conditional Disable)
-	// Only initialize if both API key exists AND feature flag is enabled
 	enableHuggingFace := os.Getenv("ENABLE_HUGGINGFACE") == "true"
+	hfAPIKey := os.Getenv("HUGGINGFACE_API_KEY")
 	if hfAPIKey != "" && enableHuggingFace {
-		hfProvider := providers.NewHuggingFaceProvider(hfAPIKey)
-		service.providers["huggingface"] = &HuggingFaceProviderAdapter{provider: hfProvider}
-		logrus.Info("✅ HuggingFace AI provider registered (feature flag enabled)")
+		if hfConfig, exists := config.ProviderConfigs["huggingface"]; exists && hfConfig.Enabled {
+			hfProvider := providers.NewHuggingFaceProvider(hfAPIKey)
+			s.providers["huggingface"] = &HuggingFaceProviderAdapter{provider: hfProvider}
+			logrus.Info("✅ HuggingFace AI provider registered (feature flag enabled)")
+		}
 	} else if hfAPIKey != "" && !enableHuggingFace {
 		logrus.Info("ℹ️ HuggingFace provider disabled by feature flag (ENABLE_HUGGINGFACE=false)")
 	} else if enableHuggingFace {
 		logrus.Warn("⚠️ HuggingFace feature flag enabled but no API key found")
 	}
-	// Note: HuggingFace code preserved for future Indonesian NLP specialization
 
 	logrus.Info("✅ AI service initialized with multiple providers")
-	logrus.Info("✅ AI service enhanced with response variation engine and intelligent provider selection")
-	return service
+	return nil
 }
 
 // getAvailableProviders returns a list of available provider names
@@ -228,6 +293,9 @@ func (s *AIService) ProcessQuery(ctx context.Context, req *AIRequest) (*AIRespon
 
 	response, err := provider.ProcessQuery(ctx, req)
 	if err != nil {
+		// Record failed request in metrics
+		s.metrics.RecordRequest(providerName, time.Since(startTime).Seconds()*1000, false, false)
+		s.metrics.RecordError("processing_error")
 		return nil, fmt.Errorf("AI processing failed: %w", err)
 	}
 
@@ -273,6 +341,10 @@ func (s *AIService) ProcessQuery(ctx context.Context, req *AIRequest) (*AIRespon
 	}
 
 	response.ProcessingTime = time.Since(startTime).Seconds() * 1000
+
+	// Record metrics
+	s.metrics.RecordRequest(providerName, response.ProcessingTime, true, response.CacheHit)
+
 	return response, nil
 }
 
@@ -585,4 +657,77 @@ func (a *HuggingFaceProviderAdapter) GetProviderName() string {
 
 func (a *HuggingFaceProviderAdapter) IsHealthy() bool {
 	return a.provider.IsHealthy()
+}
+
+// GetConfig returns the current configuration
+func (s *AIService) GetConfig() *AIServiceConfig {
+	return s.config
+}
+
+// GetMetrics returns the current metrics
+func (s *AIService) GetMetrics() AIServiceMetrics {
+	return s.metrics.GetMetrics()
+}
+
+// GetMetricsSummary returns a summary of key metrics
+func (s *AIService) GetMetricsSummary() map[string]interface{} {
+	return s.metrics.GetSummary()
+}
+
+// UpdateProviderConfig updates configuration for a specific provider
+func (s *AIService) UpdateProviderConfig(providerName string, updates *ProviderConfig) error {
+	return s.config.UpdateProviderConfig(providerName, updates)
+}
+
+// IsHealthy returns whether the AI service is healthy
+func (s *AIService) IsHealthy() bool {
+	return s.metrics.IsHealthy()
+}
+
+// GetAvailableProviders returns a list of available provider names
+func (s *AIService) GetAvailableProviders() []string {
+	return s.getAvailableProviders()
+}
+
+// GetProviderMetrics returns metrics for a specific provider
+func (s *AIService) GetProviderMetrics(providerName string) map[string]interface{} {
+	return s.metrics.GetProviderMetrics(providerName)
+}
+
+// GetTopProviders returns the top N most used providers
+func (s *AIService) GetTopProviders(limit int) []map[string]interface{} {
+	return s.metrics.GetTopProviders(limit)
+}
+
+// GetMetricsBridge returns the metrics bridge instance
+func (s *AIService) GetMetricsBridge() *MetricsBridge {
+	return s.metricsBridge
+}
+
+// ForceMetricsSync performs an immediate metrics synchronization
+func (s *AIService) ForceMetricsSync() {
+	if s.metricsBridge != nil {
+		s.metricsBridge.ForceSync()
+	}
+}
+
+// GetConfigSummary returns a summary of current configuration
+func (s *AIService) GetConfigSummary() map[string]interface{} {
+	if s.config == nil {
+		return map[string]interface{}{
+			"status": "no_configuration",
+		}
+	}
+
+	return map[string]interface{}{
+		"enable_variation":          s.config.EnableVariation,
+		"enable_enhanced_selection": s.config.EnableEnhancedSelection,
+		"fallback_provider":         s.config.FallbackProvider,
+		"provider_timeout":          s.config.ProviderTimeout.String(),
+		"max_retries":               s.config.MaxRetries,
+		"enabled_providers":         s.config.GetEnabledProviders(),
+		"performance_tracking":      s.config.EnablePerformanceTracking,
+		"user_history_tracking":     s.config.EnableUserHistoryTracking,
+		"concurrent_processing":     s.config.EnableConcurrentProcessing,
+	}
 }
