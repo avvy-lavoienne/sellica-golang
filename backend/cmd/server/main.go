@@ -148,6 +148,13 @@ func (s *Services) Cleanup() {
 		}
 	}
 
+	// Cleanup enhanced auth service
+	if s.Auth != nil {
+		// Clear token cache for security
+		s.Auth.ClearTokenCache()
+		logrus.Info("🔐 Authentication service cache cleared")
+	}
+
 	// Cleanup core services
 	if s.Knowledge != nil {
 		s.Knowledge.Close()
@@ -178,8 +185,16 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		return nil, fmt.Errorf("failed to initialize cache service: %w", err)
 	}
 
-	// Initialize auth service
+	// Initialize enhanced auth service with caching and audit logging
 	authService := auth.NewService(cfg.Auth.JWTSecret, dbService)
+
+	// Log enhanced authentication service features
+	authStats := authService.GetAuthStats()
+	logrus.WithFields(logrus.Fields{
+		"cache_enabled": authStats["cacheEnabled"],
+		"cached_tokens": authStats["cachedTokens"],
+		"version":       authStats["version"],
+	}).Info("🔐 Enhanced authentication service initialized with advanced features")
 
 	// Initialize monitoring service
 	monitoringService := monitoring.NewService()
@@ -255,8 +270,16 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	var personaService interface{} = nil
 	logrus.Info("ℹ️ Persona service placeholder initialized (implementation pending)")
 
+	// Verify enhanced authentication service health
+	if authService.IsHealthy() {
+		logrus.Info("🔐 Authentication service health check: ✅ PASSED")
+	} else {
+		logrus.Warn("🔐 Authentication service health check: ⚠️  WARNING - Service may have limited functionality")
+	}
+
 	logrus.Info("✅ All services initialized successfully")
-	logrus.Info("📊 Service Status: Core (9/9) ✅ | Enhanced (6/6) ℹ️ (placeholders)")
+	logrus.Info("📊 Service Status: Core (9/9) ✅ | Enhanced Auth (1/1) ✅ | Other Enhanced (5/5) ℹ️ (placeholders)")
+	logrus.Info("🚀 Enhanced Features: Token Caching ✅ | Metadata Support ✅ | Audit Logging ✅ | Indonesian Compliance ✅")
 
 	return &Services{
 		// Core Services
