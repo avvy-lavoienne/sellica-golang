@@ -105,19 +105,50 @@ func main() {
 
 // Services holds all application services
 type Services struct {
+	// Core Services (Foundation Layer)
 	Database   *database.Service
 	Cache      *cache.Service
 	Auth       *auth.Service
-	Chat       *chat.Service
 	Monitoring *monitoring.Service
+
+	// Business Logic Services (Application Layer)
+	Chat       *chat.Service
 	Training   *training.Service
-	Concurrent *concurrent.Service
-	RAG        *rag.RedisRAGService
 	Knowledge  *knowledge.DocumentLoaderService
+	RAG        *rag.RedisRAGService
+	Concurrent *concurrent.Service
+
+	// Enhanced Services (Optimization Layer) - Placeholder interfaces
+	AI           interface{} // *ai.Service - To be implemented
+	Compliance   interface{} // *compliance.Service - To be implemented
+	NLP          interface{} // *nlp.Service - To be implemented
+	Optimization interface{} // *optimization.Service - To be implemented
+	Performance  interface{} // *performance.Service - To be implemented
+	Persona      interface{} // *persona.Service - To be implemented
 }
 
 // Cleanup performs cleanup operations for all services
 func (s *Services) Cleanup() {
+	logrus.Info("🧹 Starting services cleanup...")
+
+	// Cleanup enhanced services (if they have cleanup methods)
+	if s.AI != nil {
+		if closer, ok := s.AI.(interface{ Close() error }); ok {
+			if err := closer.Close(); err != nil {
+				logrus.WithError(err).Warn("Error closing AI service")
+			}
+		}
+	}
+
+	if s.Compliance != nil {
+		if closer, ok := s.Compliance.(interface{ Close() error }); ok {
+			if err := closer.Close(); err != nil {
+				logrus.WithError(err).Warn("Error closing Compliance service")
+			}
+		}
+	}
+
+	// Cleanup core services
 	if s.Knowledge != nil {
 		s.Knowledge.Close()
 	}
@@ -127,7 +158,8 @@ func (s *Services) Cleanup() {
 	if s.Database != nil {
 		s.Database.Close()
 	}
-	logrus.Info("🧹 Services cleanup completed")
+
+	logrus.Info("✅ Services cleanup completed")
 }
 
 // initializeServices initializes all application services
@@ -196,18 +228,55 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	// Initialize chat service with RAG integration (after RAG service is ready)
 	chatService := chat.NewService(dbService, cacheService, authService, ragService)
 
+	// Initialize Enhanced Services (Optimization Layer)
+	logrus.Info("🚀 Initializing enhanced services...")
+
+	// Initialize AI service (placeholder - to be implemented)
+	var aiService interface{} = nil
+	logrus.Info("ℹ️ AI service placeholder initialized (implementation pending)")
+
+	// Initialize Compliance service (placeholder - to be implemented)
+	var complianceService interface{} = nil
+	logrus.Info("ℹ️ Compliance service placeholder initialized (implementation pending)")
+
+	// Initialize NLP service (placeholder - to be implemented)
+	var nlpService interface{} = nil
+	logrus.Info("ℹ️ NLP service placeholder initialized (implementation pending)")
+
+	// Initialize Optimization service (placeholder - to be implemented)
+	var optimizationService interface{} = nil
+	logrus.Info("ℹ️ Optimization service placeholder initialized (implementation pending)")
+
+	// Initialize Performance service (placeholder - to be implemented)
+	var performanceService interface{} = nil
+	logrus.Info("ℹ️ Performance service placeholder initialized (implementation pending)")
+
+	// Initialize Persona service (placeholder - to be implemented)
+	var personaService interface{} = nil
+	logrus.Info("ℹ️ Persona service placeholder initialized (implementation pending)")
+
 	logrus.Info("✅ All services initialized successfully")
+	logrus.Info("📊 Service Status: Core (9/9) ✅ | Enhanced (6/6) ℹ️ (placeholders)")
 
 	return &Services{
+		// Core Services
 		Database:   dbService,
 		Cache:      cacheService,
 		Auth:       authService,
-		Chat:       chatService,
 		Monitoring: monitoringService,
+		Chat:       chatService,
 		Training:   trainingService,
-		Concurrent: concurrentService,
-		RAG:        ragService,
 		Knowledge:  knowledgeService,
+		RAG:        ragService,
+		Concurrent: concurrentService,
+
+		// Enhanced Services (placeholders)
+		AI:           aiService,
+		Compliance:   complianceService,
+		NLP:          nlpService,
+		Optimization: optimizationService,
+		Performance:  performanceService,
+		Persona:      personaService,
 	}, nil
 }
 
