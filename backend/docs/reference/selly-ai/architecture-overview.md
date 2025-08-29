@@ -53,16 +53,28 @@ SELLY AI backend follows a **modular monolith architecture** designed for high p
 **File**: `backend/cmd/server/main.go`
 
 ```go
+// Updated Services struct with layered architecture (2025-08-29)
 type Services struct {
+    // Core Services (Foundation Layer)
     Database   *database.Service
     Cache      *cache.Service
     Auth       *auth.Service
-    Chat       *chat.Service
     Monitoring *monitoring.Service
+
+    // Business Logic Services (Application Layer)
+    Chat       *chat.Service
     Training   *training.Service
-    Concurrent *concurrent.Service
-    RAG        *rag.RedisRAGService
     Knowledge  *knowledge.DocumentLoaderService
+    RAG        *rag.RedisRAGService
+    Concurrent *concurrent.Service
+
+    // Enhanced Services (Optimization Layer) - Placeholders
+    AI           interface{} // *ai.Service - To be implemented
+    Compliance   interface{} // *compliance.Service - To be implemented
+    NLP          interface{} // *nlp.Service - To be implemented
+    Optimization interface{} // *optimization.Service - To be implemented
+    Performance  interface{} // *performance.Service - To be implemented
+    Persona      interface{} // *persona.Service - To be implemented
 }
 ```
 
