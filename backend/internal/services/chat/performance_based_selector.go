@@ -19,91 +19,91 @@ type PerformanceBasedSelector struct {
 
 // ProviderPerformanceMetrics tracks real-time performance metrics for a provider
 type ProviderPerformanceMetrics struct {
-	ProviderName        string    `json:"provider_name"`
-	LastUpdated         time.Time `json:"last_updated"`
-	
+	ProviderName string    `json:"provider_name"`
+	LastUpdated  time.Time `json:"last_updated"`
+
 	// Response time metrics
-	AverageResponseTime float64   `json:"average_response_time"`
-	MinResponseTime     float64   `json:"min_response_time"`
-	MaxResponseTime     float64   `json:"max_response_time"`
-	ResponseTimeP95     float64   `json:"response_time_p95"`
-	
+	AverageResponseTime float64 `json:"average_response_time"`
+	MinResponseTime     float64 `json:"min_response_time"`
+	MaxResponseTime     float64 `json:"max_response_time"`
+	ResponseTimeP95     float64 `json:"response_time_p95"`
+
 	// Quality metrics
-	AverageQuality      float64   `json:"average_quality"`
-	QualityConsistency  float64   `json:"quality_consistency"`
-	UserSatisfaction    float64   `json:"user_satisfaction"`
-	
+	AverageQuality     float64 `json:"average_quality"`
+	QualityConsistency float64 `json:"quality_consistency"`
+	UserSatisfaction   float64 `json:"user_satisfaction"`
+
 	// Reliability metrics
-	SuccessRate         float64   `json:"success_rate"`
-	ErrorRate           float64   `json:"error_rate"`
-	TimeoutRate         float64   `json:"timeout_rate"`
-	
+	SuccessRate float64 `json:"success_rate"`
+	ErrorRate   float64 `json:"error_rate"`
+	TimeoutRate float64 `json:"timeout_rate"`
+
 	// Load metrics
-	CurrentLoad         int       `json:"current_load"`
-	MaxLoad             int       `json:"max_load"`
-	LoadUtilization     float64   `json:"load_utilization"`
-	
+	CurrentLoad     int     `json:"current_load"`
+	MaxLoad         int     `json:"max_load"`
+	LoadUtilization float64 `json:"load_utilization"`
+
 	// Health metrics
-	HealthScore         float64   `json:"health_score"`
-	IsHealthy           bool      `json:"is_healthy"`
-	LastHealthCheck     time.Time `json:"last_health_check"`
-	
+	HealthScore     float64   `json:"health_score"`
+	IsHealthy       bool      `json:"is_healthy"`
+	LastHealthCheck time.Time `json:"last_health_check"`
+
 	// Request statistics
-	TotalRequests       int64     `json:"total_requests"`
-	SuccessfulRequests  int64     `json:"successful_requests"`
-	FailedRequests      int64     `json:"failed_requests"`
-	
+	TotalRequests      int64 `json:"total_requests"`
+	SuccessfulRequests int64 `json:"successful_requests"`
+	FailedRequests     int64 `json:"failed_requests"`
+
 	// Performance score (calculated)
-	PerformanceScore    float64   `json:"performance_score"`
+	PerformanceScore float64 `json:"performance_score"`
 }
 
 // PerformanceHistory tracks historical performance data
 type PerformanceHistory struct {
-	ProviderName     string                    `json:"provider_name"`
-	HourlyMetrics    []HourlyPerformanceData   `json:"hourly_metrics"`
-	DailyMetrics     []DailyPerformanceData    `json:"daily_metrics"`
-	TrendAnalysis    *PerformanceTrend         `json:"trend_analysis"`
-	LastUpdated      time.Time                 `json:"last_updated"`
+	ProviderName  string                  `json:"provider_name"`
+	HourlyMetrics []HourlyPerformanceData `json:"hourly_metrics"`
+	DailyMetrics  []DailyPerformanceData  `json:"daily_metrics"`
+	TrendAnalysis *PerformanceTrend       `json:"trend_analysis"`
+	LastUpdated   time.Time               `json:"last_updated"`
 }
 
 // HourlyPerformanceData represents performance data for one hour
 type HourlyPerformanceData struct {
-	Hour             time.Time `json:"hour"`
-	AverageResponse  float64   `json:"average_response"`
-	RequestCount     int64     `json:"request_count"`
-	SuccessRate      float64   `json:"success_rate"`
-	QualityScore     float64   `json:"quality_score"`
+	Hour            time.Time `json:"hour"`
+	AverageResponse float64   `json:"average_response"`
+	RequestCount    int64     `json:"request_count"`
+	SuccessRate     float64   `json:"success_rate"`
+	QualityScore    float64   `json:"quality_score"`
 }
 
 // DailyPerformanceData represents performance data for one day
 type DailyPerformanceData struct {
-	Date             time.Time `json:"date"`
-	AverageResponse  float64   `json:"average_response"`
-	RequestCount     int64     `json:"request_count"`
-	SuccessRate      float64   `json:"success_rate"`
-	QualityScore     float64   `json:"quality_score"`
-	PeakLoad         int       `json:"peak_load"`
+	Date            time.Time `json:"date"`
+	AverageResponse float64   `json:"average_response"`
+	RequestCount    int64     `json:"request_count"`
+	SuccessRate     float64   `json:"success_rate"`
+	QualityScore    float64   `json:"quality_score"`
+	PeakLoad        int       `json:"peak_load"`
 }
 
 // PerformanceTrend analyzes performance trends
 type PerformanceTrend struct {
-	ResponseTimeTrend    string    `json:"response_time_trend"`    // "improving", "stable", "degrading"
-	QualityTrend         string    `json:"quality_trend"`
-	ReliabilityTrend     string    `json:"reliability_trend"`
-	OverallTrend         string    `json:"overall_trend"`
-	TrendConfidence      float64   `json:"trend_confidence"`
-	LastAnalyzed         time.Time `json:"last_analyzed"`
+	ResponseTimeTrend string    `json:"response_time_trend"` // "improving", "stable", "degrading"
+	QualityTrend      string    `json:"quality_trend"`
+	ReliabilityTrend  string    `json:"reliability_trend"`
+	OverallTrend      string    `json:"overall_trend"`
+	TrendConfidence   float64   `json:"trend_confidence"`
+	LastAnalyzed      time.Time `json:"last_analyzed"`
 }
 
 // PerformanceThresholds defines performance thresholds for provider selection
 type PerformanceThresholds struct {
-	MaxResponseTime      float64   `json:"max_response_time"`      // milliseconds
-	MinQualityScore      float64   `json:"min_quality_score"`      // 0.0-1.0
-	MinSuccessRate       float64   `json:"min_success_rate"`       // 0.0-1.0
-	MaxErrorRate         float64   `json:"max_error_rate"`         // 0.0-1.0
-	MinHealthScore       float64   `json:"min_health_score"`       // 0.0-1.0
-	MaxLoadUtilization   float64   `json:"max_load_utilization"`   // 0.0-1.0
-	MinPerformanceScore  float64   `json:"min_performance_score"`  // 0.0-1.0
+	MaxResponseTime     float64 `json:"max_response_time"`     // milliseconds
+	MinQualityScore     float64 `json:"min_quality_score"`     // 0.0-1.0
+	MinSuccessRate      float64 `json:"min_success_rate"`      // 0.0-1.0
+	MaxErrorRate        float64 `json:"max_error_rate"`        // 0.0-1.0
+	MinHealthScore      float64 `json:"min_health_score"`      // 0.0-1.0
+	MaxLoadUtilization  float64 `json:"max_load_utilization"`  // 0.0-1.0
+	MinPerformanceScore float64 `json:"min_performance_score"` // 0.0-1.0
 }
 
 // PerformanceSelectionRequest contains parameters for performance-based selection
@@ -155,13 +155,13 @@ func NewPerformanceBasedSelector() *PerformanceBasedSelector {
 		providerMetrics:    make(map[string]*ProviderPerformanceMetrics),
 		performanceHistory: make(map[string]*PerformanceHistory),
 		thresholds: &PerformanceThresholds{
-			MaxResponseTime:      5000.0, // 5 seconds
-			MinQualityScore:      0.7,
-			MinSuccessRate:       0.9,
-			MaxErrorRate:         0.1,
-			MinHealthScore:       0.8,
-			MaxLoadUtilization:   0.8,
-			MinPerformanceScore:  0.6,
+			MaxResponseTime:     5000.0, // 5 seconds
+			MinQualityScore:     0.7,
+			MinSuccessRate:      0.9,
+			MaxErrorRate:        0.1,
+			MinHealthScore:      0.8,
+			MaxLoadUtilization:  0.8,
+			MinPerformanceScore: 0.6,
 		},
 		enabled: true,
 	}
@@ -184,8 +184,8 @@ func (pbs *PerformanceBasedSelector) SelectBestPerformingProvider(ctx context.Co
 
 	logrus.WithFields(logrus.Fields{
 		"available_providers":    len(req.AvailableProviders),
-		"query_type":            req.QueryType,
-		"required_quality":      req.RequiredQuality,
+		"query_type":             req.QueryType,
+		"required_quality":       req.RequiredQuality,
 		"max_acceptable_latency": req.MaxAcceptableLatency,
 	}).Debug("Selecting best performing provider")
 
@@ -223,12 +223,12 @@ func (pbs *PerformanceBasedSelector) SelectBestPerformingProvider(ctx context.Co
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"selected_provider":     selectedProvider.ProviderName,
-		"performance_score":     selectedProvider.PerformanceScore,
+		"selected_provider":      selectedProvider.ProviderName,
+		"performance_score":      selectedProvider.PerformanceScore,
 		"expected_response_time": response.ExpectedResponseTime,
-		"expected_quality":      response.ExpectedQuality,
-		"confidence":            response.Confidence,
-		"processing_time_ms":    processingTime,
+		"expected_quality":       response.ExpectedQuality,
+		"confidence":             response.Confidence,
+		"processing_time_ms":     processingTime,
 	}).Info("Performance-based provider selection completed")
 
 	return response, nil
@@ -240,7 +240,7 @@ func (pbs *PerformanceBasedSelector) UpdateProviderPerformance(update *Performan
 	defer pbs.mutex.Unlock()
 
 	metrics := pbs.getOrCreateMetrics(update.ProviderName)
-	
+
 	// Update response time metrics
 	if metrics.TotalRequests == 0 {
 		metrics.AverageResponseTime = update.ResponseTime
@@ -250,7 +250,7 @@ func (pbs *PerformanceBasedSelector) UpdateProviderPerformance(update *Performan
 		// Update average (exponential moving average)
 		alpha := 0.1 // Smoothing factor
 		metrics.AverageResponseTime = alpha*update.ResponseTime + (1-alpha)*metrics.AverageResponseTime
-		
+
 		if update.ResponseTime < metrics.MinResponseTime {
 			metrics.MinResponseTime = update.ResponseTime
 		}
@@ -438,6 +438,7 @@ func (pbs *PerformanceBasedSelector) meetsThresholds(metrics *ProviderPerformanc
 
 // calculateProviderScore calculates a comprehensive score for a provider
 func (pbs *PerformanceBasedSelector) calculateProviderScore(metrics *ProviderPerformanceMetrics, req *PerformanceSelectionRequest) float64 {
+	_ = req // Mark as intentionally unused for future extensibility
 	score := 0.0
 
 	// Response time score (25% weight)
@@ -476,6 +477,7 @@ func (pbs *PerformanceBasedSelector) calculateProviderScore(metrics *ProviderPer
 
 // generateSelectionReason generates a human-readable reason for provider selection
 func (pbs *PerformanceBasedSelector) generateSelectionReason(metrics *ProviderPerformanceMetrics, req *PerformanceSelectionRequest) string {
+	_ = req // Mark as intentionally unused for future extensibility
 	if metrics.AverageResponseTime < 100 {
 		return "Excellent response time performance"
 	}

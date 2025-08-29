@@ -233,10 +233,27 @@ export class SellyApiService {
   }
 
   /**
+   * Get time-based greeting for fallback responses
+   */
+  private static getTimeBasedGreeting(): string {
+    const hour = new Date().getHours();
+
+    if (hour >= 5 && hour < 12) {
+      return 'pagi';
+    } else if (hour >= 12 && hour < 17) {
+      return 'siang';
+    } else if (hour >= 17 && hour < 21) {
+      return 'sore';
+    } else {
+      return 'malam';
+    }
+  }
+
+  /**
    * Generate backend disconnection fallback response
    */
   private static generateBackendDisconnectionFallback(message: string): string {
-    const greeting = this.getGreeting();
+    const greeting = this.getTimeBasedGreeting();
 
     return `🤖 **SELLY AI Assistant - Disdukcapil Garut**
 

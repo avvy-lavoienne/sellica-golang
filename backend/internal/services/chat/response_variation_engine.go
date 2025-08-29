@@ -27,18 +27,18 @@ type ResponseStyle struct {
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
 	Temperature float64 `json:"temperature"`
-	Formality   string  `json:"formality"`   // "formal", "casual", "friendly"
-	Length      string  `json:"length"`      // "concise", "detailed", "comprehensive"
-	Tone        string  `json:"tone"`        // "professional", "warm", "helpful"
+	Formality   string  `json:"formality"` // "formal", "casual", "friendly"
+	Length      string  `json:"length"`    // "concise", "detailed", "comprehensive"
+	Tone        string  `json:"tone"`      // "professional", "warm", "helpful"
 }
 
 // ResponseVariation represents a single response variation
 type ResponseVariation struct {
-	Content     string        `json:"content"`
-	Style       ResponseStyle `json:"style"`
-	Confidence  float64       `json:"confidence"`
-	Temperature float64       `json:"temperature"`
-	Reasoning   string        `json:"reasoning"`
+	Content     string                 `json:"content"`
+	Style       ResponseStyle          `json:"style"`
+	Confidence  float64                `json:"confidence"`
+	Temperature float64                `json:"temperature"`
+	Reasoning   string                 `json:"reasoning"`
 	Metadata    map[string]interface{} `json:"metadata"`
 }
 
@@ -57,32 +57,32 @@ type VariationRequest struct {
 
 // VariationResponse contains the generated variations
 type VariationResponse struct {
-	Variations      []ResponseVariation `json:"variations"`
-	SelectedVariation *ResponseVariation `json:"selected_variation"`
-	ProcessingTime  float64             `json:"processing_time"`
-	Strategy        string              `json:"strategy"`
-	Metadata        map[string]interface{} `json:"metadata"`
+	Variations        []ResponseVariation    `json:"variations"`
+	SelectedVariation *ResponseVariation     `json:"selected_variation"`
+	ProcessingTime    float64                `json:"processing_time"`
+	Strategy          string                 `json:"strategy"`
+	Metadata          map[string]interface{} `json:"metadata"`
 }
 
 // UserResponsePreference tracks user's response preferences
 type UserResponsePreference struct {
-	UserID              string    `json:"user_id"`
-	PreferredStyle      string    `json:"preferred_style"`
-	PreferredLength     string    `json:"preferred_length"`
-	PreferredFormality  string    `json:"preferred_formality"`
-	ResponseHistory     []string  `json:"response_history"`
-	LastUpdated         time.Time `json:"last_updated"`
-	InteractionCount    int       `json:"interaction_count"`
+	UserID             string    `json:"user_id"`
+	PreferredStyle     string    `json:"preferred_style"`
+	PreferredLength    string    `json:"preferred_length"`
+	PreferredFormality string    `json:"preferred_formality"`
+	ResponseHistory    []string  `json:"response_history"`
+	LastUpdated        time.Time `json:"last_updated"`
+	InteractionCount   int       `json:"interaction_count"`
 }
 
 // SessionResponseHistory tracks response patterns within a session
 type SessionResponseHistory struct {
-	SessionID           string    `json:"session_id"`
-	ResponseStyles      []string  `json:"response_styles"`
-	LastResponseStyle   string    `json:"last_response_style"`
-	ConsecutiveSameStyle int      `json:"consecutive_same_style"`
-	CreatedAt           time.Time `json:"created_at"`
-	LastUpdated         time.Time `json:"last_updated"`
+	SessionID            string    `json:"session_id"`
+	ResponseStyles       []string  `json:"response_styles"`
+	LastResponseStyle    string    `json:"last_response_style"`
+	ConsecutiveSameStyle int       `json:"consecutive_same_style"`
+	CreatedAt            time.Time `json:"created_at"`
+	LastUpdated          time.Time `json:"last_updated"`
 }
 
 // ContextAdapter adapts responses based on specific contexts
@@ -96,11 +96,11 @@ type ContextAdapter struct {
 func NewResponseVariationEngine() *ResponseVariationEngine {
 	return &ResponseVariationEngine{
 		temperatureRanges: map[string][]float64{
-			"greeting":     {0.8, 0.9, 1.0},     // High creativity for greetings
-			"factual":      {0.3, 0.5, 0.7},     // Low creativity for facts
-			"conversational": {0.6, 0.7, 0.8},   // Moderate creativity
-			"service":      {0.4, 0.6, 0.7},     // Controlled creativity for services
-			"default":      {0.5, 0.7, 0.9},     // Balanced range
+			"greeting":       {0.8, 0.9, 1.0}, // High creativity for greetings
+			"factual":        {0.3, 0.5, 0.7}, // Low creativity for facts
+			"conversational": {0.6, 0.7, 0.8}, // Moderate creativity
+			"service":        {0.4, 0.6, 0.7}, // Controlled creativity for services
+			"default":        {0.5, 0.7, 0.9}, // Balanced range
 		},
 		styleVariations: []ResponseStyle{
 			{
@@ -144,10 +144,10 @@ func NewResponseVariationEngine() *ResponseVariationEngine {
 				Tone:        "professional",
 			},
 		},
-		contextAdapters:   make(map[string]*ContextAdapter),
-		userPreferences:   make(map[string]*UserResponsePreference),
-		sessionHistory:    make(map[string]*SessionResponseHistory),
-		enabled:           true,
+		contextAdapters: make(map[string]*ContextAdapter),
+		userPreferences: make(map[string]*UserResponsePreference),
+		sessionHistory:  make(map[string]*SessionResponseHistory),
+		enabled:         true,
 	}
 }
 
@@ -178,11 +178,11 @@ func (rve *ResponseVariationEngine) GenerateVariations(ctx context.Context, req 
 	startTime := time.Now()
 
 	logrus.WithFields(logrus.Fields{
-		"user_id":         req.UserID,
-		"session_id":      req.SessionID,
-		"query_type":      req.QueryType,
-		"max_variations":  req.MaxVariations,
-		"base_query_len":  len(req.BaseQuery),
+		"user_id":           req.UserID,
+		"session_id":        req.SessionID,
+		"query_type":        req.QueryType,
+		"max_variations":    req.MaxVariations,
+		"base_query_len":    len(req.BaseQuery),
 		"base_response_len": len(req.BaseResponse),
 	}).Debug("Generating response variations")
 
@@ -205,7 +205,7 @@ func (rve *ResponseVariationEngine) GenerateVariations(ctx context.Context, req 
 	// Generate variations
 	variations := make([]ResponseVariation, 0, len(selectedStyles))
 	for i, style := range selectedStyles {
-		variation, err := rve.generateSingleVariation(ctx, req, style, i)
+		variation, err := rve.generateSingleVariation(req, style, i)
 		if err != nil {
 			logrus.WithError(err).Warn("Failed to generate variation")
 			continue
@@ -223,10 +223,10 @@ func (rve *ResponseVariationEngine) GenerateVariations(ctx context.Context, req 
 	processingTime := time.Since(startTime).Seconds() * 1000
 
 	logrus.WithFields(logrus.Fields{
-		"user_id":           req.UserID,
-		"session_id":        req.SessionID,
-		"variations_count":  len(variations),
-		"selected_style":    selectedVariation.Style.Name,
+		"user_id":            req.UserID,
+		"session_id":         req.SessionID,
+		"variations_count":   len(variations),
+		"selected_style":     selectedVariation.Style.Name,
 		"processing_time_ms": processingTime,
 	}).Info("Response variations generated successfully")
 
@@ -299,13 +299,13 @@ func (rve *ResponseVariationEngine) getUserPreferences(userID string) *UserRespo
 
 	// Create default preferences for new user
 	defaultPref := &UserResponsePreference{
-		UserID:              userID,
-		PreferredStyle:      "friendly",
-		PreferredLength:     "conversational",
-		PreferredFormality:  "casual",
-		ResponseHistory:     []string{},
-		LastUpdated:         time.Now(),
-		InteractionCount:    0,
+		UserID:             userID,
+		PreferredStyle:     "friendly",
+		PreferredLength:    "conversational",
+		PreferredFormality: "casual",
+		ResponseHistory:    []string{},
+		LastUpdated:        time.Now(),
+		InteractionCount:   0,
 	}
 
 	rve.userPreferences[userID] = defaultPref
@@ -323,12 +323,12 @@ func (rve *ResponseVariationEngine) getSessionHistory(sessionID string) *Session
 
 	// Create new session history
 	newHist := &SessionResponseHistory{
-		SessionID:           sessionID,
-		ResponseStyles:      []string{},
-		LastResponseStyle:   "",
+		SessionID:            sessionID,
+		ResponseStyles:       []string{},
+		LastResponseStyle:    "",
 		ConsecutiveSameStyle: 0,
-		CreatedAt:           time.Now(),
-		LastUpdated:         time.Now(),
+		CreatedAt:            time.Now(),
+		LastUpdated:          time.Now(),
 	}
 
 	rve.sessionHistory[sessionID] = newHist
@@ -407,6 +407,7 @@ func (rve *ResponseVariationEngine) selectNextBestStyle(req *VariationRequest, s
 
 // calculateStyleScore calculates a score for a style based on context
 func (rve *ResponseVariationEngine) calculateStyleScore(style ResponseStyle, req *VariationRequest, selectedStyles []ResponseStyle) float64 {
+	_ = req      // Mark as intentionally unused for future extensibility
 	score := 0.5 // Base score
 
 	// Boost score based on query type
@@ -441,7 +442,7 @@ func (rve *ResponseVariationEngine) calculateStyleScore(style ResponseStyle, req
 }
 
 // generateSingleVariation generates a single response variation
-func (rve *ResponseVariationEngine) generateSingleVariation(ctx context.Context, req *VariationRequest, style ResponseStyle, index int) (*ResponseVariation, error) {
+func (rve *ResponseVariationEngine) generateSingleVariation(req *VariationRequest, style ResponseStyle, index int) (*ResponseVariation, error) {
 	// Apply style-based transformations to the base response
 	content := rve.applyStyleTransformation(req.BaseResponse, style, req)
 
@@ -503,15 +504,15 @@ func (rve *ResponseVariationEngine) applyStyleTransformation(baseContent string,
 func (rve *ResponseVariationEngine) makeFormal(content string) string {
 	// Replace casual expressions with formal ones
 	replacements := map[string]string{
-		"halo":     "Selamat",
-		"hai":      "Selamat",
-		"gimana":   "bagaimana",
-		"udah":     "sudah",
-		"gak":      "tidak",
-		"aja":      "saja",
-		"dong":     "",
-		"nih":      "",
-		"banget":   "sekali",
+		"halo":   "Selamat",
+		"hai":    "Selamat",
+		"gimana": "bagaimana",
+		"udah":   "sudah",
+		"gak":    "tidak",
+		"aja":    "saja",
+		"dong":   "",
+		"nih":    "",
+		"banget": "sekali",
 	}
 
 	for casual, formal := range replacements {
@@ -772,12 +773,12 @@ func (rve *ResponseVariationEngine) GetMetrics() map[string]interface{} {
 	defer rve.mutex.RUnlock()
 
 	return map[string]interface{}{
-		"enabled":              rve.enabled,
-		"total_users":          len(rve.userPreferences),
-		"active_sessions":      len(rve.sessionHistory),
-		"available_styles":     len(rve.styleVariations),
-		"temperature_ranges":   len(rve.temperatureRanges),
-		"context_adapters":     len(rve.contextAdapters),
+		"enabled":            rve.enabled,
+		"total_users":        len(rve.userPreferences),
+		"active_sessions":    len(rve.sessionHistory),
+		"available_styles":   len(rve.styleVariations),
+		"temperature_ranges": len(rve.temperatureRanges),
+		"context_adapters":   len(rve.contextAdapters),
 	}
 }
 

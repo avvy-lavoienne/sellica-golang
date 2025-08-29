@@ -2,7 +2,6 @@ package chat
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -12,31 +11,31 @@ import (
 
 // EnhancedProviderSelector provides intelligent AI provider selection with comprehensive tracking
 type EnhancedProviderSelector struct {
-	userHistory          map[string]*UserProviderHistory
-	providerMetrics      map[string]*ProviderMetrics
-	complexityAnalyzer   *QueryComplexityAnalyzer
+	userHistory        map[string]*UserProviderHistory
+	providerMetrics    map[string]*ProviderMetrics
+	complexityAnalyzer *QueryComplexityAnalyzer
 
 	// Priority 2 enhancements
-	userHistoryTracker   *UserHistoryTracker
-	rotationEngine       *ProviderRotationEngine
-	performanceSelector  *PerformanceBasedSelector
+	userHistoryTracker  *UserHistoryTracker
+	rotationEngine      *ProviderRotationEngine
+	performanceSelector *PerformanceBasedSelector
 
-	enabled              bool
-	mutex                sync.RWMutex
+	enabled bool
+	mutex   sync.RWMutex
 }
 
 // UserProviderHistory tracks user's interaction history with providers
 type UserProviderHistory struct {
-	UserID                  string                 `json:"user_id"`
-	ProviderUsageCount      map[string]int         `json:"provider_usage_count"`
-	LastUsedProvider        string                 `json:"last_used_provider"`
-	ConsecutiveSameProvider int                    `json:"consecutive_same_provider"`
-	PreferredProvider       string                 `json:"preferred_provider"`
-	InteractionCount        int                    `json:"interaction_count"`
-	AverageResponseTime     map[string]float64     `json:"average_response_time"`
-	SatisfactionScores      map[string]float64     `json:"satisfaction_scores"`
-	LastUpdated             time.Time              `json:"last_updated"`
-	CreatedAt               time.Time              `json:"created_at"`
+	UserID                  string             `json:"user_id"`
+	ProviderUsageCount      map[string]int     `json:"provider_usage_count"`
+	LastUsedProvider        string             `json:"last_used_provider"`
+	ConsecutiveSameProvider int                `json:"consecutive_same_provider"`
+	PreferredProvider       string             `json:"preferred_provider"`
+	InteractionCount        int                `json:"interaction_count"`
+	AverageResponseTime     map[string]float64 `json:"average_response_time"`
+	SatisfactionScores      map[string]float64 `json:"satisfaction_scores"`
+	LastUpdated             time.Time          `json:"last_updated"`
+	CreatedAt               time.Time          `json:"created_at"`
 }
 
 // ProviderMetrics tracks provider performance metrics
@@ -60,22 +59,22 @@ type QueryComplexityAnalyzer struct {
 
 // QueryComplexity represents the complexity analysis of a query
 type QueryComplexity struct {
-	Level               string  `json:"level"`               // "simple", "moderate", "complex"
-	Score               float64 `json:"score"`               // 0.0 - 1.0
-	RequiresEnhancement bool    `json:"requires_enhancement"`
-	ServiceType         string  `json:"service_type"`
+	Level               string            `json:"level"` // "simple", "moderate", "complex"
+	Score               float64           `json:"score"` // 0.0 - 1.0
+	RequiresEnhancement bool              `json:"requires_enhancement"`
+	ServiceType         string            `json:"service_type"`
 	Factors             ComplexityFactors `json:"factors"`
 }
 
 // ComplexityFactors represents factors that contribute to query complexity
 type ComplexityFactors struct {
-	Length              int     `json:"length"`
-	MultipleQuestions   bool    `json:"multiple_questions"`
-	TechnicalTerms      bool    `json:"technical_terms"`
-	RequiresDatabase    bool    `json:"requires_database"`
-	ConversationalMode  bool    `json:"conversational_mode"`
-	EmotionalContent    bool    `json:"emotional_content"`
-	ComplexityScore     float64 `json:"complexity_score"`
+	Length             int     `json:"length"`
+	MultipleQuestions  bool    `json:"multiple_questions"`
+	TechnicalTerms     bool    `json:"technical_terms"`
+	RequiresDatabase   bool    `json:"requires_database"`
+	ConversationalMode bool    `json:"conversational_mode"`
+	EmotionalContent   bool    `json:"emotional_content"`
+	ComplexityScore    float64 `json:"complexity_score"`
 }
 
 // ProviderSelectionRequest contains parameters for provider selection
@@ -91,14 +90,14 @@ type ProviderSelectionRequest struct {
 
 // ProviderSelectionResponse contains the selected provider and reasoning
 type ProviderSelectionResponse struct {
-	SelectedProvider    string                 `json:"selected_provider"`
-	Confidence          float64                `json:"confidence"`
-	Reasoning           string                 `json:"reasoning"`
-	AlternativeProviders []string              `json:"alternative_providers"`
-	QueryComplexity     QueryComplexity        `json:"query_complexity"`
-	UserHistoryApplied  bool                   `json:"user_history_applied"`
-	ProcessingTime      float64                `json:"processing_time"`
-	Metadata            map[string]interface{} `json:"metadata"`
+	SelectedProvider     string                 `json:"selected_provider"`
+	Confidence           float64                `json:"confidence"`
+	Reasoning            string                 `json:"reasoning"`
+	AlternativeProviders []string               `json:"alternative_providers"`
+	QueryComplexity      QueryComplexity        `json:"query_complexity"`
+	UserHistoryApplied   bool                   `json:"user_history_applied"`
+	ProcessingTime       float64                `json:"processing_time"`
+	Metadata             map[string]interface{} `json:"metadata"`
 }
 
 // NewEnhancedProviderSelector creates a new enhanced provider selector
@@ -108,20 +107,20 @@ func NewEnhancedProviderSelector() *EnhancedProviderSelector {
 		providerMetrics: make(map[string]*ProviderMetrics),
 		complexityAnalyzer: &QueryComplexityAnalyzer{
 			complexityPatterns: map[string]float64{
-				"greeting":     0.2, // Simple greetings
-				"service":      0.6, // Service requests
-				"technical":    0.8, // Technical queries
-				"multi_part":   0.9, // Multiple questions
-				"emotional":    0.7, // Emotional content
+				"greeting":   0.2, // Simple greetings
+				"service":    0.6, // Service requests
+				"technical":  0.8, // Technical queries
+				"multi_part": 0.9, // Multiple questions
+				"emotional":  0.7, // Emotional content
 			},
 			servicePatterns: map[string]string{
-				"ktp":         "service",
-				"kartu keluarga": "service",
-				"akta":        "service",
-				"domisili":    "service",
-				"pindah":      "service",
-				"halo":        "greeting",
-				"selamat":     "greeting",
+				"ktp":             "service",
+				"kartu keluarga":  "service",
+				"akta":            "service",
+				"domisili":        "service",
+				"pindah":          "service",
+				"halo":            "greeting",
+				"selamat":         "greeting",
 				"assalamualaikum": "greeting",
 			},
 			enabled: true,
@@ -151,9 +150,9 @@ func (eps *EnhancedProviderSelector) SelectProvider(ctx context.Context, req *Pr
 	startTime := time.Now()
 
 	logrus.WithFields(logrus.Fields{
-		"user_id":            req.UserID,
-		"session_id":         req.SessionID,
-		"query_length":       len(req.Query),
+		"user_id":             req.UserID,
+		"session_id":          req.SessionID,
+		"query_length":        len(req.Query),
 		"available_providers": len(req.AvailableProviders),
 	}).Debug("Selecting optimal AI provider with Priority 2 enhancements")
 
@@ -169,7 +168,7 @@ func (eps *EnhancedProviderSelector) SelectProvider(ctx context.Context, req *Pr
 		QueryType:            complexity.ServiceType,
 		UserID:               req.UserID,
 		SessionID:            req.SessionID,
-		RequiredQuality:      0.7, // Default quality requirement
+		RequiredQuality:      0.7,  // Default quality requirement
 		MaxAcceptableLatency: 5000, // 5 seconds max
 		Context:              req.Context,
 	}
@@ -203,7 +202,7 @@ func (eps *EnhancedProviderSelector) SelectProvider(ctx context.Context, req *Pr
 	confidence, reasoning := eps.calculateFinalConfidenceAndReasoning(complexity, performanceResp, rotationResp)
 
 	// Phase 7: Generate alternative providers
-	alternatives := eps.generateEnhancedAlternatives(req.AvailableProviders, selectedProvider, complexity, performanceResp)
+	alternatives := eps.generateEnhancedAlternatives(req.AvailableProviders, selectedProvider, performanceResp)
 
 	// Phase 8: Update user history with comprehensive tracking
 	eps.updateComprehensiveUserHistory(req, selectedProvider, complexity, confidence)
@@ -211,13 +210,13 @@ func (eps *EnhancedProviderSelector) SelectProvider(ctx context.Context, req *Pr
 	processingTime := time.Since(startTime).Seconds() * 1000
 
 	logrus.WithFields(logrus.Fields{
-		"user_id":              req.UserID,
-		"selected_provider":    selectedProvider,
-		"confidence":           confidence,
-		"complexity_level":     complexity.Level,
-		"performance_applied":  performanceResp != nil,
-		"rotation_applied":     rotationResp != nil && rotationResp.ShouldRotate,
-		"processing_time_ms":   processingTime,
+		"user_id":             req.UserID,
+		"selected_provider":   selectedProvider,
+		"confidence":          confidence,
+		"complexity_level":    complexity.Level,
+		"performance_applied": performanceResp != nil,
+		"rotation_applied":    rotationResp != nil && rotationResp.ShouldRotate,
+		"processing_time_ms":  processingTime,
 	}).Info("Enhanced provider selection completed with Priority 2 features")
 
 	return &ProviderSelectionResponse{
@@ -229,13 +228,13 @@ func (eps *EnhancedProviderSelector) SelectProvider(ctx context.Context, req *Pr
 		UserHistoryApplied:   userProfile != nil,
 		ProcessingTime:       processingTime,
 		Metadata: map[string]interface{}{
-			"complexity_score":        complexity.Score,
-			"performance_score":       performanceResp.PerformanceScore,
-			"rotation_applied":        rotationResp != nil && rotationResp.ShouldRotate,
-			"rotation_reason":         rotationResp.RotationReason,
-			"expected_response_time":  performanceResp.ExpectedResponseTime,
-			"expected_quality":        performanceResp.ExpectedQuality,
-			"priority2_features":      "active",
+			"complexity_score":       complexity.Score,
+			"performance_score":      performanceResp.PerformanceScore,
+			"rotation_applied":       rotationResp != nil && rotationResp.ShouldRotate,
+			"rotation_reason":        rotationResp.RotationReason,
+			"expected_response_time": performanceResp.ExpectedResponseTime,
+			"expected_quality":       performanceResp.ExpectedQuality,
+			"priority2_features":     "active",
 		},
 	}, nil
 }
@@ -250,7 +249,7 @@ func (qca *QueryComplexityAnalyzer) AnalyzeComplexity(query string, context map[
 	}
 
 	query = strings.ToLower(strings.TrimSpace(query))
-	
+
 	factors := ComplexityFactors{
 		Length: len(query),
 	}
@@ -334,7 +333,7 @@ func (qca *QueryComplexityAnalyzer) AnalyzeComplexity(query string, context map[
 	// Determine complexity level
 	level := "simple"
 	requiresEnhancement := false
-	
+
 	if score >= 0.7 {
 		level = "complex"
 		requiresEnhancement = true
@@ -367,120 +366,6 @@ func (eps *EnhancedProviderSelector) SetEnabled(enabled bool) {
 	logrus.WithField("enabled", enabled).Info("Enhanced provider selector status updated")
 }
 
-// getUserHistory gets user history with fallback to new user
-func (eps *EnhancedProviderSelector) getUserHistory(userID string) *UserProviderHistory {
-	eps.mutex.RLock()
-	defer eps.mutex.RUnlock()
-
-	if hist, exists := eps.userHistory[userID]; exists {
-		return hist
-	}
-
-	// Create new user history
-	newHist := &UserProviderHistory{
-		UserID:                  userID,
-		ProviderUsageCount:      make(map[string]int),
-		LastUsedProvider:        "",
-		ConsecutiveSameProvider: 0,
-		PreferredProvider:       "",
-		InteractionCount:        0,
-		AverageResponseTime:     make(map[string]float64),
-		SatisfactionScores:      make(map[string]float64),
-		LastUpdated:             time.Now(),
-		CreatedAt:               time.Now(),
-	}
-
-	eps.userHistory[userID] = newHist
-	return newHist
-}
-
-// selectOptimalProvider selects the optimal provider based on multiple factors
-func (eps *EnhancedProviderSelector) selectOptimalProvider(req *ProviderSelectionRequest, complexity *QueryComplexity, userHist *UserProviderHistory) (string, float64, string) {
-	// Default providers based on complexity
-	var primaryProvider string
-	confidence := 0.7
-	reasoning := ""
-
-	// Provider selection based on complexity
-	switch complexity.Level {
-	case "simple":
-		primaryProvider = "simple"
-		reasoning = "Simple query suitable for basic provider"
-	case "moderate":
-		primaryProvider = "enhanced"
-		reasoning = "Moderate complexity requires enhanced provider"
-		confidence = 0.8
-	case "complex":
-		primaryProvider = "enhanced"
-		reasoning = "Complex query requires enhanced provider"
-		confidence = 0.9
-	}
-
-	// Override with preferred provider if specified
-	if req.PreferredProvider != "" && eps.isProviderAvailable(req.PreferredProvider, req.AvailableProviders) {
-		primaryProvider = req.PreferredProvider
-		reasoning = fmt.Sprintf("Using preferred provider: %s", req.PreferredProvider)
-		confidence = 0.95
-	}
-
-	// Apply user history considerations
-	if userHist != nil && userHist.InteractionCount > 0 {
-		// Avoid consecutive same provider if used too many times
-		if userHist.ConsecutiveSameProvider >= 3 && userHist.LastUsedProvider != "" {
-			alternativeProvider := eps.selectAlternativeProvider(userHist.LastUsedProvider, req.AvailableProviders, complexity)
-			if alternativeProvider != "" {
-				primaryProvider = alternativeProvider
-				reasoning = fmt.Sprintf("Rotating from %s to %s for variety", userHist.LastUsedProvider, alternativeProvider)
-				confidence = 0.75
-			}
-		}
-
-		// Use preferred provider if user has strong preference
-		if userHist.PreferredProvider != "" && eps.isProviderAvailable(userHist.PreferredProvider, req.AvailableProviders) {
-			// Check if preferred provider is suitable for complexity
-			if eps.isProviderSuitableForComplexity(userHist.PreferredProvider, complexity) {
-				primaryProvider = userHist.PreferredProvider
-				reasoning = fmt.Sprintf("Using user's preferred provider: %s", userHist.PreferredProvider)
-				confidence = 0.85
-			}
-		}
-	}
-
-	// Ensure selected provider is available
-	if !eps.isProviderAvailable(primaryProvider, req.AvailableProviders) {
-		primaryProvider = eps.selectFallbackProvider(req.AvailableProviders, complexity)
-		reasoning = fmt.Sprintf("Fallback to available provider: %s", primaryProvider)
-		confidence = 0.6
-	}
-
-	return primaryProvider, confidence, reasoning
-}
-
-// selectAlternativeProvider selects an alternative to avoid repetition
-func (eps *EnhancedProviderSelector) selectAlternativeProvider(lastProvider string, availableProviders []string, complexity *QueryComplexity) string {
-	// Filter out the last used provider
-	alternatives := []string{}
-	for _, provider := range availableProviders {
-		if provider != lastProvider {
-			alternatives = append(alternatives, provider)
-		}
-	}
-
-	if len(alternatives) == 0 {
-		return "" // No alternatives available
-	}
-
-	// Select best alternative based on complexity
-	for _, provider := range alternatives {
-		if eps.isProviderSuitableForComplexity(provider, complexity) {
-			return provider
-		}
-	}
-
-	// Return first available alternative
-	return alternatives[0]
-}
-
 // isProviderAvailable checks if a provider is in the available list
 func (eps *EnhancedProviderSelector) isProviderAvailable(provider string, availableProviders []string) bool {
 	for _, available := range availableProviders {
@@ -491,60 +376,6 @@ func (eps *EnhancedProviderSelector) isProviderAvailable(provider string, availa
 	return false
 }
 
-// isProviderSuitableForComplexity checks if a provider is suitable for the query complexity
-func (eps *EnhancedProviderSelector) isProviderSuitableForComplexity(provider string, complexity *QueryComplexity) bool {
-	switch provider {
-	case "simple":
-		return complexity.Level == "simple"
-	case "enhanced":
-		return complexity.Level == "moderate" || complexity.Level == "complex"
-	case "groq":
-		return true // Groq can handle any complexity
-	case "groq-selly":
-		return true // GroqSELLY can handle any complexity
-	default:
-		return true // Unknown providers assumed to be capable
-	}
-}
-
-// selectFallbackProvider selects a fallback provider when preferred is not available
-func (eps *EnhancedProviderSelector) selectFallbackProvider(availableProviders []string, complexity *QueryComplexity) string {
-	if len(availableProviders) == 0 {
-		return "simple" // Ultimate fallback
-	}
-
-	// Prefer enhanced providers for complex queries
-	if complexity.Level == "complex" || complexity.Level == "moderate" {
-		preferredOrder := []string{"enhanced", "groq-selly", "groq", "simple"}
-		for _, preferred := range preferredOrder {
-			if eps.isProviderAvailable(preferred, availableProviders) {
-				return preferred
-			}
-		}
-	}
-
-	// For simple queries, any provider works
-	return availableProviders[0]
-}
-
-// generateAlternatives generates alternative provider suggestions
-func (eps *EnhancedProviderSelector) generateAlternatives(selectedProvider string, availableProviders []string, complexity *QueryComplexity) []string {
-	alternatives := []string{}
-
-	for _, provider := range availableProviders {
-		if provider != selectedProvider && eps.isProviderSuitableForComplexity(provider, complexity) {
-			alternatives = append(alternatives, provider)
-		}
-	}
-
-	// Limit to top 3 alternatives
-	if len(alternatives) > 3 {
-		alternatives = alternatives[:3]
-	}
-
-	return alternatives
-}
-
 // updateUserHistory updates user history after provider selection
 func (eps *EnhancedProviderSelector) updateUserHistory(userID, selectedProvider string) {
 	eps.mutex.Lock()
@@ -553,11 +384,11 @@ func (eps *EnhancedProviderSelector) updateUserHistory(userID, selectedProvider 
 	hist, exists := eps.userHistory[userID]
 	if !exists {
 		hist = &UserProviderHistory{
-			UserID:             userID,
-			ProviderUsageCount: make(map[string]int),
+			UserID:              userID,
+			ProviderUsageCount:  make(map[string]int),
 			AverageResponseTime: make(map[string]float64),
-			SatisfactionScores: make(map[string]float64),
-			CreatedAt:          time.Now(),
+			SatisfactionScores:  make(map[string]float64),
+			CreatedAt:           time.Now(),
 		}
 		eps.userHistory[userID] = hist
 	}
@@ -592,9 +423,9 @@ func (eps *EnhancedProviderSelector) GetMetrics() map[string]interface{} {
 	defer eps.mutex.RUnlock()
 
 	return map[string]interface{}{
-		"enabled":           eps.enabled,
-		"total_users":       len(eps.userHistory),
-		"provider_metrics":  len(eps.providerMetrics),
+		"enabled":                     eps.enabled,
+		"total_users":                 len(eps.userHistory),
+		"provider_metrics":            len(eps.providerMetrics),
 		"complexity_analyzer_enabled": eps.complexityAnalyzer.enabled,
 	}
 }
@@ -691,7 +522,7 @@ func (eps *EnhancedProviderSelector) calculateFinalConfidenceAndReasoning(comple
 }
 
 // generateEnhancedAlternatives generates enhanced alternative provider suggestions
-func (eps *EnhancedProviderSelector) generateEnhancedAlternatives(availableProviders []string, selectedProvider string, complexity *QueryComplexity, performanceResp *PerformanceSelectionResponse) []string {
+func (eps *EnhancedProviderSelector) generateEnhancedAlternatives(availableProviders []string, selectedProvider string, performanceResp *PerformanceSelectionResponse) []string {
 	alternatives := make([]string, 0, len(availableProviders)-1)
 
 	// Add performance-based alternatives first
@@ -742,8 +573,8 @@ func (eps *EnhancedProviderSelector) updateComprehensiveUserHistory(req *Provide
 		CulturalContext:  "indonesian",
 		Timestamp:        time.Now(),
 		AdditionalMetadata: map[string]interface{}{
-			"complexity_level":  complexity.Level,
-			"complexity_score":  complexity.Score,
+			"complexity_level":     complexity.Level,
+			"complexity_score":     complexity.Score,
 			"selection_confidence": confidence,
 			"requires_enhancement": complexity.RequiresEnhancement,
 		},
