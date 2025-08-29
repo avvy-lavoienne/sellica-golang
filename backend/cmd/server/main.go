@@ -20,6 +20,7 @@ import (
 	"selly-backend/internal/services/chat"
 	"selly-backend/internal/services/concurrent"
 	"selly-backend/internal/services/database"
+	"selly-backend/internal/services/eventbus"
 	"selly-backend/internal/services/knowledge"
 	"selly-backend/internal/services/monitoring"
 	"selly-backend/internal/services/rag"
@@ -52,6 +53,7 @@ func main() {
 
 	// Setup routes with services
 	routeServices := routes.GetServices(
+		services.EventBus,
 		services.Database,
 		services.Cache,
 		services.Auth,
@@ -105,7 +107,8 @@ func main() {
 
 // Services holds all application services
 type Services struct {
-	// Core Services (Foundation Layer)
+	// Core Infrastructure (Foundation Layer)
+	EventBus   *eventbus.Service
 	Database   *database.Service
 	Cache      *cache.Service
 	Auth       *auth.Service
@@ -155,6 +158,15 @@ func (s *Services) Cleanup() {
 		logrus.Info("🔐 Authentication service cache cleared")
 	}
 
+	// Cleanup core infrastructure services
+	if s.EventBus != nil {
+		if err := s.EventBus.Stop(); err != nil {
+			logrus.WithError(err).Warn("Error stopping event bus")
+		} else {
+			logrus.Info("📡 Event bus stopped successfully")
+		}
+	}
+
 	// Cleanup core services
 	if s.Knowledge != nil {
 		s.Knowledge.Close()
@@ -172,6 +184,18 @@ func (s *Services) Cleanup() {
 // initializeServices initializes all application services
 func initializeServices(cfg *config.Config) (*Services, error) {
 	logrus.Info("🔧 Initializing services...")
+
+	// Initialize event bus service (Core Infrastructure)
+	eventBusConfig := eventbus.DefaultEventBusConfig()
+	eventBus := eventbus.NewService(eventBusConfig)
+
+	// Start event bus
+	ctx := context.Background()
+	if err := eventBus.Start(ctx); err != nil {
+		return nil, fmt.Errorf("failed to start event bus service: %w", err)
+	}
+
+	logrus.Info("📡 Event bus service initialized and started")
 
 	// Initialize database service
 	dbService, err := database.NewService(cfg.Database.URL, cfg.Database.ServiceRoleKey)
@@ -282,11 +306,14 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	logrus.Info("🚀 Enhanced Features: Token Caching ✅ | Metadata Support ✅ | Audit Logging ✅ | Indonesian Compliance ✅")
 
 	return &Services{
-		// Core Services
+		// Core Infrastructure
+		EventBus:   eventBus,
 		Database:   dbService,
 		Cache:      cacheService,
 		Auth:       authService,
 		Monitoring: monitoringService,
+
+		// Business Logic Services
 		Chat:       chatService,
 		Training:   trainingService,
 		Knowledge:  knowledgeService,

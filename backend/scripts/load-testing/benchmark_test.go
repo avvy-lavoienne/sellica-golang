@@ -16,7 +16,9 @@ import (
 	"selly-backend/internal/services/auth"
 	"selly-backend/internal/services/cache"
 	"selly-backend/internal/services/chat"
+	"selly-backend/internal/services/concurrent"
 	"selly-backend/internal/services/database"
+	"selly-backend/internal/services/eventbus"
 	"selly-backend/internal/services/monitoring"
 	"selly-backend/internal/services/training"
 )
@@ -59,21 +61,24 @@ func setupTestServer() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 
 	// Initialize services (mock implementations for benchmarking)
+	eventBusService := eventbus.NewService(eventbus.DefaultEventBusConfig()) // Mock event bus
 	dbService := &database.Service{}           // Mock service
 	cacheService := &cache.Service{}           // Mock service
 	authService := &auth.Service{}             // Mock service
 	chatService := &chat.Service{}             // Mock service
 	monitoringService := &monitoring.Service{} // Mock service
 	trainingService := &training.Service{}     // Mock service
+	concurrentService := (*concurrent.Service)(nil) // Mock concurrent service
 
 	services := routes.GetServices(
+		eventBusService,
 		dbService,
 		cacheService,
 		authService,
 		chatService,
 		monitoringService,
 		trainingService,
-		nil, // concurrent service not needed for benchmarks
+		concurrentService,
 	)
 
 	router := gin.New()

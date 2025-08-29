@@ -10,12 +10,14 @@ import (
 	"selly-backend/internal/services/chat"
 	"selly-backend/internal/services/concurrent"
 	"selly-backend/internal/services/database"
+	"selly-backend/internal/services/eventbus"
 	"selly-backend/internal/services/monitoring"
 	"selly-backend/internal/services/training"
 )
 
 // Services holds all application services for dependency injection
 type Services struct {
+	EventBus   *eventbus.Service
 	Database   *database.Service
 	Cache      *cache.Service
 	Auth       *auth.Service
@@ -214,8 +216,9 @@ func setupPerformanceRoutes(router *gin.Engine, handler *handlers.PerformanceHan
 }
 
 // GetServices creates and returns the services struct for dependency injection
-func GetServices(db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service) *Services {
+func GetServices(eventBus *eventbus.Service, db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service) *Services {
 	return &Services{
+		EventBus:   eventBus,
 		Database:   db,
 		Cache:      cache,
 		Auth:       auth,
