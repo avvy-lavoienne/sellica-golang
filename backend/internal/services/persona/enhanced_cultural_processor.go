@@ -451,7 +451,7 @@ func (ecp *EnhancedCulturalProcessor) calculateCulturalConfidence(indicators []s
 }
 
 // getCulturalAdaptation gets appropriate cultural adaptation
-func (ecp *EnhancedCulturalProcessor) getCulturalAdaptation(context *CulturalContext, serviceType string, mood *MoodDetectionResult) *CulturalAdaptation {
+func (ecp *EnhancedCulturalProcessor) getCulturalAdaptation(context *CulturalContext, _ string, mood *MoodDetectionResult) *CulturalAdaptation {
 	// Get base adaptation from social context
 	baseAdaptation := ecp.socialContextRules[context.SocialContext]
 	
@@ -563,7 +563,7 @@ func (ecp *EnhancedCulturalProcessor) applyLanguageLevel(response, level string)
 }
 
 // applyResponseModifier applies specific response modifier
-func (ecp *EnhancedCulturalProcessor) applyResponseModifier(response, modifier string, context *CulturalContext, req *EnhancedCulturalRequest) string {
+func (ecp *EnhancedCulturalProcessor) applyResponseModifier(response, modifier string, _ *CulturalContext, req *EnhancedCulturalRequest) string {
 	switch modifier {
 	case "add_institutional_context":
 		if !strings.Contains(response, "Dinas Kependudukan") {

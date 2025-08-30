@@ -302,7 +302,8 @@ func TestGroqSELLYProvider_TimeOfDay(t *testing.T) {
 	provider := NewGroqSELLYProvider("test-api-key")
 	defer provider.Close()
 
-	timeOfDay := provider.determineTimeOfDay()
+	req := &AIRequest{UserID: "test-user"}
+	timeOfDay := provider.determineTimeOfDay(req)
 
 	validTimes := []string{"morning", "afternoon", "evening", "night"}
 	found := false
@@ -381,10 +382,12 @@ func TestGroqSELLYProvider_Integration(t *testing.T) {
 	defer provider.Close()
 
 	_ = context.Background()
-	_ = &AIRequest{
+	req := &AIRequest{
 		Query:  "Selamat pagi, bagaimana cara mengurus KTP?",
 		UserID: "test-user-integration",
 	}
+	_ = req.Query  // Use the request fields
+	_ = req.UserID
 
 	// This would test the full integration, but we'll skip actual API calls in tests
 	// to avoid API costs and rate limits

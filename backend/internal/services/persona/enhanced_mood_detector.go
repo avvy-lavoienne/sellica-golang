@@ -338,7 +338,7 @@ func (emd *EnhancedMoodDetector) calculateConfidence(primaryScore float64, allSc
 }
 
 // determineEmotionalIntensity determines emotional intensity level
-func (emd *EnhancedMoodDetector) determineEmotionalIntensity(query string, mood string) string {
+func (emd *EnhancedMoodDetector) determineEmotionalIntensity(query string, _ string) string {
 	// Check for high intensity markers
 	for _, pattern := range emd.intensityMarkers["high"] {
 		if pattern.MatchString(query) {
@@ -358,7 +358,7 @@ func (emd *EnhancedMoodDetector) determineEmotionalIntensity(query string, mood 
 }
 
 // generateResponseStrategy generates appropriate response strategy based on mood
-func (emd *EnhancedMoodDetector) generateResponseStrategy(mood, intensity string, confidence float64) string {
+func (emd *EnhancedMoodDetector) generateResponseStrategy(mood, intensity string, _ float64) string {
 	strategies := map[string]map[string]string{
 		"happy": {
 			"low":    "maintain_positive_tone",

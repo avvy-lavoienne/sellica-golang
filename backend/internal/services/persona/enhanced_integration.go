@@ -230,7 +230,7 @@ func (epi *EnhancedPersonaIntegration) getOrCreateSession(req *EnhancedPersonaRe
 }
 
 // updateSession updates session context with processing results
-func (epi *EnhancedPersonaIntegration) updateSession(session *PersonaSession, req *EnhancedPersonaRequest, mood *MoodDetectionResult, cultural *CulturalContext, service *ServiceRecognitionResult) {
+func (epi *EnhancedPersonaIntegration) updateSession(session *PersonaSession, _ *EnhancedPersonaRequest, mood *MoodDetectionResult, cultural *CulturalContext, service *ServiceRecognitionResult) {
 	session.LastMood = mood
 	session.CulturalContext = cultural
 	session.ServiceContext = service

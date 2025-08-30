@@ -429,7 +429,7 @@ func (egm *EnhancedGreetingManager) generateContextualGreeting(req *EnhancedGree
 }
 
 // generateFullGreeting generates a full greeting for new interactions
-func (egm *EnhancedGreetingManager) generateFullGreeting(req *EnhancedGreetingRequest, sessionContext *SessionGreetingContext) string {
+func (egm *EnhancedGreetingManager) generateFullGreeting(_ *EnhancedGreetingRequest, _ *SessionGreetingContext) string {
 	timeOfDay := egm.getCurrentTimeOfDay()
 	
 	baseGreeting := fmt.Sprintf("Selamat %s, Bapak/Ibu! Saya SELLY AI Assistant dari Dinas Kependudukan dan Pencatatan Sipil Kabupaten Garut. Bagaimana saya bisa membantu Anda dengan layanan administrasi kependudukan?", timeOfDay)
@@ -438,12 +438,12 @@ func (egm *EnhancedGreetingManager) generateFullGreeting(req *EnhancedGreetingRe
 }
 
 // generateAcknowledgment generates an acknowledgment for returning users
-func (egm *EnhancedGreetingManager) generateAcknowledgment(req *EnhancedGreetingRequest, sessionContext *SessionGreetingContext) string {
+func (egm *EnhancedGreetingManager) generateAcknowledgment(_ *EnhancedGreetingRequest, _ *SessionGreetingContext) string {
 	return "Baik, saya siap membantu Bapak/Ibu lebih lanjut. Ada yang bisa saya bantu lagi?"
 }
 
 // generateContinuation generates a continuation greeting
-func (egm *EnhancedGreetingManager) generateContinuation(req *EnhancedGreetingRequest, sessionContext *SessionGreetingContext) string {
+func (egm *EnhancedGreetingManager) generateContinuation(_ *EnhancedGreetingRequest, _ *SessionGreetingContext) string {
 	return "Saya SELLY siap membantu Bapak/Ibu. Silakan sampaikan kebutuhan Anda."
 }
 
@@ -503,7 +503,7 @@ func (egm *EnhancedGreetingManager) getCurrentTimeOfDay() string {
 }
 
 // updateSessionContext updates session context after greeting
-func (egm *EnhancedGreetingManager) updateSessionContext(sessionContext *SessionGreetingContext, req *EnhancedGreetingRequest, greeting string) {
+func (egm *EnhancedGreetingManager) updateSessionContext(sessionContext *SessionGreetingContext, _ *EnhancedGreetingRequest, _ string) {
 	sessionContext.LastGreetingTime = time.Now()
 	sessionContext.GreetingCount++
 	

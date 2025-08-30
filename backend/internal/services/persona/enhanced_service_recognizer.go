@@ -64,7 +64,7 @@ func NewEnhancedServiceRecognizer() *EnhancedServiceRecognizer {
 }
 
 // RecognizeService analyzes query to recognize service type and intent
-func (esr *EnhancedServiceRecognizer) RecognizeService(ctx context.Context, query string, conversationHistory []string) (*ServiceRecognitionResult, error) {
+func (esr *EnhancedServiceRecognizer) RecognizeService(_ context.Context, query string, _ []string) (*ServiceRecognitionResult, error) {
 	if !esr.enabled {
 		return &ServiceRecognitionResult{
 			IsServiceRequest: false,
@@ -282,10 +282,7 @@ func (esr *EnhancedServiceRecognizer) isGreeting(query string) bool {
 		if pattern.MatchString(trimmedQuery) {
 			// Additional check: if query contains service keywords, it's NOT a greeting
 			serviceKeywords := regexp.MustCompile(`\b(buat|bikin|mau|ingin|butuh|perlu|syarat|persyaratan|cetak|daftar|ajukan|pengajuan|ktp|kk|akta|surat|dokumen|berkas)\b`)
-			if serviceKeywords.MatchString(query) {
-				return false
-			}
-			return true
+			return !serviceKeywords.MatchString(query)
 		}
 	}
 	
@@ -330,7 +327,7 @@ func (esr *EnhancedServiceRecognizer) analyzeServicePatterns(query string) (stri
 }
 
 // determineServiceCategory determines the category of service
-func (esr *EnhancedServiceRecognizer) determineServiceCategory(query, serviceType string) string {
+func (esr *EnhancedServiceRecognizer) determineServiceCategory(query, _ string) string {
 	// Requirements/inquiry patterns
 	requirementPatterns := regexp.MustCompile(`\b(syarat|persyaratan|cara|prosedur|bagaimana|gimana|info|informasi)\b`)
 	if requirementPatterns.MatchString(query) {
@@ -399,7 +396,7 @@ func (esr *EnhancedServiceRecognizer) determineSpecificService(query, serviceTyp
 }
 
 // checkEscalationNeeds checks if escalation is needed
-func (esr *EnhancedServiceRecognizer) checkEscalationNeeds(query, serviceType string) (bool, int) {
+func (esr *EnhancedServiceRecognizer) checkEscalationNeeds(query, _ string) (bool, int) {
 	escalationLevel := 0
 	
 	for triggerType, pattern := range esr.escalationTriggers {

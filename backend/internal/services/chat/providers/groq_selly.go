@@ -13,13 +13,15 @@ import (
 
 // GroqSELLYProvider enhances the standard Groq provider with SELLY persona integration
 type GroqSELLYProvider struct {
-	*GroqProvider      // Embed standard Groq provider
-	personaIntegration *persona.PersonaIntegrationService
-	culturalAnalyzer   *CulturalContextAnalyzer
-	greetingDetector   *GreetingDetector
-	trainingCollector  *TrainingDataCollector
-	performanceMonitor *PersonaPerformanceMonitor
-	enabled            bool
+	*GroqProvider         // Embed standard Groq provider
+	personaIntegration    *persona.PersonaIntegrationService
+	culturalAnalyzer      *CulturalContextAnalyzer
+	greetingDetector      *GreetingDetector
+	trainingCollector     *TrainingDataCollector
+	performanceMonitor    *PersonaPerformanceMonitor
+	phase1CulturalAnalyzer *persona.IndonesianCulturalAnalyzer // Phase 1 integration
+	gotongRoyongEngine    *persona.GotongRoyongEngine         // Phase 1 integration
+	enabled               bool
 }
 
 // CulturalContextAnalyzer analyzes Indonesian cultural context in queries
@@ -111,14 +113,20 @@ func NewGroqSELLYProvider(apiKey string) *GroqSELLYProvider {
 		enabled: true,
 	}
 
+	// Initialize Phase 1 cultural components
+	phase1CulturalAnalyzer := persona.NewIndonesianCulturalAnalyzer()
+	gotongRoyongEngine := persona.NewGotongRoyongEngine()
+
 	provider := &GroqSELLYProvider{
-		GroqProvider:       baseProvider,
-		personaIntegration: personaIntegration,
-		culturalAnalyzer:   culturalAnalyzer,
-		greetingDetector:   greetingDetector,
-		trainingCollector:  trainingCollector,
-		performanceMonitor: performanceMonitor,
-		enabled:            true,
+		GroqProvider:          baseProvider,
+		personaIntegration:    personaIntegration,
+		culturalAnalyzer:      culturalAnalyzer,
+		greetingDetector:      greetingDetector,
+		trainingCollector:     trainingCollector,
+		performanceMonitor:    performanceMonitor,
+		phase1CulturalAnalyzer: phase1CulturalAnalyzer,
+		gotongRoyongEngine:    gotongRoyongEngine,
+		enabled:               true,
 	}
 
 	// Start async training data processing
@@ -143,7 +151,7 @@ func (p *GroqSELLYProvider) ProcessQuery(ctx context.Context, req *AIRequest) (*
 		"query_len":  len(req.Query),
 	}).Debug("Processing query with SELLY persona enhancement")
 
-	// Step 1: Analyze cultural context
+	// Step 1: Analyze cultural context (legacy)
 	culturalContext, err := p.analyzeCulturalContext(ctx, req)
 	if err != nil {
 		logrus.WithError(err).Warn("Cultural context analysis failed, proceeding without")
@@ -151,6 +159,18 @@ func (p *GroqSELLYProvider) ProcessQuery(ctx context.Context, req *AIRequest) (*
 			FormalityLevel: "formal",
 			ServiceType:    "umum",
 			UserTone:       "neutral",
+		}
+	}
+
+	// Step 1.5: Perform Phase 1 comprehensive cultural analysis
+	phase1CulturalContext, err := p.analyzeCulturalContextEnhanced(ctx, req)
+	if err != nil {
+		logrus.WithError(err).Warn("Phase 1 cultural analysis failed, proceeding without")
+		phase1CulturalContext = &persona.Phase1CulturalContext{
+			FormalityLevel:     5,
+			PowerDistance:      0.5,
+			CollectivismScore:  0.5,
+			Confidence:         0.5,
 		}
 	}
 
@@ -180,6 +200,26 @@ func (p *GroqSELLYProvider) ProcessQuery(ctx context.Context, req *AIRequest) (*
 		personaResponse = baseResponse
 	}
 
+	// Step 5.5: Apply Phase 1 Gotong Royong transformation
+	gotongRoyongApplied := false
+	if phase1CulturalContext.CollectivismScore > 0.6 {
+		originalContent := personaResponse.Content
+		personaResponse.Content = p.applyGotongRoyong(ctx, personaResponse.Content, phase1CulturalContext)
+		gotongRoyongApplied = (originalContent != personaResponse.Content)
+		logrus.WithFields(logrus.Fields{
+			"collectivism_score": phase1CulturalContext.CollectivismScore,
+			"gotong_royong_applied": gotongRoyongApplied,
+		}).Debug("Phase 1 Gotong Royong transformation applied")
+	}
+
+	// Step 6: Record Phase 1 cultural metrics
+	metricsCollector := persona.GetGlobalCulturalMetricsCollector()
+	metricsCollector.RecordCulturalProcessing(
+		time.Since(startTime),
+		phase1CulturalContext,
+		gotongRoyongApplied,
+	)
+
 	// Step 6: Collect training data asynchronously
 	go p.collectTrainingData(req, personaResponse, culturalContext, greetingAnalysis, time.Since(startTime))
 
@@ -197,7 +237,7 @@ func (p *GroqSELLYProvider) ProcessQuery(ctx context.Context, req *AIRequest) (*
 }
 
 // analyzeCulturalContext analyzes Indonesian cultural context in the query
-func (p *GroqSELLYProvider) analyzeCulturalContext(ctx context.Context, req *AIRequest) (*CulturalContext, error) {
+func (p *GroqSELLYProvider) analyzeCulturalContext(_ context.Context, req *AIRequest) (*CulturalContext, error) {
 	if !p.culturalAnalyzer.enabled {
 		return &CulturalContext{
 			FormalityLevel: "formal",
@@ -237,7 +277,7 @@ func (p *GroqSELLYProvider) analyzeCulturalContext(ctx context.Context, req *AIR
 }
 
 // detectGreetingPatterns detects greeting patterns in user queries
-func (p *GroqSELLYProvider) detectGreetingPatterns(ctx context.Context, req *AIRequest) (*GreetingAnalysis, error) {
+func (p *GroqSELLYProvider) detectGreetingPatterns(_ context.Context, req *AIRequest) (*GreetingAnalysis, error) {
 	if !p.greetingDetector.enabled {
 		return &GreetingAnalysis{
 			HasGreeting:      false,
@@ -265,7 +305,7 @@ func (p *GroqSELLYProvider) detectGreetingPatterns(ctx context.Context, req *AIR
 	}
 
 	// Determine time of day
-	timeOfDay := p.determineTimeOfDay()
+	timeOfDay := p.determineTimeOfDay(req)
 
 	// Analyze formality in greeting
 	formalityLevel := "formal"
@@ -290,6 +330,26 @@ func (p *GroqSELLYProvider) detectGreetingPatterns(ctx context.Context, req *AIR
 		CulturalMarkers:  culturalMarkers,
 		RequiresResponse: hasGreeting,
 	}, nil
+}
+
+// Phase 1 Cultural Integration Methods
+
+// analyzeCulturalContextEnhanced performs Phase 1 comprehensive cultural analysis
+func (p *GroqSELLYProvider) analyzeCulturalContextEnhanced(ctx context.Context, req *AIRequest) (*persona.Phase1CulturalContext, error) {
+	if p.phase1CulturalAnalyzer == nil {
+		p.phase1CulturalAnalyzer = persona.NewIndonesianCulturalAnalyzer()
+	}
+
+	return p.phase1CulturalAnalyzer.AnalyzeCulturalContext(ctx, req.Query, req.Context)
+}
+
+// applyGotongRoyong applies Gotong Royong principles to response
+func (p *GroqSELLYProvider) applyGotongRoyong(ctx context.Context, response string, culturalContext *persona.Phase1CulturalContext) string {
+	if p.gotongRoyongEngine == nil {
+		p.gotongRoyongEngine = persona.NewGotongRoyongEngine()
+	}
+
+	return p.gotongRoyongEngine.ApplyGotongRoyong(ctx, response, culturalContext)
 }
 
 // GetProviderName returns the enhanced provider name
@@ -334,7 +394,7 @@ func (p *GroqSELLYProvider) enhanceRequestWithCulturalContext(req *AIRequest, cu
 }
 
 // applyPersonaEnhancement applies SELLY persona enhancement to the response
-func (p *GroqSELLYProvider) applyPersonaEnhancement(ctx context.Context, req *AIRequest, baseResponse *AIResponse, cultural *CulturalContext, greeting *GreetingAnalysis) (*AIResponse, error) {
+func (p *GroqSELLYProvider) applyPersonaEnhancement(ctx context.Context, req *AIRequest, baseResponse *AIResponse, _ *CulturalContext, _ *GreetingAnalysis) (*AIResponse, error) {
 	if p.personaIntegration == nil || !p.personaIntegration.IsEnabled() {
 		return baseResponse, nil
 	}
@@ -471,12 +531,12 @@ func (p *GroqSELLYProvider) detectCulturalIndicators(query string) []string {
 	return indicators
 }
 
-func (p *GroqSELLYProvider) determineRegionalContext(req *AIRequest) string {
+func (p *GroqSELLYProvider) determineRegionalContext(_ *AIRequest) string {
 	// Default to Garut context for SELLY
 	return "garut"
 }
 
-func (p *GroqSELLYProvider) determineTimeOfDay() string {
+func (p *GroqSELLYProvider) determineTimeOfDay(_ *AIRequest) string {
 	hour := time.Now().Hour()
 	switch {
 	case hour >= 5 && hour < 12:

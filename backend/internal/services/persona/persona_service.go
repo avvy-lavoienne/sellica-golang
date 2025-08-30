@@ -2,6 +2,8 @@ package persona
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/sirupsen/logrus"
@@ -11,6 +13,7 @@ import (
 // This service integrates the enhanced persona components and provides backward compatibility
 type PersonaService struct {
 	enhancedIntegration *EnhancedPersonaIntegration
+	fallbackGenerator   *FallbackResponseGenerator
 	enabled             bool
 	mutex               sync.RWMutex
 }
@@ -37,10 +40,82 @@ type PersonaProcessingResponse struct {
 	Metadata            map[string]interface{} `json:"metadata"`
 }
 
+// FallbackResponseGenerator handles culturally appropriate fallback responses
+type FallbackResponseGenerator struct {
+	contactNumber string
+	enabled       bool
+}
+
+// NewFallbackResponseGenerator creates a new fallback response generator
+func NewFallbackResponseGenerator(contactNumber string) *FallbackResponseGenerator {
+	return &FallbackResponseGenerator{
+		contactNumber: contactNumber,
+		enabled:       true,
+	}
+}
+
+// GenerateFallbackResponse creates a culturally appropriate fallback response
+func (frg *FallbackResponseGenerator) GenerateFallbackResponse(query string, culturalContext string) string {
+	if !frg.enabled {
+		return "Maaf, saya tidak dapat menjawab pertanyaan tersebut saat ini."
+	}
+
+	baseResponse := "Maaf SELLY tidak tahu, SELLY akan belajar lebih baik lagi. "
+
+	// Add contact information
+	if frg.contactNumber != "" {
+		baseResponse += fmt.Sprintf("Untuk sementara bisa langsung hubungi nomor rekan SELLY di %s", frg.contactNumber)
+	}
+
+	// Add culturally appropriate elements based on context
+	switch culturalContext {
+	case "general_indonesia":
+		baseResponse += ". Terima kasih atas pengertian Bapak/Ibu."
+	case "jakarta":
+		baseResponse += ". Mohon maaf atas ketidaknyamanannya, Bapak/Ibu."
+	case "jawa_barat":
+		baseResponse += ". Punten atuh, abdi bakal belajar langkung sae deui."
+	case "sunda":
+		baseResponse += ". Hapunten, abdi bakal diajar langkung sae."
+	default:
+		baseResponse += ". Terima kasih atas pengertiannya."
+	}
+
+	return baseResponse
+}
+
+// ShouldUseFallback determines if fallback response should be used
+func (frg *FallbackResponseGenerator) ShouldUseFallback(confidence float64, serviceRecognized string, query string) bool {
+	// Use fallback if confidence is very low
+	if confidence < 0.3 {
+		return true
+	}
+
+	// Use fallback if no service is recognized for non-greeting queries
+	if serviceRecognized == "unknown" || serviceRecognized == "" {
+		// But don't use fallback for greetings
+		lowerQuery := strings.ToLower(query)
+		if !strings.Contains(lowerQuery, "halo") &&
+		   !strings.Contains(lowerQuery, "selamat") &&
+		   !strings.Contains(lowerQuery, "assalamualaikum") &&
+		   !strings.Contains(lowerQuery, "apa kabar") {
+			return true
+		}
+	}
+
+	// Use fallback for very low confidence even if service is recognized
+	if confidence < 0.5 && (serviceRecognized == "unknown" || serviceRecognized == "") {
+		return true
+	}
+
+	return false
+}
+
 // NewPersonaService creates a new persona service with enhanced capabilities
 func NewPersonaService() *PersonaService {
 	return &PersonaService{
 		enhancedIntegration: NewEnhancedPersonaIntegration(),
+		fallbackGenerator:   NewFallbackResponseGenerator("+62-851-8304-3205"),
 		enabled:             true,
 	}
 }
@@ -87,9 +162,65 @@ func (ps *PersonaService) ProcessWithPersona(ctx context.Context, req *PersonaPr
 		}, nil
 	}
 
+	// Check if fallback response should be used
+	culturalContext := "general_indonesia"
+	if enhancedResp.CulturalContext != nil {
+		culturalContext = enhancedResp.CulturalContext.Region
+	}
+
+	serviceRecognized := "unknown"
+	if enhancedResp.ServiceRecognition != nil {
+		serviceRecognized = enhancedResp.ServiceRecognition.ServiceType
+	}
+
+	confidence := 0.5 // default confidence
+	if enhancedResp.Metadata != nil {
+		if conf, exists := enhancedResp.Metadata["confidence"]; exists {
+			if confVal, ok := conf.(float64); ok {
+				confidence = confVal
+			}
+		}
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"confidence":        confidence,
+		"service_recognized": serviceRecognized,
+		"cultural_context":   culturalContext,
+		"query":             req.Query,
+	}).Debug("Checking fallback conditions")
+
+	// Apply fallback if needed
+	processedResponse := enhancedResp.ProcessedResponse
+	shouldUseFallback := ps.fallbackGenerator.ShouldUseFallback(confidence, serviceRecognized, req.Query)
+
+	logrus.WithFields(logrus.Fields{
+		"should_use_fallback": shouldUseFallback,
+		"confidence_threshold": confidence < 0.3,
+		"service_unknown": serviceRecognized == "unknown" || serviceRecognized == "",
+	}).Debug("Fallback decision made")
+
+	if shouldUseFallback {
+		fallbackResponse := ps.fallbackGenerator.GenerateFallbackResponse(req.Query, culturalContext)
+		processedResponse = fallbackResponse
+
+		logrus.WithFields(logrus.Fields{
+			"original_confidence": confidence,
+			"service_recognized":  serviceRecognized,
+			"cultural_context":    culturalContext,
+			"fallback_applied":    true,
+		}).Info("✅ Fallback response applied due to low confidence or unknown service")
+
+		// Update metadata to indicate fallback was used
+		if enhancedResp.Metadata == nil {
+			enhancedResp.Metadata = make(map[string]interface{})
+		}
+		enhancedResp.Metadata["fallback_applied"] = true
+		enhancedResp.Metadata["fallback_reason"] = "low_confidence_or_unknown_service"
+	}
+
 	// Convert to simplified response
 	response := &PersonaProcessingResponse{
-		ProcessedResponse:  enhancedResp.ProcessedResponse,
+		ProcessedResponse:  processedResponse,
 		PersonalityApplied: enhancedResp.PersonalityApplied,
 		ProcessingTime:     enhancedResp.ProcessingTime,
 		Metadata:           enhancedResp.Metadata,
