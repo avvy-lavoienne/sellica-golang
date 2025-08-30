@@ -220,7 +220,7 @@ func (scs *SmartCacheSync) executeCascadeInvalidation(
 // Helper methods for invalidation execution
 
 // invalidateKey invalidates a single cache key
-func (scs *SmartCacheSync) invalidateKey(ctx context.Context, key string) error {
+func (scs *SmartCacheSync) invalidateKey(_ context.Context, key string) error {
 	return scs.cacheService.Delete(key)
 }
 
@@ -306,7 +306,7 @@ func (scs *SmartCacheSync) scheduleBackgroundInvalidation(keys []string) {
 
 // predictNextNeededKeys predicts what keys might be needed soon
 func (scs *SmartCacheSync) predictNextNeededKeys(
-	ctx context.Context,
+	_ context.Context,
 	invalidatedKeys []string,
 ) ([]string, error) {
 	
@@ -352,7 +352,7 @@ func (scs *SmartCacheSync) scheduleWarmingTasks(ctx context.Context, keys []stri
 }
 
 // warmCacheKey warms a specific cache key
-func (scs *SmartCacheSync) warmCacheKey(ctx context.Context, key string) error {
+func (scs *SmartCacheSync) warmCacheKey(_ context.Context, key string) error {
 	// This would typically fetch data from the database and cache it
 	// For now, we'll just log the warming attempt
 	logrus.WithField("key", key).Debug("🔥 Warming cache key")

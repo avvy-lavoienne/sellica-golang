@@ -2,11 +2,11 @@
 package sync
 
 import (
-	"context"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"selly-backend/internal/services/eventbus"
+
+	"github.com/sirupsen/logrus"
 )
 
 // Helper methods for SmartCacheSync
@@ -49,7 +49,7 @@ func (scs *SmartCacheSync) shouldIncludeKey(key string) bool {
 // determineOptimalStrategy selects the best invalidation strategy
 func (scs *SmartCacheSync) determineOptimalStrategy(
 	keys []string,
-	event *eventbus.Event,
+	_ *eventbus.Event,
 ) InvalidationStrategy {
 	
 	keyCount := len(keys)
@@ -267,64 +267,6 @@ func (scs *SmartCacheSync) waitForActiveInvalidations() {
 	}
 }
 
-// startDependencyLearning starts the dependency learning system
-func (scs *SmartCacheSync) startDependencyLearning(ctx context.Context) {
-	ticker := time.NewTicker(5 * time.Minute)
-	defer ticker.Stop()
-
-	logrus.Info("🧠 Started dependency learning system")
-
-	for {
-		select {
-		case <-ctx.Done():
-			logrus.Info("🛑 Dependency learning stopped")
-			return
-		case <-ticker.C:
-			scs.analyzeDependencyPatterns()
-		}
-	}
-}
-
-// analyzeDependencyPatterns analyzes access patterns to learn dependencies
-func (scs *SmartCacheSync) analyzeDependencyPatterns() {
-	metrics := scs.dependencyGraph.GetDependencyMetrics()
-	logrus.WithFields(logrus.Fields{
-		"total_dependencies":    metrics["total_dependencies"],
-		"total_access_patterns": metrics["total_access_patterns"],
-	}).Debug("📊 Analyzing dependency patterns")
-}
-
-// startPredictiveWarming starts the predictive warming system
-func (scs *SmartCacheSync) startPredictiveWarming(ctx context.Context) {
-	ticker := time.NewTicker(1 * time.Minute)
-	defer ticker.Stop()
-
-	logrus.Info("🔥 Started predictive warming system")
-
-	for {
-		select {
-		case <-ctx.Done():
-			logrus.Info("🛑 Predictive warming stopped")
-			return
-		case <-ticker.C:
-			scs.performPredictiveWarming(ctx)
-		}
-	}
-}
-
-// performPredictiveWarming performs predictive cache warming
-func (scs *SmartCacheSync) performPredictiveWarming(ctx context.Context) {
-	// Implementation would predict what keys might be needed soon
-	// and pre-warm them based on access patterns
-	
-	logrus.Debug("🔥 Performing predictive warming analysis")
-	
-	// This is a placeholder for the actual ML-based prediction logic
-	// In a real implementation, this would:
-	// 1. Analyze recent access patterns
-	// 2. Predict likely future accesses
-	// 3. Pre-warm cache with predicted data
-}
 
 // GetMetrics returns current cache sync metrics
 func (scs *SmartCacheSync) GetMetrics() *CacheSyncMetrics {

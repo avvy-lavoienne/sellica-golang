@@ -257,7 +257,7 @@ func (scs *SmartCacheSync) handleInvalidationEvent(
 	}).Debug("🗑️ Processing cache invalidation event")
 
 	// Create invalidation plan
-	plan, err := scs.createInvalidationPlan(ctx, event)
+	plan, err := scs.createInvalidationPlan(context.TODO(), event)
 	if err != nil {
 		return fmt.Errorf("failed to create invalidation plan: %w", err)
 	}
@@ -285,7 +285,7 @@ func (scs *SmartCacheSync) handleInvalidationEvent(
 
 // createInvalidationPlan determines what needs to be invalidated and how
 func (scs *SmartCacheSync) createInvalidationPlan(
-	ctx context.Context,
+	_ context.Context,
 	event *eventbus.Event,
 ) (*InvalidationPlan, error) {
 	
@@ -450,3 +450,91 @@ func randomString(length int) string {
 	}
 	return string(result)
 }
+
+// startDependencyLearning starts the dependency learning system
+func (scs *SmartCacheSync) startDependencyLearning(ctx context.Context) {
+	ticker := time.NewTicker(5 * time.Minute)
+	defer ticker.Stop()
+
+	logrus.Info("🧠 Started dependency learning system")
+
+	for {
+		select {
+		case <-ctx.Done():
+			logrus.Info("🛑 Dependency learning stopped")
+			return
+		case <-ticker.C:
+			scs.analyzeDependencyPatterns()
+		}
+	}
+}
+
+// analyzeDependencyPatterns analyzes access patterns to learn dependencies
+func (scs *SmartCacheSync) analyzeDependencyPatterns() {
+	metrics := scs.dependencyGraph.GetDependencyMetrics()
+	logrus.WithFields(logrus.Fields{
+		"total_dependencies":    metrics["total_dependencies"],
+		"total_access_patterns": metrics["total_access_patterns"],
+	}).Debug("📊 Analyzing dependency patterns")
+}
+
+// startPredictiveWarming starts the predictive warming system
+func (scs *SmartCacheSync) startPredictiveWarming(ctx context.Context) {
+	ticker := time.NewTicker(5 * time.Minute)
+	defer ticker.Stop()
+
+	logrus.Info("🔥 Started predictive warming system")
+
+	for {
+		select {
+		case <-ctx.Done():
+			logrus.Info("🛑 Predictive warming stopped")
+			return
+		case <-ticker.C:
+			scs.performPredictiveWarming(ctx)
+		}
+	}
+}
+
+// performPredictiveWarming performs predictive cache warming
+func (scs *SmartCacheSync) performPredictiveWarming(ctx context.Context) {
+	// Get predicted keys that might be needed soon
+	predictedKeys := scs.getPredictedKeys()
+
+	if len(predictedKeys) == 0 {
+		return
+	}
+
+	// Warm the predicted keys
+	for _, key := range predictedKeys {
+		err := scs.warmCacheKey(ctx, key)
+		if err != nil {
+			logrus.WithError(err).WithField("key", key).Debug("Failed to warm cache key")
+		}
+	}
+
+	scs.metrics.PredictiveWarming++
+	logrus.WithField("keys_warmed", len(predictedKeys)).Debug("✅ Predictive warming completed")
+}
+
+// getPredictedKeys gets keys that are predicted to be needed soon
+func (scs *SmartCacheSync) getPredictedKeys() []string {
+	// Simple prediction logic
+	var predicted []string
+
+	// Current time-based predictions
+	hour := time.Now().Hour()
+
+	// Business hours - predict more user-related keys
+	if hour >= 8 && hour <= 17 {
+		predicted = append(predicted, "users:active", "chats:business")
+	}
+
+	// Evening hours - predict personal activity
+	if hour >= 18 && hour <= 22 {
+		predicted = append(predicted, "chats:personal", "preferences:evening")
+	}
+
+	return predicted
+}
+

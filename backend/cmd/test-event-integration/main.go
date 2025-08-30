@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"selly-backend/internal/services/eventbus"
 	"selly-backend/internal/services/database"
+	"selly-backend/internal/services/eventbus"
 )
 
 func main() {
