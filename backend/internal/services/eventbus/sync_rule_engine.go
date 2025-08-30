@@ -264,8 +264,9 @@ func (sre *SyncRuleEngine) initializeStrategyTemplates() error {
 			Timeout:     30 * time.Second,
 			Steps: []StrategyStep{
 				{ID: "validate", Name: "Validate", Type: int(ValidateStep), Priority: 1},
-				{ID: "apply", Name: "Apply Changes", Type: int(ApplyStep), Priority: 2},
-				{ID: "verify", Name: "Verify", Type: int(VerifyStep), Priority: 3},
+				{ID: "check_conflicts", Name: "Check Conflicts", Type: int(ConflictCheckStep), Priority: 2},
+				{ID: "apply", Name: "Apply Changes", Type: int(ApplyStep), Priority: 3},
+				{ID: "verify", Name: "Verify", Type: int(VerifyStep), Priority: 4},
 			},
 		},
 
@@ -462,7 +463,8 @@ func (sre *SyncRuleEngine) getDefaultStrategy(event *Event) *SyncStrategy {
 		Timeout:     60 * time.Second,
 		Steps: []StrategyStep{
 			{ID: "validate", Name: "Validate", Type: int(ValidateStep), Priority: 1},
-			{ID: "apply", Name: "Apply", Type: int(ApplyStep), Priority: 2},
+			{ID: "check_conflicts", Name: "Check Conflicts", Type: int(ConflictCheckStep), Priority: 2},
+			{ID: "apply", Name: "Apply", Type: int(ApplyStep), Priority: 3},
 		},
 	}
 }
