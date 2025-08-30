@@ -25,7 +25,7 @@ type RealTimePropagator struct {
 	// Worker pool management
 	workers       []*PropagationWorker
 	workerWg      sync.WaitGroup
-	activeWorkers int32 // atomic counter for active worker count
+	// activeWorkers int32 // atomic counter for active worker count - removed unused field
 
 	// State management
 	isRunning int32 // atomic boolean
@@ -1111,7 +1111,8 @@ func (cb *CircuitBreaker) RecordSuccess() {
 	cb.mu.Lock()
 	defer cb.mu.Unlock()
 
-	if cb.state == CircuitHalfOpen {
+	switch cb.state {
+	case CircuitHalfOpen:
 		cb.successCount++
 		if cb.successCount >= cb.config.SuccessThreshold {
 			cb.state = CircuitClosed
@@ -1119,7 +1120,7 @@ func (cb *CircuitBreaker) RecordSuccess() {
 			cb.successCount = 0
 			logrus.WithField("circuit_breaker", cb.name).Info("🔌 Circuit breaker closed")
 		}
-	} else if cb.state == CircuitClosed {
+	case CircuitClosed:
 		cb.failureCount = 0
 	}
 }

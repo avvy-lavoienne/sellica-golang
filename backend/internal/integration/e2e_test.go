@@ -457,7 +457,7 @@ func testConcurrentLoadTesting(t *testing.T, ctx context.Context) {
 }
 
 // testProductionReadinessValidation validates production readiness
-func testProductionReadinessValidation(t *testing.T, ctx context.Context) {
+func testProductionReadinessValidation(t *testing.T, _ context.Context) {
 	// Test all critical components for production readiness
 	
 	// 1. AI Service Readiness

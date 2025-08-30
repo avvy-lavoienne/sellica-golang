@@ -569,7 +569,7 @@ func (s *SELLYRealTimePropagatorIntegration) GetSELLYMetrics() map[string]interf
 
 // SELLYEventHandler demonstrates custom event handling for SELLY AI
 type SELLYEventHandler struct {
-	integration *SELLYRealTimePropagatorIntegration // Reference to integration for accessing services
+	// integration *SELLYRealTimePropagatorIntegration // Reference to integration for accessing services - removed unused field
 }
 
 // HandleGovernmentDocument processes government document events
