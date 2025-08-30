@@ -3,6 +3,7 @@ package persona
 import (
 	"context"
 	"fmt"
+	"selly-backend/internal/config"
 	"strings"
 	"sync"
 
@@ -14,6 +15,14 @@ import (
 type PersonaService struct {
 	enhancedIntegration *EnhancedPersonaIntegration
 	fallbackGenerator   *FallbackResponseGenerator
+	featureFlags        *config.FeatureFlags
+
+	// Phase 2 Components (feature flagged)
+	regionalAdapter     interface{} // *RegionalAdapter - will be initialized when enabled
+	religiousCalendar   interface{} // *ReligiousCalendarService - will be initialized when enabled
+	faceSavingProcessor interface{} // *FaceSavingProcessor - will be initialized when enabled
+	phase2Metrics       interface{} // *Phase2MetricsCollector - will be initialized when enabled
+
 	enabled             bool
 	mutex               sync.RWMutex
 }
@@ -113,11 +122,54 @@ func (frg *FallbackResponseGenerator) ShouldUseFallback(confidence float64, serv
 
 // NewPersonaService creates a new persona service with enhanced capabilities
 func NewPersonaService() *PersonaService {
-	return &PersonaService{
+	service := &PersonaService{
 		enhancedIntegration: NewEnhancedPersonaIntegration(),
 		fallbackGenerator:   NewFallbackResponseGenerator("+62-851-8304-3205"),
+		featureFlags:        config.GetFeatureFlags(),
 		enabled:             true,
 	}
+
+	// Initialize Phase 2 components based on feature flags
+	service.initializePhase2Components()
+
+	return service
+}
+
+// initializePhase2Components initializes Phase 2 components based on feature flags
+func (ps *PersonaService) initializePhase2Components() {
+	flags := ps.featureFlags
+
+	// Phase 2 components are initialized only when their respective flags are enabled
+	// This allows for gradual rollout and feature toggling
+
+	if flags.IsRegionalAdapterEnabled() {
+		logrus.Info("✅ Initializing Regional Adapter (Phase 2)")
+		// ps.regionalAdapter = NewRegionalAdapter() // Will be implemented in Phase 2
+	}
+
+	if flags.IsReligiousCalendarEnabled() {
+		logrus.Info("✅ Initializing Religious Calendar Service (Phase 2)")
+		// ps.religiousCalendar = NewReligiousCalendarService() // Will be implemented in Phase 2
+	}
+
+	if flags.IsFaceSavingEnabled() {
+		logrus.Info("✅ Initializing Face-Saving Processor (Phase 2)")
+		// ps.faceSavingProcessor = NewFaceSavingProcessor() // Will be implemented in Phase 2
+	}
+
+	if flags.Phase2MetricsEnabled {
+		logrus.Info("✅ Initializing Phase 2 Metrics Collector")
+		// ps.phase2Metrics = NewPhase2MetricsCollector() // Will be implemented in Phase 2
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"phase1_enabled": flags.IsPhase1Enabled(),
+		"phase2_enabled": flags.IsPhase2Enabled(),
+		"regional_adapter": flags.IsRegionalAdapterEnabled(),
+		"religious_calendar": flags.IsReligiousCalendarEnabled(),
+		"face_saving": flags.IsFaceSavingEnabled(),
+		"enhanced_fallback": flags.IsEnhancedFallbackEnabled(),
+	}).Info("Persona service Phase 2 components initialization completed")
 }
 
 // ProcessWithPersona processes a request with SELLY persona capabilities
@@ -148,7 +200,7 @@ func (ps *PersonaService) ProcessWithPersona(ctx context.Context, req *PersonaPr
 		Context:             req.Context,
 	}
 
-	// Process with enhanced integration
+	// Process with enhanced integration (Phase 1)
 	enhancedResp, err := ps.enhancedIntegration.ProcessWithEnhancedPersona(ctx, enhancedReq)
 	if err != nil {
 		logrus.WithError(err).Warn("Enhanced persona processing failed, using fallback")
@@ -160,6 +212,32 @@ func (ps *PersonaService) ProcessWithPersona(ctx context.Context, req *PersonaPr
 			CulturalContext:    "general",
 			ProcessingTime:     0.0,
 		}, nil
+	}
+
+	// Phase 2 Enhancement Pipeline (feature flagged)
+	var processedResponse string
+	processedResponse = enhancedResp.ProcessedResponse
+
+	// Apply Phase 2 enhancements based on feature flags
+	if ps.featureFlags.IsRegionalAdapterEnabled() && ps.regionalAdapter != nil {
+		// Regional adaptation processing would go here
+		logrus.Debug("Phase 2: Regional adaptation applied")
+	}
+
+	if ps.featureFlags.IsReligiousCalendarEnabled() && ps.religiousCalendar != nil {
+		// Religious calendar processing would go here
+		logrus.Debug("Phase 2: Religious calendar applied")
+	}
+
+	if ps.featureFlags.IsFaceSavingEnabled() && ps.faceSavingProcessor != nil {
+		// Face-saving processing would go here
+		logrus.Debug("Phase 2: Face-saving applied")
+	}
+
+	// Record Phase 2 metrics if enabled
+	if ps.featureFlags.Phase2MetricsEnabled && ps.phase2Metrics != nil {
+		// Phase 2 metrics recording would go here
+		logrus.Debug("Phase 2: Metrics recorded")
 	}
 
 	// Check if fallback response should be used
@@ -190,7 +268,7 @@ func (ps *PersonaService) ProcessWithPersona(ctx context.Context, req *PersonaPr
 	}).Debug("Checking fallback conditions")
 
 	// Apply fallback if needed
-	processedResponse := enhancedResp.ProcessedResponse
+	// processedResponse already declared above
 	shouldUseFallback := ps.fallbackGenerator.ShouldUseFallback(confidence, serviceRecognized, req.Query)
 
 	logrus.WithFields(logrus.Fields{
@@ -358,6 +436,11 @@ func (ps *PersonaService) ProcessServiceRequest(ctx context.Context, query, user
 // Global persona service instance
 var globalPersonaService *PersonaService
 var personaServiceOnce sync.Once
+
+// GetFeatureFlags returns the feature flags instance for external access
+func (ps *PersonaService) GetFeatureFlags() *config.FeatureFlags {
+	return ps.featureFlags
+}
 
 // GetGlobalPersonaService returns the global persona service instance
 func GetGlobalPersonaService() *PersonaService {

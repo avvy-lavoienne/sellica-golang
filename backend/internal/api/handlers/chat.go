@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"selly-backend/internal/api/middleware"
+	"selly-backend/internal/config"
 	"selly-backend/internal/services/auth"
 	"selly-backend/internal/services/chat"
 	"selly-backend/internal/services/monitoring"
@@ -17,15 +18,17 @@ import (
 
 // ChatHandler handles chat-related endpoints
 type ChatHandler struct {
-	chatService *chat.Service
-	monitoring  *monitoring.Service
+	chatService  *chat.Service
+	monitoring   *monitoring.Service
+	featureFlags *config.FeatureFlags
 }
 
 // NewChatHandler creates a new chat handler
 func NewChatHandler(chatService *chat.Service, monitoring *monitoring.Service) *ChatHandler {
 	return &ChatHandler{
-		chatService: chatService,
-		monitoring:  monitoring,
+		chatService:  chatService,
+		monitoring:   monitoring,
+		featureFlags: config.GetFeatureFlags(),
 	}
 }
 
@@ -67,6 +70,8 @@ func (h *ChatHandler) ProcessChat(c *gin.Context) {
 		"user_id":    authContext.UserID,
 		"session_id": req.SessionID,
 		"message":    req.Message[:min(50, len(req.Message))] + "...",
+		"phase1_enabled": h.featureFlags.IsPhase1Enabled(),
+		"phase2_enabled": h.featureFlags.IsPhase2Enabled(),
 	}).Info("💬 Processing chat request")
 
 	// Process chat message
@@ -98,11 +103,30 @@ func (h *ChatHandler) ProcessChat(c *gin.Context) {
 		h.monitoring.RecordRequest(time.Since(startTime))
 	}
 
+	// Add Phase 2 feature flag metadata to response
+	featureFlags := map[string]interface{}{
+		"phase1_enabled": h.featureFlags.IsPhase1Enabled(),
+		"phase2_enabled": h.featureFlags.IsPhase2Enabled(),
+		"regional_adapter": h.featureFlags.IsRegionalAdapterEnabled(),
+		"religious_calendar": h.featureFlags.IsReligiousCalendarEnabled(),
+		"face_saving": h.featureFlags.IsFaceSavingEnabled(),
+		"enhanced_fallback": h.featureFlags.IsEnhancedFallbackEnabled(),
+		"low_confidence_handling": h.featureFlags.IsLowConfidenceHandlingEnabled(),
+	}
+
+	// Add feature flags to response Data field
+	if response.Data == nil {
+		response.Data = make(map[string]interface{})
+	}
+	response.Data["feature_flags"] = featureFlags
+
 	logrus.WithFields(logrus.Fields{
 		"user_id":         authContext.UserID,
 		"session_id":      response.Metadata.SessionID,
 		"processing_time": response.Metadata.ProcessingTime,
 		"confidence":      response.Metadata.Confidence,
+		"phase1_enabled":  h.featureFlags.IsPhase1Enabled(),
+		"phase2_enabled":  h.featureFlags.IsPhase2Enabled(),
 	}).Info("✅ Chat request processed successfully")
 
 	c.JSON(http.StatusOK, response)
