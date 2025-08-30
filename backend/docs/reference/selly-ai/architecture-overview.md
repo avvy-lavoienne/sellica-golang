@@ -113,6 +113,10 @@ backend/
 ├── cmd/server/              # Application entry point
 │   └── main.go             # Server initialization & service orchestration
 ├── internal/
+│   ├── cmd/               # Auxiliary command-line tools
+│   │   ├── test-*         # Various test utilities
+│   │   ├── *-validator    # Validation and monitoring tools
+│   │   └── *-test         # Performance and integration tests
 │   ├── api/
 │   │   ├── handlers/       # HTTP request handlers
 │   │   ├── middleware/     # HTTP middleware (auth, logging, CORS)

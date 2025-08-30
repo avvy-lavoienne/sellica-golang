@@ -68,7 +68,7 @@ build_test_binary() {
     
     cd "$(dirname "$0")/.."
     
-    if go build -o bin/rag-performance-test ./cmd/rag-performance-test/; then
+    if go build -o bin/rag-performance-test ./internal/cmd/rag-performance-test/; then
         print_success "Performance test binary built successfully"
     else
         print_error "Failed to build performance test binary"

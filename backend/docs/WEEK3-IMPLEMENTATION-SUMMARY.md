@@ -113,7 +113,7 @@ type CacheSyncConfig struct {
 
 ## 🧪 Test Results
 
-### **Test Execution**: `cmd/test-week3-smart-cache/main.go`
+### **Test Execution**: `internal/cmd/test-week3-smart-cache/main.go`
 
 #### **Successful Operations**:
 ✅ Smart Cache Sync initialization  

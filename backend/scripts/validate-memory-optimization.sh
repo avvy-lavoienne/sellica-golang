@@ -24,7 +24,7 @@ echo "📍 Redis URL: ${REDIS_URL}"
 
 # Build the memory optimization validator
 echo "🔨 Building memory optimization validator..."
-go build -o bin/memory-optimization-validator ./cmd/memory-optimization-validator/
+go build -o bin/memory-optimization-validator ./internal/cmd/memory-optimization-validator/
 
 if [ $? -ne 0 ]; then
     echo "❌ Failed to build memory optimization validator"
