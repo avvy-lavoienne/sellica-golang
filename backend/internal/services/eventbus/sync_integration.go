@@ -212,7 +212,7 @@ func (si *SyncIntegration) exampleConsistencyCheck(ctx context.Context) error {
 }
 
 // exampleCustomRule demonstrates creating and using custom synchronization rules
-func (si *SyncIntegration) exampleCustomRule(ctx context.Context) error {
+func (si *SyncIntegration) exampleCustomRule(_ context.Context) error {
 	// Create a custom rule for premium user analytics sync
 	customRule := SyncRule{
 		ID:        "premium_analytics_sync",
