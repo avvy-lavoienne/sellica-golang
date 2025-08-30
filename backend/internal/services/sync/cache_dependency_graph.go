@@ -217,19 +217,19 @@ func (cdg *CacheDependencyGraph) GetDependencyMetrics() map[string]interface{} {
 
 	totalDependencies := len(cdg.dependencies)
 	totalAccessPatterns := len(cdg.accessPatterns)
-	
+
 	avgDependsOn := 0.0
 	avgAffects := 0.0
-	
+
 	if totalDependencies > 0 {
 		totalDependsOn := 0
 		totalAffects := 0
-		
+
 		for _, dep := range cdg.dependencies {
 			totalDependsOn += len(dep.DependsOn)
 			totalAffects += len(dep.Affects)
 		}
-		
+
 		avgDependsOn = float64(totalDependsOn) / float64(totalDependencies)
 		avgAffects = float64(totalAffects) / float64(totalDependencies)
 	}
@@ -241,6 +241,70 @@ func (cdg *CacheDependencyGraph) GetDependencyMetrics() map[string]interface{} {
 		"avg_affects":          avgAffects,
 		"learning_enabled":     cdg.isLearning,
 	}
+}
+
+// GetAccessPatterns returns the current access patterns for learning
+func (cdg *CacheDependencyGraph) GetAccessPatterns() map[string]*AccessPattern {
+	cdg.mutex.RLock()
+	defer cdg.mutex.RUnlock()
+
+	// Return a copy to prevent external modification
+	patterns := make(map[string]*AccessPattern)
+	for key, pattern := range cdg.accessPatterns {
+		patterns[key] = pattern
+	}
+
+	return patterns
+}
+
+// LearnPattern learns new dependency patterns from access data
+func (cdg *CacheDependencyGraph) LearnPattern(key string, coAccessedKeys []string) {
+	if !cdg.isLearning {
+		return
+	}
+
+	cdg.mutex.Lock()
+	defer cdg.mutex.Unlock()
+
+	now := time.Now()
+
+	// Update or create access pattern for the main key
+	pattern, exists := cdg.accessPatterns[key]
+	if !exists {
+		pattern = &AccessPattern{
+			Key:            key,
+			CoAccessedWith: make(map[string]int64),
+			LastAccessed:   now,
+			AccessCount:    0,
+		}
+		cdg.accessPatterns[key] = pattern
+	}
+
+	pattern.LastAccessed = now
+	pattern.AccessCount++
+
+	// Record co-access patterns
+	for _, coKey := range coAccessedKeys {
+		pattern.CoAccessedWith[coKey]++
+
+		// Also update the reverse relationship
+		reversePattern, exists := cdg.accessPatterns[coKey]
+		if !exists {
+			reversePattern = &AccessPattern{
+				Key:            coKey,
+				CoAccessedWith: make(map[string]int64),
+				LastAccessed:   now,
+				AccessCount:    0,
+			}
+			cdg.accessPatterns[coKey] = reversePattern
+		}
+		reversePattern.CoAccessedWith[key]++
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"key":              key,
+		"co_accessed_keys": len(coAccessedKeys),
+	}).Debug("🧠 Learned new access pattern")
 }
 
 // Helper functions

@@ -7,9 +7,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"selly-backend/internal/services/cache"
 	"selly-backend/internal/services/eventbus"
+
+	"github.com/sirupsen/logrus"
 )
 
 // SmartCacheSync manages intelligent cache invalidation
@@ -112,14 +113,15 @@ const (
 
 // CacheSyncMetrics tracks performance of cache synchronization
 type CacheSyncMetrics struct {
-	TotalInvalidations     int64             `json:"total_invalidations"`
-	SuccessfulInvalidations int64            `json:"successful_invalidations"`
-	FailedInvalidations    int64             `json:"failed_invalidations"`
-	AverageLatency         time.Duration     `json:"average_latency"`
-	TotalKeysInvalidated   int64             `json:"total_keys_invalidated"`
-	DependenciesResolved   int64             `json:"dependencies_resolved"`
-	PredictiveHits         int64             `json:"predictive_hits"`
-	CacheHitRateImprovement float64          `json:"cache_hit_rate_improvement"`
+	TotalInvalidations       int64         `json:"total_invalidations"`
+	SuccessfulInvalidations  int64         `json:"successful_invalidations"`
+	FailedInvalidations      int64         `json:"failed_invalidations"`
+	AverageLatency           time.Duration `json:"average_latency"`
+	TotalKeysInvalidated     int64         `json:"total_keys_invalidated"`
+	DependenciesResolved     int64         `json:"dependencies_resolved"`
+	PredictiveHits           int64         `json:"predictive_hits"`
+	PredictiveWarming        int64         `json:"predictive_warming"`
+	CacheHitRateImprovement  float64       `json:"cache_hit_rate_improvement"`
 }
 
 // DefaultCacheSyncConfig returns default configuration for smart cache sync
