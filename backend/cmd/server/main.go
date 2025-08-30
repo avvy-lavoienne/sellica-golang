@@ -108,7 +108,7 @@ func main() {
 // Services holds all application services
 type Services struct {
 	// Core Infrastructure (Foundation Layer)
-	EventBus   *eventbus.Service
+	EventBus   *eventbus.UnifiedEventBus
 	Database   *database.Service
 	Cache      *cache.Service
 	Auth       *auth.Service
@@ -186,8 +186,10 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	logrus.Info("🔧 Initializing services...")
 
 	// Initialize event bus service (Core Infrastructure)
-	eventBusConfig := eventbus.DefaultEventBusConfig()
-	eventBus := eventbus.NewService(eventBusConfig)
+	eventBus, err := eventbus.NewAutoEventBus()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create event bus: %w", err)
+	}
 
 	// Start event bus
 	ctx := context.Background()
@@ -195,7 +197,7 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		return nil, fmt.Errorf("failed to start event bus service: %w", err)
 	}
 
-	logrus.Info("📡 Event bus service initialized and started")
+	logrus.WithField("mode", eventBus.GetMode()).Info("📡 Event bus service initialized and started")
 
 	// Initialize database service
 	dbService, err := database.NewService(cfg.Database.URL, cfg.Database.ServiceRoleKey)

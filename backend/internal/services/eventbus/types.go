@@ -128,6 +128,9 @@ type EventMetrics struct {
 	EventsPublished      int64         `json:"events_published"`
 	EventsProcessed      int64         `json:"events_processed"`
 	EventsFailed         int64         `json:"events_failed"`
+	EventsPublishFailed  int64         `json:"events_publish_failed"`
+	EventsProcessFailed  int64         `json:"events_process_failed"`
+	TotalLatency         int64         `json:"total_latency"`
 	AverageProcessingTime time.Duration `json:"avg_processing_time"`
 	ActiveSubscribers    int64         `json:"active_subscribers"`
 }

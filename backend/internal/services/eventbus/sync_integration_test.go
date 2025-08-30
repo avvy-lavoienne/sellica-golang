@@ -119,6 +119,10 @@ func TestSynchronizationService_ConflictResolution(t *testing.T) {
 // TestSynchronizationService_LoadTest tests performance under load
 func TestSynchronizationService_LoadTest(t *testing.T) {
 	eventBus := NewService(DefaultEventBusConfig())
+	
+	ctx := context.Background()
+	err := eventBus.Start(ctx)
+	require.NoError(t, err)
 	defer eventBus.Stop()
 
 	config := DefaultSyncConfig()
@@ -128,7 +132,6 @@ func TestSynchronizationService_LoadTest(t *testing.T) {
 	service, err := NewSynchronizationService(eventBus, config)
 	require.NoError(t, err)
 
-	ctx := context.Background()
 	err = service.Start(ctx)
 	require.NoError(t, err)
 	defer service.Stop()
@@ -180,12 +183,15 @@ func TestSynchronizationService_LoadTest(t *testing.T) {
 // TestSynchronizationService_ErrorRecovery tests error handling and recovery
 func TestSynchronizationService_ErrorRecovery(t *testing.T) {
 	eventBus := NewService(DefaultEventBusConfig())
+	
+	ctx := context.Background()
+	err := eventBus.Start(ctx)
+	require.NoError(t, err)
 	defer eventBus.Stop()
 
 	service, err := NewSynchronizationService(eventBus, DefaultSyncConfig())
 	require.NoError(t, err)
 
-	ctx := context.Background()
 	err = service.Start(ctx)
 	require.NoError(t, err)
 	defer service.Stop()
@@ -210,6 +216,10 @@ func TestSynchronizationService_ErrorRecovery(t *testing.T) {
 // TestSynchronizationService_ConsistencyChecks tests data consistency validation
 func TestSynchronizationService_ConsistencyChecks(t *testing.T) {
 	eventBus := NewService(DefaultEventBusConfig())
+	
+	ctx := context.Background()
+	err := eventBus.Start(ctx)
+	require.NoError(t, err)
 	defer eventBus.Stop()
 
 	config := DefaultSyncConfig()
@@ -219,7 +229,6 @@ func TestSynchronizationService_ConsistencyChecks(t *testing.T) {
 	service, err := NewSynchronizationService(eventBus, config)
 	require.NoError(t, err)
 
-	ctx := context.Background()
 	err = service.Start(ctx)
 	require.NoError(t, err)
 	defer service.Stop()

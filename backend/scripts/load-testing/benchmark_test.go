@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"runtime"
@@ -61,7 +62,10 @@ func setupTestServer() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 
 	// Initialize services (mock implementations for benchmarking)
-	eventBusService := eventbus.NewService(eventbus.DefaultEventBusConfig()) // Mock event bus
+	unifiedEventBus, err := eventbus.NewAutoEventBus()
+	if err != nil {
+		log.Fatalf("Failed to create event bus: %v", err)
+	}
 	dbService := &database.Service{}           // Mock service
 	cacheService := &cache.Service{}           // Mock service
 	authService := &auth.Service{}             // Mock service
@@ -71,7 +75,7 @@ func setupTestServer() *gin.Engine {
 	concurrentService := (*concurrent.Service)(nil) // Mock concurrent service
 
 	services := routes.GetServices(
-		eventBusService,
+		unifiedEventBus,
 		dbService,
 		cacheService,
 		authService,

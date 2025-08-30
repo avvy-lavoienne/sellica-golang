@@ -548,3 +548,128 @@ func (s *Service) CountTrainingData(ctx context.Context, filters map[string]inte
 
 	return 0, nil
 }
+
+// CreateUser creates a new user in the database
+func (s *Service) CreateUser(user *User) error {
+	if !s.isHealthy {
+		return ErrDatabaseNotHealthy
+	}
+
+	client := s.GetPooledClient()
+	if client == nil {
+		return fmt.Errorf("failed to get database client")
+	}
+
+	// Insert user into the users table
+	_, _, err := client.From("users").Insert(user, false, "", "", "").Execute()
+	if err != nil {
+		logrus.WithError(err).Error("Failed to create user in database")
+		return fmt.Errorf("failed to create user: %w", err)
+	}
+
+	logrus.WithField("user_id", user.ID).Info("✅ User created in database")
+	return nil
+}
+
+// GetUser retrieves a user by ID from the database
+func (s *Service) GetUser(userID string) (*User, error) {
+	if !s.isHealthy {
+		return nil, ErrDatabaseNotHealthy
+	}
+
+	client := s.GetPooledClient()
+	if client == nil {
+		return nil, fmt.Errorf("failed to get database client")
+	}
+
+	// Query user from the users table
+	data, _, err := client.From("users").Select("*", "", false).Eq("id", userID).Execute()
+	if err != nil {
+		logrus.WithError(err).Error("Failed to query user from database")
+		return nil, fmt.Errorf("failed to get user: %w", err)
+	}
+
+	var users []User
+	if err := json.Unmarshal(data, &users); err != nil {
+		return nil, fmt.Errorf("failed to parse user data: %w", err)
+	}
+
+	if len(users) == 0 {
+		return nil, ErrUserNotFound
+	}
+
+	return &users[0], nil
+}
+
+// UpdateUser updates an existing user in the database
+func (s *Service) UpdateUser(user *User) error {
+	if !s.isHealthy {
+		return ErrDatabaseNotHealthy
+	}
+
+	client := s.GetPooledClient()
+	if client == nil {
+		return fmt.Errorf("failed to get database client")
+	}
+
+	// Update user in the users table
+	_, _, err := client.From("users").Update(user, "", "").Eq("id", user.ID).Execute()
+	if err != nil {
+		logrus.WithError(err).Error("Failed to update user in database")
+		return fmt.Errorf("failed to update user: %w", err)
+	}
+
+	logrus.WithField("user_id", user.ID).Info("✅ User updated in database")
+	return nil
+}
+
+// DeleteUser deletes a user from the database
+func (s *Service) DeleteUser(userID string) error {
+	if !s.isHealthy {
+		return ErrDatabaseNotHealthy
+	}
+
+	client := s.GetPooledClient()
+	if client == nil {
+		return fmt.Errorf("failed to get database client")
+	}
+
+	// Delete user from the users table
+	_, _, err := client.From("users").Delete("", "").Eq("id", userID).Execute()
+	if err != nil {
+		logrus.WithError(err).Error("Failed to delete user from database")
+		return fmt.Errorf("failed to delete user: %w", err)
+	}
+
+	logrus.WithField("user_id", userID).Info("✅ User deleted from database")
+	return nil
+}
+
+// ListUsers retrieves all users with pagination
+func (s *Service) ListUsers(limit, offset int) ([]User, error) {
+	if !s.isHealthy {
+		return nil, ErrDatabaseNotHealthy
+	}
+
+	client := s.GetPooledClient()
+	if client == nil {
+		return nil, fmt.Errorf("failed to get database client")
+	}
+
+	// Query users with pagination
+	data, _, err := client.From("users").Select("*", "", false).
+		Range(offset, offset+limit-1, "").
+		Order("created_at", nil).
+		Execute()
+	if err != nil {
+		logrus.WithError(err).Error("Failed to list users from database")
+		return nil, fmt.Errorf("failed to list users: %w", err)
+	}
+
+	var users []User
+	if err := json.Unmarshal(data, &users); err != nil {
+		return nil, fmt.Errorf("failed to parse users data: %w", err)
+	}
+
+	return users, nil
+}

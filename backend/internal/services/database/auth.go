@@ -24,11 +24,13 @@ type PendingUser struct {
 
 // User represents an active user
 type User struct {
-	ID    string `json:"id" db:"id"`
-	Email string `json:"email" db:"email"`
-	Name  string `json:"name" db:"name"`
-	Role  string `json:"role" db:"role"`
-	NIK   string `json:"nik" db:"nik"`
+	ID        string    `json:"id" db:"id"`
+	Email     string    `json:"email" db:"email"`
+	Name      string    `json:"name" db:"name"`
+	Role      string    `json:"role" db:"role"`
+	NIK       string    `json:"nik" db:"nik"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
 
 // CheckPendingUserExists checks if email exists in pending_users table

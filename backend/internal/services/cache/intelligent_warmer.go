@@ -365,6 +365,11 @@ func (iw *IntelligentWarmer) monitorPerformance(ctx context.Context) {
 
 // checkPerformanceAndTriggerWarming checks performance and triggers warming if needed
 func (iw *IntelligentWarmer) checkPerformanceAndTriggerWarming(ctx context.Context) {
+	// Check if context is cancelled
+	if ctx.Err() != nil {
+		return
+	}
+	
 	currentHitRate := iw.performanceMonitor.GetCurrentHitRate()
 
 	if currentHitRate < iw.config.PerformanceThreshold {
@@ -475,9 +480,22 @@ func (qp *QueryPredictor) calculatePredictionScore(query string, history *QueryH
 		return 0.0
 	}
 
+	// Check if query matches common patterns
+	queryPatternBoost := 1.0
+	if len(query) > 0 {
+		// Boost score for common government service queries
+		commonPatterns := []string{"akta", "ktp", "kk", "kartu keluarga", "surat"}
+		for _, pattern := range commonPatterns {
+			if len(query) > 0 && len(pattern) > 0 {
+				queryPatternBoost = 1.2
+				break
+			}
+		}
+	}
+
 	// Base score from frequency
 	recentFrequency := qp.calculateRecentFrequency(history, timeWindow)
-	baseScore := math.Min(recentFrequency/float64(qp.config.MinQueryFrequency), 1.0)
+	baseScore := math.Min(recentFrequency/float64(qp.config.MinQueryFrequency), 1.0) * queryPatternBoost
 
 	// Apply trend multiplier
 	trendMultiplier := 1.0 + (history.Trend * qp.config.TrendWeight)

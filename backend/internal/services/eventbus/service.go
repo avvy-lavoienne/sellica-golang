@@ -124,6 +124,10 @@ func (s *Service) Stop() error {
 	// Close event channel
 	close(s.eventChan)
 
+	// Recreate channels for potential restart
+	s.stopChan = make(chan struct{})
+	s.eventChan = make(chan *Event, s.config.BufferSize)
+
 	// Clear subscribers
 	s.mu.Lock()
 	s.subscribers = make(map[EventType][]Subscriber)
@@ -172,6 +176,9 @@ func (s *Service) Publish(ctx context.Context, event *Event) error {
 		return nil
 	}
 
+	// Increment published events metric
+	atomic.AddInt64(&s.metrics.EventsPublished, 1)
+
 	// Process event synchronously
 	return s.processEventSync(ctx, event, subscribers)
 }
@@ -217,6 +224,11 @@ func (s *Service) PublishAsync(ctx context.Context, event *Event) error {
 // Subscribe registers a handler for one or more event types
 func (s *Service) Subscribe(topics []EventType, handler EventHandler) (subscriberID string, err error) {
 	return s.SubscribeWithPriority(topics, handler, PriorityNormal)
+}
+
+// SubscribeSingle registers a handler for a single event type (EventBusInterface compatibility)
+func (s *Service) SubscribeSingle(eventType EventType, handler EventHandler, priority Priority) (string, error) {
+	return s.SubscribeWithPriority([]EventType{eventType}, handler, priority)
 }
 
 // SubscribeWithPriority registers a handler with specified priority
@@ -428,16 +440,25 @@ func (p *Processor) processAsyncEvent(event *Event) {
 	}
 }
 
-// updateAverageProcessingTime updates the average processing time
+// updateAverageProcessingTime updates the average processing time atomically
 func (s *Service) updateAverageProcessingTime(duration time.Duration) {
-	// Simple exponential moving average
-	if s.metrics.AverageProcessingTime == 0 {
-		s.metrics.AverageProcessingTime = duration
-	} else {
-		// 0.1 weight for new value, 0.9 for old average
-		s.metrics.AverageProcessingTime = time.Duration(
-			0.9*float64(s.metrics.AverageProcessingTime) + 0.1*float64(duration),
-		)
+	// Use atomic operations for thread-safety
+	for {
+		current := atomic.LoadInt64((*int64)(&s.metrics.AverageProcessingTime))
+		
+		var newAvg time.Duration
+		if current == 0 {
+			newAvg = duration
+		} else {
+			// 0.1 weight for new value, 0.9 for old average
+			newAvg = time.Duration(
+				0.9*float64(current) + 0.1*float64(duration),
+			)
+		}
+		
+		if atomic.CompareAndSwapInt64((*int64)(&s.metrics.AverageProcessingTime), current, int64(newAvg)) {
+			break
+		}
 	}
 }
 
@@ -461,7 +482,7 @@ func (s *Service) collectMetrics() {
 					"events_processed":     atomic.LoadInt64(&s.metrics.EventsProcessed),
 					"events_failed":        atomic.LoadInt64(&s.metrics.EventsFailed),
 					"active_subscribers":   activeSubscribers,
-					"avg_processing_time":  s.metrics.AverageProcessingTime,
+					"avg_processing_time":  time.Duration(atomic.LoadInt64((*int64)(&s.metrics.AverageProcessingTime))),
 				}).Info("📊 Event bus metrics")
 			}
 
@@ -474,11 +495,11 @@ func (s *Service) collectMetrics() {
 // GetMetrics returns current event bus metrics
 func (s *Service) GetMetrics() EventMetrics {
 	return EventMetrics{
-		EventsPublished:     atomic.LoadInt64(&s.metrics.EventsPublished),
-		EventsProcessed:     atomic.LoadInt64(&s.metrics.EventsProcessed),
-		EventsFailed:        atomic.LoadInt64(&s.metrics.EventsFailed),
-		AverageProcessingTime: s.metrics.AverageProcessingTime,
-		ActiveSubscribers:   atomic.LoadInt64(&s.metrics.ActiveSubscribers),
+		EventsPublished:       atomic.LoadInt64(&s.metrics.EventsPublished),
+		EventsProcessed:       atomic.LoadInt64(&s.metrics.EventsProcessed),
+		EventsFailed:          atomic.LoadInt64(&s.metrics.EventsFailed),
+		AverageProcessingTime: time.Duration(atomic.LoadInt64((*int64)(&s.metrics.AverageProcessingTime))),
+		ActiveSubscribers:     atomic.LoadInt64(&s.metrics.ActiveSubscribers),
 	}
 }
 

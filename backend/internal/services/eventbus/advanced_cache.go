@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -269,10 +270,11 @@ func (acs *AdvancedCacheService) Set(ctx context.Context, key string, value inte
 	start := time.Now()
 	defer func() {
 		duration := time.Since(start)
+		atomic.AddInt64(&acs.metrics.Sets, 1)
 		acs.metrics.mu.Lock()
-		acs.metrics.Sets++
+		sets := atomic.LoadInt64(&acs.metrics.Sets)
 		acs.metrics.AverageSetTime = time.Duration(
-			(acs.metrics.AverageSetTime.Nanoseconds()*acs.metrics.Sets + duration.Nanoseconds()) / (acs.metrics.Sets + 1),
+			(acs.metrics.AverageSetTime.Nanoseconds()*(sets-1) + duration.Nanoseconds()) / sets,
 		)
 		acs.metrics.mu.Unlock()
 	}()
@@ -311,10 +313,11 @@ func (acs *AdvancedCacheService) Get(ctx context.Context, key string) (interface
 	start := time.Now()
 	defer func() {
 		duration := time.Since(start)
+		atomic.AddInt64(&acs.metrics.Gets, 1)
 		acs.metrics.mu.Lock()
-		acs.metrics.Gets++
+		gets := atomic.LoadInt64(&acs.metrics.Gets)
 		acs.metrics.AverageGetTime = time.Duration(
-			(acs.metrics.AverageGetTime.Nanoseconds()*acs.metrics.Gets + duration.Nanoseconds()) / (acs.metrics.Gets + 1),
+			(acs.metrics.AverageGetTime.Nanoseconds()*(gets-1) + duration.Nanoseconds()) / gets,
 		)
 		acs.metrics.mu.Unlock()
 	}()
@@ -325,14 +328,10 @@ func (acs *AdvancedCacheService) Get(ctx context.Context, key string) (interface
 	// Try L1 cache first
 	if acs.l1Cache != nil {
 		if value, found := acs.l1Cache.Get(key); found {
-			acs.metrics.mu.Lock()
-			acs.metrics.L1Hits++
-			acs.metrics.mu.Unlock()
+			atomic.AddInt64(&acs.metrics.L1Hits, 1)
 			return value, true, nil
 		}
-		acs.metrics.mu.Lock()
-		acs.metrics.L1Misses++
-		acs.metrics.mu.Unlock()
+		atomic.AddInt64(&acs.metrics.L1Misses, 1)
 	}
 
 	// Try L2 cache
@@ -451,22 +450,22 @@ func (acs *AdvancedCacheService) GetMetrics() CacheMetrics {
 
 	// Return a copy without the mutex
 	return CacheMetrics{
-		L1Hits:         acs.metrics.L1Hits,
-		L1Misses:       acs.metrics.L1Misses,
-		L2Hits:         acs.metrics.L2Hits,
-		L2Misses:       acs.metrics.L2Misses,
-		Sets:           acs.metrics.Sets,
-		Gets:           acs.metrics.Gets,
-		Deletes:        acs.metrics.Deletes,
-		Evictions:      acs.metrics.Evictions,
+		L1Hits:         atomic.LoadInt64(&acs.metrics.L1Hits),
+		L1Misses:       atomic.LoadInt64(&acs.metrics.L1Misses),
+		L2Hits:         atomic.LoadInt64(&acs.metrics.L2Hits),
+		L2Misses:       atomic.LoadInt64(&acs.metrics.L2Misses),
+		Sets:           atomic.LoadInt64(&acs.metrics.Sets),
+		Gets:           atomic.LoadInt64(&acs.metrics.Gets),
+		Deletes:        atomic.LoadInt64(&acs.metrics.Deletes),
+		Evictions:      atomic.LoadInt64(&acs.metrics.Evictions),
 		AverageGetTime: acs.metrics.AverageGetTime,
 		AverageSetTime: acs.metrics.AverageSetTime,
 		CurrentSize:    currentSize,
 		MaxSize:        maxSize,
 		Utilization:    utilization,
-		WarmedItems:    acs.metrics.WarmedItems,
-		WarmingHits:    acs.metrics.WarmingHits,
-		WarmingMisses:  acs.metrics.WarmingMisses,
+		WarmedItems:    atomic.LoadInt64(&acs.metrics.WarmedItems),
+		WarmingHits:    atomic.LoadInt64(&acs.metrics.WarmingHits),
+		WarmingMisses:  atomic.LoadInt64(&acs.metrics.WarmingMisses),
 	}
 }
 

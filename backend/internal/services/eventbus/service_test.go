@@ -286,7 +286,10 @@ func TestService_Metrics(t *testing.T) {
 	// Subscribe to events
 	_, err = service.Subscribe(
 		[]EventType{EventTypeCacheSet},
-		func(ctx context.Context, event *Event) error { return nil },
+		func(ctx context.Context, event *Event) error { 
+			time.Sleep(1 * time.Microsecond) // Small delay to ensure measurable processing time
+			return nil 
+		},
 	)
 	require.NoError(t, err)
 

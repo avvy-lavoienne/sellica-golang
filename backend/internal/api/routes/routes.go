@@ -15,9 +15,9 @@ import (
 	"selly-backend/internal/services/training"
 )
 
-// Services holds all application services for dependency injection
+// Services struct holds references to all application services
 type Services struct {
-	EventBus   *eventbus.Service
+	EventBus   eventbus.EventBusInterface
 	Database   *database.Service
 	Cache      *cache.Service
 	Auth       *auth.Service
@@ -216,7 +216,7 @@ func setupPerformanceRoutes(router *gin.Engine, handler *handlers.PerformanceHan
 }
 
 // GetServices creates and returns the services struct for dependency injection
-func GetServices(eventBus *eventbus.Service, db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service) *Services {
+func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service) *Services {
 	return &Services{
 		EventBus:   eventBus,
 		Database:   db,
