@@ -18,7 +18,7 @@ type PersonaService struct {
 	featureFlags        *config.FeatureFlags
 
 	// Phase 2 Components (feature flagged)
-	regionalAdapter     interface{} // *RegionalAdapter - will be initialized when enabled
+	regionalAdapter     *RegionalAdapter
 	religiousCalendar   interface{} // *ReligiousCalendarService - will be initialized when enabled
 	faceSavingProcessor interface{} // *FaceSavingProcessor - will be initialized when enabled
 	phase2Metrics       interface{} // *Phase2MetricsCollector - will be initialized when enabled
@@ -440,6 +440,132 @@ var personaServiceOnce sync.Once
 // GetFeatureFlags returns the feature flags instance for external access
 func (ps *PersonaService) GetFeatureFlags() *config.FeatureFlags {
 	return ps.featureFlags
+}
+
+// initializeRegionalAdapter initializes the regional adapter if enabled
+func (ps *PersonaService) initializeRegionalAdapter() {
+	ps.mutex.Lock()
+	defer ps.mutex.Unlock()
+
+	if ps.featureFlags.IsRegionalAdapterEnabled() && ps.regionalAdapter == nil {
+		configPath := "backend/data/training/persona/regional_profiles"
+		ps.regionalAdapter = NewRegionalAdapter(configPath)
+		logrus.Info("Regional adapter initialized for Phase 2B rollout")
+	}
+}
+
+// GetRegionalAdapter returns the regional adapter instance
+func (ps *PersonaService) GetRegionalAdapter() *RegionalAdapter {
+	ps.mutex.RLock()
+	adapter := ps.regionalAdapter
+	ps.mutex.RUnlock()
+
+	if adapter == nil {
+		ps.initializeRegionalAdapter()
+		ps.mutex.RLock()
+		adapter = ps.regionalAdapter
+		ps.mutex.RUnlock()
+	}
+
+	return adapter
+}
+
+// ProcessRegionalAdaptation applies regional cultural adaptations to a response
+func (ps *PersonaService) ProcessRegionalAdaptation(ctx context.Context, query, regionCode string, userContext map[string]interface{}) (*RegionalAdaptationResponse, error) {
+	ps.mutex.RLock()
+	enabled := ps.enabled
+	flags := ps.featureFlags
+	ps.mutex.RUnlock()
+
+	if !enabled {
+		return &RegionalAdaptationResponse{
+			AdaptedResponse: query,
+			RegionApplied:   "service_disabled",
+			Confidence:      1.0,
+			ProcessingTime:  0,
+		}, nil
+	}
+
+	// Check if regional adapter is enabled
+	if !flags.IsRegionalAdapterEnabled() {
+		return &RegionalAdaptationResponse{
+			AdaptedResponse: query,
+			RegionApplied:   "feature_disabled",
+			Confidence:      1.0,
+			ProcessingTime:  0,
+		}, nil
+	}
+
+	// Check if specific region is enabled
+	if !ps.isRegionEnabled(regionCode) {
+		return &RegionalAdaptationResponse{
+			AdaptedResponse: query,
+			RegionApplied:   "region_disabled",
+			Confidence:      1.0,
+			ProcessingTime:  0,
+		}, nil
+	}
+
+	// Get or initialize regional adapter
+	adapter := ps.GetRegionalAdapter()
+	if adapter == nil {
+		return &RegionalAdaptationResponse{
+			AdaptedResponse: query,
+			RegionApplied:   "adapter_unavailable",
+			Confidence:      0.0,
+			ProcessingTime:  0,
+		}, nil
+	}
+
+	// Create adaptation request
+	req := &RegionalAdaptationRequest{
+		Query:       query,
+		UserID:      "", // Can be enhanced to include user ID
+		SessionID:   "", // Can be enhanced to include session ID
+		RegionCode:  regionCode,
+		UserContext: userContext,
+	}
+
+	// Apply regional adaptation
+	response, err := adapter.AdaptForRegion(ctx, req)
+	if err != nil {
+		logrus.WithError(err).WithField("region", regionCode).Warn("Regional adaptation failed")
+		return &RegionalAdaptationResponse{
+			AdaptedResponse: query,
+			RegionApplied:   "adaptation_failed",
+			Confidence:      0.0,
+			ProcessingTime:  0,
+		}, nil
+	}
+
+	return response, nil
+}
+
+// isRegionEnabled checks if a specific region is enabled for rollout
+func (ps *PersonaService) isRegionEnabled(regionCode string) bool {
+	flags := ps.GetFeatureFlags()
+
+	switch strings.ToLower(regionCode) {
+	case "id_jakarta", "jakarta":
+		return flags.IsJakartaRegionalEnabled()
+	case "id_jawa_barat", "jawa_barat", "jawa-barat":
+		return flags.IsJawaBaratRegionalEnabled()
+	case "id_sunda", "sunda":
+		return flags.IsSundaRegionalEnabled()
+	case "id_bali", "bali":
+		return flags.IsBaliRegionalEnabled()
+	case "id_sumatra", "sumatra":
+		return flags.IsSumatraRegionalEnabled()
+	case "id_kalimantan", "kalimantan":
+		return flags.IsKalimantanRegionalEnabled()
+	case "id_sulawesi", "sulawesi":
+		return flags.IsSulawesiRegionalEnabled()
+	case "id_papua", "papua":
+		return flags.IsPapuaRegionalEnabled()
+	default:
+		// Unknown regions default to Jakarta if Jakarta is enabled
+		return flags.IsJakartaRegionalEnabled()
+	}
 }
 
 // GetGlobalPersonaService returns the global persona service instance
