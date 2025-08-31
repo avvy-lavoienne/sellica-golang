@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"selly-backend/internal/emoticons"
 	"selly-backend/internal/services/chat/providers"
 
 	"github.com/sirupsen/logrus"
@@ -19,8 +20,10 @@ type AIService struct {
 	fallback                 AIProvider
 	variationEngine          *ResponseVariationEngine
 	providerSelector         *EnhancedProviderSelector
+	emoticonEnhancer         *emoticons.EmoticonEnhancer
 	variationEnabled         bool
 	enhancedSelectionEnabled bool
+	emoticonEnabled          bool
 	config                   *AIServiceConfig  // Add configuration field
 	metrics                  *AIServiceMetrics // Add metrics field
 	metricsBridge            *MetricsBridge    // Add metrics bridge
@@ -103,8 +106,10 @@ func NewAIServiceWithConfig(config *AIServiceConfig) (*AIService, error) {
 		fallback:                 &SimpleAIProvider{name: config.FallbackProvider},
 		variationEngine:          NewResponseVariationEngine(),
 		providerSelector:         NewEnhancedProviderSelector(),
+		emoticonEnhancer:         emoticons.NewEmoticonEnhancer(),
 		variationEnabled:         config.EnableVariation,
 		enhancedSelectionEnabled: config.EnableEnhancedSelection,
+		emoticonEnabled:          true, // Enable by default, can be controlled via config
 		config:                   config,
 		metrics:                  NewAIServiceMetrics(),
 		metricsBridge:            nil, // Will be initialized after provider selector is ready
@@ -299,6 +304,39 @@ func (s *AIService) ProcessQuery(ctx context.Context, req *AIRequest) (*AIRespon
 		return nil, fmt.Errorf("AI processing failed: %w", err)
 	}
 
+	// Apply emoticon enhancement if enabled
+	if s.emoticonEnabled && s.emoticonEnhancer != nil && s.emoticonEnhancer.IsEnabled() {
+		emoticonReq := &emoticons.EmoticonRequest{
+			Response:        response.Content,
+			ResponseType:    "informational", // Could be enhanced with better detection
+			Context:         req.Context,
+			UserID:          req.UserID,
+			ServiceType:     "general", // Could be enhanced with service detection
+			CulturalContext: "general_indonesia",
+		}
+
+		emoticonResp := s.emoticonEnhancer.EnhanceResponse(ctx, emoticonReq)
+
+		response.Content = emoticonResp.EnhancedResponse
+
+		// Add emoticon metadata to response
+		if response.Metadata == nil {
+			response.Metadata = make(map[string]interface{})
+		}
+		response.Metadata["emoticon_enhanced"] = true
+		response.Metadata["emoticon_category"] = emoticonResp.CategoryApplied
+		response.Metadata["emoticon_confidence"] = emoticonResp.Confidence
+		response.Metadata["emoticons_used"] = emoticonResp.EmoticonsUsed
+
+		logrus.WithFields(logrus.Fields{
+			"user_id":              req.UserID,
+			"session_id":           req.SessionID,
+			"emoticon_category":    emoticonResp.CategoryApplied,
+			"emoticon_confidence":  emoticonResp.Confidence,
+			"emoticons_used":       emoticonResp.EmoticonsUsed,
+			"enhancement_time_ms":  emoticonResp.ProcessingTime.Milliseconds(),
+		}).Debug("AI response enhanced with emoticons")
+	}
 	// Apply response variation if enabled
 	if s.variationEnabled && s.variationEngine.IsEnabled() {
 		variationReq := &VariationRequest{
@@ -450,7 +488,12 @@ func (p *SimpleAIProvider) ProcessQuery(ctx context.Context, req *AIRequest) (*A
 	// Simulate processing time
 	time.Sleep(time.Duration(rand.Intn(50)) * time.Millisecond)
 
-	response := p.generateSimpleResponse(req.Query)
+	// Get the AI service instance to access the emoticon enhancer
+	// For now, we'll create a simple enhancer instance
+	// In a real implementation, this would be injected or accessed from a service locator
+	enhancer := emoticons.NewEmoticonEnhancer()
+
+	response := p.generateSimpleResponseWithEmoticon(req.Query, enhancer, req.Context)
 
 	return &AIResponse{
 		Content:    response,
@@ -476,7 +519,12 @@ func (p *EnhancedAIProvider) ProcessQuery(ctx context.Context, req *AIRequest) (
 	// Simulate enhanced processing time
 	time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 
-	response := p.generateEnhancedResponse(req.Query, req.Context)
+	// Get the AI service instance to access the emoticon enhancer
+	// For now, we'll create a simple enhancer instance
+	// In a real implementation, this would be injected or accessed from a service locator
+	enhancer := emoticons.NewEmoticonEnhancer()
+
+	response := p.generateEnhancedResponseWithEmoticon(req.Query, req.Context, enhancer)
 
 	return &AIResponse{
 		Content:    response,
@@ -521,6 +569,56 @@ func (p *SimpleAIProvider) generateSimpleResponse(query string) string {
 	return "Terima kasih atas pertanyaan Anda. Untuk informasi lebih lanjut mengenai layanan pemerintah, silakan hubungi instansi terkait atau kunjungi website resmi pemerintah."
 }
 
+// generateSimpleResponseWithEmoticon generates a response with emoticon enhancement
+func (p *SimpleAIProvider) generateSimpleResponseWithEmoticon(query string, enhancer *emoticons.EmoticonEnhancer, reqContext map[string]interface{}) string {
+	baseResponse := p.generateSimpleResponse(query)
+
+	if enhancer == nil || !enhancer.IsEnabled() {
+		return baseResponse
+	}
+
+	// Determine response type and context
+	responseType := "informational"
+	serviceType := "general"
+	culturalContext := "general_indonesia"
+
+	if reqContext != nil {
+		if ctxServiceType, exists := reqContext["service_type"]; exists {
+			if st, ok := ctxServiceType.(string); ok {
+				serviceType = st
+			}
+		}
+		if ctxCultural, exists := reqContext["cultural_context"]; exists {
+			if cc, ok := ctxCultural.(string); ok {
+				culturalContext = cc
+			}
+		}
+	}
+
+	// Create emoticon enhancement request
+	emoticonReq := &emoticons.EmoticonRequest{
+		Response:        baseResponse,
+		ResponseType:    responseType,
+		Context:         reqContext,
+		UserID:          "",
+		ServiceType:     serviceType,
+		CulturalContext: culturalContext,
+	}
+
+	// Enhance with emoticons
+	emoticonResp := enhancer.EnhanceResponse(context.Background(), emoticonReq)
+
+	logrus.WithFields(logrus.Fields{
+		"original_length":    len(baseResponse),
+		"enhanced_length":    len(emoticonResp.EnhancedResponse),
+		"emoticons_used":     emoticonResp.EmoticonsUsed,
+		"category_applied":   emoticonResp.CategoryApplied,
+		"enhancement_confidence": emoticonResp.Confidence,
+	}).Debug("SimpleAIProvider response enhanced with emoticons")
+
+	return emoticonResp.EnhancedResponse
+}
+
 func (p *EnhancedAIProvider) generateEnhancedResponse(query string, context map[string]interface{}) string {
 	query = strings.ToLower(strings.TrimSpace(query))
 
@@ -540,6 +638,62 @@ func (p *EnhancedAIProvider) generateEnhancedResponse(query string, context map[
 
 	// Default enhanced response
 	return "Terima kasih atas pertanyaan Anda. Sistem AI kami telah dioptimalkan untuk memahami kebutuhan masyarakat Indonesia. Silakan berikan detail lebih spesifik agar kami dapat memberikan informasi yang lebih akurat dan relevan."
+}
+
+// generateEnhancedResponseWithEmoticon generates an enhanced response with emoticon enhancement
+func (p *EnhancedAIProvider) generateEnhancedResponseWithEmoticon(query string, reqContext map[string]interface{}, enhancer *emoticons.EmoticonEnhancer) string {
+	baseResponse := p.generateEnhancedResponse(query, reqContext)
+
+	if enhancer == nil || !enhancer.IsEnabled() {
+		return baseResponse
+	}
+
+	// Determine response type and context
+	responseType := "informational"
+	serviceType := "general"
+	culturalContext := "general_indonesia"
+
+	if reqContext != nil {
+		if ctxServiceType, exists := reqContext["service_type"]; exists {
+			if st, ok := ctxServiceType.(string); ok {
+				serviceType = st
+			}
+		}
+		if ctxCultural, exists := reqContext["cultural_context"]; exists {
+			if cc, ok := ctxCultural.(string); ok {
+				culturalContext = cc
+			}
+		}
+		// Check for government service context
+		if sessionType, exists := reqContext["sessionType"]; exists {
+			if st, ok := sessionType.(string); ok && st == "government" {
+				serviceType = "government"
+			}
+		}
+	}
+
+	// Create emoticon enhancement request
+	emoticonReq := &emoticons.EmoticonRequest{
+		Response:        baseResponse,
+		ResponseType:    responseType,
+		Context:         reqContext,
+		UserID:          "",
+		ServiceType:     serviceType,
+		CulturalContext: culturalContext,
+	}
+
+	// Enhance with emoticons
+	emoticonResp := enhancer.EnhanceResponse(context.Background(), emoticonReq)
+
+	logrus.WithFields(logrus.Fields{
+		"original_length":    len(baseResponse),
+		"enhanced_length":    len(emoticonResp.EnhancedResponse),
+		"emoticons_used":     emoticonResp.EmoticonsUsed,
+		"category_applied":   emoticonResp.CategoryApplied,
+		"enhancement_confidence": emoticonResp.Confidence,
+	}).Debug("EnhancedAIProvider response enhanced with emoticons")
+
+	return emoticonResp.EnhancedResponse
 }
 
 // GroqProviderAdapter implementation

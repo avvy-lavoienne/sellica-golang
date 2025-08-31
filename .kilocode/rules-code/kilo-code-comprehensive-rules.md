@@ -1,8 +1,8 @@
 ---
 type: "always_apply"
 description: "Kilo Code - Comprehensive Development and Migration Rules"
-version: "1.0"
-last_updated: "2025-08-29"
+version: "1.1"
+last_updated: "2025-08-31"
 ---
 
 # Kilo Code: Comprehensive Development and Migration Rules
@@ -115,6 +115,86 @@ type ValidationPhase struct {
 3. **Performance Validation**: Benchmark comparison and optimization verification
 4. **Documentation Update**: Source documentation synchronization
 5. **Git Operations**: Automated commit with conventional format
+
+### 2.4 Backend Executable File Creation
+**Kilo Rule #32**: Go build outputs must be placed in designated executable directory.
+
+**When to Create**: After successful Go compilation and build process
+**Location**: `/backend/exe/*` (MANDATORY for all Go executables)
+**Naming Convention**:
+- Production builds: `{service-name}` (e.g., `selly-backend`, `selly-backend.exe`)
+- Test builds: `{service-name}-test` or `{service-name}-debug`
+- Versioned builds: `{service-name}-v{version}` (e.g., `selly-backend-v1.2.0`)
+**Build Commands**:
+```powershell
+# Standard Production Build
+Set-Location backend
+go build -o exe/selly-backend ./cmd/server
+
+# Windows Build
+Set-Location backend
+go build -o exe/selly-backend.exe ./cmd/server
+
+# Versioned Build
+Set-Location backend
+go build -ldflags "-X main.version=1.2.0" -o exe/selly-backend-v1.2.0 ./cmd/server
+```
+
+**Alternative Build Methods** (for different environments):
+```powershell
+# Direct build from project root
+go build -o backend/exe/selly-backend backend/cmd/server
+
+# Build with custom flags
+go build -ldflags "-s -w" -o exe/selly-backend ./cmd/server
+
+# Cross-compilation for different platforms
+$env:GOOS="linux"; $env:GOARCH="amd64"; go build -o exe/selly-backend-linux ./cmd/server
+$env:GOOS="windows"; $env:GOARCH="amd64"; go build -o exe/selly-backend-windows.exe ./cmd/server
+```
+
+**Directory Structure**:
+```
+backend/exe/
+├── selly-backend              # Production Linux/macOS executable
+├── selly-backend.exe          # Production Windows executable
+├── selly-backend-test         # Test/debug build
+├── selly-backend-v1.2.0       # Versioned release
+└── [other executables...]
+```
+
+**Flexible Build Options**:
+- **Development**: Use any build method that produces working executables
+- **CI/CD**: Must use standardized commands for consistency
+- **Local Development**: May use alternative paths for convenience
+- **Production**: Must follow exact commands for reproducibility
+
+### 2.5 Frontend Build Commands
+**Kilo Rule #33**: Standardized frontend build commands for development and production.
+
+**Development Mode**:
+```powershell
+Set-Location frontend
+pnpm dev
+```
+
+**Production Build**:
+```powershell
+Set-Location frontend
+pnpm build
+```
+
+**Start Production Build**:
+```powershell
+Set-Location frontend
+pnpm start
+```
+
+**Enforcement**:
+- All frontend development must use `pnpm dev` for local development
+- Production builds must use `pnpm build` followed by `pnpm start`
+- CI/CD pipeline will validate build command usage
+- Manual builds must follow this convention
 
 ## 3. Migration Framework and Patterns
 
@@ -823,7 +903,7 @@ on:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
 
@@ -843,11 +923,11 @@ jobs:
 
       - name: Run Kilo Code Validation
         run: |
-          ./scripts/validate-kilo-code.sh
+          .\scripts\validate-kilo-code.ps1
 
       - name: Generate Validation Report
         run: |
-          ./scripts/generate-validation-report.sh
+          .\scripts\generate-validation-report.ps1
 ```
 
 ### 10.3 Enforcement Mechanisms

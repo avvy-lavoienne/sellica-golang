@@ -448,33 +448,51 @@ func (s *Service) ProcessChat(ctx context.Context, req *ChatRequest, authContext
 	// Apply SELLY persona enhancement with new enhanced system
 	enhancedPersonaService := persona.GetGlobalPersonaService()
 	if enhancedPersonaService.IsEnabled() {
-		personaRequest := &persona.PersonaProcessingRequest{
-			Query:               req.Message,
-			UserID:              authContext.UserID,
-			SessionID:           sessionID,
-			BaseResponse:        aiResponse.Content,
-			IsFirstContact:      true, // Could be improved with session tracking
-			ConversationHistory: []string{}, // Could be improved with history
-			Context:             req.Context,
-		}
+		// Check if this is a pure greeting that should use enhanced greeting manager
+		if s.isPureGreeting(req.Message) {
+			logrus.WithField("message", req.Message[:min(30, len(req.Message))]).Debug("Detected pure greeting, using enhanced greeting manager")
 
-		enhancedResponse, err := enhancedPersonaService.ProcessWithPersona(ctx, personaRequest)
-		if err != nil {
-			logrus.WithError(err).Warn("Failed to apply enhanced SELLY persona, using original response")
+			greetingResponse, greetingErr := enhancedPersonaService.ProcessGreeting(ctx, req.Message, authContext.UserID, sessionID)
+			if greetingErr != nil {
+				logrus.WithError(greetingErr).Warn("Enhanced greeting processing failed, falling back to standard persona processing")
+			} else {
+				// Use the enhanced greeting response
+				aiResponse.Content = greetingResponse
+				logrus.WithFields(logrus.Fields{
+					"greeting_enhanced": true,
+					"response_length":   len(greetingResponse),
+				}).Info("Enhanced greeting applied successfully")
+			}
 		} else {
-			// Update the AI response with persona-enhanced content
-			originalContent := aiResponse.Content
-			aiResponse.Content = enhancedResponse.ProcessedResponse
+			// Use standard persona processing for non-greeting messages
+			personaRequest := &persona.PersonaProcessingRequest{
+				Query:               req.Message,
+				UserID:              authContext.UserID,
+				SessionID:           sessionID,
+				BaseResponse:        aiResponse.Content,
+				IsFirstContact:      true, // Could be improved with session tracking
+				ConversationHistory: []string{}, // Could be improved with history
+				Context:             req.Context,
+			}
 
-			logrus.WithFields(logrus.Fields{
-				"persona_applied":       enhancedResponse.PersonalityApplied,
-				"mood_detected":         enhancedResponse.MoodDetected,
-				"service_recognized":    enhancedResponse.ServiceRecognized,
-				"cultural_context":      enhancedResponse.CulturalContext,
-				"persona_processing_time": enhancedResponse.ProcessingTime,
-				"original_length":       len(originalContent),
-				"enhanced_length":       len(enhancedResponse.ProcessedResponse),
-			}).Info("SELLY persona enhancement completed")
+			enhancedResponse, err := enhancedPersonaService.ProcessWithPersona(ctx, personaRequest)
+			if err != nil {
+				logrus.WithError(err).Warn("Failed to apply enhanced SELLY persona, using original response")
+			} else {
+				// Update the AI response with persona-enhanced content
+				originalContent := aiResponse.Content
+				aiResponse.Content = enhancedResponse.ProcessedResponse
+
+				logrus.WithFields(logrus.Fields{
+					"persona_applied":       enhancedResponse.PersonalityApplied,
+					"mood_detected":         enhancedResponse.MoodDetected,
+					"service_recognized":    enhancedResponse.ServiceRecognized,
+					"cultural_context":      enhancedResponse.CulturalContext,
+					"persona_processing_time": enhancedResponse.ProcessingTime,
+					"original_length":       len(originalContent),
+					"enhanced_length":       len(enhancedResponse.ProcessedResponse),
+				}).Info("SELLY persona enhancement completed")
+			}
 		}
 	} else {
 		// Fallback to existing persona integration
@@ -903,4 +921,73 @@ func extractConfidence(metadata map[string]interface{}) float64 {
 	}
 
 	return 0.9 // Default confidence
+}
+
+// isPureGreeting checks if a message is a pure greeting that should use enhanced greeting processing
+func (s *Service) isPureGreeting(message string) bool {
+	trimmedMessage := strings.TrimSpace(strings.ToLower(message))
+
+	// Common greeting patterns
+	greetingPatterns := []string{
+		"halo", "hai", "hello", "hi",
+		"selamat pagi", "selamat siang", "selamat sore", "selamat malam",
+		"assalamualaikum", "waalaikumsalam",
+		"selamat datang", "selamat",
+		"apa kabar", "bagaimana kabar",
+		"wilujeng", "sugeng", // Sundanese
+	}
+
+	// Check for exact greeting matches
+	for _, pattern := range greetingPatterns {
+		if trimmedMessage == pattern {
+			return true
+		}
+		// Also check for greetings with common suffixes
+		if strings.HasPrefix(trimmedMessage, pattern+" ") ||
+		   strings.HasPrefix(trimmedMessage, pattern+",") ||
+		   strings.HasPrefix(trimmedMessage, pattern+".") {
+			return true
+		}
+	}
+
+	// Check for greetings with SELLY
+	sellyGreetings := []string{
+		"halo selly", "hai selly", "hello selly", "hi selly",
+		"selamat pagi selly", "selamat siang selly", "selamat sore selly", "selamat malam selly",
+		"assalamualaikum selly", "selly",
+	}
+
+	for _, greeting := range sellyGreetings {
+		if trimmedMessage == greeting {
+			return true
+		}
+	}
+
+	// Check for very short messages that are likely greetings
+	if len(trimmedMessage) <= 20 {
+		words := strings.Fields(trimmedMessage)
+		if len(words) <= 3 {
+			// Check if all words are greeting-related
+			greetingWords := map[string]bool{
+				"halo": true, "hai": true, "hello": true, "hi": true,
+				"selamat": true, "pagi": true, "siang": true, "sore": true, "malam": true,
+				"assalamualaikum": true, "waalaikumsalam": true,
+				"selly": true, "kak": true, "bang": true, "mbak": true,
+			}
+
+			allGreetingWords := true
+			for _, word := range words {
+				if !greetingWords[word] {
+					allGreetingWords = false
+					break
+				}
+			}
+
+			if allGreetingWords {
+				return true
+			}
+		}
+	}
+
+	return false
 }

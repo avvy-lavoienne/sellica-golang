@@ -15,6 +15,7 @@ import (
 type PersonaService struct {
 	enhancedIntegration *EnhancedPersonaIntegration
 	fallbackGenerator   *FallbackResponseGenerator
+	emoticonEnhancedGreetingManager *EmoticonEnhancedGreetingManager
 	featureFlags        *config.FeatureFlags
 
 	// Phase 2 Components (feature flagged)
@@ -125,6 +126,7 @@ func NewPersonaService() *PersonaService {
 	service := &PersonaService{
 		enhancedIntegration: NewEnhancedPersonaIntegration(),
 		fallbackGenerator:   NewFallbackResponseGenerator("+62-851-8304-3205"),
+		emoticonEnhancedGreetingManager: NewEmoticonEnhancedGreetingManager(),
 		featureFlags:        config.GetFeatureFlags(),
 		enabled:             true,
 	}
@@ -392,6 +394,38 @@ func (ps *PersonaService) GetSessionContext(sessionID string) *PersonaSession {
 
 // ProcessGreeting processes a greeting query specifically
 func (ps *PersonaService) ProcessGreeting(ctx context.Context, query, userID, sessionID string) (string, error) {
+	// Use the emoticon-enhanced greeting manager for better variety
+	if ps.emoticonEnhancedGreetingManager != nil && ps.emoticonEnhancedGreetingManager.IsEnabled() {
+		enhancedReq := &EnhancedGreetingRequest{
+			UserID:         userID,
+			SessionID:      sessionID,
+			TimeOfDay:      "", // Will be determined automatically
+			IsFirstContact: true,
+			ServiceType:    "",
+			UserTone:       "neutral",
+			UserQuery:      query,
+			ConversationHistory: []string{},
+			CulturalContext: nil,
+			UserMood:       nil,
+			Context: map[string]interface{}{
+				"greeting_only": true,
+			},
+		}
+
+		enhancedResp, err := ps.emoticonEnhancedGreetingManager.GenerateEmoticonEnhancedGreeting(ctx, enhancedReq)
+		if err != nil {
+			logrus.WithError(err).Warn("Emoticon-enhanced greeting failed, falling back to standard processing")
+		} else {
+			logrus.WithFields(logrus.Fields{
+				"greeting_type": enhancedResp.GreetingType,
+				"cultural_adaptation": enhancedResp.CulturalAdaptation,
+				"emoticon_enhanced": true,
+			}).Debug("Emoticon-enhanced greeting generated successfully")
+			return enhancedResp.Greeting, nil
+		}
+	}
+
+	// Fallback to standard persona processing
 	req := &PersonaProcessingRequest{
 		Query:          query,
 		UserID:         userID,
