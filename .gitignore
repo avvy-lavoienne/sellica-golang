@@ -26,6 +26,7 @@ backend/logs/
 backend/*.log
 backend/coverage/
 backend/dist/
+backend/exe/
 
 # Environment files (contain secrets)
 .env
