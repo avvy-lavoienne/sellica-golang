@@ -13,6 +13,7 @@ import (
 	"selly-backend/internal/services/auth"
 	"selly-backend/internal/services/chat"
 	"selly-backend/internal/services/monitoring"
+	"selly-backend/internal/services/persona"
 	"selly-backend/pkg/errors"
 )
 
@@ -21,14 +22,16 @@ type ChatHandler struct {
 	chatService  *chat.Service
 	monitoring   *monitoring.Service
 	featureFlags *config.FeatureFlags
+	personaService *persona.PersonaService
 }
 
 // NewChatHandler creates a new chat handler
 func NewChatHandler(chatService *chat.Service, monitoring *monitoring.Service) *ChatHandler {
 	return &ChatHandler{
-		chatService:  chatService,
-		monitoring:   monitoring,
-		featureFlags: config.GetFeatureFlags(),
+		chatService:   chatService,
+		monitoring:    monitoring,
+		featureFlags:  config.GetFeatureFlags(),
+		personaService: persona.GetGlobalPersonaService(),
 	}
 }
 
@@ -103,6 +106,36 @@ func (h *ChatHandler) ProcessChat(c *gin.Context) {
 		h.monitoring.RecordRequest(time.Since(startTime))
 	}
 
+	// Detect user region from context (IP geolocation, user preferences, etc.)
+	userRegion := h.detectUserRegion(req)
+
+	// Add regional metadata to response data
+	regionalMetadata := map[string]interface{}{
+		"region_detected": userRegion,
+		"regional_enabled": h.featureFlags.IsRegionalAdapterEnabled(),
+	}
+
+	// Apply regional adaptations if enabled (metadata only for now)
+	if h.featureFlags.IsRegionalAdapterEnabled() && userRegion != "" {
+		regionalResponse, err := h.personaService.ProcessRegionalAdaptation(
+			c.Request.Context(),
+			"", // Empty query for metadata-only processing
+			userRegion,
+			map[string]interface{}{
+				"user_id":    authContext.UserID,
+				"session_id": req.SessionID,
+				"timestamp":  time.Now(),
+			},
+		)
+
+		if err == nil && regionalResponse != nil {
+			regionalMetadata["region_applied"] = regionalResponse.RegionApplied
+			regionalMetadata["cultural_elements"] = regionalResponse.CulturalElements
+			regionalMetadata["regional_confidence"] = regionalResponse.Confidence
+			regionalMetadata["regional_processing_time_ms"] = regionalResponse.ProcessingTime.Milliseconds()
+		}
+	}
+
 	// Add Phase 2 feature flag metadata to response
 	featureFlags := map[string]interface{}{
 		"phase1_enabled": h.featureFlags.IsPhase1Enabled(),
@@ -112,13 +145,23 @@ func (h *ChatHandler) ProcessChat(c *gin.Context) {
 		"face_saving": h.featureFlags.IsFaceSavingEnabled(),
 		"enhanced_fallback": h.featureFlags.IsEnhancedFallbackEnabled(),
 		"low_confidence_handling": h.featureFlags.IsLowConfidenceHandlingEnabled(),
+		// Regional rollout status
+		"jakarta_regional": h.featureFlags.IsJakartaRegionalEnabled(),
+		"jawa_barat_regional": h.featureFlags.IsJawaBaratRegionalEnabled(),
+		"sunda_regional": h.featureFlags.IsSundaRegionalEnabled(),
+		"bali_regional": h.featureFlags.IsBaliRegionalEnabled(),
+		"sumatra_regional": h.featureFlags.IsSumatraRegionalEnabled(),
+		"kalimantan_regional": h.featureFlags.IsKalimantanRegionalEnabled(),
+		"sulawesi_regional": h.featureFlags.IsSulawesiRegionalEnabled(),
+		"papua_regional": h.featureFlags.IsPapuaRegionalEnabled(),
 	}
 
-	// Add feature flags to response Data field
+	// Add feature flags and regional metadata to response Data field
 	if response.Data == nil {
 		response.Data = make(map[string]interface{})
 	}
 	response.Data["feature_flags"] = featureFlags
+	response.Data["regional_metadata"] = regionalMetadata
 
 	logrus.WithFields(logrus.Fields{
 		"user_id":         authContext.UserID,
@@ -342,6 +385,13 @@ func (h *ChatHandler) GetChatSessions(c *gin.Context) {
 			"userId":         authContext.UserID,
 		},
 	})
+}
+
+// detectUserRegion detects the user's region from request context
+func (h *ChatHandler) detectUserRegion(req chat.ChatRequest) string {
+	// Default to Jakarta for Phase 2B rollout
+	// In production, this would use IP geolocation, user preferences, etc.
+	return "id_jakarta"
 }
 
 // Helper function
