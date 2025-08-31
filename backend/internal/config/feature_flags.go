@@ -22,6 +22,16 @@ type FeatureFlags struct {
 	FaceSavingProcessorEnabled   bool `json:"face_saving_processor_enabled"`
 	Phase2MetricsEnabled         bool `json:"phase2_metrics_enabled"`
 
+	// Regional Rollout Control (Phase 2B)
+	JakartaRegionalEnabled       bool `json:"jakarta_regional_enabled"`
+	JawaBaratRegionalEnabled     bool `json:"jawa_barat_regional_enabled"`
+	SundaRegionalEnabled         bool `json:"sunda_regional_enabled"`
+	BaliRegionalEnabled          bool `json:"bali_regional_enabled"`
+	SumatraRegionalEnabled       bool `json:"sumatra_regional_enabled"`
+	KalimantanRegionalEnabled    bool `json:"kalimantan_regional_enabled"`
+	SulawesiRegionalEnabled      bool `json:"sulawesi_regional_enabled"`
+	PapuaRegionalEnabled         bool `json:"papua_regional_enabled"`
+
 	// Fallback and Safety Features
 	EnhancedFallbackEnabled      bool `json:"enhanced_fallback_enabled"`
 	LowConfidenceHandlingEnabled bool `json:"low_confidence_handling_enabled"`
@@ -57,6 +67,16 @@ func NewFeatureFlags() *FeatureFlags {
 		ReligiousCalendarEnabled:     getEnvBool("PHASE2_RELIGIOUS_CALENDAR_ENABLED", false),
 		FaceSavingProcessorEnabled:   getEnvBool("PHASE2_FACE_SAVING_ENABLED", false),
 		Phase2MetricsEnabled:         getEnvBool("PHASE2_METRICS_ENABLED", false),
+
+		// Regional rollout - Jakarta enabled first, others disabled
+		JakartaRegionalEnabled:       getEnvBool("JAKARTA_REGIONAL_ENABLED", true),
+		JawaBaratRegionalEnabled:     getEnvBool("JAWA_BARAT_REGIONAL_ENABLED", false),
+		SundaRegionalEnabled:         getEnvBool("SUNDA_REGIONAL_ENABLED", false),
+		BaliRegionalEnabled:          getEnvBool("BALI_REGIONAL_ENABLED", false),
+		SumatraRegionalEnabled:       getEnvBool("SUMATRA_REGIONAL_ENABLED", false),
+		KalimantanRegionalEnabled:    getEnvBool("KALIMANTAN_REGIONAL_ENABLED", false),
+		SulawesiRegionalEnabled:      getEnvBool("SULAWESI_REGIONAL_ENABLED", false),
+		PapuaRegionalEnabled:         getEnvBool("PAPUA_REGIONAL_ENABLED", false),
 
 		// Safety features - enabled by default
 		EnhancedFallbackEnabled:      getEnvBool("ENHANCED_FALLBACK_ENABLED", true),
@@ -121,6 +141,55 @@ func (ff *FeatureFlags) IsLowConfidenceHandlingEnabled() bool {
 	return ff.LowConfidenceHandlingEnabled
 }
 
+// Regional rollout getters (Phase 2B)
+func (ff *FeatureFlags) IsJakartaRegionalEnabled() bool {
+	ff.mutex.RLock()
+	defer ff.mutex.RUnlock()
+	return ff.JakartaRegionalEnabled
+}
+
+func (ff *FeatureFlags) IsJawaBaratRegionalEnabled() bool {
+	ff.mutex.RLock()
+	defer ff.mutex.RUnlock()
+	return ff.JawaBaratRegionalEnabled
+}
+
+func (ff *FeatureFlags) IsSundaRegionalEnabled() bool {
+	ff.mutex.RLock()
+	defer ff.mutex.RUnlock()
+	return ff.SundaRegionalEnabled
+}
+
+func (ff *FeatureFlags) IsBaliRegionalEnabled() bool {
+	ff.mutex.RLock()
+	defer ff.mutex.RUnlock()
+	return ff.BaliRegionalEnabled
+}
+
+func (ff *FeatureFlags) IsSumatraRegionalEnabled() bool {
+	ff.mutex.RLock()
+	defer ff.mutex.RUnlock()
+	return ff.SumatraRegionalEnabled
+}
+
+func (ff *FeatureFlags) IsKalimantanRegionalEnabled() bool {
+	ff.mutex.RLock()
+	defer ff.mutex.RUnlock()
+	return ff.KalimantanRegionalEnabled
+}
+
+func (ff *FeatureFlags) IsSulawesiRegionalEnabled() bool {
+	ff.mutex.RLock()
+	defer ff.mutex.RUnlock()
+	return ff.SulawesiRegionalEnabled
+}
+
+func (ff *FeatureFlags) IsPapuaRegionalEnabled() bool {
+	ff.mutex.RLock()
+	defer ff.mutex.RUnlock()
+	return ff.PapuaRegionalEnabled
+}
+
 // UpdateFlag updates a specific feature flag
 func (ff *FeatureFlags) UpdateFlag(flagName string, enabled bool) {
 	ff.mutex.Lock()
@@ -151,6 +220,23 @@ func (ff *FeatureFlags) UpdateFlag(flagName string, enabled bool) {
 		ff.PerformanceMonitoringEnabled = enabled
 	case "error_tracking":
 		ff.ErrorTrackingEnabled = enabled
+	// Regional rollout flags (Phase 2B)
+	case "jakarta_regional":
+		ff.JakartaRegionalEnabled = enabled
+	case "jawa_barat_regional":
+		ff.JawaBaratRegionalEnabled = enabled
+	case "sunda_regional":
+		ff.SundaRegionalEnabled = enabled
+	case "bali_regional":
+		ff.BaliRegionalEnabled = enabled
+	case "sumatra_regional":
+		ff.SumatraRegionalEnabled = enabled
+	case "kalimantan_regional":
+		ff.KalimantanRegionalEnabled = enabled
+	case "sulawesi_regional":
+		ff.SulawesiRegionalEnabled = enabled
+	case "papua_regional":
+		ff.PapuaRegionalEnabled = enabled
 	}
 }
 
@@ -172,6 +258,15 @@ func (ff *FeatureFlags) GetAllFlags() map[string]bool {
 		"low_confidence_handling":  ff.LowConfidenceHandlingEnabled,
 		"performance_monitoring":   ff.PerformanceMonitoringEnabled,
 		"error_tracking":           ff.ErrorTrackingEnabled,
+		// Regional rollout flags (Phase 2B)
+		"jakarta_regional":         ff.JakartaRegionalEnabled,
+		"jawa_barat_regional":      ff.JawaBaratRegionalEnabled,
+		"sunda_regional":           ff.SundaRegionalEnabled,
+		"bali_regional":            ff.BaliRegionalEnabled,
+		"sumatra_regional":         ff.SumatraRegionalEnabled,
+		"kalimantan_regional":      ff.KalimantanRegionalEnabled,
+		"sulawesi_regional":        ff.SulawesiRegionalEnabled,
+		"papua_regional":           ff.PapuaRegionalEnabled,
 	}
 }
 
