@@ -10,14 +10,14 @@ import (
 )
 
 func TestNewRegionalAdapter(t *testing.T) {
-	adapter := NewRegionalAdapter("backend/data/training/persona/regional_profiles")
+	adapter := NewRegionalAdapter("data/training/persona/regional_profiles")
 
 	assert.NotNil(t, adapter)
 	assert.True(t, adapter.IsEnabled())
 }
 
 func TestRegionalAdapter_AdaptForRegion(t *testing.T) {
-	adapter := NewRegionalAdapter("backend/data/training/persona/regional_profiles")
+	adapter := NewRegionalAdapter("data/training/persona/regional_profiles")
 
 	tests := []struct {
 		name         string
@@ -75,7 +75,7 @@ func TestRegionalAdapter_AdaptForRegion(t *testing.T) {
 }
 
 func TestRegionalAdapter_GetSupportedRegions(t *testing.T) {
-	adapter := NewRegionalAdapter("backend/data/training/persona/regional_profiles")
+	adapter := NewRegionalAdapter("data/training/persona/regional_profiles")
 
 	regions := adapter.GetSupportedRegions()
 	assert.IsType(t, []string{}, regions)
@@ -84,7 +84,7 @@ func TestRegionalAdapter_GetSupportedRegions(t *testing.T) {
 }
 
 func TestRegionalAdapter_GetMetrics(t *testing.T) {
-	adapter := NewRegionalAdapter("backend/data/training/persona/regional_profiles")
+	adapter := NewRegionalAdapter("data/training/persona/regional_profiles")
 
 	// Perform some operations to generate metrics
 	req := &RegionalAdaptationRequest{
@@ -112,7 +112,7 @@ func TestRegionalAdapter_GetMetrics(t *testing.T) {
 }
 
 func TestRegionalAdapter_EnableDisable(t *testing.T) {
-	adapter := NewRegionalAdapter("backend/data/training/persona/regional_profiles")
+	adapter := NewRegionalAdapter("data/training/persona/regional_profiles")
 
 	// Initially enabled
 	assert.True(t, adapter.IsEnabled())
@@ -127,7 +127,7 @@ func TestRegionalAdapter_EnableDisable(t *testing.T) {
 }
 
 func TestRegionalAdapter_DisabledBehavior(t *testing.T) {
-	adapter := NewRegionalAdapter("backend/data/training/persona/regional_profiles")
+	adapter := NewRegionalAdapter("data/training/persona/regional_profiles")
 	adapter.SetEnabled(false)
 
 	req := &RegionalAdaptationRequest{
@@ -148,7 +148,7 @@ func TestRegionalAdapter_DisabledBehavior(t *testing.T) {
 
 func TestRegionalProfile_Validation(t *testing.T) {
 	// Test profile loading and validation
-	adapter := NewRegionalAdapter("backend/data/training/persona/regional_profiles")
+	adapter := NewRegionalAdapter("data/training/persona/regional_profiles")
 
 	// Test that adapter is properly initialized
 	assert.NotNil(t, adapter)
@@ -159,7 +159,7 @@ func TestRegionalProfile_Validation(t *testing.T) {
 }
 
 func TestRegionalAdaptation_CulturalElements(t *testing.T) {
-	adapter := NewRegionalAdapter("backend/data/training/persona/regional_profiles")
+	adapter := NewRegionalAdapter("data/training/persona/regional_profiles")
 
 	req := &RegionalAdaptationRequest{
 		Query:       "Terima kasih atas bantuan Anda",
@@ -178,7 +178,7 @@ func TestRegionalAdaptation_CulturalElements(t *testing.T) {
 }
 
 func TestRegionalAdaptation_Performance(t *testing.T) {
-	adapter := NewRegionalAdapter("backend/data/training/persona/regional_profiles")
+	adapter := NewRegionalAdapter("data/training/persona/regional_profiles")
 
 	req := &RegionalAdaptationRequest{
 		Query:       "Bagaimana cara mengurus KTP?",
@@ -203,7 +203,7 @@ func TestRegionalAdaptation_Performance(t *testing.T) {
 }
 
 func TestRegionalAdaptation_EdgeCases(t *testing.T) {
-	adapter := NewRegionalAdapter("backend/data/training/persona/regional_profiles")
+	adapter := NewRegionalAdapter("data/training/persona/regional_profiles")
 
 	tests := []struct {
 		name       string

@@ -105,6 +105,11 @@ type RegionalAdaptationResponse struct {
 
 // NewRegionalAdapter creates a new regional adapter
 func NewRegionalAdapter(configPath string) *RegionalAdapter {
+	// If no config path provided, use default relative path
+	if configPath == "" {
+		configPath = "data/training/persona/regional_profiles"
+	}
+
 	adapter := &RegionalAdapter{
 		profiles:       make(map[string]*RegionalProfile),
 		configPath:     configPath,
