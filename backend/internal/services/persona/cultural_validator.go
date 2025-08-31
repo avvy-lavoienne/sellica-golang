@@ -877,7 +877,7 @@ func (cqv *CulturalQualityValidator) calculateValidationConfidence(result *Valid
 	return math.Min(1.0, math.Max(0.1, confidence))
 }
 
-func (cqv *CulturalQualityValidator) requestExpertReview(ctx context.Context, response string, culturalContext *InternalCulturalContext, result *ValidationResult) (*ExpertReviewResult, error) {
+func (cqv *CulturalQualityValidator) requestExpertReview(_ context.Context, _ string, culturalContext *InternalCulturalContext, result *ValidationResult) (*ExpertReviewResult, error) {
 	// For now, return a mock expert review
 	// In production, this would integrate with actual expert review system
 	return &ExpertReviewResult{

@@ -455,13 +455,10 @@ func (cpo *CulturalPerformanceOptimizer) startBackgroundOptimization() {
 	ticker := time.NewTicker(1 * time.Hour) // Optimize every hour
 	defer ticker.Stop()
 
-	for {
-		select {
-		case <-ticker.C:
-			cpo.optimizeCacheDistribution()
-			cpo.updatePrecomputedPatterns()
-			cpo.cleanupUnusedCache()
-		}
+	for range ticker.C {
+		cpo.optimizeCacheDistribution()
+		cpo.updatePrecomputedPatterns()
+		cpo.cleanupUnusedCache()
 	}
 }
 
@@ -492,11 +489,8 @@ func (cpo *CulturalPerformanceOptimizer) cleanupUnusedCache() {
 
 // Cache cleanup routine
 func (ccm *CulturalCacheManager) startCacheCleanup() {
-	for {
-		select {
-		case <-ccm.cleanupTicker.C:
-			ccm.performCacheCleanup()
-		}
+	for range ccm.cleanupTicker.C {
+		ccm.performCacheCleanup()
 	}
 }
 
