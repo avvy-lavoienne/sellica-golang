@@ -325,21 +325,22 @@ func (nap *NLPAIProvider) generateComprehensiveResponse(query, knowledgeContext,
 	// Handle other services with contextual greeting
 	greeting := nap.generateContextualGreeting(isGreeting, isFirstInteraction)
 
-	if serviceType == "kartu_keluarga" {
+	switch serviceType {
+	case "kartu_keluarga":
 		response.WriteString(greeting)
 		response.WriteString("🏠 **Layanan Kartu Keluarga (KK)**\n\n")
 		response.WriteString("Untuk informasi lengkap mengenai layanan Kartu Keluarga, silakan hubungi:\n")
 		response.WriteString("📞 **Telepon:** (0262) 234638\n")
 		response.WriteString("🌐 **Website:** disdukcapil.garutkab.go.id\n\n")
 		response.WriteString("Apakah ada yang ingin ditanyakan lebih lanjut?")
-	} else if serviceType == "ktp_elektronik" {
+	case "ktp_elektronik":
 		response.WriteString(greeting)
 		response.WriteString("🆔 **Layanan KTP Elektronik**\n\n")
 		response.WriteString("Untuk informasi lengkap mengenai layanan KTP Elektronik, silakan hubungi:\n")
 		response.WriteString("📞 **Telepon:** (0262) 234638\n")
 		response.WriteString("🌐 **Website:** disdukcapil.garutkab.go.id\n\n")
 		response.WriteString("Apakah ada yang ingin ditanyakan lebih lanjut?")
-	} else {
+	default:
 		// Generic government service response
 		response.WriteString(greeting)
 		response.WriteString("Berdasarkan informasi resmi yang tersedia:\n\n")
@@ -355,7 +356,7 @@ func (nap *NLPAIProvider) generateComprehensiveResponse(query, knowledgeContext,
 }
 
 // generateBirthCertificateResponse generates comprehensive birth certificate responses for all scenarios
-func (nap *NLPAIProvider) generateBirthCertificateResponse(query, knowledgeContext, scenario, questionType string, confidence float64, specialCases []string) string {
+func (nap *NLPAIProvider) generateBirthCertificateResponse(query, knowledgeContext, scenario, questionType string, _ float64, specialCases []string) string {
 	// Check if this is a greeting or first interaction
 	isGreeting := nap.isGreetingQuery(query)
 	isFirstInteraction := nap.isFirstInteraction(query)
@@ -378,104 +379,9 @@ func (nap *NLPAIProvider) generateBirthCertificateResponse(query, knowledgeConte
 	}
 }
 
-// generateKnowledgeBasedResponse generates a response using knowledge base context (legacy method)
-func (nap *NLPAIProvider) generateKnowledgeBasedResponse(query, knowledgeContext, serviceType, scenario string) string {
-	var response strings.Builder
-
-	// Start with SELLY greeting
-	response.WriteString("Selamat malam, Bapak/Ibu! Saya SELLY AI Assistant dari Dinas Kependudukan dan Pencatatan Sipil Kabupaten Garut.\n\n")
-
-	// Add service-specific guidance based on knowledge base
-	if serviceType == "akta_kelahiran" && scenario == "C" {
-		response.WriteString("🔍 **Penggantian Akta Kelahiran Hilang/Rusak**\n\n")
-
-		// Detailed requirements from Scenario C
-		response.WriteString("📋 **Persyaratan Lengkap:**\n")
-		response.WriteString("• Surat kehilangan dari kepolisian\n")
-		response.WriteString("• KTP-el asli + fotokopi (pemohon/orang tua)\n")
-		response.WriteString("• Kartu Keluarga (KK) asli + fotokopi\n")
-		response.WriteString("• Surat pernyataan bermaterai Rp 10.000\n")
-		response.WriteString("• Fotokopi akta lama (jika ada)\n\n")
-
-		// Processing time and cost
-		response.WriteString("⏱️ **Waktu Penyelesaian:** 1-3 hari kerja\n")
-		response.WriteString("💰 **Biaya:** GRATIS (UU No. 24 Tahun 2013)\n")
-		response.WriteString("💡 **Biaya Tambahan:** Hanya surat kehilangan di polisi (Rp 10-30 ribu)\n\n")
-
-		// Step-by-step process
-		response.WriteString("📝 **Langkah-langkah:**\n")
-		response.WriteString("1. **Lapor Kehilangan** ke polisi terdekat (1-2 jam)\n")
-		response.WriteString("2. **Persiapan Dokumen** lengkap (30 menit)\n")
-		response.WriteString("3. **Pengajuan ke Disdukcapil** Garut (1 hari kerja)\n")
-		response.WriteString("4. **Verifikasi Data** di sistem SIAK (1-2 hari)\n")
-		response.WriteString("5. **Pengambilan Dokumen** yang sudah jadi\n\n")
-
-		// Contact information
-		response.WriteString("📍 **Lokasi:** Jl. Pembangunan No. 1, Garut\n")
-		response.WriteString("📞 **Telepon:** (0262) 234638\n")
-		response.WriteString("📧 **Email:** disdukcapil@garutkab.go.id\n")
-		response.WriteString("🌐 **Website:** disdukcapil.garutkab.go.id\n\n")
-
-		// Special benefits
-		response.WriteString("✨ **Kemudahan Khusus:**\n")
-		response.WriteString("• Tidak perlu surat pengantar (Permendagri 108/2019)\n")
-		response.WriteString("• Data sudah ada di sistem SIAK\n")
-		response.WriteString("• Proses lebih cepat dari pembuatan baru\n")
-		response.WriteString("• Layanan jemput bola tersedia\n\n")
-
-		// Legal basis
-		response.WriteString("📜 **Dasar Hukum:**\n")
-		response.WriteString("• UU No. 24 Tahun 2013 tentang Administrasi Kependudukan\n")
-		response.WriteString("• Permendagri 108/2019\n\n")
-
-		// Tips
-		response.WriteString("🎯 **Tips Penting:**\n")
-		response.WriteString("• Datang pagi hari (07:30-10:00) untuk antrian sedikit\n")
-		response.WriteString("• Buat backup digital setelah selesai\n")
-		response.WriteString("• Periksa kebenaran data sebelum menerima\n\n")
-
-		response.WriteString("Ada yang ingin ditanyakan lebih lanjut tentang prosesnya, Bapak/Ibu? 😊")
-
-	} else if serviceType == "akta_kelahiran" {
-		// Other birth certificate scenarios
-		response.WriteString("Untuk pelayanan akta kelahiran, berikut informasi berdasarkan dokumen resmi:\n\n")
-
-		// Extract relevant information from knowledge context
-		if strings.Contains(knowledgeContext, "Kelahiran Normal") {
-			response.WriteString("📋 **Persyaratan Umum:**\n")
-			response.WriteString("• Surat keterangan lahir dari fasilitas kesehatan\n")
-			response.WriteString("• KTP-el kedua orang tua\n")
-			response.WriteString("• Kartu Keluarga (KK)\n")
-			response.WriteString("• Buku Nikah/Akta Perkawinan\n\n")
-		}
-
-		response.WriteString("⏱️ **Waktu Penyelesaian:** 1 hari kerja (kelahiran normal)\n")
-		response.WriteString("💰 **Biaya:** GRATIS (dalam 60 hari)\n\n")
-
-		response.WriteString("📞 **Kontak:** (0262) 234638\n")
-		response.WriteString("🌐 **Website:** disdukcapil.garutkab.go.id\n\n")
-
-		response.WriteString("Apakah ada informasi spesifik yang Bapak/Ibu perlukan?")
-
-	} else {
-		// Generic knowledge-based response for other services
-		response.WriteString("Berdasarkan informasi resmi yang tersedia:\n\n")
-
-		// Extract relevant snippets from knowledge context
-		contextSnippet := knowledgeContext
-		if len(contextSnippet) > 800 {
-			contextSnippet = contextSnippet[:800] + "..."
-		}
-
-		response.WriteString(contextSnippet)
-		response.WriteString("\n\nApakah ada informasi lebih spesifik yang Bapak/Ibu perlukan?")
-	}
-
-	return response.String()
-}
 
 // generateScenarioAResponse generates response for normal birth certificates (≤60 days)
-func (nap *NLPAIProvider) generateScenarioAResponse(query, knowledgeContext, questionType string, specialCases []string, isGreeting, isFirstInteraction bool) string {
+func (nap *NLPAIProvider) generateScenarioAResponse(query, _ string, questionType string, specialCases []string, isGreeting, isFirstInteraction bool) string {
 	var response strings.Builder
 
 	// Add contextual greeting
@@ -546,7 +452,7 @@ func (nap *NLPAIProvider) generateScenarioAResponse(query, knowledgeContext, que
 }
 
 // generateScenarioBResponse generates response for late registration (>60 days)
-func (nap *NLPAIProvider) generateScenarioBResponse(query, knowledgeContext, questionType string, specialCases []string, isGreeting, isFirstInteraction bool) string {
+func (nap *NLPAIProvider) generateScenarioBResponse(query, _ string, questionType string, _ []string, isGreeting, isFirstInteraction bool) string {
 	var response strings.Builder
 
 	// Add contextual greeting
@@ -590,7 +496,7 @@ func (nap *NLPAIProvider) generateScenarioBResponse(query, knowledgeContext, que
 }
 
 // generateScenarioCResponse generates response for lost/damaged certificates
-func (nap *NLPAIProvider) generateScenarioCResponse(query, knowledgeContext, questionType string, specialCases []string, isGreeting, isFirstInteraction bool) string {
+func (nap *NLPAIProvider) generateScenarioCResponse(query, _ string, questionType string, _ []string, isGreeting, isFirstInteraction bool) string {
 	var response strings.Builder
 
 	// Add contextual greeting
@@ -652,7 +558,7 @@ func (nap *NLPAIProvider) generateScenarioCResponse(query, knowledgeContext, que
 }
 
 // generateScenarioDResponse generates response for data correction
-func (nap *NLPAIProvider) generateScenarioDResponse(query, knowledgeContext, questionType string, specialCases []string, isGreeting, isFirstInteraction bool) string {
+func (nap *NLPAIProvider) generateScenarioDResponse(query, _ string, questionType string, _ []string, isGreeting, isFirstInteraction bool) string {
 	var response strings.Builder
 
 	// Add contextual greeting
@@ -702,7 +608,7 @@ func (nap *NLPAIProvider) generateScenarioDResponse(query, knowledgeContext, que
 }
 
 // generateScenarioEResponse generates response for foreign births
-func (nap *NLPAIProvider) generateScenarioEResponse(query, knowledgeContext, questionType string, specialCases []string, isGreeting, isFirstInteraction bool) string {
+func (nap *NLPAIProvider) generateScenarioEResponse(query, _ string, questionType string, _ []string, isGreeting, isFirstInteraction bool) string {
 	var response strings.Builder
 
 	// Add contextual greeting
@@ -754,7 +660,7 @@ func (nap *NLPAIProvider) generateScenarioEResponse(query, knowledgeContext, que
 }
 
 // generateGeneralBirthCertificateResponse generates general birth certificate information
-func (nap *NLPAIProvider) generateGeneralBirthCertificateResponse(query, knowledgeContext, questionType string, specialCases []string, isGreeting, isFirstInteraction bool) string {
+func (nap *NLPAIProvider) generateGeneralBirthCertificateResponse(query, _ string, questionType string, _ []string, isGreeting, isFirstInteraction bool) string {
 	var response strings.Builder
 
 	// Add contextual greeting

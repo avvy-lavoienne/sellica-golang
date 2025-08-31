@@ -70,6 +70,15 @@ type RegionalAdapter struct {
 	configPath      string
 	enabled         bool
 	metrics         *RegionalMetrics
+
+	// Phase 2: Ethnic group adapters
+	javaneseAdapter   *JavaneseAdapter
+	sundaneseAdapter  *SundaneseAdapter
+	batakAdapter      *BatakAdapter
+	betawiAdapter     *BetawiAdapter
+	minangAdapter     *MinangAdapter
+	papuanAdapter     *PapuanAdapter
+	detectorsEnabled  bool
 }
 
 // RegionalMetrics tracks regional adaptation performance
@@ -117,6 +126,13 @@ func NewRegionalAdapter(configPath string) *RegionalAdapter {
 		metrics:        &RegionalMetrics{
 			regionUsage: make(map[string]int64),
 		},
+		javaneseAdapter:  NewJavaneseAdapter(),
+		sundaneseAdapter: NewSundaneseAdapter(),
+		batakAdapter:     NewBatakAdapter(),
+		betawiAdapter:    NewBetawiAdapter(),
+		minangAdapter:    NewMinangAdapter(),
+		papuanAdapter:    NewPapuanAdapter(),
+		detectorsEnabled: true,
 	}
 
 	// Initialize default profile
@@ -340,7 +356,7 @@ func (ra *RegionalAdapter) adaptGreeting(query string, profile *RegionalProfile)
 }
 
 // adaptAddressForms adapts address forms based on context
-func (ra *RegionalAdapter) adaptAddressForms(query string, profile *RegionalProfile, userContext map[string]interface{}) string {
+func (ra *RegionalAdapter) adaptAddressForms(query string, profile *RegionalProfile, _ map[string]interface{}) string {
 	// Adapt "Anda" to regional formal address
 	if len(profile.FormalAddress) > 0 {
 		return strings.ReplaceAll(query, "Anda", profile.FormalAddress[0])
@@ -384,7 +400,7 @@ func (ra *RegionalAdapter) adaptCommunicationStyle(query string, profile *Region
 }
 
 // calculateConfidence calculates adaptation confidence
-func (ra *RegionalAdapter) calculateConfidence(profile *RegionalProfile, req *RegionalAdaptationRequest) float64 {
+func (ra *RegionalAdapter) calculateConfidence(profile *RegionalProfile, _ *RegionalAdaptationRequest) float64 {
 	confidence := 0.8 // Base confidence
 
 	if profile != ra.defaultProfile {
@@ -466,4 +482,437 @@ func (ra *RegionalAdapter) GetSupportedRegions() []string {
 		regions = append(regions, code)
 	}
 	return regions
+}
+
+// Phase 2: Ethnic Group Adapters Implementation
+
+// JavaneseAdapter implements Javanese cultural adaptations
+type JavaneseAdapter struct {
+	formalityPatterns map[string]string
+	wisdomDatabase    []string
+	hierarchyRules    map[string]int
+}
+
+func NewJavaneseAdapter() *JavaneseAdapter {
+	return &JavaneseAdapter{
+		formalityPatterns: map[string]string{
+			"kita":           "kita semua",
+			"bersama":        "bersama-sama dengan penuh hormat",
+			"membantu":       "melayani dengan sepenuh hati",
+			"solusi":         "jalan keluar yang bijaksana",
+			"berbicara":      "bertutur kata dengan santun",
+			"diskusi":        "musyawarah",
+		},
+		wisdomDatabase: []string{
+			"Alon-alon waton kelakon - pelan-pelan asalkan tercapai",
+			"Ojo dumeh - jangan sombong karena kedudukan",
+			"Tepa slira - menempatkan diri pada posisi orang lain",
+			"Rukun agawe santosa - kerukunan membuat kuat",
+			"Gotong royong iku wujud saka rasa kebersamaan",
+			"Ngajeni marang sesami iku kuwi utama",
+		},
+		hierarchyRules: map[string]int{
+			"default":    5,
+			"elder":      8,
+			"authority":  9,
+			"spiritual":  10,
+		},
+	}
+}
+
+func (ja *JavaneseAdapter) AdaptResponse(response string, regionalInfo RegionalInfo) string {
+	adapted := response
+
+	// Apply Javanese formality patterns
+	if ja.needsExtraFormality(regionalInfo) {
+		adapted = ja.addJavaneseFormality(adapted)
+	}
+
+	// Add appropriate Javanese wisdom
+	adapted = ja.addJavaneseWisdom(adapted)
+
+	// Apply hierarchical language adjustments
+	adapted = ja.adjustForJavaneseHierarchy(adapted, regionalInfo)
+
+	return adapted
+}
+
+func (ja *JavaneseAdapter) addJavaneseFormality(response string) string {
+	result := response
+	for casual, formal := range ja.formalityPatterns {
+		result = strings.ReplaceAll(result, casual, formal)
+	}
+	return result
+}
+
+func (ja *JavaneseAdapter) addJavaneseWisdom(response string) string {
+	wisdomTriggers := []string{"sabar", "bersama", "kerja", "sukses", "tantangan", "keputusan"}
+	responseLower := strings.ToLower(response)
+
+	for _, trigger := range wisdomTriggers {
+		if strings.Contains(responseLower, trigger) {
+			// Select appropriate wisdom phrase
+			var selectedWisdom string
+			switch trigger {
+			case "sabar":
+				selectedWisdom = ja.wisdomDatabase[0] // Alon-alon
+			case "bersama", "kerja":
+				selectedWisdom = ja.wisdomDatabase[4] // Gotong royong
+			case "sukses":
+				selectedWisdom = ja.wisdomDatabase[1] // Ojo dumeh
+			default:
+				selectedWisdom = ja.wisdomDatabase[3] // Rukun agawe santosa
+			}
+			return response + " Seperti pepatah Jawa: " + selectedWisdom + "."
+		}
+	}
+
+	return response
+}
+
+func (ja *JavaneseAdapter) adjustForJavaneseHierarchy(response string, regionalInfo RegionalInfo) string {
+	// Detect hierarchy level from cultural markers
+	hierarchyLevel := ja.detectHierarchyLevel(regionalInfo.CulturalMarkers)
+
+	if hierarchyLevel >= 8 {
+		// Very high formality
+		response = "Dengan hormat, " + response
+		response = strings.ReplaceAll(response, "Anda", "Bapak/Ibu")
+	} else if hierarchyLevel >= 6 {
+		// Moderate formality
+		response = strings.ReplaceAll(response, "kamu", "Anda")
+	}
+
+	return response
+}
+
+func (ja *JavaneseAdapter) detectHierarchyLevel(culturalMarkers []string) int {
+	level := ja.hierarchyRules["default"]
+
+	for _, marker := range culturalMarkers {
+		markerLower := strings.ToLower(marker)
+		if strings.Contains(markerLower, "sesepuh") || strings.Contains(markerLower, "tetua") {
+			level = ja.hierarchyRules["elder"]
+		} else if strings.Contains(markerLower, "pimpinan") || strings.Contains(markerLower, "direktur") {
+			level = ja.hierarchyRules["authority"]
+		} else if strings.Contains(markerLower, "kyai") || strings.Contains(markerLower, "pendeta") {
+			level = ja.hierarchyRules["spiritual"]
+		}
+	}
+
+	return level
+}
+
+func (ja *JavaneseAdapter) needsExtraFormality(regionalInfo RegionalInfo) bool {
+	formalityIndicators := []string{"formal", "resmi", "bisnis", "pemerintah"}
+
+	for _, marker := range regionalInfo.CulturalMarkers {
+		markerLower := strings.ToLower(marker)
+		for _, indicator := range formalityIndicators {
+			if strings.Contains(markerLower, indicator) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+// SundaneseAdapter implements Sundanese cultural adaptations
+type SundaneseAdapter struct {
+	hospitalityPatterns map[string]string
+	politenessMarkers   []string
+}
+
+func NewSundaneseAdapter() *SundaneseAdapter {
+	return &SundaneseAdapter{
+		hospitalityPatterns: map[string]string{
+			"selamat datang": "wilujeng sumping",
+			"terima kasih":   "hatur nuhun",
+			"maaf":          "hapunten",
+			"permisi":       "hapunten",
+		},
+		politenessMarkers: []string{
+			"mangga", "sumangga", "mugi", "antosan",
+		},
+	}
+}
+
+func (sa *SundaneseAdapter) AdaptResponse(response string, regionalInfo RegionalInfo) string {
+	adapted := response
+
+	// Add Sundanese hospitality markers
+	adapted = sa.addSundaneseHospitality(adapted)
+
+	// Apply Sundanese politeness patterns
+	adapted = sa.addSundanesePoliteness(adapted)
+
+	return adapted
+}
+
+func (sa *SundaneseAdapter) addSundaneseHospitality(response string) string {
+	// Add warm, welcoming tone characteristic of Sundanese culture
+	if sa.isGreeting(response) {
+		return "Wilujeng sumping! " + response + " Mugi-mugi wilujeng."
+	}
+
+	// Add hospitality closing
+	return response + " Mugi bermanfaat."
+}
+
+func (sa *SundaneseAdapter) addSundanesePoliteness(response string) string {
+	// Replace direct language with more polite Sundanese-influenced Indonesian
+	politenessReplacements := map[string]string{
+		"harus":    "sebaiknya",
+		"wajib":    "alangkah baiknya",
+		"tidak":    "belum",
+		"salah":    "kurang tepat",
+	}
+
+	result := response
+	for direct, polite := range politenessReplacements {
+		result = strings.ReplaceAll(result, direct, polite)
+	}
+
+	return result
+}
+
+func (sa *SundaneseAdapter) isGreeting(response string) bool {
+	greetingMarkers := []string{"halo", "selamat", "hai", "salam"}
+	responseLower := strings.ToLower(response)
+
+	for _, marker := range greetingMarkers {
+		if strings.Contains(responseLower, marker) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// BatakAdapter implements Batak cultural adaptations
+type BatakAdapter struct {
+	directnessPatterns map[string]string
+	strengthMarkers    []string
+}
+
+func NewBatakAdapter() *BatakAdapter {
+	return &BatakAdapter{
+		directnessPatterns: map[string]string{
+			"mungkin":     "pasti",
+			"sepertinya":  "tentu saja",
+			"barangkali":  "sudah pasti",
+		},
+		strengthMarkers: []string{
+			"kuat", "teguh", "mantap", "pasti", "yakin",
+		},
+	}
+}
+
+func (ba *BatakAdapter) AdaptResponse(response string, regionalInfo RegionalInfo) string {
+	adapted := response
+
+	// Apply Batak directness (less indirect communication)
+	adapted = ba.addBatakDirectness(adapted)
+
+	// Add strength and confidence markers
+	adapted = ba.addStrengthMarkers(adapted)
+
+	return adapted
+}
+
+func (ba *BatakAdapter) addBatakDirectness(response string) string {
+	result := response
+	for indirect, direct := range ba.directnessPatterns {
+		result = strings.ReplaceAll(result, indirect, direct)
+	}
+	return result
+}
+
+func (ba *BatakAdapter) addStrengthMarkers(response string) string {
+	// Add confident, strong language typical of Batak communication
+	if strings.Contains(strings.ToLower(response), "solusi") {
+		return response + " Dengan tekad yang kuat, kita bisa mencapai hasil yang maksimal."
+	}
+	return response
+}
+
+// BetawiAdapter implements Betawi cultural adaptations
+type BetawiAdapter struct {
+	slangPatterns    map[string]string
+	humorElements    []string
+}
+
+func NewBetawiAdapter() *BetawiAdapter {
+	return &BetawiAdapter{
+		slangPatterns: map[string]string{
+			"bagus":      "kece",
+			"baik":       "oke",
+			"tidak":      "ngga",
+			"ya":         "iyah",
+		},
+		humorElements: []string{
+			"Lucu ya", "Haha", "Wah", "Ih",
+		},
+	}
+}
+
+func (ba *BetawiAdapter) AdaptResponse(response string, regionalInfo RegionalInfo) string {
+	adapted := response
+
+	// Add Betawi slang
+	adapted = ba.addBetawiSlang(adapted)
+
+	// Add humor elements
+	adapted = ba.addHumorElements(adapted)
+
+	return adapted
+}
+
+func (ba *BetawiAdapter) addBetawiSlang(response string) string {
+	result := response
+	for standard, slang := range ba.slangPatterns {
+		result = strings.ReplaceAll(result, standard, slang)
+	}
+	return result
+}
+
+func (ba *BetawiAdapter) addHumorElements(response string) string {
+	// Add light humor characteristic of Betawi culture
+	if strings.Contains(strings.ToLower(response), "masalah") {
+		return response + " Tapi tenang, kita bisa atasi bareng-bareng."
+	}
+	return response
+}
+
+// MinangAdapter implements Minangkabau cultural adaptations
+type MinangAdapter struct {
+	respectPatterns  map[string]string
+	adatPhrases      []string
+}
+
+func NewMinangAdapter() *MinangAdapter {
+	return &MinangAdapter{
+		respectPatterns: map[string]string{
+			"bapak":       "Datuk",
+			"ibu":         "Bundo",
+			"orang tua":   "mamak",
+			"keluarga":    "kaum",
+		},
+		adatPhrases: []string{
+			"Adat basandi syarak, syarak basandi Kitabullah",
+			"Indak lakang dek pandan, indak lapuak dek ujan",
+			"Baik elok nan baelok, baik buruk nan baiburuk",
+		},
+	}
+}
+
+func (ma *MinangAdapter) AdaptResponse(response string, regionalInfo RegionalInfo) string {
+	adapted := response
+
+	// Apply Minang respect patterns
+	adapted = ma.addMinangRespect(adapted)
+
+	// Add adat wisdom
+	adapted = ma.addAdatWisdom(adapted)
+
+	return adapted
+}
+
+func (ma *MinangAdapter) addMinangRespect(response string) string {
+	result := response
+	for standard, minang := range ma.respectPatterns {
+		result = strings.ReplaceAll(result, standard, minang)
+	}
+	return result
+}
+
+func (ma *MinangAdapter) addAdatWisdom(response string) string {
+	// Add Minang adat wisdom when appropriate
+	if strings.Contains(strings.ToLower(response), "tradisi") || strings.Contains(strings.ToLower(response), "adat") {
+		return response + " Seperti pepatah Minang: " + ma.adatPhrases[0] + "."
+	}
+	return response
+}
+
+// PapuanAdapter implements Papuan cultural adaptations
+type PapuanAdapter struct {
+	diversityPatterns map[string]string
+	natureElements    []string
+}
+
+func NewPapuanAdapter() *PapuanAdapter {
+	return &PapuanAdapter{
+		diversityPatterns: map[string]string{
+			"bersama":    "bersatu dalam keberagaman",
+			"indonesia":  "Tanah Papua yang kaya",
+			"bangsa":     "bangsa yang beragam",
+		},
+		natureElements: []string{
+			"seperti burung cenderawasih",
+			"seperti hutan tropis",
+			"seperti gunung-gunung megah",
+		},
+	}
+}
+
+func (pa *PapuanAdapter) AdaptResponse(response string, regionalInfo RegionalInfo) string {
+	adapted := response
+
+	// Apply diversity patterns
+	adapted = pa.addDiversityElements(adapted)
+
+	// Add nature elements
+	adapted = pa.addNatureElements(adapted)
+
+	return adapted
+}
+
+func (pa *PapuanAdapter) addDiversityElements(response string) string {
+	result := response
+	for standard, diverse := range pa.diversityPatterns {
+		result = strings.ReplaceAll(result, standard, diverse)
+	}
+	return result
+}
+
+func (pa *PapuanAdapter) addNatureElements(response string) string {
+	// Add nature metaphors characteristic of Papuan culture
+	if strings.Contains(strings.ToLower(response), "indah") || strings.Contains(strings.ToLower(response), "kuat") {
+		return response + " " + pa.natureElements[0] + "."
+	}
+	return response
+}
+
+// AdaptToRegion applies ethnic group-specific adaptations
+func (ra *RegionalAdapter) AdaptToRegion(_ context.Context, response string, regionalInfo RegionalInfo) string {
+	if !ra.detectorsEnabled {
+		return response
+	}
+
+	switch regionalInfo.EthnicGroup {
+	case "javanese":
+		return ra.javaneseAdapter.AdaptResponse(response, regionalInfo)
+	case "sundanese":
+		return ra.sundaneseAdapter.AdaptResponse(response, regionalInfo)
+	case "batak":
+		return ra.batakAdapter.AdaptResponse(response, regionalInfo)
+	case "betawi":
+		return ra.betawiAdapter.AdaptResponse(response, regionalInfo)
+	case "minangkabau":
+		return ra.minangAdapter.AdaptResponse(response, regionalInfo)
+	case "papuan":
+		return ra.papuanAdapter.AdaptResponse(response, regionalInfo)
+	default:
+		return ra.applyGeneralIndonesianAdaptation(response, regionalInfo)
+	}
+}
+
+// applyGeneralIndonesianAdaptation applies general Indonesian cultural adaptations
+func (ra *RegionalAdapter) applyGeneralIndonesianAdaptation(response string, _ RegionalInfo) string {
+	// Apply general Indonesian cultural adaptations
+	if strings.Contains(strings.ToLower(response), "terima kasih") {
+		return strings.ReplaceAll(response, "terima kasih", "terima kasih banyak")
+	}
+	return response
 }

@@ -388,7 +388,7 @@ func (h *ChatHandler) GetChatSessions(c *gin.Context) {
 }
 
 // detectUserRegion detects the user's region from request context
-func (h *ChatHandler) detectUserRegion(req chat.ChatRequest) string {
+func (h *ChatHandler) detectUserRegion(_ chat.ChatRequest) string {
 	// Default to Jakarta for Phase 2B rollout
 	// In production, this would use IP geolocation, user preferences, etc.
 	return "id_jakarta"
