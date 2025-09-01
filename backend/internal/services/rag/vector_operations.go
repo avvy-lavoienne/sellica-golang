@@ -34,12 +34,8 @@ type VectorOperations struct {
 
 // VectorBatchProcessor handles batch processing of vector operations
 type VectorBatchProcessor struct {
-	batchSize       int
-	maxWaitTime     time.Duration
 	pendingBatch    []*VectorOperation
-	batchMutex      sync.Mutex
 	resultChannels  map[string]chan *VectorOperationResult
-	processingTimer *time.Timer
 }
 
 // VectorOperation represents a vector operation request
@@ -78,8 +74,6 @@ func NewVectorOperations(redisClient *redis.Client, config *RAGConfig) *VectorOp
 		maxConcurrency: maxConcurrency,
 		workerPool:     make(chan struct{}, maxConcurrency),
 		batchProcessor: &VectorBatchProcessor{
-			batchSize:      10,
-			maxWaitTime:    50 * time.Millisecond,
 			pendingBatch:   make([]*VectorOperation, 0),
 			resultChannels: make(map[string]chan *VectorOperationResult),
 		},

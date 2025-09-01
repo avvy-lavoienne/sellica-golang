@@ -18,8 +18,6 @@ import (
 
 // EmbeddingBatchProcessor handles batch processing of embeddings for performance optimization
 type EmbeddingBatchProcessor struct {
-	batchSize       int
-	maxWaitTime     time.Duration
 	pendingBatch    []*EmbeddingRequest
 	batchMutex      sync.Mutex
 	resultChannels  map[string]chan *EmbeddingResult
@@ -336,6 +334,7 @@ func (es *EmbeddingService) processIndonesianText(text string) (*ProcessedText, 
 }
 
 // generateEmbeddingFromProcessed generates embedding from processed text
+// TODO: This method is reserved for future implementation of custom embedding generation
 func (es *EmbeddingService) generateEmbeddingFromProcessed(processed *ProcessedText) []float64 {
 	embedding := make([]float64, es.dimensions)
 
@@ -512,7 +511,7 @@ func (es *EmbeddingService) getL2CachedEmbedding(ctx context.Context, cacheKey s
 }
 
 // setL2CachedEmbedding stores embedding in L2 (Redis) cache
-func (es *EmbeddingService) setL2CachedEmbedding(ctx context.Context, cacheKey string, embedding []float64) {
+func (es *EmbeddingService) setL2CachedEmbedding(_ context.Context, cacheKey string, embedding []float64) {
 	if es.l2Cache == nil {
 		return
 	}
@@ -745,6 +744,7 @@ func (es *EmbeddingService) generateCacheKey(text string) string {
 }
 
 // getCachedEmbedding retrieves cached embedding
+// TODO: This method is reserved for future caching optimization
 func (es *EmbeddingService) getCachedEmbedding(key string) []float64 {
 	es.cacheMutex.RLock()
 	defer es.cacheMutex.RUnlock()
@@ -757,6 +757,7 @@ func (es *EmbeddingService) getCachedEmbedding(key string) []float64 {
 }
 
 // cacheEmbedding caches embedding
+// TODO: This method is reserved for future caching optimization
 func (es *EmbeddingService) cacheEmbedding(key string, embedding []float64) {
 	es.cacheMutex.Lock()
 	defer es.cacheMutex.Unlock()

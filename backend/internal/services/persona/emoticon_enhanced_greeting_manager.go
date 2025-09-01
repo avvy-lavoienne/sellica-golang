@@ -438,7 +438,7 @@ func (eegm *EmoticonEnhancedGreetingManager) determineGreetingCategory(req *Enha
 }
 
 // selectGreetingVariation selects a greeting variation based on context and weights
-func (eegm *EmoticonEnhancedGreetingManager) selectGreetingVariation(variations []GreetingVariation, req *EnhancedGreetingRequest, sessionContext *SessionGreetingContext) *GreetingVariation {
+func (eegm *EmoticonEnhancedGreetingManager) selectGreetingVariation(variations []GreetingVariation, _ *EnhancedGreetingRequest, sessionContext *SessionGreetingContext) *GreetingVariation {
 	if len(variations) == 0 {
 		return nil
 	}
@@ -514,7 +514,7 @@ func (eegm *EmoticonEnhancedGreetingManager) personalizeGreetingVariation(variat
 }
 
 // applyEmoticonEnhancement applies emoticon enhancement to the greeting
-func (eegm *EmoticonEnhancedGreetingManager) applyEmoticonEnhancement(greeting string, req *EnhancedGreetingRequest, sessionContext *SessionGreetingContext) string {
+func (eegm *EmoticonEnhancedGreetingManager) applyEmoticonEnhancement(greeting string, _ *EnhancedGreetingRequest, _ *SessionGreetingContext) string {
 	if !eegm.emoticonEnhancer.IsEnabled() {
 		return greeting
 	}

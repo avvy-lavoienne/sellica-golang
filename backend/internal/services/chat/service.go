@@ -294,38 +294,75 @@ func (s *Service) analyzeQuery(query string) *QueryAnalysis {
 
 // retrieveRelevantContent retrieves relevant content from the knowledge base
 func (s *Service) retrieveRelevantContent(ctx context.Context, query string, analysis *QueryAnalysis) (string, error) {
+	logrus.WithFields(logrus.Fields{
+		"query": query,
+		"requires_rag": analysis.RequiresRAG,
+		"service_type": analysis.ServiceType,
+	}).Debug("🔍 Starting RAG content retrieval...")
+
 	if s.ragService == nil || !analysis.RequiresRAG {
+		logrus.Debug("ℹ️ RAG service not available or not required")
 		return "", nil
 	}
 
 	// Search for relevant documents
+	logrus.WithField("query", query).Debug("🔍 Searching for similar documents...")
 	searchResults, err := s.ragService.SearchSimilar(ctx, query, 5)
 	if err != nil {
-		logrus.WithError(err).Warn("Failed to retrieve content from RAG service")
+		logrus.WithError(err).WithField("query", query).Warn("❌ Failed to retrieve content from RAG service")
 		return "", nil // Don't fail the entire request
 	}
 
+	logrus.WithFields(logrus.Fields{
+		"query": query,
+		"results_count": len(searchResults.Documents),
+		"search_scores": searchResults.Scores,
+	}).Debug("🔍 RAG search completed")
+
 	if len(searchResults.Documents) == 0 {
+		logrus.WithField("query", query).Warn("⚠️ No relevant documents found in RAG search")
 		return "", nil
 	}
 
 	// Build context from retrieved documents
+	logrus.WithFields(logrus.Fields{
+		"query": query,
+		"documents_found": len(searchResults.Documents),
+	}).Debug("📝 Building context from retrieved documents...")
+
 	var contextBuilder strings.Builder
 	contextBuilder.WriteString("OFFICIAL GOVERNMENT PROCEDURES:\n\n")
 
+	documentsUsed := 0
 	for i, doc := range searchResults.Documents {
 		if i >= 3 { // Limit to top 3 most relevant documents
 			break
 		}
 
+		logrus.WithFields(logrus.Fields{
+			"query": query,
+			"document_id": doc.ID,
+			"relevance_score": searchResults.Scores[i],
+			"document_title": doc.Title,
+		}).Debug("📄 Adding document to context")
+
 		contextBuilder.WriteString(fmt.Sprintf("Document %d (Relevance: %.2f):\n", i+1, searchResults.Scores[i]))
 		contextBuilder.WriteString(doc.Content)
 		contextBuilder.WriteString("\n\n")
+		documentsUsed++
 	}
 
 	contextBuilder.WriteString("IMPORTANT: Use the above official procedures to provide accurate, step-by-step guidance. Include legal references, required documents, processing times, and contact information as specified in the official procedures.")
 
-	return contextBuilder.String(), nil
+	finalContext := contextBuilder.String()
+
+	logrus.WithFields(logrus.Fields{
+		"query": query,
+		"context_length": len(finalContext),
+		"documents_used": documentsUsed,
+	}).Info("📚 Retrieved relevant content from knowledge base")
+
+	return finalContext, nil
 }
 
 // ProcessChat processes a chat message with full compatibility

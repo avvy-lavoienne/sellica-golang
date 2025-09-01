@@ -2,8 +2,8 @@
 applyTo: '**'
 type: "always_apply"
 description: "Comprehensive SELLY Development Rules - Kilo Code Framework"
-version: "2.0"
-last_updated: "2025-08-31"
+version: "2.1"
+last_updated: "2025-09-01"
 ---
 
 # SELLY Development Rules - Kilo Code Framework
@@ -28,6 +28,7 @@ last_updated: "2025-08-31"
 11. [Government Integration Standards](#11-government-integration-standards)
 12. [File Organization Standards](#12-file-organization-standards)
 13. [Validation and Enforcement](#13-validation-and-enforcement)
+14. [Response Standards and Tool Integration](#14-response-standards-and-tool-integration)
 
 ## 1. Core Principles and Philosophy
 
@@ -1467,7 +1468,114 @@ func (ee *EnforcementEngine) EnforceRules(codebase *Codebase) *EnforcementReport
 }
 ```
 
-## Implementation Examples
+## 14. Response Standards and Tool Integration
+
+### 14.1 PowerShell Command Integration
+**Kilo Rule #34**: Every response must incorporate PowerShell commands and maximize utilization of /backend/docs and /backend/test folders.
+
+**Requirements**:
+- **PowerShell Integration**: All responses must include executable PowerShell commands with clear explanations
+- **Folder Utilization**: Maximize use of `/backend/docs/*` for documentation and `/backend/test/*` for testing artifacts
+- **Structured Examples**: Provide examples in the following format:
+  1. PowerShell command with explanation
+  2. Integration with specified folders
+  3. Expected output or verification steps
+- **Context Awareness**: Ensure all instructions are precise, context-aware, and free of ambiguities
+- **Executable Commands**: Commands must be immediately runnable in Windows PowerShell environment
+
+**Implementation Standards**:
+- Use `$env:VARIABLE_NAME` for environment variables
+- Leverage PowerShell path utilities for cross-platform compatibility
+- Include error handling and verification steps
+- Document folder-specific operations clearly
+
+### 14.2 Folder-Specific Integration Patterns
+
+#### Backend Documentation Folder (/backend/docs/*)
+**Mandatory Utilization**:
+- All documentation updates must be placed in `/backend/docs/*`
+- Use date-based naming: `YYYY-MM-DD-descriptive-title.md`
+- Include implementation details, rationale, and validation results
+- Update existing documentation before committing changes
+
+**PowerShell Integration Example**:
+1. **PowerShell Command**: `New-Item -Path "backend/docs/$(Get-Date -Format 'yyyy-MM-dd')-powershell-integration-update.md" -ItemType File -Value "# PowerShell Integration Update`n`n## Overview`nThis document outlines PowerShell command integration standards."`
+   - **Explanation**: Creates a new documentation file with current date prefix and initializes with markdown content for PowerShell integration standards.
+
+2. **Integration with Specified Folders**: This command directly creates content in `/backend/docs/*` folder, ensuring all documentation follows the mandatory date-based naming convention and folder structure.
+
+3. **Expected Output/Verification Steps**:
+   - File created: `backend/docs/2025-09-01-powershell-integration-update.md`
+   - Verify: `Test-Path "backend/docs/$(Get-Date -Format 'yyyy-MM-dd')-powershell-integration-update.md"`
+   - Expected result: `True`
+   - Content check: `Get-Content "backend/docs/$(Get-Date -Format 'yyyy-MM-dd')-powershell-integration-update.md"`
+
+#### Backend Test Folder (/backend/test/*)
+**Mandatory Utilization**:
+- All test files must be placed in `/backend/test/*` subdirectories
+- Naming convention: `{component}_test.go` for unit tests, `{component}_integration_test.go` for integration tests
+- Include comprehensive test coverage (>90%)
+- Document test scenarios and expected outcomes
+
+**PowerShell Integration Example**:
+1. **PowerShell Command**: `New-Item -Path "backend/test/unit/powershell_integration_test.go" -ItemType File -Value "package main`n`nimport (`n`t`"testing"`n`t`"github.com/stretchr/testify/assert"`n`)`n`nfunc TestPowerShellIntegration(t *testing.T) {`n`t// Test PowerShell command execution`n`tassert.True(t, true, `"PowerShell integration test placeholder`")`n}"`
+   - **Explanation**: Creates a new unit test file in the `/backend/test/unit/*` subdirectory with basic Go test structure for PowerShell integration testing.
+
+2. **Integration with Specified Folders**: This command places the test file in `/backend/test/*` ensuring compliance with mandatory test file organization and naming conventions.
+
+3. **Expected Output/Verification Steps**:
+   - File created: `backend/test/unit/powershell_integration_test.go`
+   - Verify: `Test-Path "backend/test/unit/powershell_integration_test.go"`
+   - Expected result: `True`
+   - Run test: `cd backend && go test ./test/unit/powershell_integration_test.go -v`
+   - Expected output: Test passes with success message
+
+### 14.3 Automated Folder Management
+**Kilo Rule #35**: Automated PowerShell scripts for folder maintenance mandatory.
+
+**Requirements**:
+- Create PowerShell scripts for folder structure validation
+- Automate documentation and test file organization
+- Include verification and cleanup operations
+- Ensure Windows PowerShell compatibility
+
+**PowerShell Script Example**:
+1. **PowerShell Command**:
+   ```powershell
+   # Validate and create required folder structure
+   $folders = @("backend/docs", "backend/test/unit", "backend/test/integration", "backend/test/performance")
+   foreach ($folder in $folders) {
+       if (!(Test-Path $folder)) {
+           New-Item -Path $folder -ItemType Directory -Force
+           Write-Host "Created folder: $folder"
+       } else {
+           Write-Host "Folder exists: $folder"
+       }
+   }
+   ```
+   - **Explanation**: Validates existence of required backend folders and creates them if missing, ensuring proper folder structure for documentation and testing.
+
+2. **Integration with Specified Folders**: This script specifically manages `/backend/docs/*` and `/backend/test/*` subdirectories, enforcing the mandatory folder organization standards.
+
+3. **Expected Output/Verification Steps**:
+   - Run script in project root
+   - Expected output: "Created folder: backend/docs" (if missing) or "Folder exists: backend/docs"
+   - Verify structure: `Get-ChildItem -Path "backend" -Directory`
+   - Expected folders: docs, test (with subfolders: unit, integration, performance)
+
+### 14.4 Response Quality Standards
+**Mandatory Elements in Every Response**:
+- Include at least one executable PowerShell command
+- Demonstrate folder utilization with concrete examples
+- Provide verification steps for all operations
+- Ensure commands are context-aware and unambiguous
+- Document expected outputs and error handling
+
+**Enforcement**:
+- Automated validation will check for PowerShell command inclusion
+- CI/CD pipeline will verify folder utilization compliance
+- Code reviews must confirm response standards adherence
+- Training materials must include PowerShell integration examples
 
 ### Government System Error Handling
 ```typescript

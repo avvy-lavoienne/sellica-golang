@@ -110,10 +110,21 @@ type LoggingConfig struct {
 // KnowledgeConfig holds knowledge base and document loading configuration
 type KnowledgeConfig struct {
 	DocumentsPath    string
+	AdditionalPaths  []string // Additional document paths for specialized training data
+	RecursiveScan    bool     // Enable recursive scanning of subdirectories (default: true)
 	AutoIndexing     bool
 	ChunkSize        int
 	OverlapSize      int
 	MaxConcurrency   int
+	JSONProcessing   JSONProcessingConfig // Configuration for JSON training data processing
+}
+
+// JSONProcessingConfig holds configuration for JSON training data processing
+type JSONProcessingConfig struct {
+	Enabled           bool     // Enable JSON training data processing
+	SupportedTypes    []string // Supported JSON training data types (e.g., "akta_kelahiran", "ktp")
+	AutoLoadOnStartup bool     // Automatically load JSON files on server startup
+	ValidationEnabled bool     // Enable JSON structure validation
 }
 
 // Load loads configuration from environment variables with sensible defaults
@@ -190,10 +201,22 @@ func Load() *Config {
 		},
 		Knowledge: KnowledgeConfig{
 			DocumentsPath:  getEnv("KNOWLEDGE_DOCUMENTS_PATH", "data/training/documents"),
+			AdditionalPaths: []string{
+				"data/training/documents/akta-kelahiran",
+				"data/training/documents/ktp",
+				"data/training/documents/kk",
+			},
+			RecursiveScan:  getEnvAsBool("KNOWLEDGE_RECURSIVE_SCAN", true), // Enable recursive scanning by default
 			AutoIndexing:   getEnvAsBool("KNOWLEDGE_AUTO_INDEXING", true),
 			ChunkSize:      getEnvAsInt("KNOWLEDGE_CHUNK_SIZE", 800),
 			OverlapSize:    getEnvAsInt("KNOWLEDGE_OVERLAP_SIZE", 100),
 			MaxConcurrency: getEnvAsInt("KNOWLEDGE_MAX_CONCURRENCY", 5),
+			JSONProcessing: JSONProcessingConfig{
+				Enabled:           getEnvAsBool("KNOWLEDGE_JSON_ENABLED", true),
+				SupportedTypes:    []string{"akta_kelahiran", "ktp", "kk", "akta_kematian", "akta_perkawinan"},
+				AutoLoadOnStartup: getEnvAsBool("KNOWLEDGE_JSON_AUTO_LOAD", true),
+				ValidationEnabled: getEnvAsBool("KNOWLEDGE_JSON_VALIDATION", true),
+			},
 		},
 	}
 

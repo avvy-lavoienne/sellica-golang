@@ -1,0 +1,592 @@
+[
+  {
+    "question": "Apa itu akta kelahiran dan mengapa penting?",
+    "answer": "Akta Kelahiran adalah dokumen resmi yang mencatat peristiwa kelahiran seseorang, diterbitkan oleh Dinas Kependudukan dan Pencatatan Sipil (Disdukcapil). Dokumen ini sangat penting karena: 1) **Identitas legal** - bukti sah keberadaan anak di mata hukum, 2) **Syarat administrasi** - diperlukan untuk sekolah, beasiswa, pekerjaan, 3) **Hak kewarganegaraan** - membuktikan status WNI, 4) **Akses layanan** - kesehatan, pendidikan, sosial.",
+    "category": "definisi_dasar",
+    "service_type": "akta_kelahiran",
+    "difficulty": "rendah",
+    "keywords": ["akta kelahiran", "definisi", "dokumen resmi", "identitas legal", "disdukcapil"],
+    "user_intent": "informasi_dasar",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Berapa lama waktu pengurusan akta kelahiran untuk bayi yang baru lahir?",
+    "answer": "Untuk kelahiran normal (dilaporkan ≤60 hari), waktu penyelesaiannya **1 hari kerja** jika dokumen lengkap. Jika menggunakan layanan **Publish Baby** di fasilitas kesehatan mitra, akta bisa diterbitkan langsung atau dalam 1 hari. Tips: datang pagi hari (07:30-10:00) untuk proses lebih cepat.",
+    "category": "waktu_pelayanan",
+    "service_type": "akta_kelahiran",
+    "difficulty": "rendah",
+    "keywords": ["waktu pengurusan", "1 hari kerja", "bayi baru lahir", "publish baby", "dokumen lengkap"],
+    "user_intent": "informasi_waktu",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Apakah mengurus akta kelahiran gratis?",
+    "answer": "**YA, GRATIS 100%** untuk pencatatan dalam 60 hari sesuai UU No. 24/2013! 🎉 Tidak ada biaya sama sekali untuk: pembuatan akta baru, penggantian akta hilang/rusak. Biaya tambahan hanya untuk: surat kehilangan di polisi (±Rp 20rb), materai untuk surat pernyataan (Rp 10rb). Jangan percaya calo yang minta bayaran ya kak!",
+    "category": "biaya",
+    "service_type": "akta_kelahiran",
+    "difficulty": "rendah",
+    "keywords": ["gratis", "biaya", "uu 24/2013", "tidak ada biaya", "calo"],
+    "user_intent": "informasi_biaya",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Dokumen apa saja yang harus disiapkan untuk membuat akta kelahiran bayi?",
+    "answer": "📋 **Checklist dokumen akta kelahiran bayi (≤60 hari):** ✅ Surat Keterangan Lahir dari RS/bidan (Form F-2.01) ✅ KTP-el asli + fotokopi kedua orang tua ✅ Kartu Keluarga (KK) asli + fotokopi ✅ Buku Nikah/Akta Perkawinan asli + fotokopi ✅ Print out NIK SIAK (jika anak belum di KK) **Tips:** Fotokopi semua dokumen sebelum ke Disdukcapil!",
+    "category": "persyaratan",
+    "service_type": "akta_kelahiran",
+    "difficulty": "rendah",
+    "keywords": ["dokumen", "persyaratan", "surat keterangan lahir", "ktp-el", "kk", "buku nikah", "checklist"],
+    "user_intent": "persyaratan_dokumen",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Akta kelahiran anak saya hilang, bagaimana cara mengurusnya?",
+    "answer": "Tenang kak, akta yang hilang bisa diganti dan GRATIS! 😊 **Langkah-langkahnya:** 1️⃣ **Lapor polisi** (bawa KTP+KK, biaya ±Rp 20rb) 2️⃣ **Ke Disdukcapil** dengan: surat kehilangan, KTP-el + KK asli & fotokopi, surat pernyataan bermaterai 10rb 3️⃣ **Tunggu 1-3 hari kerja** ⏰ **Waktu:** 1-3 hari kerja 💰 **Biaya:** GRATIS (UU 24/2013) 📍 **Lokasi:** Disdukcapil Garut, Jl. Pembangunan No.1",
+    "category": "penggantian_hilang",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["akta hilang", "penggantian", "gratis", "lapor polisi", "disdukcapil", "langkah-langkah"],
+    "user_intent": "penggantian_dokumen",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Anak saya lahir lebih dari 60 hari lalu, apakah masih bisa diurus?",
+    "answer": "**Masih bisa kok kak!** Ini namanya kelahiran terlambat. Persyaratannya: 📋 **Dokumen sama** seperti kelahiran normal PLUS: ➕ Surat Pernyataan Terlambat (SPTJM) bermaterai ➕ Surat Keterangan dari Kepala Desa/Lurah ⏰ **Waktu:** 3-7 hari kerja 💰 **Biaya:** Tetap GRATIS untuk layanan dasar **Catatan:** Mungkin ada denda administratif sesuai Perda, tapi layanan tetap gratis.",
+    "category": "kelahiran_terlambat",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["kelahiran terlambat", "60 hari", "sptjm", "surat keterangan desa", "masih bisa"],
+    "user_intent": "keterlambatan_pelaporan",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Bagaimana aturan penulisan nama bayi di akta kelahiran?",
+    "answer": "**Aturan nama sesuai Permendagri 73/2022:** ✅ **Minimal 2 kata** (contoh: Ahmad Rizki, Siti Nur) ✅ **Maksimal 60 huruf** ✅ **Tanpa singkatan** (jangan: A. Rizki, M. Yusuf) ✅ **Tanpa angka atau tanda baca** (jangan: Ahmad123, Siti-Nur) ✅ **Huruf Latin** (bukan Arab, China, dll) ❌ **Salah:** Amir (1 kata), A.Rahman (singkatan), Siti123 (angka) ✅ **Benar:** Ahmad Fajar, Siti Nurhaliza, Muhammad Rizki",
+    "category": "aturan_nama",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["aturan nama", "minimal 2 kata", "permendagri 73/2022", "tanpa singkatan", "huruf latin"],
+    "user_intent": "aturan_penulisan",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Bagaimana cara penulisan tempat lahir yang benar di akta?",
+    "answer": "**Aturan tempat lahir (2025):** 📍 **Harus nama Kabupaten/Kota** (bukan desa/kecamatan) ✅ **Benar:** Kabupaten Garut, Kota Bandung, Kabupaten Bogor ❌ **Salah:** Desa Sukamaju, Kecamatan Tarogong, RT/RW **Alasannya:** 🎯 Standarisasi nasional 🎯 Kemudahan verifikasi 🎯 Sesuai sistem database 🎯 Standar dokumen internasional **Contoh lengkap:** Tempat lahir: Kabupaten Garut, Jawa Barat",
+    "category": "aturan_tempat_lahir",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["tempat lahir", "kabupaten kota", "bukan desa", "standarisasi", "aturan 2025"],
+    "user_intent": "aturan_penulisan",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Apa itu layanan Publish Baby dan bagaimana cara menggunakannya?",
+    "answer": "🚀 **Publish Baby** = Inovasi Disdukcapil Garut untuk penerbitan akta langsung di rumah sakit/klinik! **Cara kerjanya:** 1️⃣ **Melahirkan** di fasilitas kesehatan mitra 2️⃣ **Petugas RS** input data + upload dokumen via aplikasi 3️⃣ **Akta diterbitkan** langsung atau dalam 1 hari 4️⃣ **Terima akta** tanpa ke Disdukcapil! **Keuntungan:** ⚡ Super praktis ⚡ Hemat waktu ⚡ Tidak perlu antri ⚡ Proses langsung",
+    "category": "layanan_publish_baby",
+    "service_type": "akta_kelahiran",
+    "difficulty": "rendah",
+    "keywords": ["publish baby", "inovasi", "rumah sakit", "praktis", "langsung"],
+    "user_intent": "layanan_inovasi",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Dimana alamat Disdukcapil Garut dan jam pelayanannya?",
+    "answer": "📍 **Alamat:** Jl. Pembangunan No. 1, Garut ⏰ **Jam Pelayanan:** • Senin-Kamis: 07:30-16:00 WIB • Jumat: 07:30-16:30 WIB 📞 **Kontak:** • Telepon: (0262) 234638 • Email: disdukcapil@garutkab.go.id • Website: disdukcapil.garutkab.go.id • Instagram: @dukcapilgarut 🌐 **Portal Online:** pastioke.garutkab.go.id **Tips waktu terbaik:** Pagi 07:30-10:00, Selasa-Kamis",
+    "category": "informasi_kontak",
+    "service_type": "akta_kelahiran",
+    "difficulty": "rendah",
+    "keywords": ["alamat", "disdukcapil garut", "jam pelayanan", "kontak", "telepon"],
+    "user_intent": "informasi_lokasi",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Bagaimana proses pembuatan akta kelahiran dari awal sampai selesai?",
+    "answer": "🔄 **Alur lengkap pembuatan akta kelahiran:** **PERSIAPAN (30 menit):** • Kumpulkan semua dokumen • Fotokopi dokumen yang diperlukan **PENDAFTARAN (15 menit):** • Datang ke Disdukcapil/online • Ambil nomor antrian • Isi formulir **VERIFIKASI (30 menit):** • Petugas periksa dokumen • Cek data di sistem SIAK • Konfirmasi dengan pemohon **PENCATATAN (15 menit):** • Input data ke sistem • Generate nomor registrasi akta **PENANDATANGANAN (5 menit):** • Kepala Disdukcapil tanda tangan • Stempel resmi **SELESAI:** Akta siap diambil!",
+    "category": "proses_lengkap",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["proses", "alur lengkap", "pendaftaran", "verifikasi", "pencatatan", "siak"],
+    "user_intent": "proses_detail",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Apa saja yang bisa dilakukan dengan akta kelahiran?",
+    "answer": "🎯 **Kegunaan akta kelahiran:** **PENDIDIKAN:** • Daftar sekolah (TK-Perguruan Tinggi) • Beasiswa pemerintah/swasta • Study abroad **ADMINISTRASI:** • Buat KTP saat 17 tahun • Daftar BPJS Kesehatan • Passport anak **HUKUM:** • Bukti kewarganegaraan • Warisan/harta • Adopsi **LAINNYA:** • Asuransi jiwa • Tabungan anak • Program sosial pemerintah **Kesimpulan:** Akta = kunci akses semua layanan!",
+    "category": "kegunaan_akta",
+    "service_type": "akta_kelahiran",
+    "difficulty": "rendah",
+    "keywords": ["kegunaan", "pendidikan", "administrasi", "hukum", "kunci akses"],
+    "user_intent": "manfaat_dokumen",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Akta kelahiran rusak kena air hujan, bisa diganti gratis?",
+    "answer": "**Bisa banget kak, dan GRATIS!** 😊 **Persyaratan akta rusak:** 📋 Akta yang rusak (jika masih ada) atau foto akta 📋 KTP-el asli + fotokopi (orang tua/pemohon) 📋 KK asli + fotokopi 📋 Surat pernyataan kerusakan bermaterai Rp 10.000 ⏰ **Waktu:** 1-3 hari kerja 💰 **Biaya:** GRATIS (UU No. 24/2013) **Keuntungan:** Data sudah ada di sistem SIAK, jadi proses lebih cepat dari buat baru!",
+    "category": "penggantian_rusak",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["akta rusak", "kena air", "gratis", "penggantian", "surat pernyataan", "siak"],
+    "user_intent": "penggantian_dokumen",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Apa yang dimaksud dengan Form F-2.01?",
+    "answer": "📝 **Form F-2.01 = Surat Keterangan Lahir resmi** **Dikeluarkan oleh:** • Rumah sakit • Klinik bersalin • Puskesmas • Bidan praktik • Dokter **Berisi data:** • Identitas bayi (nama, jenis kelamin, BB/PB) • Waktu dan tempat lahir • Data orang tua • Tanda tangan petugas medis **Fungsi:** Syarat WAJIB untuk buat akta kelahiran **Format:** Sesuai Permendagri 109/2019 **Penting:** Tanpa F-2.01, tidak bisa buat akta!",
+    "category": "dokumen_teknis",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["form f-2.01", "surat keterangan lahir", "rumah sakit", "syarat wajib", "permendagri 109"],
+    "user_intent": "penjelasan_dokumen",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Bisakah mengurus akta kelahiran tanpa buku nikah orang tua?",
+    "answer": "**Tergantung situasinya kak:** **JIKA ORANG TUA MENIKAH:** ❌ Tidak bisa tanpa buku nikah ✅ Harus ada bukti perkawinan sah ✅ Alternatif: Akta Perkawinan dari Disdukcapil **JIKA BELUM/TIDAK MENIKAH:** ✅ Bisa dengan Surat Pernyataan Belum Menikah ✅ Hanya nama ibu di akta ✅ Ayah bisa mengaku anak dengan Surat Pengakuan **Solusi hilang buku nikah:** 🏢 Minta duplikat di KUA tempat nikah 📞 Hubungi (0262) 234638 untuk konsultasi",
+    "category": "situasi_khusus",
+    "service_type": "akta_kelahiran",
+    "difficulty": "tinggi",
+    "keywords": ["tanpa buku nikah", "belum menikah", "duplikat kua", "surat pengakuan"],
+    "user_intent": "situasi_khusus",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Berapa biaya total kalau akta hilang dari awal sampai selesai?",
+    "answer": "💰 **Rincian biaya lengkap akta hilang:** **BIAYA WAJIB:** • Penggantian akta: **GRATIS** (UU 24/2013) • Surat kehilangan polisi: **Rp 10.000-30.000** • Materai surat pernyataan: **Rp 10.000** • Fotokopi dokumen: **Rp 5.000-10.000** **TOTAL MAKSIMAL: Rp 50.000** **BIAYA OPSIONAL:** • Transport ke polisi/disdukcapil: **bervariasi** • Parkir: **Rp 2.000-5.000** **Bandingkan dengan calo:** Rp 200.000-500.000! 😱 **Kesimpulan:** Urus sendiri jauh lebih hemat! 💪",
+    "category": "biaya_detail",
+    "service_type": "akta_kelahiran",
+    "difficulty": "rendah",
+    "keywords": ["biaya total", "akta hilang", "50 ribu", "gratis", "calo mahal"],
+    "user_intent": "informasi_biaya",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Bagaimana mengurus akta untuk anak yang lahir di luar nikah?",
+    "answer": "**Bisa diurus kak, prosesnya sama!** 👶 **OPSI 1 - Hanya nama ibu:** 📋 Surat Pernyataan Belum Pernah Menikah (ibu) 📋 KTP-el + KK ibu 📋 Surat Keterangan Lahir 📝 **Hasil:** Akta hanya nama ibu **OPSI 2 - Ada pengakuan ayah:** 📋 Surat Pengakuan Anak dari ayah biologis 📋 KTP-el ayah + ibu 📋 Dokumen lengkap kedua pihak 📝 **Hasil:** Akta ada nama ayah dan ibu **Catatan:** Semua anak berhak dapat akta, apapun statusnya! 🏛️",
+    "category": "anak_luar_nikah",
+    "service_type": "akta_kelahiran",
+    "difficulty": "tinggi",
+    "keywords": ["luar nikah", "nama ibu", "surat pengakuan", "ayah biologis", "hak anak"],
+    "user_intent": "kasus_khusus",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Apa itu NIK dan kapan diterbitkan untuk bayi?",
+    "answer": "🆔 **NIK (Nomor Induk Kependudukan)** **Definisi:** Nomor identitas unik 16 digit untuk setiap WNI **Struktur:** • 6 digit pertama: kode wilayah • 6 digit tengah: tanggal lahir (DDMMYY) • 4 digit terakhir: nomor urut + validasi **Kapan diterbitkan:** ✅ Bersamaan dengan akta kelahiran ✅ Otomatis via Publish Baby ✅ Langsung masuk sistem SIAK **Fungsi:** 🎯 Identitas seumur hidup 🎯 Akses semua layanan pemerintah 🎯 Database nasional **Penting:** NIK tidak pernah berubah!",
+    "category": "nik_sistem",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["nik", "16 digit", "identitas unik", "sistem siak", "seumur hidup"],
+    "user_intent": "penjelasan_sistem",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Bagaimana mengurus akta untuk bayi kembar?",
+    "answer": "👶👶 **Akta untuk bayi kembar:** **PRINSIP:** Setiap anak = 1 akta terpisah **PROSES:** 🔄 Bersamaan dalam 1 kali pelayanan 📋 Dokumen orang tua sama untuk semua 📝 Formulir terpisah per anak 🆔 NIK berbeda untuk masing-masing **PERSYARATAN:** ✅ Surat Keterangan Lahir (setiap bayi) ✅ KTP-el + KK orang tua (1 set) ✅ Buku nikah (1 dokumen) **BIAYA:** 💰 Tetap GRATIS untuk semua **WAKTU:** ⏰ 1 hari kerja (bersamaan) **Tips:** Siapkan nama yang berbeda ya kak! 😊",
+    "category": "kelahiran_kembar",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["bayi kembar", "akta terpisah", "bersamaan", "gratis", "nik berbeda"],
+    "user_intent": "kasus_khusus",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Apakah bisa mengurus akta kelahiran secara online?",
+    "answer": "✅ **Bisa! Ada beberapa cara online:** **1. PUBLISH BABY** 🏥 Di rumah sakit/klinik mitra 🚀 Akta langsung atau 1 hari 📱 Via aplikasi fasilitas kesehatan **2. PORTAL PASTIOKE** 🌐 pastioke.garutkab.go.id 📤 Upload dokumen online ⏳ Verifikasi tetap butuh ke kantor **3. LAYANAN JEMPUT BOLA** 📞 Hubungi (0262) 234638 🚗 Petugas datang ke lokasi ⏰ Sesuai jadwal tersedia **CATATAN:** Beberapa dokumen tetap perlu verifikasi fisik ya kak!",
+    "category": "layanan_online",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["online", "publish baby", "pastioke", "jemput bola", "verifikasi fisik"],
+    "user_intent": "layanan_digital",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Bagaimana kalau bayi lahir di rumah tanpa bidan?",
+    "answer": "**Bisa diurus kak!** 🏠 **Persyaratan khusus:** 📝 **SPTJM Kelahiran** dengan 2 saksi dewasa 🆔 **KTP-el 2 saksi** asli + fotokopi 👥 **Saksi harus:** orang yang menyaksikan kelahiran 📋 **Dokumen orang tua lengkap** (KTP, KK, buku nikah) 📄 **Surat keterangan** dari bidan/dokter terdekat (jika sempat periksa) **PROSES:** ⏰ Sama dengan kelahiran normal ✅ Tetap bisa dapat akta sah 💰 Tetap GRATIS **Tips:** Segera lapor dalam 60 hari ya!",
+    "category": "lahir_rumah",
+    "service_type": "akta_kelahiran",
+    "difficulty": "tinggi",
+    "keywords": ["lahir di rumah", "tanpa bidan", "sptjm", "2 saksi", "tetap gratis"],
+    "user_intent": "situasi_darurat",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Apa yang dimaksud dengan sistem SIAK dalam pengurusan akta?",
+    "answer": "🖥️ **SIAK = Sistem Informasi Administrasi Kependudukan** **FUNGSI UTAMA:** 🗄️ Database nasional semua data penduduk 🔍 Verifikasi otomatis dokumen kependudukan 🔗 Integrasi antar instansi pemerintah 📊 Statistik real-time kependudukan **DALAM PENGURUSAN AKTA:** ✅ Cek duplikasi data ✅ Validasi NIK orang tua ✅ Generate NIK baru untuk bayi ✅ Simpan data akta selamanya **KEUNTUNGAN:** ⚡ Proses lebih cepat ✅ Data akurat dan aman 🔄 Backup otomatis 📱 Akses dari mana saja",
+    "category": "sistem_siak",
+    "service_type": "akta_kelahiran",
+    "difficulty": "tinggi",
+    "keywords": ["siak", "database nasional", "verifikasi otomatis", "integrasi", "backup"],
+    "user_intent": "penjelasan_sistem",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Mengapa pengurusan akta harus dalam 60 hari?",
+    "answer": "⏰ **Alasan batas 60 hari:** **HUKUM:** 📜 Sesuai UU No. 24/2013 tentang Administrasi Kependudukan 🎯 Tertib administrasi kependudukan nasional **HAK ANAK:** 👶 Segera dapat identitas resmi 🛡️ Perlindungan hukum sejak dini 🎓 Akses layanan pendidikan/kesehatan **SISTEM NEGARA:** 📊 Data demografi akurat real-time 📈 Perencanaan pembangunan tepat 🗳️ Database pemilu yang valid **PRAKTIS:** 💰 Gratis tanpa denda 📝 Dokumen masih lengkap 🏥 Data medis masih fresh",
+    "category": "aturan_60_hari",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["60 hari", "uu 24/2013", "hak anak", "tertib administrasi", "gratis"],
+    "user_intent": "penjelasan_aturan",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Bisa tidak mengurus akta kelahiran tanpa KTP elektronik?",
+    "answer": "❌ **Tidak bisa kak!** Harus pakai **KTP elektronik (KTP-el)** **ALASAN WAJIB KTP-EL:** 🔗 **Terintegrasi dengan sistem SIAK** 📱 **Verifikasi biometrik** untuk keamanan 🆔 **NIK yang valid** dan aktif 📊 **Data real-time** di database nasional **JIKA BELUM PUNYA KTP-EL:** 1️⃣ Urus KTP-el dulu di Disdukcapil 2️⃣ Waktu pembuatan: 14 hari kerja 3️⃣ Setelah jadi, baru urus akta bayi **SOLUSI DARURAT:** 📞 Konsultasi ke (0262) 234638 untuk kasus khusus",
+    "category": "ktp_elektronik",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["ktp elektronik", "ktp-el", "sistem siak", "biometrik", "wajib"],
+    "user_intent": "persyaratan_teknis",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Apa fungsi materai Rp 10.000 dalam pengurusan akta?",
+    "answer": "💰 **Fungsi materai Rp 10.000:** **DIGUNAKAN UNTUK:** 📝 **SPTJM Terlambat** (kelahiran >60 hari) 📄 **Surat Pernyataan** penggantian akta hilang/rusak 🤝 **Surat Kuasa** jika diwakilkan orang lain 📋 **Pernyataan resmi** lainnya **FUNGSI HUKUM:** ⚖️ Memberikan kekuatan hukum dokumen 📜 Bukti keseriusan pernyataan 🛡️ Perlindungan legal untuk pemohon **CATATAN PENTING:** ✅ Pakai materai terbaru (Rp 10.000) ❌ Jangan pakai yang lama (Rp 6.000)",
+    "category": "materai_fungsi",
+    "service_type": "akta_kelahiran",
+    "difficulty": "rendah",
+    "keywords": ["materai", "10 ribu", "sptjm", "kekuatan hukum", "surat kuasa"],
+    "user_intent": "penjelasan_teknis",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Bagaimana jika orang tua sudah meninggal saat mengurus akta anak?",
+    "answer": "🕊️ **Tetap bisa diurus kak, ada caranya:** **JIKA SALAH SATU MENINGGAL:** 📄 Akta/Surat Kematian orang tua yang meninggal 👤 KTP-el orang tua yang masih hidup 📋 Dokumen lengkap lainnya (KK, buku nikah) **JIKA KEDUA ORANG TUA MENINGGAL:** 👨‍👩‍👧‍👦 Wali sah (kakek/nenek/saudara) 📜 Surat Penetapan Wali dari Pengadilan/RT 🆔 KTP-el wali + dokumen anak **PROSES:** ⏰ Agak lebih lama (3-7 hari) 🔍 Verifikasi tambahan 💰 Tetap GRATIS **SARAN:** Konsultasi dulu ke (0262) 234638",
+    "category": "orang_tua_meninggal",
+    "service_type": "akta_kelahiran",
+    "difficulty": "tinggi",
+    "keywords": ["orang tua meninggal", "akta kematian", "wali sah", "penetapan pengadilan"],
+    "user_intent": "situasi_khusus",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Bagaimana cara cek apakah akta kelahiran sudah jadi atau belum?",
+    "answer": "🔍 **Cara cek status akta kelahiran:** **1. ONLINE** 🌐 Buka: pastioke.garutkab.go.id 🔢 Masukkan nomor registrasi 📱 Cek via HP kapan saja **2. TELEPON** ☎️ Hubungi: (0262) 234638 ⏰ Jam kerja: 07:30-16:00 WIB 📝 Siapkan nomor registrasi/nama **3. WHATSAPP** 💬 Chat admin Disdukcapil (jika tersedia) ⚡ Respon lebih cepat **4. DATANG LANGSUNG** 🏢 Ke Jl. Pembangunan No.1 Garut 🎫 Bawa tanda bukti pengajuan **TIPS:** Tunggu 1-2 hari dari estimasi waktu baru cek ya!",
+    "category": "cek_status",
+    "service_type": "akta_kelahiran",
+    "difficulty": "rendah",
+    "keywords": ["cek status", "pastioke", "nomor registrasi", "telepon", "tanda bukti"],
+    "user_intent": "tracking_status",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Dokumen apa saja yang harus disimpan setelah dapat akta kelahiran?",
+    "answer": "📂 **Dokumen yang harus disimpan:** **DOKUMEN UTAMA:** 📜 **Akta Kelahiran Asli** - jangan dilipat, simpan flat 🆔 **KIA (Kartu Identitas Anak)** - untuk anak <17 tahun 👨‍👩‍👧‍👦 **Kartu Keluarga Baru** (jika ada update) **BACKUP WAJIB:** 📠 **Fotokopi akta** untuk keperluan sehari-hari 📱 **Scan/foto digital** simpan di HP/cloud 💾 **File PDF** di Google Drive/email **TIPS PENYIMPANAN:** 🏠 Tempat kering, tidak lembab ❄️ Hindari suhu ekstrem 📦 Map plastik atau amplop khusus 🔒 Simpan terpisah dari fotokopi",
+    "category": "penyimpanan_dokumen",
+    "service_type": "akta_kelahiran",
+    "difficulty": "rendah",
+    "keywords": ["simpan dokumen", "akta asli", "backup", "scan digital", "tempat aman"],
+    "user_intent": "tips_praktis",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Apakah bisa diwakilkan orang lain untuk mengurus akta kelahiran?",
+    "answer": "✅ **Bisa diwakilkan kak!** **SYARAT PERWAKILAN:** 📝 **Surat Kuasa** bermaterai Rp 10.000 🆔 **KTP-el asli** pemberi kuasa + penerima kuasa 📋 **Semua dokumen persyaratan** seperti biasa 🤝 **Yang bisa mewakilkan:** keluarga/orang terpercaya **ISI SURAT KUASA:** 👤 Nama lengkap + NIK pemberi & penerima kuasa 🎯 Maksud: mengurus akta kelahiran anak 📅 Tanggal + tanda tangan bermaterai **CATATAN:** ⚠️ Penerima kuasa harus paham semua data anak 📞 Pemberi kuasa harus bisa dihubungi saat verifikasi",
+    "category": "perwakilan",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["diwakilkan", "surat kuasa", "bermaterai", "ktp-el", "keluarga"],
+    "user_intent": "alternatif_pengurusan",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Bagaimana mengurus akta jika belum punya Kartu Keluarga?",
+    "answer": "🏠 **Bisa kok, ada solusinya!** **JIKA BELUM PUNYA KK:** 📄 **Print out NIK SIAK** dari kecamatan 🆔 **KTP-el orang tua** tetap wajib 🔄 **Urus KK dulu** atau bersamaan dengan akta **LANGKAH-LANGKAH:** 1️⃣ **Ke Kecamatan** - minta print out NIK SIAK 2️⃣ **Ke Disdukcapil** - urus KK baru + akta sekaligus 3️⃣ **Koordinasi petugas** - jelaskan situasi **WAKTU:** ⏰ Agak lebih lama: 2-3 hari kerja 💰 **Biaya:** Tetap GRATIS **SARAN:** Lebih mudah urus KK dulu, baru akta 📞 Konsultasi: (0262) 234638",
+    "category": "tanpa_kk",
+    "service_type": "akta_kelahiran",
+    "difficulty": "tinggi",
+    "keywords": ["belum punya kk", "print out nik", "kecamatan", "siak", "bersamaan"],
+    "user_intent": "situasi_khusus",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Apa perbedaan akta kelahiran dengan surat keterangan lahir?",
+    "answer": "📋 **Perbedaan mendasar:** **SURAT KETERANGAN LAHIR (F-2.01):** 🏥 **Penerbit:** Rumah sakit/bidan/dokter ⏰ **Sifat:** Sementara, untuk syarat buat akta 📝 **Fungsi:** 'Bahan baku' membuat akta 🕐 **Berlaku:** Terbatas **AKTA KELAHIRAN:** 🏛️ **Penerbit:** Disdukcapil (pemerintah) ⚖️ **Sifat:** Resmi, legal, permanen 🆔 **Fungsi:** Identitas sah anak seumur hidup 🕐 **Berlaku:** Selamanya **ANALOGI:** 🌾 Surat keterangan = 'beras mentah' 🍚 Akta kelahiran = 'nasi matang' yang siap dimakan!",
+    "category": "perbedaan_dokumen",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["perbedaan", "surat keterangan lahir", "f-2.01", "akta legal", "bahan baku"],
+    "user_intent": "penjelasan_dokumen",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Apakah ada batasan umur untuk mengurus akta kelahiran?",
+    "answer": "❌ **TIDAK ADA BATASAN UMUR!** **KATEGORI WAKTU:** **≤60 HARI:** 🆓 Gratis, 1 hari kerja ✅ Paling mudah dan cepat **61 HARI - 1 TAHUN:** 📝 Perlu SPTJM + surat desa ⏰ 3-7 hari kerja **>1 TAHUN BAHKAN PULUHAN TAHUN:** ✅ **MASIH BISA DIURUS!** 📋 Dokumen lebih lengkap 🔍 Penelitian administrasi lebih detail ⏰ 7-14 hari kerja **PRINSIP:** 🎯 Setiap WNI berhak punya akta 👶 Dari bayi sampai kakek-nenek 💰 Layanan dasar tetap GRATIS **SARAN:** Semakin cepat semakin mudah! 📞 Konsultasi: (0262) 234638",
+    "category": "batasan_umur",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["tidak ada batasan", "puluhan tahun", "masih bisa", "hak wni", "gratis"],
+    "user_intent": "batasan_waktu",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Bagaimana mengurus akta untuk anak yang lahir di luar negeri?",
+    "answer": "🌍 **Akta untuk kelahiran luar negeri (WNI):** **PERSYARATAN KHUSUS:** 📄 **Surat Keterangan Lahir** dari RS/dokter setempat 🏛️ **Legalisasi KBRI/Konjen** di negara tersebut 🔤 **Terjemahan resmi** ke Bahasa Indonesia 📘 **Paspor** anak dan orang tua 💒 **Dokumen perkawinan** orang tua **PROSES:** 1️⃣ Legalisasi dokumen di KBRI setempat 2️⃣ Terjemahan sworn translator 3️⃣ Ajukan ke Disdukcapil Indonesia ⏰ **Waktu:** 7-14 hari kerja 💰 **Biaya:** GRATIS (biaya hanya legalisasi & terjemahan) **TIPS:** Urus segera setelah pulang ke Indonesia!",
+    "category": "kelahiran_luar_negeri",
+    "service_type": "akta_kelahiran",
+    "difficulty": "tinggi",
+    "keywords": ["luar negeri", "wni", "kbri", "legalisasi", "terjemahan resmi"],
+    "user_intent": "kelahiran_internasional",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Apa yang harus dilakukan jika terjadi kesalahan data di akta kelahiran?",
+    "answer": "📝 **Koreksi data akta kelahiran:** **JENIS KESALAHAN:** ✏️ Salah nama/tanggal lahir ✏️ Data orang tua tidak tepat ✏️ Tempat lahir salah ✏️ Jenis kelamin keliru **PERSYARATAN KOREKSI:** 📄 **Akta kelahiran** yang salah 📋 **Dokumen pendukung** data yang benar 📝 **Surat permohonan** koreksi ⚖️ **Bukti kesalahan** (KTP, buku nikah, dll) **PROSES:** 🔍 **Penelitian administrasi** mendalam 📊 **Verifikasi** dengan dokumen asli ⏰ **Waktu:** 7-14 hari kerja 💰 **Biaya:** GRATIS **PENTING:** Segera koreksi sebelum dipakai untuk dokumen lain!",
+    "category": "koreksi_data",
+    "service_type": "akta_kelahiran",
+    "difficulty": "tinggi",
+    "keywords": ["koreksi data", "kesalahan", "penelitian administrasi", "dokumen pendukung"],
+    "user_intent": "perbaikan_data",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Tips agar tidak antri lama saat mengurus akta kelahiran?",
+    "answer": "⚡ **Tips hindari antrian panjang:** **WAKTU TERBAIK:** 🌅 **Pagi:** 07:30-10:00 (baru buka, fresh) 📅 **Hari:** Selasa-Kamis (tidak terlalu ramai) ❌ **Hindari:** Senin, Jumat, awal/akhir bulan **PERSIAPAN MATANG:** ✅ **Cek dokumen** 2x sebelum berangkat 📠 **Fotokopi lengkap** semua persyaratan 📋 **Isi formulir** di rumah (download online) **STRATEGI PINTAR:** 📱 **Layanan online** Publish Baby/Pastioke 📞 **Telepon dulu** untuk estimasi antrian 🚗 **Jemput bola** jika tersedia **BONUS TIPS:** 🎒 Bawa bekal & air minum ⚡ Charge HP penuh 📝 Bawa pulpen sendiri",
+    "category": "tips_antrian",
+    "service_type": "akta_kelahiran",
+    "difficulty": "rendah",
+    "keywords": ["tips antrian", "waktu terbaik", "persiapan", "pagi hari", "selasa-kamis"],
+    "user_intent": "tips_praktis",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Kenapa data harus konsisten di semua dokumen?",
+    "answer": "🔍 **Alasan pentingnya konsistensi data:** **KEAMANAN:** 🛡️ **Mencegah fraud** dan pemalsuan identitas 🔐 **Verifikasi silang** antar database 🚨 **Deteksi duplikasi** data **SISTEM TERINTEGRASI:** 🖥️ **Database SIAK** nasional harus akurat 🔗 **Integrasi** antar instansi pemerintah 📊 **Statistik** demografi yang valid **PRAKTIS:** ⚡ **Proses lebih cepat** jika data cocok ❌ **Tidak perlu verifikasi tambahan** 💰 **Hemat biaya** administrasi **CONTOH YANG DICEK:** ✅ Nama sama di KTP, KK, Buku Nikah ✅ Tanggal lahir konsisten ✅ Alamat sesuai domisili",
+    "category": "konsistensi_data",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["konsistensi data", "fraud prevention", "siak", "verifikasi silang"],
+    "user_intent": "penjelasan_sistem",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Apa yang dimaksud dengan 'graceful degradation' dalam pelayanan?",
+    "answer": "🔄 **Graceful Degradation = Pelayanan Tetap Jalan Meski Ada Gangguan** **KONSEP:** 💻 **Sistem utama down** → 📝 **Backup manual** tetap berjalan 🖥️ **SIAK error** → 📋 **Pencatatan offline** sementara ⚡ **Listrik mati** → 🔋 **Generator** backup **IMPLEMENTASI DI DISDUKCAPIL:** 📊 **Database offline** jika internet bermasalah 📝 **Form manual** jika sistem tidak bisa akses 🏃‍♂️ **Prioritas layanan** penting tetap jalan **MANFAAT:** ✅ **Pelayanan tidak terhenti** total 📅 **Antrian tidak sia-sia** 💾 **Data tidak hilang** saat recovery **TRANSPARANSI:** 📢 Info ke masyarakat jika ada gangguan 📞 Estimasi waktu perbaikan",
+    "category": "sistem_backup",
+    "service_type": "akta_kelahiran",
+    "difficulty": "tinggi",
+    "keywords": ["graceful degradation", "sistem backup", "pelayanan tetap jalan", "gangguan"],
+    "user_intent": "penjelasan_sistem",
+    "response_priority": "rendah"
+  },
+  {
+    "question": "Mengapa harus lapor kehilangan ke polisi untuk penggantian akta?",
+    "answer": "👮‍♂️ **Alasan wajib lapor kehilangan ke polisi:** **ASPEK HUKUM:** ⚖️ **Bukti resmi** bahwa dokumen benar-benar hilang 📜 **Kekuatan hukum** surat kehilangan 🔒 **Mencegah penyalahgunaan** jika ada yang menemukan **SISTEM KEAMANAN:** 🛡️ **Database kehilangan** dokumen penting 🚨 **Alert system** jika dokumen disalahgunakan 🔍 **Tracking** dokumen hilang secara nasional **PROSEDUR STANDAR:** 📋 **SOP nasional** semua daerah sama 🏛️ **Koordinasi** polisi-disdukcapil ✅ **Verifikasi identitas** pemohon **BIAYA KECIL:** 💰 **Rp 10-30 ribu** untuk administrasi ⏰ **15-30 menit** proses di polsek 🎯 **Investasi keamanan** identitas",
+    "category": "laporan_kehilangan",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["lapor polisi", "surat kehilangan", "keamanan", "bukti resmi", "sop nasional"],
+    "user_intent": "penjelasan_prosedur",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Bagaimana cara backup digital akta kelahiran yang aman?",
+    "answer": "💾 **Panduan backup digital akta kelahiran:** **SCAN BERKUALITAS TINGGI:** 📱 **Resolusi:** Minimal 300 DPI, format PDF 📸 **Pencahayaan:** Terang merata, tidak ada bayangan 🖼️ **Posisi:** Rata, tidak miring, full frame **TEMPAT PENYIMPANAN:** ☁️ **Cloud storage:** Google Drive, iCloud, OneDrive 📧 **Email:** Kirim ke email sendiri ⚡ **USB/Hardisk:** Backup fisik 📱 **HP:** Folder khusus dokumen **KEAMANAN:** 🔐 **Password protect** file PDF 🗂️ **Folder terpisah** dari foto biasa 🏷️ **Nama file jelas:** 'Akta_[Nama]_[Tanggal].pdf' **TIPS EXTRA:** 🔄 **Backup ganda** (online + offline) 📅 **Update berkala** jika ada perubahan 📱 **Akses mudah** saat dibutuhkan mendadak",
+    "category": "backup_digital",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["backup digital", "scan", "cloud storage", "keamanan", "password protect"],
+    "user_intent": "tips_keamanan",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Apa yang terjadi jika akta kelahiran tidak pernah dibuat sampai dewasa?",
+    "answer": "👨‍🎓 **Akta tidak dibuat sampai dewasa - masih bisa diurus!** **DAMPAK TIDAK PUNYA AKTA:** ❌ **Tidak bisa buat KTP** saat 17 tahun ❌ **Susah daftar sekolah** tinggi/universitas ❌ **Tidak bisa kerja formal** ❌ **Susah nikah resmi** ❌ **Tidak bisa passport** **TAPI KABAR BAIK:** ✅ **MASIH BISA DIURUS** kapan saja! 🆓 **Tetap GRATIS** (layanan dasar) ⏰ **Proses agak lama:** 7-14 hari **PERSYARATAN TAMBAHAN:** 📋 **Dokumen orang tua** (KTP, KK, buku nikah) 🏥 **Surat keterangan lahir** (jika masih ada) 📝 **Surat keterangan dari desa** 🔍 **Penelitian administrasi** lebih detail **SARAN:** Segera urus sekarang juga, jangan ditunda lagi! 📞 (0262) 234638",
+    "category": "dewasa_tanpa_akta",
+    "service_type": "akta_kelahiran",
+    "difficulty": "tinggi",
+    "keywords": ["dewasa tanpa akta", "masih bisa", "dampak tidak punya", "penelitian administrasi"],
+    "user_intent": "situasi_khusus",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Apakah akta kelahiran dari Disdukcapil lain bisa digunakan di Garut?",
+    "answer": "✅ **BISA! Akta berlaku di seluruh Indonesia!** **PRINSIP NASIONAL:** 🇮🇩 **Akta kelahiran** = dokumen nasional 🏛️ **Diakui semua** instansi pemerintah 🔄 **Database SIAK** terintegrasi nasional **CONTOH PENGGUNAAN:** 📚 **Daftar sekolah** di Garut dengan akta dari Jakarta ✅ **Buat KTP** di Garut dengan akta dari Surabaya 💒 **Menikah** di Garut dengan akta dari Medan **YANG PERLU DIPERHATIKAN:** 📋 **Format** mungkin sedikit beda per daerah ✅ **Isi data** sama dan valid 🔍 **Verifikasi** bisa dilakukan online via SIAK **TIPS:** 📱 **Scan backup** untuk jaga-jaga 📞 **Konfirmasi** jika ada keraguan petugas ✅ **Legalisir** jika perlu untuk keperluan khusus",
+    "category": "akta_luar_daerah",
+    "service_type": "akta_kelahiran",
+    "difficulty": "rendah",
+    "keywords": ["akta luar daerah", "berlaku nasional", "siak terintegrasi", "diakui semua"],
+    "user_intent": "validitas_dokumen",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Bagaimana mengurus akta jika fasilitas kesehatan tempat lahir sudah tutup?",
+    "answer": "🏥 **Solusi jika RS/klinik tempat lahir sudah tutup:** **LANGKAH ALTERNATIF:** 📋 **Cari dokumen lama** - arsip keluarga, foto, fotokopi 🏛️ **Hubungi Disdukcapil** tempat RS berada dulu 📊 **Cek database** kesehatan daerah **DOKUMEN PENGGANTI:** 📝 **Surat Pernyataan** dari keluarga bermaterai 👥 **2 saksi** yang mengetahui kelahiran (KTP+tanda tangan) 🏥 **Surat keterangan** dokter/bidan terdekat saat itu **PROSES KHUSUS:** 🔍 **Penelitian administrasi** lebih mendalam 📞 **Koordinasi** antar Disdukcapil ⏰ **Waktu lebih lama:** 7-14 hari kerja **TIPS:** 📱 **Dokumentasi lengkap** situasi dan upaya yang sudah dilakukan 📞 **Konsultasi intensif** dengan petugas Disdukcapil 💰 **Tetap GRATIS** walau prosesnya rumit",
+    "category": "rs_tutup",
+    "service_type": "akta_kelahiran",
+    "difficulty": "tinggi",
+    "keywords": ["rs tutup", "surat pernyataan", "2 saksi", "penelitian administrasi"],
+    "user_intent": "situasi_darurat",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Apa bedanya KIA dengan akta kelahiran?",
+    "answer": "🆔 **Perbedaan KIA dan Akta Kelahiran:** **KARTU IDENTITAS ANAK (KIA):** 💳 **Bentuk:** Kartu plastik seperti KTP 📸 **Ada foto** anak 🎂 **Untuk:** Anak di bawah 17 tahun 🆔 **Fungsi:** Identitas sehari-hari **AKTA KELAHIRAN:** 📄 **Bentuk:** Dokumen kertas resmi 📸 **Tanpa foto** 👶 **Untuk:** Semua umur (seumur hidup) 📜 **Fungsi:** Bukti legal kelahiran **HUBUNGAN:** 🔗 **KIA dibuat** berdasarkan akta kelahiran ✅ **Diterbitkan bersamaan** saat buat akta 📋 **Data sama** persis **PRAKTIS:** 💳 **KIA** untuk keperluan sehari-hari 📄 **Akta** untuk keperluan resmi/penting 🎒 **KIA** mudah dibawa anak 🏠 **Akta** disimpan aman di rumah",
+    "category": "kia_vs_akta",
+    "service_type": "akta_kelahiran",
+    "difficulty": "rendah",
+    "keywords": ["kia", "kartu identitas anak", "foto", "bawah 17 tahun", "diterbitkan bersamaan"],
+    "user_intent": "perbedaan_dokumen",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Bisakah mengurus akta kelahiran saat pandemi atau keadaan darurat?",
+    "answer": "🚨 **Pelayanan akta saat keadaan darurat:** **PROTOKOL DARURAT:** 🏥 **Layanan esensial** tetap buka ⚡ **Prioritas** pelayanan vital 🔄 **Jam terbatas** tapi tetap melayani **ADAPTASI LAYANAN:** 📱 **Online maksimal** - Publish Baby, Pastioke 🚗 **Jemput bola** untuk area terdampak 📞 **Telepon/WhatsApp** konsultasi dulu **PROTOKOL KESEHATAN:** 😷 **Masker wajib** 🤝 **Jaga jarak** ✋ **Hand sanitizer** 🌡️ **Cek suhu** **FLEKSIBILITAS:** 📋 **Dokumen** bisa dikirim via email dulu 📱 **Verifikasi** via video call jika perlu ⏰ **Waktu** mungkin lebih lama **PENTING:** 🆘 **Layanan darurat** 24 jam untuk kasus urgent 📞 **Hotline:** (0262) 234638",
+    "category": "keadaan_darurat",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["pandemi", "keadaan darurat", "protokol kesehatan", "layanan esensial"],
+    "user_intent": "situasi_darurat",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Mengapa perlu 2 saksi untuk kelahiran di rumah?",
+    "answer": "👥 **Alasan perlu 2 saksi untuk kelahiran di rumah:** **MENGGANTIKAN TENAGA MEDIS:** 🏥 **Tidak ada** dokter/bidan → 👥 **Saksi** sebagai penguat 📜 **Kekuatan hukum** sama dengan surat keterangan medis **PERSYARATAN HUKUM:** ⚖️ **UU Administrasi Kependudukan** mewajibkan 📝 **SPTJM** harus ada saksi yang kompeten 🔍 **Verifikasi silang** antar saksi **MENCEGAH FRAUD:** 🛡️ **Perlindungan** dari pemalsuan data 👤 **Identitas saksi** jelas (KTP-el) 📞 **Bisa dikonfirmasi** sewaktu-waktu **SYARAT SAKSI:** ✅ **Dewasa** (>17 tahun, punya KTP) ✅ **Menyaksikan langsung** proses kelahiran ✅ **Mengenal** orang tua bayi ✅ **Bersedia** tanda tangan + cap jempol **TIPS:** Pilih tetangga/keluarga yang terpercaya! 🤝",
+    "category": "2_saksi_kelahiran",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["2 saksi", "kelahiran rumah", "menggantikan tenaga medis", "kekuatan hukum"],
+    "user_intent": "penjelasan_aturan",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Bagaimana jika nama yang diinginkan sudah ada yang pakai di sistem?",
+    "answer": "📝 **Nama sama/duplikat di sistem SIAK:** **KABAR BAIK:** ✅ **TIDAK MASALAH** ada nama sama! 🆔 **NIK tetap unik** - tidak ada yang sama 👤 **Identitas dibedakan** dengan data lengkap **SISTEM PEMBEDA:** 📅 **Tanggal lahir** berbeda 🏠 **Alamat** berbeda 👨‍👩‍👧‍👦 **Data orang tua** berbeda 📍 **Tempat lahir** berbeda **CONTOH:** • Ahmad Rizki (Garut, 2023, ayah Budi) ✅ • Ahmad Rizki (Bandung, 2023, ayah Andi) ✅ • Ahmad Rizki (Garut, 2022, ayah Budi) ✅ **TIPS MEMBEDAKAN:** ➕ Tambah nama tengah/belakang unik ➕ Variasi ejaan yang masih sesuai aturan 📞 **Konsultasi** petugas jika ragu **PENTING:** Nama boleh sama, yang unik adalah NIK! 🎯",
+    "category": "nama_duplikat",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["nama sama", "duplikat", "nik unik", "sistem pembeda", "tidak masalah"],
+    "user_intent": "kekhawatiran_nama",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Apa yang dimaksud dengan penelitian administrasi dalam kasus kompleks?",
+    "answer": "🔍 **Penelitian Administrasi = Deep Dive Verification** **KAPAN DILAKUKAN:** 📋 **Koreksi data** yang rumit 🕰️ **Kelahiran sangat terlambat** (>1 tahun) 🏥 **Dokumen medis hilang/tidak lengkap** 👨‍👩‍👧‍👦 **Data orang tua tidak konsisten** **PROSES DETAIL:** 📊 **Cross-check database** nasional 📞 **Konfirmasi** ke instansi terkait 🏥 **Verifikasi** ke fasilitas kesehatan 👥 **Wawancara** saksi/keluarga **LANGKAH-LANGKAH:** 1️⃣ **Analisis dokumen** yang ada 2️⃣ **Pencarian data** di arsip lama 3️⃣ **Verifikasi silang** multi sumber 4️⃣ **Keputusan** berdasarkan fakta **WAKTU:** ⏰ **7-14 hari kerja** (bisa lebih) 💰 **Tetap GRATIS** meski prosesnya rumit **TUJUAN:** ✅ Memastikan data 100% akurat sebelum terbit akta resmi 🛡️",
+    "category": "penelitian_administrasi",
+    "service_type": "akta_kelahiran",
+    "difficulty": "tinggi",
+    "keywords": ["penelitian administrasi", "deep verification", "cross-check", "kasus kompleks"],
+    "user_intent": "penjelasan_prosedur",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Bagaimana mengurus akta jika orang tua beda kewarganegaraan (campuran)?",
+    "answer": "🌍 **Akta untuk orang tua beda kewarganegaraan:** **SKENARIO UMUM:** 👨 **Ayah WNI** + 👩 **Ibu WNA** = anak otomatis WNI 👨 **Ayah WNA** + 👩 **Ibu WNI** = anak otomatis WNI 👨👩 **Keduanya WNA** = perlu penentuan kewarganegaraan **PERSYARATAN TAMBAHAN:** 📘 **Paspor** kedua orang tua 🆔 **Dokumen kewarganegaraan** WNA (SKTT/visa) 📋 **Surat perkawinan** resmi 🏛️ **Legalisasi** dokumen asing **PROSES KHUSUS:** 🤝 **Koordinasi** dengan Kemenkumham 📊 **Verifikasi** status kewarganegaraan anak 📋 **Dokumentasi** tambahan ⏰ **Waktu:** 7-21 hari kerja **HASIL:** 🇮🇩 Akta kelahiran Indonesia (jika anak WNI) 📄 Dokumen kewarganegaraan yang jelas 💰 **Biaya:** GRATIS (kecuali legalisasi dokumen)",
+    "category": "campuran_kewarganegaraan",
+    "service_type": "akta_kelahiran",
+    "difficulty": "tinggi",
+    "keywords": ["beda kewarganegaraan", "wni wna", "kemenkumham", "anak otomatis wni"],
+    "user_intent": "kasus_internasional",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Apakah bisa menggunakan e-mail untuk kirim dokumen persyaratan?",
+    "answer": "📧 **Penggunaan email untuk dokumen:** **UNTUK KONSULTASI:** ✅ **Bisa** kirim softcopy untuk cek kelengkapan ✅ **Konfirmasi** persyaratan via email ✅ **Tanya jawab** seputar dokumen **UNTUK PENGAJUAN RESMI:** ❌ **Tidak bisa** submit resmi via email ✅ **Tetap perlu** dokumen fisik asli ✅ **Verifikasi** harus tatap muka **KONDISI KHUSUS:** 🚨 **Darurat/pandemic** - email diterima sementara 📱 **Konsultasi awal** sebelum datang 🔄 **Proses hybrid** email + offline **EMAIL DISDUKCAPIL:** 📧 disdukcapil@garutkab.go.id 📞 Konfirmasi via telepon: (0262) 234638 **TIPS:** 📷 **Foto jelas** semua dokumen 📁 **File terorganisir** per jenis dokumen 📝 **Subject jelas:** 'Konsultasi Akta Kelahiran - [Nama]'",
+    "category": "email_dokumen",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["email dokumen", "konsultasi", "tidak bisa submit", "dokumen fisik", "hybrid"],
+    "user_intent": "alternatif_pengajuan",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Apa yang terjadi jika ada kesalahan input di sistem Publish Baby?",
+    "answer": "📱 **Kesalahan input di Publish Baby:** **DETEKSI DINI:** ⚡ **Segera hubungi** fasilitas kesehatan 🔄 **Sebelum akta dicetak** masih bisa dikoreksi ⏰ **Golden time:** 1-2 jam setelah input **JENIS KESALAHAN UMUM:** ❌ **Nama bayi** salah eja ❌ **Tanggal/jam lahir** tidak tepat ❌ **Data orang tua** tidak sesuai KTP ❌ **Jenis kelamin** tertukar **LANGKAH KOREKSI:** 1️⃣ **Lapor segera** ke petugas RS 2️⃣ **Tunjukkan** dokumen yang benar 3️⃣ **Koreksi online** jika masih bisa 4️⃣ **Re-input** data yang tepat **JIKA SUDAH TERCETAK:** 📋 **Ajukan koreksi** ke Disdukcapil 📄 **Bawa akta yang salah** + dokumen pendukung ⏰ **Proses:** 3-7 hari kerja 💰 **Tetap GRATIS** **PENCEGAHAN:** ✅ **Cek ulang** data sebelum submit 📞 **Konfirmasi** dengan petugas input",
+    "category": "kesalahan_publish_baby",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["kesalahan input", "publish baby", "golden time", "koreksi online", "segera hubungi"],
+    "user_intent": "troubleshooting",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Bagaimana prosedur jika bayi lahir dalam perjalanan (mobil, kereta, pesawat)?",
+    "answer": "✈️🚗 **Kelahiran dalam perjalanan - kasus langka tapi bisa diurus!** **DOKUMEN KHUSUS:** 📋 **Laporan kejadian** dari maskapai/KA/ambulans 🏥 **Surat keterangan** dokter/petugas medis yang menangani 📝 **Keterangan saksi** penumpang lain 🎫 **Tiket/boarding pass** sebagai bukti lokasi **LOKASI PENCATATAN:** 🏛️ **Disdukcapil tujuan** atau asal perjalanan 📍 **Koordinasi** antar Disdukcapil jika lintas daerah 🌍 **Untuk luar negeri:** konsulat terdekat **PROSES UNIK:** 🔍 **Investigasi** detail kejadian 👥 **Wawancara** saksi dan petugas 📊 **Koordinasi** multi instansi ⏰ **Waktu:** 10-21 hari kerja **TANTANGAN:** 🌐 **Yuridiksi** - wilayah mana yang berwenang? 📋 **Dokumentasi** kejadian langka 🤝 **Koordinasi** rumit **HASIL:** ✅ **Akta tetap bisa diterbitkan** 🎯 **Tempat lahir:** sesuai lokasi kejadian 💰 **Biaya:** GRATIS",
+    "category": "lahir_perjalanan",
+    "service_type": "akta_kelahiran",
+    "difficulty": "tinggi",
+    "keywords": ["lahir perjalanan", "mobil kereta pesawat", "laporan kejadian", "koordinasi multi"],
+    "user_intent": "kasus_unik",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Mengapa harus menggunakan huruf Latin untuk nama di akta?",
+    "answer": "🔤 **Alasan wajib huruf Latin dalam nama akta:** **STANDAR INTERNASIONAL:** 🌍 **Kompatibilitas** dokumen internasional 🛂 **Passport, visa** menggunakan huruf Latin ✈️ **Penerbangan** internasional standar Latin **SISTEM DATABASE:** 💻 **SIAK** dirancang untuk huruf Latin 🔍 **Pencarian** lebih mudah dan akurat 📊 **Integrasi** sistem pemerintah **PRAKTIS SEHARI-HARI:** 🏫 **Sekolah** sistem Latin 🏢 **Dunia kerja** dokumen Latin 💳 **Perbankan** sistem Latin **SOLUSI UNTUK NAMA NON-LATIN:** 📝 **Transliterasi** dari Arab/China/dll ke Latin ✅ **Sesuai ejaan** yang benar 📖 **Konsultasi** cara penulisan yang tepat **CONTOH TRANSLITERASI:** • محمد → Muhammad ✅ • 李小明 → Li Xiao Ming ✅ • Александр → Aleksandr ✅ **BANTUAN:** 📞 Konsultasi transliterasi: (0262) 234638 📚 Panduan ejaan nama asing tersedia",
+    "category": "huruf_latin",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["huruf latin", "standar internasional", "transliterasi", "kompatibilitas", "siak"],
+    "user_intent": "penjelasan_aturan",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Apakah ada layanan express atau percepatan untuk akta kelahiran?",
+    "answer": "⚡ **Layanan percepatan akta kelahiran:** **LAYANAN REGULER SUDAH CEPAT:** 🚀 **1 hari kerja** untuk kelahiran normal ⚡ **Publish Baby** - langsung atau 1 hari 🏃‍♂️ **Sudah optimal** untuk standar pelayanan **PERCEPATAN ALAMI:** 🌅 **Datang pagi** (07:30-10:00) - proses lebih cepat 📋 **Dokumen lengkap** - tanpa bolak-balik 📱 **Online** - Publish Baby/Pastioke **KONDISI KHUSUS:** 🚨 **Darurat medis** - koordinasi khusus 🏥 **Rawat inap** - layanan ke RS ✈️ **Keberangkatan mendesak** - prioritas **TIDAK ADA:** ❌ **Layanan berbayar** untuk percepat ❌ **Express** dengan biaya tambahan 📜 **Sesuai UU 24/2013** - semua gratis **TIPS TERCEPAT:** ✅ **Publish Baby** di RS mitra ✅ **Pagi hari** + dokumen lengkap ✅ **Koordinasi** dengan petugas 📞 **Hotline:** (0262) 234638 untuk konsultasi",
+    "category": "layanan_express",
+    "service_type": "akta_kelahiran",
+    "difficulty": "rendah",
+    "keywords": ["express", "percepatan", "tidak ada berbayar", "publish baby tercepat"],
+    "user_intent": "layanan_khusus",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Bagaimana mengurus akta jika bayi prematur atau dalam kondisi medis khusus?",
+    "answer": "👶🏥 **Akta untuk bayi prematur/kondisi medis khusus:** **PRIORITAS KESEHATAN:** 🏥 **Kondisi bayi** adalah prioritas utama 📋 **Akta bisa menunggu** stabilisasi medis ❤️ **Kesehatan dulu**, administrasi belakangan **FLEKSIBILITAS WAKTU:** ⏰ **60 hari** tetap dihitung dari lahir, bukan pulang RS 🏥 **Rawat inap lama** tidak masalah 📅 **Perhitungan khusus** untuk kasus medis **KEMUDAHAN PROSES:** 🚗 **Layanan jemput bola** ke RS 👨‍⚕️ **Koordinasi** dengan tim medis 📋 **Dokumen disesuaikan** kondisi **DOKUMEN KHUSUS:** 📄 **Surat keterangan** kondisi medis bayi 🏥 **Rekam medis** pendukung 👨‍⚕️ **Pernyataan dokter** tentang kondisi **EMPATI PELAYANAN:** 💙 **Pelayanan humanis** dan pengertian 🤝 **Dukungan** keluarga ⏰ **Waktu fleksibel** sesuai kondisi 📞 **Konsultasi sensitif:** (0262) 234638 **HASIL:** ✅ **Akta tetap diterbitkan** normal 💰 **Tetap GRATIS** dengan pelayanan istimewa",
+    "category": "bayi_prematur",
+    "service_type": "akta_kelahiran",
+    "difficulty": "tinggi",
+    "keywords": ["bayi prematur", "kondisi medis", "prioritas kesehatan", "fleksibilitas", "empati"],
+    "user_intent": "situasi_medis",
+    "response_priority": "tinggi"
+  },
+  {
+    "question": "Apa yang dimaksud dengan 'affidavit' dalam kasus nama tidak konsisten?",
+    "answer": "📜 **Affidavit = Surat Pernyataan Bermaterai untuk Nama Tidak Konsisten** **PENGERTIAN:** ⚖️ **Pernyataan tertulis** di bawah sumpah 📝 **Bermaterai Rp 10.000** untuk kekuatan hukum 🤝 **Menyatakan** bahwa nama berbeda merujuk orang yang sama **KAPAN DIBUTUHKAN:** ❌ **Nama di KTP:** Budi Santoso ❌ **Nama di buku nikah:** Budi Santo ❌ **Nama di KK:** B. Santoso ✅ **Affidavit:** menyatakan ketiga nama = orang yang sama **FORMAT AFFIDAVIT:** 📋 **Identitas lengkap** pemohon 📝 **Pernyataan** nama-nama yang berbeda ⚖️ **Sumpah** bahwa pernyataan benar 🖊️ **Tanda tangan** di atas materai **PROSES:** 📝 **Tulis** surat pernyataan 💰 **Tempel** materai Rp 10.000 🖊️ **Tanda tangan** di atas materai 📋 **Lampirkan** ke dokumen pengajuan **FUNGSI:** ✅ **Menyelesaikan** masalah nama tidak konsisten 🔗 **Menghubungkan** identitas yang sama 🛡️ **Perlindungan hukum** untuk pemohon",
+    "category": "affidavit",
+    "service_type": "akta_kelahiran",
+    "difficulty": "tinggi",
+    "keywords": ["affidavit", "nama tidak konsisten", "surat pernyataan", "bermaterai", "sumpah"],
+    "user_intent": "solusi_masalah",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Bagaimana jika dokumen persyaratan dari luar negeri tidak bisa dilegalisasi KBRI?",
+    "answer": "🌍 **Solusi dokumen luar negeri tanpa legalisasi KBRI:** **PENYEBAB UMUM:** 🏛️ **KBRI tutup/jauh** dari lokasi 🚫 **Negara tidak ada** hubungan diplomatik 💰 **Biaya legalisasi** terlalu mahal ⏰ **Waktu terbatas** **ALTERNATIF SOLUSI:** 🏢 **Apostille** - legalisasi internasional (jika negara anggota Hague Convention) 🏛️ **Notaris lokal** + sworn translator 🤝 **Konsulat honorary** jika ada 📞 **Konsultasi** Kemenkumham Indonesia **DOKUMEN PENGGANTI:** 📝 **Affidavit** dari orang tua 👥 **2 saksi** yang mengetahui kelahiran 🏥 **Surat keterangan** dokter Indonesia (jika pernah periksa) **PROSES KHUSUS:** 📋 **Permohonan khusus** ke Disdukcapil 🔍 **Penelitian administrasi** mendalam 🤝 **Koordinasi** Kemenkumham ⏰ **Waktu:** 14-30 hari kerja **TIPS:** 📧 **Email** situasi detail ke disdukcapil@garutkab.go.id 📞 **Konsultasi intensif:** (0262) 234638 📋 **Dokumentasi** upaya legalisasi yang sudah dilakukan",
+    "category": "tanpa_legalisasi",
+    "service_type": "akta_kelahiran",
+    "difficulty": "tinggi",
+    "keywords": ["tanpa legalisasi", "kbri tidak bisa", "apostille", "alternatif solusi"],
+    "user_intent": "solusi_internasional",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Apa yang dimaksud layanan 'jemput bola' dan bagaimana cara mengaksesnya?",
+    "answer": "🚗 **Layanan Jemput Bola Disdukcapil Garut:** **KONSEP:** 🏡 **Petugas datang** ke lokasi masyarakat 📱 **Pelayanan mobile** dengan mobil Pajero 🎯 **Jangkau** daerah terpencil/sulit akses **KAPAN TERSEDIA:** 👴👵 **Lansia** yang sulit ke kantor 🏥 **Rawat inap** RS/rumah 🌄 **Daerah terpencil** jauh dari kantor 👶 **Bayi baru lahir** - ibu belum boleh keluar **CARA MENGAKSES:** 📞 **Telepon:** (0262) 234638 📅 **Jadwal** sesuai ketersediaan 📍 **Lokasi** dalam wilayah Garut 📋 **Persyaratan** sama dengan datang ke kantor **LAYANAN YANG BISA:** ✅ **Akta kelahiran** ✅ **Penggantian dokumen** ✅ **Konsultasi** dokumen 📝 **Verifikasi** dokumen **SYARAT KHUSUS:** 👥 **Minimal 5 orang** dalam satu lokasi (efisiensi) 📅 **Booking** H-3 sebelumnya 🆔 **Dokumen lengkap** sudah disiapkan **GRATIS:** 💰 **Tidak ada biaya tambahan** untuk layanan jemput bola! 🎯 **Komitmen pelayanan** hingga pelosok",
+    "category": "jemput_bola_detail",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["jemput bola", "pajero", "daerah terpencil", "lansia", "booking h-3"],
+    "user_intent": "layanan_khusus",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Bagaimana mengatasi masalah jika sistem SIAK sedang maintenance atau error?",
+    "answer": "🔧 **Solusi saat SIAK maintenance/error:** **BACKUP SYSTEM:** 📝 **Pencatatan manual** sementara 📊 **Database offline** lokal 🖥️ **Server backup** Disdukcapil 📋 **Form paper-based** tersedia **GRACEFUL DEGRADATION:** ✅ **Pelayanan tetap jalan** ⏰ **Mungkin agak lambat** tapi tidak berhenti 📝 **Data dicatat** manual dulu 🔄 **Input** ke sistem setelah pulih **INFORMASI TRANSPARAN:** 📢 **Pengumuman** di kantor/website 📱 **Update** via sosmed @dukcapilgarut ⏰ **Estimasi** perbaikan sistem 📞 **Hotline** tetap aktif **TIPS UNTUK WARGA:** 🕐 **Datang siang** jika pagi sistem down 📞 **Telepon dulu** cek kondisi sistem 💾 **Bawa USB** jika perlu backup data 🗂️ **Siapkan dokumen lengkap** untuk proses manual **KEUNTUNGAN:** 💪 **Pengalaman** petugas handling manual 🛡️ **Data tidak hilang** saat recovery ✅ **Commitment** pelayanan continue 📈 **Sistem makin robust** setiap update",
+    "category": "siak_maintenance",
+    "service_type": "akta_kelahiran",
+    "difficulty": "tinggi",
+    "keywords": ["siak error", "maintenance", "backup system", "graceful degradation"],
+    "user_intent": "troubleshooting_sistem",
+    "response_priority": "sedang"
+  },
+  {
+    "question": "Mengapa pengurusan akta kelahiran tidak bisa dipercepat dengan membayar lebih?",
+    "answer": "💰⚖️ **Alasan akta tidak bisa dipercepat dengan bayaran:** **DASAR HUKUM:** 📜 **UU No. 24/2013** - layanan dasar GRATIS 🚫 **Dilarang pungutan** apapun untuk percepat ⚖️ **Melanggar hukum** jika minta bayar lebih **PRINSIP KEADILAN:** 👥 **Semua warga** diperlakukan sama 💰 **Kaya/miskin** dapat layanan setara 🕐 **First come first served** - antri adil ✅ **Tidak diskriminatif** **KUALITAS PELAYANAN:** 🔍 **Verifikasi teliti** butuh waktu 📊 **Cross-check database** tidak bisa dilewat ✅ **Akurasi data** lebih penting dari kecepatan 🛡️ **Mencegah kesalahan** fatal **ANTI KORUPSI:** 🚫 **Zero tolerance** suap/gratifikasi 📢 **Transparansi** total proses 📞 **Complaint center** aktif 🔍 **Audit** berkala **SUDAH OPTIMAL:** ⚡ **1 hari kerja** sudah sangat cepat 🚀 **Publish Baby** real-time 🏃‍♂️ **Efisiensi** maksimal tanpa tambahan biaya **PERINGATAN:** ⚠️ **Hati-hati calo** yang janjikan percepat berbayar - PENIPUAN!",
+    "category": "tidak_bisa_dipercepat",
+    "service_type": "akta_kelahiran",
+    "difficulty": "sedang",
+    "keywords": ["tidak bisa dipercepat", "uu 24/2013", "gratis", "keadilan", "anti korupsi"],
+    "user_intent": "penjelasan_kebijakan",
+    "response_priority": "tinggi"
+  }
+]

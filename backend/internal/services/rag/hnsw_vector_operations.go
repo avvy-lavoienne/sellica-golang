@@ -97,6 +97,12 @@ func NewHNSWVectorOperations(redisClient *redis.Client, config *RAGConfig) *HNSW
 func (hvo *HNSWVectorOperations) SearchSimilar(ctx context.Context, queryEmbedding []float64, limit int) (*VectorSearchResult, error) {
 	startTime := time.Now()
 
+	logrus.WithFields(logrus.Fields{
+		"query_embedding_dim": len(queryEmbedding),
+		"limit": limit,
+		"total_documents": len(hvo.documents),
+	}).Debug("🔍 Starting HNSW vector search")
+
 	// Check context cancellation
 	select {
 	case <-ctx.Done():
@@ -110,15 +116,31 @@ func (hvo *HNSWVectorOperations) SearchSimilar(ctx context.Context, queryEmbeddi
 		queryVector[i] = float32(v)
 	}
 
+	logrus.WithFields(logrus.Fields{
+		"query_vector_dim": len(queryVector),
+		"query_vector_sample": queryVector[:min(5, len(queryVector))],
+	}).Debug("🔄 Converted query embedding to float32")
+
 	// Perform HNSW search
+	logrus.Debug("🚀 Executing HNSW concurrent search...")
 	hnswResults, err := hvo.concurrentSearch.SearchSimilarConcurrent(ctx, queryVector, limit)
 	if err != nil {
 		hvo.recordFallbackSearch()
-		logrus.WithError(err).Warn("HNSW search failed, attempting fallback")
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"limit": limit,
+			"query_dim": len(queryVector),
+			"total_documents": len(hvo.documents),
+		}).Warn("❌ HNSW search failed, attempting fallback")
 
 		// Fallback to basic similarity search if HNSW fails
 		return hvo.fallbackSearch(ctx, queryEmbedding, limit)
 	}
+
+	logrus.WithFields(logrus.Fields{
+		"hnsw_results_count": len(hnswResults),
+		"limit": limit,
+		"total_documents": len(hvo.documents),
+	}).Debug("✅ HNSW search completed successfully")
 
 	// Convert HNSW results to VectorSearchResult
 	result := &VectorSearchResult{
@@ -128,15 +150,45 @@ func (hvo *HNSWVectorOperations) SearchSimilar(ctx context.Context, queryEmbeddi
 	}
 
 	hvo.documentMutex.RLock()
-	for _, hnswResult := range hnswResults {
+	logrus.WithField("hnsw_results_count", len(hnswResults)).Debug("🔍 Processing HNSW results...")
+
+	for i, hnswResult := range hnswResults {
+		logrus.WithFields(logrus.Fields{
+			"result_index": i,
+			"hnsw_score": hnswResult.Score,
+			"metadata_keys": len(hnswResult.Metadata),
+		}).Debug("📄 Processing HNSW result")
+
 		// Get document from metadata stored in HNSW result
 		if hnswResult.Metadata != nil {
 			if docID, ok := hnswResult.Metadata["id"].(string); ok {
+				logrus.WithFields(logrus.Fields{
+					"doc_id": docID,
+					"result_index": i,
+				}).Debug("🔍 Looking up document by ID")
+
 				if doc, exists := hvo.documents[docID]; exists {
+					logrus.WithFields(logrus.Fields{
+						"doc_id": doc.ID,
+						"doc_title": doc.Title,
+						"doc_service_type": doc.ServiceType,
+						"result_index": i,
+					}).Debug("✅ Found document in local storage")
+
 					result.Documents = append(result.Documents, doc)
 					result.Scores = append(result.Scores, float64(hnswResult.Score))
+				} else {
+					logrus.WithFields(logrus.Fields{
+						"doc_id": docID,
+						"result_index": i,
+						"total_stored_docs": len(hvo.documents),
+					}).Warn("❌ Document not found in local storage despite HNSW result")
 				}
+			} else {
+				logrus.WithField("result_index", i).Warn("❌ No document ID in HNSW metadata")
 			}
+		} else {
+			logrus.WithField("result_index", i).Warn("❌ No metadata in HNSW result")
 		}
 	}
 	hvo.documentMutex.RUnlock()
@@ -148,10 +200,12 @@ func (hvo *HNSWVectorOperations) SearchSimilar(ctx context.Context, queryEmbeddi
 
 	logrus.WithFields(logrus.Fields{
 		"limit":       limit,
-		"results":     len(result.Documents),
+		"hnsw_results": len(hnswResults),
+		"final_results": len(result.Documents),
 		"search_time": searchTime,
 		"method":      "hnsw",
-	}).Debug("HNSW vector search completed")
+		"documents_in_index": len(hvo.documents),
+	}).Info("🔍 HNSW vector search completed with detailed analysis")
 
 	return result, nil
 }
@@ -231,7 +285,7 @@ func (hvo *HNSWVectorOperations) StoreDocument(ctx context.Context, doc *RAGDocu
 	default:
 	}
 
-	if doc.Embedding == nil || len(doc.Embedding) == 0 {
+	if len(doc.Embedding) == 0 {
 		return fmt.Errorf("document embedding is required for HNSW indexing")
 	}
 
@@ -277,7 +331,7 @@ func (hvo *HNSWVectorOperations) StoreDocument(ctx context.Context, doc *RAGDocu
 }
 
 // fallbackSearch performs basic similarity search when HNSW fails
-func (hvo *HNSWVectorOperations) fallbackSearch(ctx context.Context, queryEmbedding []float64, limit int) (*VectorSearchResult, error) {
+func (hvo *HNSWVectorOperations) fallbackSearch(_ context.Context, queryEmbedding []float64, limit int) (*VectorSearchResult, error) {
 	// Simple brute-force similarity search as fallback
 	type docScore struct {
 		doc   *RAGDocument

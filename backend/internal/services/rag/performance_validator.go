@@ -58,7 +58,6 @@ type ValidationResult struct {
 type ABTestingFramework struct {
 	activeTests map[string]*ABTest
 	testResults map[string]*ABTestResult
-	mu          sync.RWMutex
 }
 
 // ABTest represents an A/B test configuration

@@ -2,6 +2,7 @@ package persona
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -267,6 +268,43 @@ func (atm *AktaTrainingModule) generateRecommendations(query string, response *T
 	return recommendations
 }
 
+// LoadJSONTrainingData loads and integrates JSON training data into the persona module
+func (atm *AktaTrainingModule) LoadJSONTrainingData(jsonData []JSONTrainingData) error {
+	logrus.WithField("entries", len(jsonData)).Info("📚 Loading JSON training data into Akta persona module")
+
+	for _, data := range jsonData {
+		// Add to common questions
+		commonQuestion := CommonQuestion{
+			ID:       fmt.Sprintf("json-%s-%d", data.ServiceType, len(atm.domainKnowledge.CommonQuestions)),
+			Question: data.Question,
+			Answer:   data.Answer,
+			Keywords: data.Keywords,
+			Category: data.Category,
+		}
+		atm.domainKnowledge.CommonQuestions = append(atm.domainKnowledge.CommonQuestions, commonQuestion)
+
+		// Update metadata
+		atm.domainKnowledge.Metadata["json_training_loaded"] = true
+		atm.domainKnowledge.Metadata["json_entries_count"] = len(atm.domainKnowledge.CommonQuestions)
+		atm.domainKnowledge.Metadata["last_json_update"] = time.Now()
+	}
+
+	logrus.WithField("total_questions", len(atm.domainKnowledge.CommonQuestions)).Info("✅ JSON training data integrated into Akta persona module")
+	return nil
+}
+
+// JSONTrainingData represents training data from JSON files
+type JSONTrainingData struct {
+	Question        string   `json:"question"`
+	Answer          string   `json:"answer"`
+	Category        string   `json:"category"`
+	ServiceType     string   `json:"service_type"`
+	Difficulty      string   `json:"difficulty"`
+	Keywords        []string `json:"keywords"`
+	UserIntent      string   `json:"user_intent"`
+	ResponsePriority string  `json:"response_priority"`
+}
+
 // createAktaDomainKnowledge creates comprehensive domain knowledge for Akta services
 func createAktaDomainKnowledge() *DomainKnowledge {
 	return &DomainKnowledge{
@@ -370,6 +408,8 @@ func createAktaDomainKnowledge() *DomainKnowledge {
 			"version":        "1.0",
 			"coverage_level": "comprehensive",
 			"authority":      "Disdukcapil Kabupaten Garut",
+			"json_training_loaded": false,
+			"json_entries_count": 0,
 		},
 	}
 }

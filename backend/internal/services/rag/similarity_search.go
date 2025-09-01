@@ -234,7 +234,7 @@ func (ss *SimilaritySearch) filterKeywords(keywords []string) []string {
 }
 
 // combineAndRankResults combines vector and keyword search results with intelligent ranking
-func (ss *SimilaritySearch) combineAndRankResults(vectorResults, keywordResults *VectorSearchResult, query string, options *SearchOptions) ([]*RAGDocument, []float64) {
+func (ss *SimilaritySearch) combineAndRankResults(vectorResults, keywordResults *VectorSearchResult, _ string, options *SearchOptions) ([]*RAGDocument, []float64) {
 	docScoreMap := make(map[string]float64)
 	docMap := make(map[string]*RAGDocument)
 	

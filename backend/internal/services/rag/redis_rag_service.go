@@ -212,8 +212,15 @@ func (rrs *RedisRAGService) SearchSimilar(ctx context.Context, query string, lim
 	}()
 
 	if !rrs.isInitialized {
+		logrus.WithField("query", query).Error("❌ RAG service not initialized")
 		return nil, fmt.Errorf("RAG service not initialized")
 	}
+
+	logrus.WithFields(logrus.Fields{
+		"query": query,
+		"limit": limit,
+		"service_initialized": rrs.isInitialized,
+	}).Debug("🔍 Starting RAG search with detailed debugging")
 
 	// Check intelligent multi-level cache first (L1 -> L2 -> L3)
 	if rrs.config.CacheEnabled {
@@ -221,29 +228,95 @@ func (rrs *RedisRAGService) SearchSimilar(ctx context.Context, query string, lim
 			cached.CacheHit = true
 			rrs.performanceMonitor.RecordCacheHit()
 
-			// Log cache performance for monitoring
 			logrus.WithFields(logrus.Fields{
 				"query":         query[:min(50, len(query))],
 				"cache_hit":     true,
+				"cached_results": len(cached.Documents),
 				"response_time": time.Since(startTime),
-			}).Debug("🎯 RAG cache hit - optimized response")
+			}).Info("🎯 RAG cache hit - returning cached results")
 
 			return cached, nil
 		}
+		logrus.WithField("query", query).Debug("💾 Cache miss - proceeding with vector search")
 	}
 
 	// Generate query embedding
+	logrus.WithField("query", query).Debug("🔤 Generating query embedding...")
 	queryEmbedding, err := rrs.embeddingService.GenerateEmbedding(ctx, query)
 	if err != nil {
 		rrs.performanceMonitor.RecordError("query_embedding")
+		logrus.WithError(err).WithField("query", query).Error("❌ Failed to generate query embedding")
 		return nil, fmt.Errorf("failed to generate query embedding: %w", err)
 	}
 
+	logrus.WithFields(logrus.Fields{
+		"query": query,
+		"embedding_dim": len(queryEmbedding),
+		"embedding_sample": queryEmbedding[:min(5, len(queryEmbedding))], // First 5 values for debugging
+		"embedding_generation_time": time.Since(startTime),
+	}).Debug("🔤 Query embedding generated successfully")
+
+	// Debug: Check total documents in the system
+	if hnswOps, ok := rrs.vectorOperations.(*HNSWVectorOperations); ok {
+		docCount, _ := hnswOps.GetDocumentCount(ctx)
+		logrus.WithFields(logrus.Fields{
+			"query": query,
+			"total_documents_in_index": docCount,
+			"service_type": "rag_debug",
+		}).Debug("🔍 RAG search debug - total documents in system")
+	}
+
 	// Perform vector search
+	searchStart := time.Now()
+	logrus.WithFields(logrus.Fields{
+		"query": query,
+		"limit": limit,
+		"embedding_dim": len(queryEmbedding),
+	}).Debug("🔍 Performing vector similarity search...")
+
 	results, err := rrs.vectorOperations.SearchSimilar(ctx, queryEmbedding, limit)
 	if err != nil {
 		rrs.performanceMonitor.RecordError("vector_search")
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"query": query,
+			"limit": limit,
+		}).Error("❌ Vector search failed")
 		return nil, fmt.Errorf("vector search failed: %w", err)
+	}
+
+	searchTime := time.Since(searchStart)
+	logrus.WithFields(logrus.Fields{
+		"query": query,
+		"raw_results_count": len(results.Documents),
+		"search_time": searchTime,
+		"limit": limit,
+	}).Debug("🔍 Vector search completed")
+
+	// Log details of found documents
+	if len(results.Documents) > 0 {
+		logrus.WithFields(logrus.Fields{
+			"query": query,
+			"documents_found": len(results.Documents),
+		}).Info("📄 Found documents in search results")
+
+		for i, doc := range results.Documents {
+			score := 0.0
+			if i < len(results.Scores) {
+				score = results.Scores[i]
+			}
+			logrus.WithFields(logrus.Fields{
+				"query": query,
+				"doc_id": doc.ID,
+				"doc_title": doc.Title,
+				"doc_service_type": doc.ServiceType,
+				"similarity_score": score,
+				"doc_index": i,
+				"content_length": len(doc.Content),
+				"keywords_count": len(doc.Keywords),
+			}).Debug("📄 Document details in search results")
+		}
+	} else {
+		logrus.WithField("query", query).Warn("⚠️ No documents found in vector search - this is the core issue!")
 	}
 
 	searchResult := &RAGSearchResult{
@@ -257,17 +330,70 @@ func (rrs *RedisRAGService) SearchSimilar(ctx context.Context, query string, lim
 	// Cache result with intelligent multi-level caching and predictive warming
 	if rrs.config.CacheEnabled {
 		rrs.cacheOptimizer.CacheResult(query, limit, searchResult)
+		logrus.WithFields(logrus.Fields{
+			"query": query,
+			"results_cached": len(searchResult.Documents),
+		}).Debug("💾 Search results cached")
 	}
 
 	rrs.performanceMonitor.RecordCacheMiss()
 
-	// Log performance metrics for optimization tracking
+	// Log comprehensive performance metrics
 	logrus.WithFields(logrus.Fields{
-		"query":         query[:min(50, len(query))],
-		"cache_hit":     false,
-		"response_time": time.Since(startTime),
-		"results_count": len(searchResult.Documents),
-	}).Debug("🔍 RAG search completed - optimized processing")
+		"query":           query[:min(50, len(query))],
+		"cache_hit":       false,
+		"response_time":   time.Since(startTime),
+		"search_time":     searchTime,
+		"results_count":   len(searchResult.Documents),
+		"embedding_dim":   len(queryEmbedding),
+		"total_results":   searchResult.TotalResults,
+		"service_type":    "rag_debug",
+	}).Info("🔍 RAG search completed - comprehensive analysis")
+
+	return searchResult, nil
+}
+
+// TestDirectVectorSearch bypasses the full pipeline and tests similarity search directly
+func (rrs *RedisRAGService) TestDirectVectorSearch(ctx context.Context, query string, limit int) (*RAGSearchResult, error) {
+	if !rrs.isInitialized {
+		return nil, fmt.Errorf("RAG service not initialized")
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"query": query,
+		"limit": limit,
+	}).Info("🧪 Testing direct vector search bypass")
+
+	// Generate query embedding
+	queryEmbedding, err := rrs.embeddingService.GenerateEmbedding(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate query embedding: %w", err)
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"query": query,
+		"embedding_dim": len(queryEmbedding),
+	}).Debug("🔤 Query embedding generated for direct test")
+
+	// Perform direct vector search
+	results, err := rrs.vectorOperations.SearchSimilar(ctx, queryEmbedding, limit)
+	if err != nil {
+		return nil, fmt.Errorf("direct vector search failed: %w", err)
+	}
+
+	searchResult := &RAGSearchResult{
+		Documents:    results.Documents,
+		Scores:       results.Scores,
+		QueryTime:    0, // Not measuring time for test
+		TotalResults: len(results.Documents),
+		CacheHit:     false,
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"query": query,
+		"direct_results_count": len(searchResult.Documents),
+		"limit": limit,
+	}).Info("🧪 Direct vector search test completed")
 
 	return searchResult, nil
 }

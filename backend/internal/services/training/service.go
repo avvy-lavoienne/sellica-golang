@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -1019,4 +1021,165 @@ func (s *Service) parseQuality(data map[string]interface{}) QualityMetrics {
 	}
 
 	return quality
+}
+
+// LoadJSONTrainingData loads and processes JSON training data files
+func (s *Service) LoadJSONTrainingData(filePath string) error {
+	if s.advancedModules == nil {
+		return fmt.Errorf("advanced training modules are not initialized")
+	}
+
+	logrus.WithField("file_path", filePath).Info("📖 Loading JSON training data...")
+
+	// Read and parse JSON file
+	jsonData, err := s.readJSONTrainingFile(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to read JSON training file: %w", err)
+	}
+
+	// Convert JSON data to TrainingData format
+	trainingDataList := s.convertJSONToTrainingData(jsonData)
+
+	// Process each training data entry
+	successCount := 0
+	for _, data := range trainingDataList {
+		err := s.SubmitTrainingData(context.Background(), &data)
+		if err != nil {
+			logrus.WithError(err).WithField("query", data.Query).Error("Failed to submit JSON training data")
+			continue
+		}
+		successCount++
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"file_path":       filePath,
+		"total_entries":   len(trainingDataList),
+		"successful":      successCount,
+		"service_type":    jsonData.ServiceType,
+	}).Info("✅ JSON training data loaded successfully")
+
+	return nil
+}
+
+// readJSONTrainingFile reads and parses a JSON training data file
+func (s *Service) readJSONTrainingFile(filePath string) (*JSONTrainingDataFile, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var jsonData []JSONTrainingData
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&jsonData); err != nil {
+		return nil, fmt.Errorf("failed to decode JSON: %w", err)
+	}
+
+	// Extract service type from filename
+	serviceType := s.extractServiceTypeFromPath(filePath)
+
+	return &JSONTrainingDataFile{
+		FilePath:    filePath,
+		ServiceType: serviceType,
+		Data:        jsonData,
+		LastUpdated: time.Now(),
+	}, nil
+}
+
+// extractServiceTypeFromPath extracts service type from file path
+func (s *Service) extractServiceTypeFromPath(filePath string) string {
+	filename := filepath.Base(filePath)
+	if strings.Contains(filename, "akta-kelahiran") {
+		return "akta_kelahiran"
+	} else if strings.Contains(filename, "akta-kematian") {
+		return "akta_kematian"
+	} else if strings.Contains(filename, "akta-perkawinan") {
+		return "akta_perkawinan"
+	} else if strings.Contains(filename, "kk") {
+		return "kartu_keluarga"
+	} else if strings.Contains(filename, "ktp") {
+		return "ktp_elektronik"
+	}
+	return "general"
+}
+
+// convertJSONToTrainingData converts JSON training data to TrainingData format
+func (s *Service) convertJSONToTrainingData(jsonFile *JSONTrainingDataFile) []TrainingData {
+	var trainingDataList []TrainingData
+
+	for i, jsonData := range jsonFile.Data {
+		// Create TrainingData from JSON data
+		data := TrainingData{
+			ID:        fmt.Sprintf("%s_json_%d", jsonFile.ServiceType, i),
+			Query:     jsonData.Question,
+			Response:  jsonData.Answer,
+			UserID:    "system", // System-generated training data
+			SessionID: fmt.Sprintf("json_training_%s", jsonFile.ServiceType),
+			Timestamp: time.Now(),
+			Status:    TrainingStatusPending,
+		}
+
+		// Set classification based on JSON data
+		data.Classification = QueryClassification{
+			ServiceType: jsonFile.ServiceType,
+			Intent:      jsonData.UserIntent,
+			Confidence:  0.9, // High confidence for structured training data
+			Complexity:  s.mapDifficultyToComplexity(jsonData.Difficulty),
+			Priority:    s.mapPriorityToInt(jsonData.ResponsePriority),
+		}
+
+		// Set metadata
+		data.Metadata = TrainingMetadata{
+			ProcessingTime:   0.0,
+			EnhancementMode:  true,
+			ProviderUsed:     "json_training",
+			ContextLayers:    []string{"structured_training", jsonData.Category},
+			SemanticAnalysis: &SemanticData{
+				Keywords:   jsonData.Keywords,
+				Sentiment:  "neutral",
+				Language:   "id",
+				Confidence: 0.95,
+			},
+		}
+
+		// Calculate quality metrics
+		data.Quality = s.calculateQualityMetrics(&data)
+
+		// Set timestamps
+		now := time.Now()
+		data.CreatedAt = now
+		data.UpdatedAt = now
+
+		trainingDataList = append(trainingDataList, data)
+	}
+
+	return trainingDataList
+}
+
+// mapDifficultyToComplexity maps JSON difficulty to complexity string
+func (s *Service) mapDifficultyToComplexity(difficulty string) string {
+	switch strings.ToLower(difficulty) {
+	case "rendah":
+		return "simple"
+	case "sedang":
+		return "medium"
+	case "tinggi":
+		return "complex"
+	default:
+		return "medium"
+	}
+}
+
+// mapPriorityToInt maps JSON response priority to integer priority
+func (s *Service) mapPriorityToInt(priority string) int {
+	switch strings.ToLower(priority) {
+	case "tinggi":
+		return 5
+	case "sedang":
+		return 3
+	case "rendah":
+		return 1
+	default:
+		return 3
+	}
 }

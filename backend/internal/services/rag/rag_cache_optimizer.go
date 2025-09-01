@@ -71,10 +71,6 @@ type RAGCacheOptimizer struct {
 	// Performance tracking
 	cacheOperationTimes []time.Duration
 	performanceMu       sync.RWMutex
-
-	// Cache warming
-	warmingInProgress bool
-	warmingMutex      sync.Mutex
 }
 
 // NewRAGCacheOptimizer creates a new intelligent RAG cache optimizer
@@ -344,6 +340,7 @@ func (rco *RAGCacheOptimizer) generateEmbeddingCacheKey(text string) string {
 }
 
 // recordCacheHit records a cache hit
+// TODO: This method is reserved for future cache analytics
 func (rco *RAGCacheOptimizer) recordCacheHit() {
 	rco.mu.Lock()
 	defer rco.mu.Unlock()

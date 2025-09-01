@@ -235,9 +235,10 @@ func (pm *PoolMetrics) GetStats() map[string]interface{} {
 		scaleUpCount := 0
 		scaleDownCount := 0
 		for _, event := range recentEvents {
-			if event.EventType == "scale_up" {
+			switch event.EventType {
+			case "scale_up":
 				scaleUpCount++
-			} else if event.EventType == "scale_down" {
+			case "scale_down":
 				scaleDownCount++
 			}
 		}
