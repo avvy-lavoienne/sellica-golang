@@ -41,6 +41,7 @@ backend/.env*
 .vscode/
 .idea/
 .devcontainer/
+.devcontainer/devcontainer.json
 *.swp
 *.swo
 *~
