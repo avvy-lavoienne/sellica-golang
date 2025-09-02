@@ -46,15 +46,19 @@ This comprehensive analysis of the SELLY AI system reveals critical architectura
 - **Issues**: File watcher complexity, metadata extraction inconsistencies
 
 **RAG Service (`backend/internal/services/rag/redis_rag_service.go`):**
-- **Architecture**: Redis-based vector operations with HNSW indexing
+- **Architecture**: Upstash Redis-based vector operations with HNSW indexing and UpstashVectorOperations
 - **Performance**: Sub-100ms embedding generation, comprehensive caching
+- **Upstash Integration**: Uses `UpstashVectorOperations` for document storage and similarity search (lines 275-298, 533-548)
 - **Critical Issue**: Complete failure in document retrieval despite successful indexing
 
 ### 2.3 System Integration Analysis
 
 **Service Dependencies:**
 ```
-Chat Service → RAG Service → Knowledge Service
+Chat Service → RAG Service.RetrieveContext() → UpstashVectorOperations.SearchSimilar()
+Document Loader → RAG Service.IndexDocument() → Upstash Redis (TTL: 24h)
+Cache Service → RAG Service (L2 caching with Smart TTL)
+Performance Monitor → All Services (integrated metrics collection)
 Chat Service → Persona Service → Cultural Processing
 Chat Service → Performance Service → Monitoring
 ```
@@ -63,6 +67,27 @@ Chat Service → Performance Service → Monitoring
 - Context loss during RAG-to-persona transitions
 - Inconsistent error propagation across service boundaries
 - Performance monitoring gaps in service chains
+
+### 2.4 Training Data Integration Analysis
+
+**Training Directory Structure (`/backend/data/training/*`)**:
+- **Document Sources**: The Knowledge Service (`backend/internal/services/knowledge/document_loader.go`) processes training documents from `/backend/data/training/*`, including subdirectories for specific government services:
+  - `akta-kelahiran/`: Birth certificate processing data
+  - `akta-kematian/`: Death certificate processing data
+  - `akta-perkawinan/`: Marriage certificate processing data
+  - `kk/`: Family card (Kartu Keluarga) processing data
+  - `ktp/`: Electronic ID card processing data
+  - `perpindahan/`: Population movement processing data
+  - `persona/`: Cultural adaptation and persona training data
+- **File Processing**: Supports both Markdown (.md) and JSON (.json) formats, with automatic service type detection via filename patterns (e.g., `extractServiceTypeFromJSONPath` function recognizes "akta-kelahiran", "kk", "ktp")
+- **Integration Points**: Training data feeds directly into RAG indexing via `LoadAllDocuments` and `LoadJSONTrainingData` functions, enabling vector database population for retrieval-augmented generation
+- **Recursive Scanning**: Configurable recursive scanning of subdirectories ensures comprehensive document coverage across the training directory structure
+
+**Correlation with document_loader.go**:
+- **Path Resolution**: `NewDocumentLoaderService` resolves absolute paths for `/backend/data/training/*` (lines 92-96), ensuring reliable document loading regardless of working directory
+- **Service Type Mapping**: Metadata extraction functions (lines 220-258) automatically map filenames to service types, supporting the plan's focus on birth certificate and other government service queries
+- **Indexing Pipeline**: Documents are chunked, embedded, and indexed into the RAG system (lines 391-450), directly addressing the critical RAG retrieval failure identified in the analysis
+- **File Watching**: Real-time monitoring of training directory changes (lines 453-511) enables automatic re-indexing, maintaining system synchronization with updated training data
 
 ---
 
@@ -73,7 +98,8 @@ Chat Service → Performance Service → Monitoring
 **Priority 1: RAG Retrieval System Overhaul**
 - Implement direct vector search validation to isolate retrieval failures
 - Add comprehensive search debugging with embedding verification
-- Establish vector database integrity checks and automated recovery
+- Establish Upstash Redis vector database integrity checks and automated recovery
+- **Training Data Integration**: Leverage `document_loader.go`'s `LoadAllDocuments` function (lines 565-607) to re-index training documents from `/backend/data/training/*` after retrieval fixes, ensuring Upstash Redis vector database synchronization with updated government service data
 
 **Priority 2: Service Type Standardization**
 - Create centralized `ServiceType` enum with consistent naming conventions
@@ -84,6 +110,9 @@ Chat Service → Performance Service → Monitoring
 - Merge three persona services into unified `PersonaService` with clear interfaces
 - Implement feature flags for gradual migration from legacy services
 - Establish single source of truth for persona configuration
+- **Training Data Integration**: Integrate persona training data from `/backend/data/training/persona/` via `document_loader.go`'s JSON processing capabilities (lines 645-723) to maintain cultural adaptation consistency
+- **Upstash Redis Integration**: Ensure persona caching uses Upstash Redis for distributed persona state management
+- **Smart TTL Integration**: Implement `EnableSmartTTL()` for adaptive persona cache expiration based on user behavior patterns
 
 ### 3.2 Architecture Improvements
 
@@ -96,11 +125,14 @@ Chat Service → Performance Service → Monitoring
 - Create centralized `FallbackService` with consistent behavior
 - Implement configurable fallback thresholds based on service type
 - Add fallback performance monitoring and success rate tracking
+- **Cache Integration**: Include fallback to memory-only caching when Upstash Redis is unavailable (`service.go` lines 81-84)
 
 **Performance Monitoring Unification**
 - Implement `ServiceMonitor` interface across all services
 - Add cross-service performance correlation and bottleneck detection
 - Establish standardized metrics collection and alerting
+- **Memory Monitoring**: Integrate `MemoryMonitor` for resource tracking with 30-second intervals
+- **Upstash Redis Monitoring**: Add connection health checks and TLS verification monitoring
 
 ### 3.3 Cultural Processing Optimization
 
@@ -123,6 +155,7 @@ Chat Service → Performance Service → Monitoring
 - Day 1-2: Implement direct vector search testing and debugging
 - Day 3-4: Fix document retrieval pipeline and validate embeddings
 - Day 5: Performance testing and optimization
+- **Training Data Checkpoint**: Validate `/backend/data/training/*` document integrity and ensure `document_loader.go` path resolution (lines 92-96) correctly maps to training subdirectories before RAG repair
 
 **Week 2: Service Standardization**
 - Day 1-2: Create centralized service type definitions
@@ -160,6 +193,7 @@ Chat Service → Performance Service → Monitoring
 - Day 1-2: Gradual rollout with feature flags
 - Day 3-4: Production monitoring and optimization
 - Day 5: Post-deployment validation and documentation
+- **Training Data Validation**: Conduct end-to-end testing with updated training data from `/backend/data/training/documents/` to verify RAG retrieval improvements and service type detection accuracy
 
 ---
 
@@ -200,6 +234,14 @@ Chat Service → Performance Service → Monitoring
   - Validate all knowledge base content before deployment
   - Implement content versioning and rollback
   - Add human oversight for critical responses
+
+**Risk: Training Data Inconsistencies in `/backend/data/training/*`**
+- **Impact**: Inaccurate RAG responses due to `document_loader.go` path resolution failures
+- **Probability**: Medium
+- **Mitigation**:
+  - Implement automated validation of training directory structure and service type mappings (lines 751-765) before deployment
+  - Establish monitoring for file watcher errors in `document_loader.go` (lines 504-510)
+  - Create backup indexing procedures for training data synchronization
 
 **Risk: User Experience Disruption**
 - **Impact**: User confusion during feature rollout
@@ -247,6 +289,11 @@ Chat Service → Performance Service → Monitoring
 - **Query Volume**: Target 40% increase
 - **Support Ticket Reduction**: Target 30% decrease
 
+### Training Data Metrics
+- **Training Data Processing Efficiency**: Target 100% successful indexing of `/backend/data/training/*` documents via `document_loader.go`, with <5% failure rate in metadata extraction (lines 220-258)
+- **Service Type Detection Accuracy**: Target 98% accuracy in automatic service type mapping from training directory filenames
+- **Document Synchronization Rate**: Target <10-minute lag between training data updates and RAG system synchronization
+
 ---
 
 ## 7. Resource Requirements
@@ -290,7 +337,10 @@ This comprehensive optimization plan addresses the critical architectural issues
 
 **Document Information:**
 - **Created**: 2025-09-02
-- **Version**: 1.0
+- **Version**: 1.3
 - **Classification**: Internal - Technical Planning
 - **Review Cycle**: Monthly
 - **Approval Required**: Architecture Review Board
+- **Training Data Integration**: Fully integrated with `/backend/data/training/*` directory and `document_loader.go` correlations
+- **Upstash Redis Integration**: Fully integrated with Upstash Redis for caching and vector operations
+- **Service Integration**: Comprehensive integration with RAG, cache, and performance monitoring services
