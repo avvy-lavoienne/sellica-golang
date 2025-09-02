@@ -14,6 +14,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"selly-backend/internal/services/rag"
+	"selly-backend/pkg/types"
 )
 
 // Week2HNSWValidator validates HNSW vector search performance improvements
@@ -298,7 +299,7 @@ func (v *Week2HNSWValidator) generateTestDocuments(count int) []*rag.RAGDocument
 			ID:          fmt.Sprintf("test_doc_%d", i),
 			Title:       fmt.Sprintf("Test Document %d", i),
 			Content:     fmt.Sprintf("This is test document content for HNSW validation %d", i),
-			ServiceType: "hnsw_test",
+			ServiceType: string(types.ServiceTypeUnknown),
 			Keywords:    []string{"test", "hnsw", "validation"},
 			Embedding:   embedding,
 			IndexedAt:   time.Now(),

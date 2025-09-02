@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"selly-backend/pkg/types"
 )
 
 // PerpindahanTrainingModule provides specialized training for Perpindahan (Domicile Change) services
@@ -36,7 +37,7 @@ func (ptm *PerpindahanTrainingModule) GetDomainKnowledge() *DomainKnowledge {
 func (ptm *PerpindahanTrainingModule) ProcessQuery(ctx context.Context, query string, context map[string]interface{}) (*TrainingResponse, error) {
 	if !ptm.enabled {
 		return &TrainingResponse{
-			ServiceType: "perpindahan",
+			ServiceType: string(types.ServiceTypeUnknown),
 			Confidence:  0.0,
 		}, nil
 	}
@@ -45,7 +46,7 @@ func (ptm *PerpindahanTrainingModule) ProcessQuery(ctx context.Context, query st
 	queryLower := strings.ToLower(query)
 
 	response := &TrainingResponse{
-		ServiceType:         "perpindahan",
+		ServiceType: string(types.ServiceTypeUnknown),
 		MatchedProcedures:   []ServiceProcedure{},
 		MatchedRequirements: []ServiceRequirement{},
 		RelevantQuestions:   []CommonQuestion{},
@@ -266,7 +267,7 @@ func (ptm *PerpindahanTrainingModule) generateRecommendations(query string, resp
 // createPerpindahanDomainKnowledge creates comprehensive domain knowledge for Perpindahan services
 func createPerpindahanDomainKnowledge() *DomainKnowledge {
 	return &DomainKnowledge{
-		ServiceType: "perpindahan",
+		ServiceType: string(types.ServiceTypeUnknown),
 		Description: "Layanan perpindahan domisili adalah proses administratif untuk mengubah tempat tinggal resmi dalam dokumen kependudukan.",
 		KeyTerms: map[string]string{
 			"Perpindahan":      "Perubahan tempat tinggal resmi",

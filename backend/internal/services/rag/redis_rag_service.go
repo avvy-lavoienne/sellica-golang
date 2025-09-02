@@ -779,7 +779,7 @@ func (rrs *RedisRAGService) SearchSimilar(ctx context.Context, query string, lim
 		"results_count":   len(searchResult.Documents),
 		"embedding_dim":   len(queryEmbedding),
 		"total_results":   searchResult.TotalResults,
-		"service_type":    "rag_debug",
+		"service_type": "general",
 	}).Info("🔍 RAG search completed - comprehensive analysis")
 
 	return searchResult, nil
@@ -1017,6 +1017,11 @@ func (rrs *RedisRAGService) GetCacheOptimizer() *RAGCacheOptimizer {
 // GetVectorOperations returns the vector operations interface
 func (rrs *RedisRAGService) GetVectorOperations() VectorOperationsInterface {
 	return rrs.vectorOperations
+}
+
+// GetRedisClient returns the Redis client
+func (rrs *RedisRAGService) GetRedisClient() *redis.Client {
+	return rrs.redis
 }
 
 // GetHNSWVectorOperations returns the HNSW vector operations if available

@@ -415,7 +415,7 @@ func (it *IndonesianTokenizer) Tokenize(text string) ([]string, error) {
 }
 
 // performClassification performs text classification
-func (is *IndoBERTService) performClassification(tokens []string, context map[string]interface{}) (interface{}, float64) {
+func (is *IndoBERTService) performClassification(tokens []string, _ map[string]interface{}) (interface{}, float64) {
 	// Simulate classification based on tokens
 	text := strings.Join(tokens, " ")
 
@@ -676,7 +676,7 @@ func (is *IndoBERTService) GetHealthStatus() map[string]interface{} {
 		"active_model":      is.activeModel,
 		"model_statuses":    modelStatuses,
 		"circuit_breaker":   is.circuitBreaker.GetStatus(),
-		"service_type":      "indobert",
+		"service_type": "general",
 		"supported_tasks":   []string{"classification", "ner", "sentiment", "embedding"},
 		"last_check":        time.Now(),
 	}

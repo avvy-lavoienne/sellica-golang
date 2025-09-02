@@ -12,6 +12,7 @@ import (
 	"selly-backend/internal/services/chat/providers"
 
 	"github.com/sirupsen/logrus"
+	"selly-backend/pkg/types"
 )
 
 // AIService provides AI model integration and processing
@@ -311,7 +312,7 @@ func (s *AIService) ProcessQuery(ctx context.Context, req *AIRequest) (*AIRespon
 			ResponseType:    "informational", // Could be enhanced with better detection
 			Context:         req.Context,
 			UserID:          req.UserID,
-			ServiceType:     "general", // Could be enhanced with service detection
+			ServiceType: string(types.ServiceTypeGeneral), // Could be enhanced with service detection
 			CulturalContext: "general_indonesia",
 		}
 

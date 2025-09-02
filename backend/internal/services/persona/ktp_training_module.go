@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"selly-backend/pkg/types"
 )
 
 // KTPTrainingModule provides specialized training for KTP (Kartu Tanda Penduduk) services
@@ -36,7 +37,7 @@ func (ktm *KTPTrainingModule) GetDomainKnowledge() *DomainKnowledge {
 func (ktm *KTPTrainingModule) ProcessQuery(ctx context.Context, query string, context map[string]interface{}) (*TrainingResponse, error) {
 	if !ktm.enabled {
 		return &TrainingResponse{
-			ServiceType: "ktp",
+			ServiceType: string(types.ServiceTypeUnknown),
 			Confidence:  0.0,
 		}, nil
 	}
@@ -45,7 +46,7 @@ func (ktm *KTPTrainingModule) ProcessQuery(ctx context.Context, query string, co
 	queryLower := strings.ToLower(query)
 
 	response := &TrainingResponse{
-		ServiceType:         "ktp",
+		ServiceType: string(types.ServiceTypeUnknown),
 		MatchedProcedures:   []ServiceProcedure{},
 		MatchedRequirements: []ServiceRequirement{},
 		RelevantQuestions:   []CommonQuestion{},
@@ -254,7 +255,7 @@ func (ktm *KTPTrainingModule) generateRecommendations(query string, response *Tr
 // createKTPDomainKnowledge creates comprehensive domain knowledge for KTP services
 func createKTPDomainKnowledge() *DomainKnowledge {
 	return &DomainKnowledge{
-		ServiceType: "ktp",
+		ServiceType: string(types.ServiceTypeUnknown),
 		Description: "Kartu Tanda Penduduk (KTP) adalah dokumen identitas resmi yang wajib dimiliki oleh setiap warga negara Indonesia yang telah berusia 17 tahun atau sudah menikah.",
 		KeyTerms: map[string]string{
 			"KTP":      "Kartu Tanda Penduduk",

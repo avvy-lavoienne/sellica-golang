@@ -10,6 +10,7 @@ import (
 
 	"selly-backend/internal/services/cache"
 	"selly-backend/internal/services/database"
+	"selly-backend/pkg/types"
 )
 
 // BenchmarkPhase1Day3_4Performance benchmarks the enhanced Phase 1 Day 3-4 performance
@@ -215,7 +216,7 @@ func BenchmarkPhase1Day3_4Performance(b *testing.B) {
 						SessionID: fmt.Sprintf("concurrent-session-%d", i%5),
 						Status:   TrainingStatusPending,
 						Classification: QueryClassification{
-							ServiceType: "ktp",
+							ServiceType: string(types.ServiceTypeUnknown),
 							Intent:      "concurrent",
 							Confidence:  0.9,
 							Complexity:  "medium",
@@ -418,7 +419,7 @@ func BenchmarkLoadTesting(b *testing.B) {
 						SessionID: fmt.Sprintf("load-session-%d", index%50),
 						Status:   TrainingStatusPending,
 						Classification: QueryClassification{
-							ServiceType: "ktp",
+							ServiceType: string(types.ServiceTypeUnknown),
 							Intent:      "load_test",
 							Confidence:  0.9,
 							Complexity:  "medium",

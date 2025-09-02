@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"selly-backend/pkg/types"
 )
 
 // PerformanceValidator validates RAG system performance against targets
@@ -241,7 +242,7 @@ func (pv *PerformanceValidator) validateIndexingPerformance(ctx context.Context)
 			ID:          "test_doc_1",
 			Title:       "Test Document 1",
 			Content:     "Test content for performance validation",
-			ServiceType: "test",
+			ServiceType: string(types.ServiceTypeUnknown),
 			Keywords:    []string{"test", "performance"},
 			IndexedAt:   time.Now(),
 		},
@@ -249,7 +250,7 @@ func (pv *PerformanceValidator) validateIndexingPerformance(ctx context.Context)
 			ID:          "test_doc_2",
 			Title:       "Test Document 2",
 			Content:     "Another test content for validation",
-			ServiceType: "test",
+			ServiceType: string(types.ServiceTypeUnknown),
 			Keywords:    []string{"test", "validation"},
 			IndexedAt:   time.Now(),
 		},

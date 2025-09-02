@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"selly-backend/pkg/types"
 )
 
 // TestPhase2AdvancedTrainingModules tests the advanced training modules
@@ -369,7 +370,7 @@ func TestPhase2ContinuousLearningEngine(t *testing.T) {
 			{
 				Query:            "Bagaimana cara membuat KTP?",
 				ExpectedResponse: "Untuk membuat KTP, Anda perlu...",
-				ServiceType:      "ktp",
+				ServiceType: string(types.ServiceTypeUnknown),
 				Category:         "basic_info",
 				Priority:         "high",
 				Weight:           1.0,
@@ -377,7 +378,7 @@ func TestPhase2ContinuousLearningEngine(t *testing.T) {
 			{
 				Query:            "Syarat KTP apa saja?",
 				ExpectedResponse: "Syarat KTP adalah...",
-				ServiceType:      "ktp",
+				ServiceType: string(types.ServiceTypeUnknown),
 				Category:         "requirements",
 				Priority:         "high",
 				Weight:           1.0,

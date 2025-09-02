@@ -7,6 +7,7 @@ import (
 	"selly-backend/internal/services/cache"
 
 	"github.com/sirupsen/logrus"
+	"selly-backend/pkg/types"
 )
 
 // Data Loaders for each module
@@ -303,7 +304,7 @@ func (kdl *KTPDataLoader) LoadKTPTrainingData(ctx context.Context) ([]TrainingPa
 		{
 			Query:            "Bagaimana cara membuat KTP baru?",
 			ExpectedResponse: "Untuk membuat KTP baru, Anda perlu menyiapkan dokumen...",
-			ServiceType:      "ktp",
+			ServiceType: string(types.ServiceTypeUnknown),
 			Category:         "basic_info",
 			Priority:         "high",
 			Scenario:         "A",
@@ -312,7 +313,7 @@ func (kdl *KTPDataLoader) LoadKTPTrainingData(ctx context.Context) ([]TrainingPa
 		{
 			Query:            "Syarat KTP apa saja?",
 			ExpectedResponse: "Syarat untuk KTP adalah fotokopi KK, pas foto...",
-			ServiceType:      "ktp",
+			ServiceType: string(types.ServiceTypeUnknown),
 			Category:         "requirements",
 			Priority:         "high",
 			Scenario:         "C",
@@ -329,7 +330,7 @@ func (kdl *KKDataLoader) LoadKKTrainingData(ctx context.Context) ([]TrainingPair
 		{
 			Query:            "Bagaimana cara membuat KK baru?",
 			ExpectedResponse: "Untuk membuat KK baru, Anda perlu menyiapkan dokumen...",
-			ServiceType:      "kk",
+			ServiceType: string(types.ServiceTypeKartuKeluarga),
 			Category:         "basic_info",
 			Priority:         "high",
 			Scenario:         "A",
@@ -338,7 +339,7 @@ func (kdl *KKDataLoader) LoadKKTrainingData(ctx context.Context) ([]TrainingPair
 		{
 			Query:            "Kami menikah siri, bisa buat KK tidak?",
 			ExpectedResponse: "Tentang pernikahan siri dan KK, perlu legalisasi dulu...",
-			ServiceType:      "kk",
+			ServiceType: string(types.ServiceTypeKartuKeluarga),
 			Category:         "special_case",
 			Priority:         "high",
 			Scenario:         "special_case",
@@ -355,7 +356,7 @@ func (adl *AktaDataLoader) LoadAktaTrainingData(ctx context.Context) ([]Training
 		{
 			Query:            "Bagaimana cara membuat akta kelahiran?",
 			ExpectedResponse: "Untuk membuat akta kelahiran, Anda perlu menyiapkan...",
-			ServiceType:      "akta",
+			ServiceType: string(types.ServiceTypeUnknown),
 			Category:         "birth",
 			Priority:         "high",
 			Scenario:         "birth",
@@ -364,7 +365,7 @@ func (adl *AktaDataLoader) LoadAktaTrainingData(ctx context.Context) ([]Training
 		{
 			Query:            "Syarat akta perkawinan apa saja?",
 			ExpectedResponse: "Syarat untuk akta perkawinan adalah...",
-			ServiceType:      "akta",
+			ServiceType: string(types.ServiceTypeUnknown),
 			Category:         "marriage",
 			Priority:         "high",
 			Scenario:         "marriage",

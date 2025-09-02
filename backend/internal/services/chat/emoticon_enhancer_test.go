@@ -8,6 +8,7 @@ import (
 	"selly-backend/internal/emoticons"
 
 	"github.com/stretchr/testify/assert"
+	"selly-backend/pkg/types"
 )
 
 func TestEmoticonEnhancerIntegration(t *testing.T) {
@@ -25,7 +26,7 @@ func TestEmoticonEnhancerIntegration(t *testing.T) {
 			"service_type": "general",
 		},
 		UserID:          "test-user",
-		ServiceType:     "general",
+		ServiceType: string(types.ServiceTypeGeneral),
 		CulturalContext: "general_indonesia",
 	}
 
@@ -51,7 +52,7 @@ func TestEmoticonEnhancerDisabled(t *testing.T) {
 		ResponseType: "informational",
 		Context:      map[string]interface{}{},
 		UserID:       "test-user",
-		ServiceType:  "general",
+		ServiceType: string(types.ServiceTypeGeneral),
 		CulturalContext: "general_indonesia",
 	}
 

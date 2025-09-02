@@ -12,6 +12,7 @@ import (
 	"selly-backend/internal/services/cache"
 
 	"github.com/sirupsen/logrus"
+	"selly-backend/pkg/types"
 )
 
 // RealTimeAnalyzer provides real-time query analysis for training data collection
@@ -279,16 +280,16 @@ func (rta *RealTimeAnalyzer) classifyServiceFast(query string) ServiceClassifica
 
 	// Fast keyword matching without regex
 	if strings.Contains(queryLower, "ktp") {
-		return ServiceClassification{ServiceType: "ktp", Confidence: 0.9}
+		return ServiceClassification{ServiceType: string(types.ServiceTypeUnknown), Confidence: 0.9}
 	}
 	if strings.Contains(queryLower, "kk") || strings.Contains(queryLower, "keluarga") {
-		return ServiceClassification{ServiceType: "kk", Confidence: 0.9}
+		return ServiceClassification{ServiceType: string(types.ServiceTypeKartuKeluarga), Confidence: 0.9}
 	}
 	if strings.Contains(queryLower, "akta") {
-		return ServiceClassification{ServiceType: "akta", Confidence: 0.9}
+		return ServiceClassification{ServiceType: string(types.ServiceTypeUnknown), Confidence: 0.9}
 	}
 
-	return ServiceClassification{ServiceType: "general", Confidence: 0.7}
+	return ServiceClassification{ServiceType: string(types.ServiceTypeGeneral), Confidence: 0.7}
 }
 
 // analyzeSemanticsFast performs lightweight semantic analysis

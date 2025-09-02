@@ -10,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"selly-backend/pkg/types"
 )
 
 // IntegrationTestSuite provides comprehensive RAG optimization integration testing
@@ -53,7 +54,7 @@ func createTestDocuments() []*RAGDocument {
 			ID:          "test_doc_1",
 			Title:       "Cara Membuat Akta Kelahiran",
 			Content:     "Akta kelahiran adalah dokumen resmi yang mencatat kelahiran seseorang. Untuk membuat akta kelahiran, diperlukan dokumen seperti surat keterangan lahir dari rumah sakit, KTP orang tua, dan kartu keluarga.",
-			ServiceType: "civil_registration",
+			ServiceType: string(types.ServiceTypeUnknown),
 			Keywords:    []string{"akta", "kelahiran", "dokumen", "resmi"},
 			IndexedAt:   time.Now(),
 		},
@@ -61,7 +62,7 @@ func createTestDocuments() []*RAGDocument {
 			ID:          "test_doc_2",
 			Title:       "Syarat Perpanjang KTP",
 			Content:     "KTP (Kartu Tanda Penduduk) perlu diperpanjang setiap 5 tahun. Syarat perpanjang KTP meliputi KTP lama, kartu keluarga, dan pas foto terbaru ukuran 3x4.",
-			ServiceType: "identity_document",
+			ServiceType: string(types.ServiceTypeUnknown),
 			Keywords:    []string{"ktp", "perpanjang", "syarat", "kartu"},
 			IndexedAt:   time.Now(),
 		},
@@ -69,7 +70,7 @@ func createTestDocuments() []*RAGDocument {
 			ID:          "test_doc_3",
 			Title:       "Proses Akta Nikah",
 			Content:     "Akta nikah adalah bukti sah pernikahan. Proses pembuatan akta nikah memerlukan surat nikah dari KUA, KTP kedua mempelai, dan kartu keluarga.",
-			ServiceType: "civil_registration",
+			ServiceType: string(types.ServiceTypeUnknown),
 			Keywords:    []string{"akta", "nikah", "pernikahan", "sah"},
 			IndexedAt:   time.Now(),
 		},
@@ -77,7 +78,7 @@ func createTestDocuments() []*RAGDocument {
 			ID:          "test_doc_4",
 			Title:       "Dokumen Kartu Keluarga",
 			Content:     "Kartu keluarga (KK) adalah dokumen kependudukan yang memuat data anggota keluarga. Pembuatan KK baru memerlukan akta nikah, akta kelahiran anak, dan KTP kepala keluarga.",
-			ServiceType: "family_document",
+			ServiceType: string(types.ServiceTypeUnknown),
 			Keywords:    []string{"kartu", "keluarga", "kk", "anggota"},
 			IndexedAt:   time.Now(),
 		},
@@ -85,7 +86,7 @@ func createTestDocuments() []*RAGDocument {
 			ID:          "test_doc_5",
 			Title:       "Persyaratan Akta Kematian",
 			Content:     "Akta kematian diperlukan sebagai bukti resmi kematian seseorang. Persyaratan meliputi surat keterangan kematian dari rumah sakit, KTP almarhum, dan kartu keluarga.",
-			ServiceType: "civil_registration",
+			ServiceType: string(types.ServiceTypeUnknown),
 			Keywords:    []string{"akta", "kematian", "persyaratan", "bukti"},
 			IndexedAt:   time.Now(),
 		},

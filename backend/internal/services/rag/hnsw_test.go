@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"selly-backend/pkg/types"
 )
 
 // TestHNSWIndexBasicFunctionality tests basic HNSW index operations
@@ -347,7 +348,7 @@ func generateTestDocuments(count, embeddingDim int) []*RAGDocument {
 			ID:          fmt.Sprintf("test_doc_%d", i),
 			Title:       fmt.Sprintf("Test Document %d", i),
 			Content:     fmt.Sprintf("This is test document content %d", i),
-			ServiceType: "test",
+			ServiceType: string(types.ServiceTypeUnknown),
 			Embedding:   embedding,
 			IndexedAt:   time.Now(),
 		}

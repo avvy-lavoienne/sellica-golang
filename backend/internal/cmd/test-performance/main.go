@@ -13,6 +13,7 @@ import (
 	"selly-backend/internal/services/persona"
 
 	"github.com/sirupsen/logrus"
+	"selly-backend/pkg/types"
 )
 
 // PerformanceMetrics holds performance test results
@@ -136,7 +137,7 @@ func testPersonaPerformance(ctx context.Context) *PersonaMetrics {
 	req := &persona.PersonaRequest{
 		Query:        "Selamat pagi, bagaimana cara mengurus KTP?",
 		BaseResponse: "Untuk mengurus KTP, Anda perlu menyiapkan dokumen...",
-		ServiceType:  "ktp",
+		ServiceType: string(types.ServiceTypeUnknown),
 		UserTone:     "polite",
 	}
 

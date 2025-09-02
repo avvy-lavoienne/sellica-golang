@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"selly-backend/pkg/types"
 )
 
 func TestNewGreetingManager(t *testing.T) {
@@ -105,7 +106,7 @@ func TestGenerateContextualGreeting(t *testing.T) {
 	ctx := context.Background()
 
 	req := &GreetingRequest{
-		ServiceType:    "ktp",
+		ServiceType: string(types.ServiceTypeUnknown),
 		TimeOfDay:      "morning",
 		IsFirstContact: false,
 	}
@@ -186,7 +187,7 @@ func TestGenerateContextualGreetingWithHistory(t *testing.T) {
 	ctx := context.Background()
 
 	req := &GreetingRequest{
-		ServiceType:    "ktp",
+		ServiceType: string(types.ServiceTypeUnknown),
 		TimeOfDay:      "morning",
 		IsFirstContact: false,
 	}

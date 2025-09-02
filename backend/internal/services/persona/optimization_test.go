@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"selly-backend/pkg/types"
 )
 
 func TestIntelligentCache(t *testing.T) {
@@ -199,7 +200,7 @@ func TestOptimizedGroqSELLYProvider_ProcessOptimizedQuery(t *testing.T) {
 			UserID:         "test-user",
 			SessionID:      "test-session",
 			BaseResponse:   "Untuk membuat KTP baru, Anda perlu...",
-			ServiceType:    "ktp",
+			ServiceType: string(types.ServiceTypeUnknown),
 			IsFirstContact: true,
 			TimeOfDay:      "pagi",
 			UserTone:       "polite",

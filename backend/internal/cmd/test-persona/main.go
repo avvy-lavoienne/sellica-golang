@@ -8,6 +8,7 @@ import (
 	"selly-backend/internal/services/persona"
 
 	"github.com/sirupsen/logrus"
+	"selly-backend/pkg/types"
 )
 
 // PersonaTestSuite tests SELLY persona functionality
@@ -156,7 +157,7 @@ func (pts *PersonaTestSuite) TestCulturalProcessing() error {
 		req := &persona.PersonaRequest{
 			Query:        "Test query",
 			BaseResponse: tc.baseResponse,
-			ServiceType:  "ktp",
+			ServiceType: string(types.ServiceTypeUnknown),
 		}
 
 		response, err := pts.persona.ApplyPersona(context.Background(), req)
@@ -236,7 +237,7 @@ func (pts *PersonaTestSuite) TestPerformance() error {
 	req := &persona.PersonaRequest{
 		Query:          "Bagaimana cara mengurus KTP yang hilang?",
 		BaseResponse:   "Untuk mengurus KTP yang hilang, Anda perlu membawa dokumen persyaratan.",
-		ServiceType:    "ktp",
+		ServiceType: string(types.ServiceTypeUnknown),
 		IsFirstContact: true,
 		TimeOfDay:      "morning",
 	}

@@ -192,7 +192,7 @@ func (s *Service) analyzeQuery(query string) *QueryAnalysis {
 
 	// Detect service type and scenarios (including alternative spellings)
 	if (strings.Contains(lowerQuery, "akta") || strings.Contains(lowerQuery, "akte")) && strings.Contains(lowerQuery, "kelahiran") {
-		analysis.ServiceType = "akta_kelahiran"
+		analysis.ServiceType = string(types.ServiceTypeAktaKelahiran)
 		analysis.RequiresRAG = true
 		analysis.Confidence = 0.9
 
@@ -254,7 +254,7 @@ func (s *Service) analyzeQuery(query string) *QueryAnalysis {
 	} else if (strings.Contains(lowerQuery, "akta") || strings.Contains(lowerQuery, "akte")) &&
 		(strings.Contains(lowerQuery, "perkawinan") || strings.Contains(lowerQuery, "kawin") ||
 		 strings.Contains(lowerQuery, "nikah") || strings.Contains(lowerQuery, "menikah")) {
-		analysis.ServiceType = "akta_perkawinan"
+		analysis.ServiceType = string(types.ServiceTypeAktaPerkawinan)
 		analysis.RequiresRAG = true
 		analysis.Confidence = 0.9
 
@@ -272,11 +272,11 @@ func (s *Service) analyzeQuery(query string) *QueryAnalysis {
 		}
 
 	} else if strings.Contains(lowerQuery, "kk") || strings.Contains(lowerQuery, "kartu keluarga") {
-		analysis.ServiceType = "kartu_keluarga"
+		analysis.ServiceType = string(types.ServiceTypeKartuKeluarga)
 		analysis.RequiresRAG = true
 		analysis.Confidence = 0.8
 	} else if strings.Contains(lowerQuery, "ktp") {
-		analysis.ServiceType = "ktp_elektronik"
+		analysis.ServiceType = string(types.ServiceTypeKTPElektronik)
 		analysis.RequiresRAG = true
 		analysis.Confidence = 0.8
 	}

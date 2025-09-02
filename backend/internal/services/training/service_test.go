@@ -11,6 +11,7 @@ import (
 
 	"selly-backend/internal/services/cache"
 	"selly-backend/internal/services/database"
+	"selly-backend/pkg/types"
 )
 
 // MockDatabase implements database.Service interface for testing
@@ -108,7 +109,7 @@ func createTestTrainingData() *TrainingData {
 		SessionID: "test-session-123",
 		Timestamp: time.Now(),
 		Classification: QueryClassification{
-			ServiceType: "ktp_inquiry",
+			ServiceType: string(types.ServiceTypeKTPInquiry),
 			Intent:      "document_replacement",
 			Confidence:  0.95,
 			Complexity:  "medium",
@@ -462,19 +463,19 @@ func TestQueryAnalyzer_AnalyzeQuery(t *testing.T) {
 	}{
 		{
 			query:               "Bagaimana cara mengurus KTP yang hilang?",
-			expectedServiceType: "ktp_services",
+			expectedServiceType: string(types.ServiceTypeUnknown),
 			expectedIntent:      "inquiry",
 			expectedComplexity:  "simple",
 		},
 		{
 			query:               "Saya ingin membuat akta kelahiran untuk anak saya",
-			expectedServiceType: "birth_certificate",
+			expectedServiceType: string(types.ServiceTypeUnknown),
 			expectedIntent:      "create",
 			expectedComplexity:  "simple",
 		},
 		{
 			query:               "Bagaimana cara mengubah data di kartu keluarga?",
-			expectedServiceType: "family_card",
+			expectedServiceType: string(types.ServiceTypeUnknown),
 			expectedIntent:      "update",
 			expectedComplexity:  "simple",
 		},

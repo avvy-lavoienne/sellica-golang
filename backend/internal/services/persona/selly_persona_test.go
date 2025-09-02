@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"selly-backend/pkg/types"
 )
 
 func TestNewSellyPersona(t *testing.T) {
@@ -78,7 +79,7 @@ func TestApplyPersona_BasicFunctionality(t *testing.T) {
 		SessionID:      "test-session-456",
 		Context:        map[string]interface{}{},
 		BaseResponse:   "Untuk mengurus KTP, Anda perlu membawa dokumen persyaratan.",
-		ServiceType:    "ktp",
+		ServiceType: string(types.ServiceTypeUnknown),
 		IsFirstContact: true,
 		TimeOfDay:      "morning",
 		UserTone:       "neutral",
@@ -198,7 +199,7 @@ func TestApplyPersona_FormalityLevel(t *testing.T) {
 	req := &PersonaRequest{
 		Query:        "gimana cara ngurus KTP?",
 		BaseResponse: "kamu harus bawa dokumen",
-		ServiceType:  "ktp",
+		ServiceType: string(types.ServiceTypeUnknown),
 	}
 
 	response, err := persona.ApplyPersona(ctx, req)
@@ -292,7 +293,7 @@ func TestApplyPersona_Metadata(t *testing.T) {
 	req := &PersonaRequest{
 		Query:        "Test query",
 		BaseResponse: "Test response",
-		ServiceType:  "ktp",
+		ServiceType: string(types.ServiceTypeUnknown),
 	}
 
 	response, err := persona.ApplyPersona(ctx, req)
@@ -355,7 +356,7 @@ func BenchmarkApplyPersona(b *testing.B) {
 		UserID:         "test-user",
 		SessionID:      "test-session",
 		BaseResponse:   "Untuk mengurus KTP, Anda perlu membawa dokumen persyaratan.",
-		ServiceType:    "ktp",
+		ServiceType: string(types.ServiceTypeUnknown),
 		IsFirstContact: true,
 		TimeOfDay:      "morning",
 	}

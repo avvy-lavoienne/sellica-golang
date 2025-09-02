@@ -12,6 +12,7 @@ import (
 	"selly-backend/internal/services/quality"
 
 	"github.com/sirupsen/logrus"
+	"selly-backend/pkg/types"
 )
 
 // GroqSELLYProvider enhances the standard Groq provider with SELLY persona integration
@@ -172,7 +173,7 @@ func (p *GroqSELLYProvider) ProcessQuery(ctx context.Context, req *AIRequest) (*
 		logrus.WithError(err).Warn("Cultural context analysis failed, proceeding without")
 		culturalContext = &CulturalContext{
 			FormalityLevel: "formal",
-			ServiceType:    "umum",
+			ServiceType: string(types.ServiceTypeUnknown),
 			UserTone:       "neutral",
 		}
 	}
@@ -291,7 +292,7 @@ func (p *GroqSELLYProvider) analyzeCulturalContext(_ context.Context, req *AIReq
 	if !p.culturalAnalyzer.enabled {
 		return &CulturalContext{
 			FormalityLevel: "formal",
-			ServiceType:    "umum",
+			ServiceType: string(types.ServiceTypeUnknown),
 			UserTone:       "neutral",
 		}, nil
 	}

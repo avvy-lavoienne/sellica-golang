@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"selly-backend/pkg/types"
 )
 
 func TestNewAdvancedPersonaService(t *testing.T) {
@@ -232,7 +233,7 @@ func TestAdvancedPersonaApplication(t *testing.T) {
 			UserID:         "test-user",
 			SessionID:      "test-session",
 			BaseResponse:   "Untuk mengurus KTP, Anda perlu menyiapkan dokumen...",
-			ServiceType:    "ktp",
+			ServiceType: string(types.ServiceTypeUnknown),
 			IsFirstContact: false,
 			TimeOfDay:      "pagi",
 			UserTone:       "confused",

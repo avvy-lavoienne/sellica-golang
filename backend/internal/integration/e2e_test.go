@@ -12,6 +12,7 @@ import (
 
 	"selly-backend/internal/monitoring"
 	"selly-backend/internal/services/ai"
+	"selly-backend/pkg/types"
 )
 
 // TestEndToEndIntegration tests the complete SELLY AI system integration
@@ -221,19 +222,19 @@ func testTrainingServiceIntegration(t *testing.T, ctx context.Context) {
 	testData := []*TrainingDataRequest{
 		{
 			Query:       "Cara mengurus KTP hilang",
-			ServiceType: "ktp",
+			ServiceType: string(types.ServiceTypeUnknown),
 			UserID:      "test-user-1",
 			SessionID:   "test-session-1",
 		},
 		{
 			Query:       "Prosedur pembuatan kartu keluarga",
-			ServiceType: "kk",
+			ServiceType: string(types.ServiceTypeKartuKeluarga),
 			UserID:      "test-user-2",
 			SessionID:   "test-session-2",
 		},
 		{
 			Query:       "Pengurusan akta kelahiran",
-			ServiceType: "akta",
+			ServiceType: string(types.ServiceTypeUnknown),
 			UserID:      "test-user-3",
 			SessionID:   "test-session-3",
 		},

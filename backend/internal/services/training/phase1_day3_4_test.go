@@ -12,6 +12,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"selly-backend/pkg/types"
 )
 
 // TestPhase1Day3_4Implementation tests the enhanced Phase 1 Day 3-4 implementation
@@ -157,7 +158,7 @@ func TestPhase1Day3_4Implementation(t *testing.T) {
 				SessionID: "test-session",
 				Status:   TrainingStatusPending,
 				Classification: QueryClassification{
-					ServiceType: "ktp",
+					ServiceType: string(types.ServiceTypeUnknown),
 					Intent:      "test",
 					Confidence:  0.9,
 					Complexity:  "medium",
@@ -317,7 +318,7 @@ func TestPhase1Day3_4Implementation(t *testing.T) {
 			SessionID: "integration-session",
 			Status:   TrainingStatusPending,
 			Classification: QueryClassification{
-				ServiceType: "ktp",
+				ServiceType: string(types.ServiceTypeUnknown),
 				Intent:      "integration_test",
 				Confidence:  0.95,
 				Complexity:  "medium",

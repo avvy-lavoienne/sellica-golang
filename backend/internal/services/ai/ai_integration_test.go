@@ -273,7 +273,7 @@ func testUnifiedAIServiceIntegration(t *testing.T, ctx context.Context) {
 }
 
 // testModelVersioningIntegration tests model versioning integration
-func testModelVersioningIntegration(t *testing.T, ctx context.Context) {
+func testModelVersioningIntegration(t *testing.T, _ context.Context) {
 	// Create model version manager
 	versionManager := NewModelVersionManager()
 	require.NotNil(t, versionManager)
@@ -311,7 +311,7 @@ func testModelVersioningIntegration(t *testing.T, ctx context.Context) {
 }
 
 // testFallbackMechanismIntegration tests fallback mechanism integration
-func testFallbackMechanismIntegration(t *testing.T, ctx context.Context) {
+func testFallbackMechanismIntegration(t *testing.T, _ context.Context) {
 	// This test would simulate provider failures and test fallback
 	// For now, we'll test the basic fallback configuration
 	

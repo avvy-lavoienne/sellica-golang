@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"selly-backend/pkg/types"
 )
 
 // EnhancedServiceRecognizer provides comprehensive service pattern recognition
@@ -68,7 +69,7 @@ func (esr *EnhancedServiceRecognizer) RecognizeService(_ context.Context, query 
 	if !esr.enabled {
 		return &ServiceRecognitionResult{
 			IsServiceRequest: false,
-			ServiceType:      "unknown",
+			ServiceType:      string(types.ServiceTypeUnknown),
 			Confidence:       0.0,
 		}, nil
 	}
@@ -82,7 +83,7 @@ func (esr *EnhancedServiceRecognizer) RecognizeService(_ context.Context, query 
 		return &ServiceRecognitionResult{
 			IsGreeting:       true,
 			IsServiceRequest: false,
-			ServiceType:      "greeting",
+			ServiceType: string(types.ServiceTypeUnknown),
 			Confidence:       0.9,
 			ProcessingTime:   float64(time.Since(startTime).Nanoseconds()) / 1e6,
 		}, nil
@@ -421,7 +422,7 @@ func (esr *EnhancedServiceRecognizer) checkEscalationNeeds(query, _ string) (boo
 func (esr *EnhancedServiceRecognizer) GetServiceResponseTemplate(serviceType, specificService string) *ServiceResponseTemplate {
 	templates := map[string]*ServiceResponseTemplate{
 		"KTP": {
-			ServiceType: "KTP",
+			ServiceType: string(types.ServiceTypeUnknown),
 			Template: "Untuk pembuatan KTP, Bapak/Ibu memerlukan dokumen berikut: %s. Proses pembuatan memakan waktu %s dengan biaya %s.",
 			RequiredInfo: []string{"Fotocopy KK", "Fotocopy Akta Kelahiran", "Pas foto 4x6", "Formulir F-1.01"},
 			ProcessingSteps: []string{"Datang ke kantor", "Ambil nomor antrian", "Serahkan berkas", "Foto dan sidik jari", "Tunggu proses cetak"},
@@ -429,7 +430,7 @@ func (esr *EnhancedServiceRecognizer) GetServiceResponseTemplate(serviceType, sp
 			Fees: "Gratis",
 		},
 		"KK": {
-			ServiceType: "KK",
+			ServiceType: string(types.ServiceTypeKartuKeluarga),
 			Template: "Untuk pembuatan Kartu Keluarga, diperlukan dokumen: %s. Waktu proses %s dengan biaya %s.",
 			RequiredInfo: []string{"Surat Nikah/Akta Perkawinan", "KTP suami istri", "Akta Kelahiran anak", "Formulir F-1.03"},
 			ProcessingSteps: []string{"Lengkapi berkas", "Datang ke kantor", "Verifikasi data", "Proses cetak"},
@@ -437,7 +438,7 @@ func (esr *EnhancedServiceRecognizer) GetServiceResponseTemplate(serviceType, sp
 			Fees: "Gratis",
 		},
 		"AKTA_KELAHIRAN": {
-			ServiceType: "AKTA_KELAHIRAN",
+			ServiceType: string(types.ServiceTypeAktaKelahiran),
 			Template: "Untuk pembuatan Akta Kelahiran, diperlukan: %s. Proses memakan waktu %s dengan biaya %s.",
 			RequiredInfo: []string{"Surat Kelahiran dari RS/Bidan", "KTP orang tua", "KK orang tua", "Akta Nikah orang tua"},
 			ProcessingSteps: []string{"Siapkan berkas", "Datang ke kantor", "Isi formulir", "Verifikasi", "Cetak akta"},

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"selly-backend/pkg/types"
 )
 
 // AktaTrainingModule provides specialized training for Akta (Civil Registration) services
@@ -37,7 +38,7 @@ func (atm *AktaTrainingModule) GetDomainKnowledge() *DomainKnowledge {
 func (atm *AktaTrainingModule) ProcessQuery(ctx context.Context, query string, context map[string]interface{}) (*TrainingResponse, error) {
 	if !atm.enabled {
 		return &TrainingResponse{
-			ServiceType: "akta",
+			ServiceType: string(types.ServiceTypeUnknown),
 			Confidence:  0.0,
 		}, nil
 	}
@@ -46,7 +47,7 @@ func (atm *AktaTrainingModule) ProcessQuery(ctx context.Context, query string, c
 	queryLower := strings.ToLower(query)
 
 	response := &TrainingResponse{
-		ServiceType:         "akta",
+		ServiceType: string(types.ServiceTypeUnknown),
 		MatchedProcedures:   []ServiceProcedure{},
 		MatchedRequirements: []ServiceRequirement{},
 		RelevantQuestions:   []CommonQuestion{},
@@ -308,7 +309,7 @@ type JSONTrainingData struct {
 // createAktaDomainKnowledge creates comprehensive domain knowledge for Akta services
 func createAktaDomainKnowledge() *DomainKnowledge {
 	return &DomainKnowledge{
-		ServiceType: "akta",
+		ServiceType: string(types.ServiceTypeUnknown),
 		Description: "Akta Catatan Sipil adalah dokumen resmi yang mencatat peristiwa penting dalam kehidupan seseorang seperti kelahiran, kematian, pernikahan, dan perceraian.",
 		KeyTerms: map[string]string{
 			"Akta":           "Dokumen resmi catatan sipil",

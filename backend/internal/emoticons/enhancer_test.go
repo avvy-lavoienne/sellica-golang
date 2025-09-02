@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"selly-backend/pkg/types"
 )
 
 func TestNewEmoticonEnhancer(t *testing.T) {
@@ -26,7 +27,7 @@ func TestEmoticonEnhancer_EnhanceResponse_Positive(t *testing.T) {
 			"service_type": "general",
 		},
 		UserID:          "test-user",
-		ServiceType:     "general",
+		ServiceType: string(types.ServiceTypeGeneral),
 		CulturalContext: "general_indonesia",
 	}
 
@@ -53,7 +54,7 @@ func TestEmoticonEnhancer_EnhanceResponse_Apologetic(t *testing.T) {
 			"service_type": "general",
 		},
 		UserID:          "test-user",
-		ServiceType:     "general",
+		ServiceType: string(types.ServiceTypeGeneral),
 		CulturalContext: "general_indonesia",
 	}
 
@@ -78,7 +79,7 @@ func TestEmoticonEnhancer_EnhanceResponse_GovernmentService(t *testing.T) {
 			"service_type": "government",
 		},
 		UserID:          "test-user",
-		ServiceType:     "government",
+		ServiceType: string(types.ServiceTypeGovernment),
 		CulturalContext: "general_indonesia",
 	}
 
@@ -102,7 +103,7 @@ func TestEmoticonEnhancer_EnhanceResponse_Disabled(t *testing.T) {
 		ResponseType: "informational",
 		Context:      map[string]interface{}{},
 		UserID:       "test-user",
-		ServiceType:  "general",
+		ServiceType: string(types.ServiceTypeGeneral),
 		CulturalContext: "general_indonesia",
 	}
 
@@ -125,7 +126,7 @@ func TestEmoticonEnhancer_CulturalAppropriateness(t *testing.T) {
 			"service_type": "government",
 		},
 		UserID:          "test-user",
-		ServiceType:     "government",
+		ServiceType: string(types.ServiceTypeGovernment),
 		CulturalContext: "general_indonesia",
 	}
 
@@ -152,7 +153,7 @@ func TestEmoticonEnhancer_ResponseTooShort(t *testing.T) {
 		ResponseType: "informational",
 		Context:      map[string]interface{}{},
 		UserID:       "test-user",
-		ServiceType:  "general",
+		ServiceType: string(types.ServiceTypeGeneral),
 		CulturalContext: "general_indonesia",
 	}
 

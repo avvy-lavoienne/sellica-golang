@@ -95,7 +95,7 @@ func (dv *DatabaseValidator) GenerateTestData() {
 			Response:  "Untuk mengurus KTP yang hilang, Anda perlu: 1) Membuat surat kehilangan di kepolisian, 2) Menyiapkan fotokopi KK dan akta kelahiran, 3) Datang ke Disdukcapil dengan membawa dokumen asli, 4) Mengisi formulir permohonan KTP, 5) Foto dan sidik jari, 6) Menunggu proses 14 hari kerja.",
 			SessionID: sessionID1,
 			Classification: map[string]interface{}{
-				"service_type": "ktp",
+				"service_type": "ktp_penggantian",
 				"intent":       "information",
 				"confidence":   0.95,
 				"complexity":   "medium",
@@ -124,7 +124,7 @@ func (dv *DatabaseValidator) GenerateTestData() {
 			Response:  "Syarat membuat akta kelahiran: 1) Surat keterangan lahir dari dokter/bidan, 2) KTP kedua orang tua, 3) Kartu Keluarga (KK), 4) Akta nikah orang tua, 5) Surat keterangan dari RT/RW, 6) Formulir permohonan akta kelahiran. Proses gratis dan selesai dalam 1 hari kerja.",
 			SessionID: sessionID2,
 			Classification: map[string]interface{}{
-				"service_type": "akta",
+				"service_type": "akta_kelahiran",
 				"intent":       "application",
 				"confidence":   0.98,
 				"complexity":   "simple",
@@ -153,7 +153,7 @@ func (dv *DatabaseValidator) GenerateTestData() {
 			Response:  "Untuk pindah domisili antar kota: 1) Urus surat pindah di kelurahan asal, 2) Siapkan KTP, KK, dan surat keterangan pindah, 3) Datang ke kelurahan tujuan dengan dokumen lengkap, 4) Isi formulir biodata penduduk, 5) Tunggu proses verifikasi 3-7 hari kerja, 6) Ambil KK dan KTP baru di kecamatan tujuan.",
 			SessionID: sessionID3,
 			Classification: map[string]interface{}{
-				"service_type": "perpindahan",
+				"service_type": "kartu_keluarga",
 				"intent":       "information",
 				"confidence":   0.89,
 				"complexity":   "complex",

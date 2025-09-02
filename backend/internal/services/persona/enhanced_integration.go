@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"selly-backend/pkg/types"
 )
 
 // EnhancedPersonaIntegration provides comprehensive SELLY persona integration
@@ -110,7 +111,7 @@ func (epi *EnhancedPersonaIntegration) ProcessWithEnhancedPersona(ctx context.Co
 		logrus.WithError(err).Warn("Service recognition failed")
 		serviceResult = &ServiceRecognitionResult{
 			IsServiceRequest: false,
-			ServiceType:      "unknown",
+			ServiceType:      string(types.ServiceTypeUnknown),
 			Confidence:       0.0,
 		}
 	}
