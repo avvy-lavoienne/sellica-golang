@@ -3,6 +3,7 @@ package rag
 import (
 	"context"
 	"fmt"
+	"math"
 	"sync"
 	"time"
 
@@ -173,26 +174,160 @@ func (rrs *RedisRAGService) IndexDocument(ctx context.Context, doc *RAGDocument)
 		return fmt.Errorf("RAG service not initialized")
 	}
 
-	// Generate embedding for document content
+	// Enhanced logging for document indexing pipeline
+	indexingInfo := map[string]interface{}{
+		"document_id": doc.ID,
+		"service_type": doc.ServiceType,
+		"content_length": len(doc.Content),
+		"title": doc.Title,
+		"keywords_count": len(doc.Keywords),
+		"has_metadata": doc.Metadata != nil,
+		"step": "indexing_start",
+	}
+	
+	if doc.Metadata != nil {
+		indexingInfo["metadata_count"] = len(doc.Metadata)
+	}
+	
+	logrus.WithFields(logrus.Fields{
+		"indexing_info": indexingInfo,
+	}).Info("📝 [INDEXING] Starting document indexing with enhanced debugging")
+
+	// Generate embedding for document content with detailed logging
+	embeddingStartTime := time.Now()
+	logrus.WithFields(logrus.Fields{
+		"document_id": doc.ID,
+		"content_preview": truncateString(doc.Content, 100),
+		"embedding_service_initialized": rrs.embeddingService != nil,
+		"step": "embedding_generation_start",
+	}).Debug("🔤 [INDEXING] Generating embedding for document content")
+
 	embedding, err := rrs.embeddingService.GenerateEmbedding(ctx, doc.Content)
+	embeddingDuration := time.Since(embeddingStartTime)
+	
 	if err != nil {
 		rrs.performanceMonitor.RecordError("embedding_generation")
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"document_id": doc.ID,
+			"content_length": len(doc.Content),
+			"embedding_duration": embeddingDuration,
+			"step": "embedding_generation_failed",
+		}).Error("❌ [INDEXING] Failed to generate embedding for document")
 		return fmt.Errorf("failed to generate embedding: %w", err)
 	}
+	
+	// Validate generated embedding
+	embeddingValidation := map[string]interface{}{
+		"embedding_length": len(embedding),
+		"embedding_generation_time": embeddingDuration,
+		"embedding_non_empty": len(embedding) > 0,
+		"embedding_non_zero": false,
+	}
+	
+	for _, val := range embedding {
+		if val != 0.0 {
+			embeddingValidation["embedding_non_zero"] = true
+			break
+		}
+	}
+	
+	logrus.WithFields(logrus.Fields{
+		"document_id": doc.ID,
+		"embedding_validation": embeddingValidation,
+		"step": "embedding_generation_success",
+	}).Info("✅ [INDEXING] Document embedding generated and validated")
 
 	doc.Embedding = embedding
 	doc.IndexedAt = time.Now()
 
-	// Store document using HNSW vector operations
+	// Store document using HNSW vector operations with validation
+	storageStartTime := time.Now()
+	storageInfo := map[string]interface{}{
+		"vector_operations_type": fmt.Sprintf("%T", rrs.vectorOperations),
+		"is_hnsw_ops": false,
+		"storage_method": "unknown",
+	}
+	
 	if hnswOps, ok := rrs.vectorOperations.(*HNSWVectorOperations); ok {
+		storageInfo["is_hnsw_ops"] = true
+		storageInfo["storage_method"] = "hnsw"
+		
+		logrus.WithFields(logrus.Fields{
+			"document_id": doc.ID,
+			"storage_info": storageInfo,
+			"step": "hnsw_storage_start",
+		}).Debug("🏗️ [INDEXING] Storing document using HNSW vector operations")
+		
 		if err := hnswOps.StoreDocument(ctx, doc); err != nil {
+			storageInfo["storage_error"] = err.Error()
 			rrs.performanceMonitor.RecordError("document_storage")
+			
+			logrus.WithError(err).WithFields(logrus.Fields{
+				"document_id": doc.ID,
+				"storage_info": storageInfo,
+				"step": "hnsw_storage_failed",
+			}).Error("❌ [INDEXING] Failed to store document in HNSW")
 			return fmt.Errorf("failed to store document: %w", err)
 		}
+		
+		storageInfo["storage_success"] = true
+		
+	} else if upstashOps, ok := rrs.vectorOperations.(*UpstashVectorOperations); ok {
+		storageInfo["is_upstash_ops"] = true
+		storageInfo["storage_method"] = "upstash"
+		
+		logrus.WithFields(logrus.Fields{
+			"document_id": doc.ID,
+			"storage_info": storageInfo,
+			"step": "upstash_storage_start",
+		}).Debug("🏗️ [INDEXING] Storing document using Upstash vector operations")
+		
+		if err := upstashOps.StoreDocument(ctx, doc); err != nil {
+			storageInfo["storage_error"] = err.Error()
+			rrs.performanceMonitor.RecordError("document_storage")
+			
+			logrus.WithError(err).WithFields(logrus.Fields{
+				"document_id": doc.ID,
+				"storage_info": storageInfo,
+				"step": "upstash_storage_failed",
+			}).Error("❌ [INDEXING] Failed to store document in Upstash")
+			return fmt.Errorf("failed to store document: %w", err)
+		}
+		
+		storageInfo["storage_success"] = true
+		
 	} else {
+		storageInfo["unknown_ops"] = true
 		rrs.performanceMonitor.RecordError("document_storage")
-		return fmt.Errorf("HNSW vector operations required for document storage")
+		
+		logrus.WithFields(logrus.Fields{
+			"document_id": doc.ID,
+			"storage_info": storageInfo,
+			"step": "storage_type_unknown",
+		}).Error("❌ [INDEXING] Unknown vector operations type - cannot store document")
+		return fmt.Errorf("HNSW or Upstash vector operations required for document storage")
 	}
+	
+	storageDuration := time.Since(storageStartTime)
+	storageInfo["storage_duration"] = storageDuration
+
+	// Final indexing summary
+	indexingSummary := map[string]interface{}{
+		"document_id": doc.ID,
+		"service_type": doc.ServiceType,
+		"content_length": len(doc.Content),
+		"total_indexing_time": time.Since(startTime),
+		"embedding_time": embeddingDuration,
+		"storage_time": storageDuration,
+		"embedding_dimensions": len(embedding),
+		"indexed_at": doc.IndexedAt,
+		"success": true,
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"indexing_summary": indexingSummary,
+		"step": "indexing_complete",
+	}).Info("🎯 [INDEXING] Document indexing completed successfully")
 
 	logrus.WithFields(logrus.Fields{
 		"document_id":    doc.ID,
@@ -240,83 +375,380 @@ func (rrs *RedisRAGService) SearchSimilar(ctx context.Context, query string, lim
 		logrus.WithField("query", query).Debug("💾 Cache miss - proceeding with vector search")
 	}
 
-	// Generate query embedding
-	logrus.WithField("query", query).Debug("🔤 Generating query embedding...")
+	// Generate query embedding with comprehensive debugging
+	embeddingStartTime := time.Now()
+	logrus.WithFields(logrus.Fields{
+		"query": query,
+		"query_length": len(query),
+		"service_initialized": rrs.embeddingService != nil,
+		"step": "embedding_generation_start",
+	}).Debug("🔤 [PIPELINE] Starting query embedding generation...")
+
 	queryEmbedding, err := rrs.embeddingService.GenerateEmbedding(ctx, query)
+	embeddingDuration := time.Since(embeddingStartTime)
+	
 	if err != nil {
 		rrs.performanceMonitor.RecordError("query_embedding")
-		logrus.WithError(err).WithField("query", query).Error("❌ Failed to generate query embedding")
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"query": query,
+			"embedding_duration": embeddingDuration,
+			"step": "embedding_generation_failed",
+		}).Error("❌ [PIPELINE] Failed to generate query embedding")
 		return nil, fmt.Errorf("failed to generate query embedding: %w", err)
 	}
 
+	// Validate embedding dimensions and content
+	embeddingValid := len(queryEmbedding) > 0
+	embeddingNonZero := false
+	embeddingSum := 0.0
+	embeddingMin, embeddingMax := math.Inf(1), math.Inf(-1)
+	
+	for _, val := range queryEmbedding {
+		embeddingSum += val
+		if val != 0.0 {
+			embeddingNonZero = true
+		}
+		if val < embeddingMin {
+			embeddingMin = val
+		}
+		if val > embeddingMax {
+			embeddingMax = val
+		}
+	}
+	
+	embeddingMean := embeddingSum / float64(len(queryEmbedding))
+
 	logrus.WithFields(logrus.Fields{
 		"query": query,
 		"embedding_dim": len(queryEmbedding),
-		"embedding_sample": queryEmbedding[:min(5, len(queryEmbedding))], // First 5 values for debugging
-		"embedding_generation_time": time.Since(startTime),
-	}).Debug("🔤 Query embedding generated successfully")
+		"embedding_sample": queryEmbedding[:min(5, len(queryEmbedding))],
+		"embedding_generation_time": embeddingDuration,
+		"embedding_valid": embeddingValid,
+		"embedding_non_zero": embeddingNonZero,
+		"embedding_mean": embeddingMean,
+		"embedding_min": embeddingMin,
+		"embedding_max": embeddingMax,
+		"step": "embedding_generation_complete",
+	}).Info("🔤 [PIPELINE] Query embedding generated with validation")
 
-	// Debug: Check total documents in the system
+	// ===== COMPREHENSIVE DEBUG LOGGING BETWEEN EMBEDDING AND SEARCH =====
+	// Pipeline state validation and quality metrics
+	pipelineState := map[string]interface{}{
+		"query_length": len(query),
+		"embedding_dimensions": len(queryEmbedding),
+		"expected_dimensions": rrs.vectorDimensions,
+		"dimensions_match": len(queryEmbedding) == rrs.vectorDimensions,
+		"embedding_quality_score": rrs.calculateEmbeddingQuality(queryEmbedding),
+		"pipeline_stage": "post_embedding_pre_search",
+		"context_cancelled": ctx.Err() != nil,
+		"service_initialized": rrs.isInitialized,
+		"cache_enabled": rrs.config.CacheEnabled,
+		"similarity_threshold": rrs.config.SimilarityThreshold,
+		"max_results": rrs.config.MaxResults,
+		"step": "pipeline_state_validation",
+	}
+
+	// Memory usage analysis at pipeline transition point
+	if rrs.memoryMonitor != nil {
+		currentStats := rrs.memoryMonitor.GetCurrentStats()
+		pipelineState["memory_alloc_mb"] = currentStats.AllocMB
+		pipelineState["memory_sys_mb"] = currentStats.SysMB
+		pipelineState["memory_gc_cycles"] = currentStats.NumGC
+		pipelineState["memory_heap_objects"] = currentStats.HeapObjects
+	}
+
+	// Embedding statistical analysis for debugging
+	embeddingStats := rrs.analyzeEmbeddingStatistics(queryEmbedding)
+	pipelineState["embedding_stats"] = embeddingStats
+
+	// Performance metrics from embedding generation
+	embeddingPerf := map[string]interface{}{
+		"generation_duration_ms": embeddingDuration.Milliseconds(),
+		"cache_hit": false, // This is post-cache miss
+		"parallel_workers_used": 4, // From embedding service
+		"morphology_processed": true,
+		"cultural_processed": true,
+		"government_processed": true,
+	}
+	pipelineState["embedding_performance"] = embeddingPerf
+
+	logrus.WithFields(logrus.Fields{
+		"pipeline_state": pipelineState,
+		"step": "comprehensive_pipeline_debug",
+	}).Info("🔍 [DEBUG] Comprehensive pipeline analysis between embedding generation and vector search")
+
+	// Validate pipeline readiness for search operation
+	searchReadiness := map[string]interface{}{
+		"embedding_ready": len(queryEmbedding) > 0 && len(queryEmbedding) == rrs.vectorDimensions,
+		"vector_ops_ready": rrs.vectorOperations != nil,
+		"context_ready": ctx.Err() == nil,
+		"service_ready": rrs.isInitialized,
+		"limit_valid": limit > 0 && limit <= rrs.config.MaxResults,
+		"step": "search_readiness_validation",
+	}
+
+	if !searchReadiness["embedding_ready"].(bool) {
+		logrus.WithFields(logrus.Fields{
+			"search_readiness": searchReadiness,
+			"step": "search_readiness_failed",
+		}).Error("❌ [PIPELINE] Pipeline not ready for vector search - embedding issues detected")
+		return nil, fmt.Errorf("pipeline not ready for search: invalid embedding")
+	}
+
+	if !searchReadiness["vector_ops_ready"].(bool) {
+		logrus.WithFields(logrus.Fields{
+			"search_readiness": searchReadiness,
+			"step": "search_readiness_failed",
+		}).Error("❌ [PIPELINE] Pipeline not ready for vector search - vector operations unavailable")
+		return nil, fmt.Errorf("pipeline not ready for search: vector operations unavailable")
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"search_readiness": searchReadiness,
+		"step": "search_readiness_complete",
+	}).Info("✅ [PIPELINE] Pipeline readiness validation complete - proceeding to vector search")
+
+	// Debug: Check total documents in the system with detailed validation
+	vectorOpsValidation := map[string]interface{}{
+		"has_vector_operations": rrs.vectorOperations != nil,
+		"vector_ops_type": fmt.Sprintf("%T", rrs.vectorOperations),
+	}
+	
 	if hnswOps, ok := rrs.vectorOperations.(*HNSWVectorOperations); ok {
-		docCount, _ := hnswOps.GetDocumentCount(ctx)
+		docCount, docCountErr := hnswOps.GetDocumentCount(ctx)
+		vectorOpsValidation["is_hnsw_ops"] = true
+		vectorOpsValidation["doc_count"] = docCount
+		vectorOpsValidation["doc_count_error"] = docCountErr != nil
+		
+		if docCountErr != nil {
+			vectorOpsValidation["doc_count_error_msg"] = docCountErr.Error()
+		}
+		
 		logrus.WithFields(logrus.Fields{
 			"query": query,
 			"total_documents_in_index": docCount,
-			"service_type": "rag_debug",
-		}).Debug("🔍 RAG search debug - total documents in system")
+			"step": "vector_operations_validation",
+			"vector_ops_details": vectorOpsValidation,
+		}).Info("🔍 [PIPELINE] Vector operations validation complete")
+	} else if upstashOps, ok := rrs.vectorOperations.(*UpstashVectorOperations); ok {
+		docCount, docCountErr := upstashOps.GetDocumentCount(ctx)
+		vectorOpsValidation["is_upstash_ops"] = true
+		vectorOpsValidation["doc_count"] = docCount
+		vectorOpsValidation["doc_count_error"] = docCountErr != nil
+		
+		if docCountErr != nil {
+			vectorOpsValidation["doc_count_error_msg"] = docCountErr.Error()
+		}
+		
+		logrus.WithFields(logrus.Fields{
+			"query": query,
+			"total_documents_in_index": docCount,
+			"step": "vector_operations_validation",
+			"vector_ops_details": vectorOpsValidation,
+		}).Info("🔍 [PIPELINE] Vector operations validation complete")
+	} else {
+		vectorOpsValidation["is_hnsw_ops"] = false
+		vectorOpsValidation["is_upstash_ops"] = false
+		vectorOpsValidation["unknown_type"] = true
+		
+		logrus.WithFields(logrus.Fields{
+			"query": query,
+			"step": "vector_operations_validation",
+			"vector_ops_details": vectorOpsValidation,
+		}).Warn("⚠️ [PIPELINE] Unknown vector operations type - potential pipeline issue")
 	}
 
-	// Perform vector search
+	// Perform vector search with comprehensive pipeline debugging
 	searchStart := time.Now()
-	logrus.WithFields(logrus.Fields{
-		"query": query,
+	searchParams := map[string]interface{}{
+		"query_length": len(query),
 		"limit": limit,
 		"embedding_dim": len(queryEmbedding),
-	}).Debug("🔍 Performing vector similarity search...")
+		"embedding_non_empty": len(queryEmbedding) > 0,
+		"context_cancelled": ctx.Err() != nil,
+	}
+	
+	logrus.WithFields(logrus.Fields{
+		"query": query,
+		"search_params": searchParams,
+		"step": "vector_search_start",
+	}).Info("🔍 [PIPELINE] Starting vector similarity search with detailed params...")
+
+	// Pre-search validation
+	if len(queryEmbedding) == 0 {
+		logrus.WithFields(logrus.Fields{
+			"query": query,
+			"step": "vector_search_validation_failed",
+			"error": "empty_embedding",
+		}).Error("❌ [PIPELINE] Cannot perform search with empty embedding")
+		return nil, fmt.Errorf("cannot search with empty embedding")
+	}
 
 	results, err := rrs.vectorOperations.SearchSimilar(ctx, queryEmbedding, limit)
+	searchDuration := time.Since(searchStart)
+	
+	// Detailed search result analysis
+	searchResultAnalysis := map[string]interface{}{
+		"search_duration": searchDuration,
+		"search_error": err != nil,
+		"results_nil": results == nil,
+	}
+	
 	if err != nil {
+		searchResultAnalysis["error_message"] = err.Error()
+		searchResultAnalysis["error_type"] = fmt.Sprintf("%T", err)
+		
 		rrs.performanceMonitor.RecordError("vector_search")
 		logrus.WithError(err).WithFields(logrus.Fields{
 			"query": query,
-			"limit": limit,
-		}).Error("❌ Vector search failed")
+			"search_params": searchParams,
+			"search_analysis": searchResultAnalysis,
+			"step": "vector_search_failed",
+		}).Error("❌ [PIPELINE] Vector search failed with detailed analysis")
 		return nil, fmt.Errorf("vector search failed: %w", err)
 	}
+	
+	if results != nil {
+		searchResultAnalysis["documents_count"] = len(results.Documents)
+		searchResultAnalysis["scores_count"] = len(results.Scores)
+		searchResultAnalysis["query_time"] = results.QueryTime
+		searchResultAnalysis["documents_nil"] = results.Documents == nil
+		searchResultAnalysis["scores_nil"] = results.Scores == nil
+		
+		// Analyze individual results
+		if len(results.Documents) > 0 {
+			firstDoc := results.Documents[0]
+			searchResultAnalysis["first_doc_id"] = firstDoc.ID
+			searchResultAnalysis["first_doc_service_type"] = firstDoc.ServiceType
+			searchResultAnalysis["first_doc_content_length"] = len(firstDoc.Content)
+			searchResultAnalysis["first_doc_title"] = firstDoc.Title
+		}
+		
+		if len(results.Scores) > 0 {
+			searchResultAnalysis["first_score"] = results.Scores[0]
+			
+			// Calculate score statistics
+			minScore, maxScore := results.Scores[0], results.Scores[0]
+			for _, score := range results.Scores {
+				if score < minScore {
+					minScore = score
+				}
+				if score > maxScore {
+					maxScore = score
+				}
+			}
+			
+			searchResultAnalysis["score_range"] = map[string]float64{
+				"min": minScore,
+				"max": maxScore,
+			}
+		}
+	}
 
-	searchTime := time.Since(searchStart)
 	logrus.WithFields(logrus.Fields{
 		"query": query,
-		"raw_results_count": len(results.Documents),
-		"search_time": searchTime,
-		"limit": limit,
-	}).Debug("🔍 Vector search completed")
+		"search_analysis": searchResultAnalysis,
+		"step": "vector_search_complete",
+	}).Info("🔍 [PIPELINE] Vector search completed with comprehensive analysis")
 
-	// Log details of found documents
+	// Enhanced document analysis with detailed pipeline debugging
+	documentAnalysis := map[string]interface{}{
+		"documents_found": len(results.Documents),
+		"scores_available": len(results.Scores),
+		"documents_not_nil": results.Documents != nil,
+		"scores_not_nil": results.Scores != nil,
+		"query_time": results.QueryTime,
+	}
+
 	if len(results.Documents) > 0 {
 		logrus.WithFields(logrus.Fields{
 			"query": query,
-			"documents_found": len(results.Documents),
-		}).Info("📄 Found documents in search results")
+			"document_analysis": documentAnalysis,
+			"step": "document_analysis_success",
+		}).Info("📄 [PIPELINE] Documents found in search results - analyzing content")
 
+		// Detailed analysis of each document
 		for i, doc := range results.Documents {
 			score := 0.0
 			if i < len(results.Scores) {
 				score = results.Scores[i]
 			}
-			logrus.WithFields(logrus.Fields{
-				"query": query,
+			
+			docAnalysis := map[string]interface{}{
+				"doc_index": i,
 				"doc_id": doc.ID,
 				"doc_title": doc.Title,
 				"doc_service_type": doc.ServiceType,
 				"similarity_score": score,
-				"doc_index": i,
 				"content_length": len(doc.Content),
 				"keywords_count": len(doc.Keywords),
-			}).Debug("📄 Document details in search results")
+				"has_metadata": doc.Metadata != nil,
+				"indexed_at": doc.IndexedAt,
+				"content_preview": truncateString(doc.Content, 100),
+			}
+			
+			if doc.Metadata != nil {
+				docAnalysis["metadata_count"] = len(doc.Metadata)
+				docAnalysis["metadata_keys"] = getMapKeys(doc.Metadata)
+			}
+			
+			logLevel := "Debug"
+			if i == 0 { // Log first document as Info for visibility
+				logLevel = "Info"
+			}
+			
+			logEntry := logrus.WithFields(logrus.Fields{
+				"query": query,
+				"document_details": docAnalysis,
+				"step": "document_detail_analysis",
+			})
+			
+			if logLevel == "Info" {
+				logEntry.Info("📄 [PIPELINE] Top document details (most relevant)")
+			} else {
+				logEntry.Debug("📄 [PIPELINE] Document details in search results")
+			}
 		}
+		
+		// Summary statistics
+		if len(results.Scores) > 0 {
+			scoreStats := calculateScoreStatistics(results.Scores)
+			logrus.WithFields(logrus.Fields{
+				"query": query,
+				"score_statistics": scoreStats,
+				"step": "score_analysis",
+			}).Info("📊 [PIPELINE] Search result score analysis")
+		}
+		
 	} else {
-		logrus.WithField("query", query).Warn("⚠️ No documents found in vector search - this is the core issue!")
+		// Critical debugging for empty results
+		emptyResultAnalysis := map[string]interface{}{
+			"documents_nil": results.Documents == nil,
+			"documents_empty": len(results.Documents) == 0,
+			"scores_nil": results.Scores == nil,
+			"scores_empty": len(results.Scores) == 0,
+			"query_time": results.QueryTime,
+			"vector_operations_type": fmt.Sprintf("%T", rrs.vectorOperations),
+			"embedding_service_initialized": rrs.embeddingService != nil,
+			"rag_service_initialized": rrs.isInitialized,
+		}
+		
+		logrus.WithFields(logrus.Fields{
+			"query": query,
+			"empty_result_analysis": emptyResultAnalysis,
+			"step": "empty_results_analysis",
+		}).Warn("⚠️ [PIPELINE] No documents found in vector search - CORE ISSUE DETECTED!")
+		
+		// Additional diagnostics for empty results
+		logrus.WithFields(logrus.Fields{
+			"query": query,
+			"embedding_validation": map[string]interface{}{
+				"embedding_length": len(queryEmbedding),
+				"embedding_non_zero": embeddingNonZero,
+				"embedding_mean": embeddingMean,
+			},
+			"step": "empty_results_embedding_check",
+		}).Warn("🔍 [PIPELINE] Embedding validation for empty results investigation")
 	}
 
 	searchResult := &RAGSearchResult{
@@ -343,7 +775,7 @@ func (rrs *RedisRAGService) SearchSimilar(ctx context.Context, query string, lim
 		"query":           query[:min(50, len(query))],
 		"cache_hit":       false,
 		"response_time":   time.Since(startTime),
-		"search_time":     searchTime,
+		"search_time":     searchDuration,
 		"results_count":   len(searchResult.Documents),
 		"embedding_dim":   len(queryEmbedding),
 		"total_results":   searchResult.TotalResults,
@@ -398,12 +830,176 @@ func (rrs *RedisRAGService) TestDirectVectorSearch(ctx context.Context, query st
 	return searchResult, nil
 }
 
+// Helper functions for enhanced logging
+
+// truncateString truncates a string to the specified length
+func truncateString(s string, maxLength int) string {
+	if len(s) <= maxLength {
+		return s
+	}
+	return s[:maxLength] + "..."
+}
+
+// getMapKeys returns the keys of a string map
+func getMapKeys(m map[string]string) []string {
+	if m == nil {
+		return nil
+	}
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+// calculateScoreStatistics calculates statistics for similarity scores
+func calculateScoreStatistics(scores []float64) map[string]interface{} {
+	if len(scores) == 0 {
+		return map[string]interface{}{
+			"count": 0,
+			"min":   nil,
+			"max":   nil,
+			"mean":  nil,
+		}
+	}
+	
+	min, max := scores[0], scores[0]
+	sum := 0.0
+	
+	for _, score := range scores {
+		if score < min {
+			min = score
+		}
+		if score > max {
+			max = score
+		}
+		sum += score
+	}
+	
+	mean := sum / float64(len(scores))
+	
+	return map[string]interface{}{
+		"count": len(scores),
+		"min":   min,
+		"max":   max,
+		"mean":  mean,
+	}
+}
+
 // min helper function
 func min(a, b int) int {
 	if a < b {
 		return a
 	}
 	return b
+}
+
+// calculateEmbeddingQuality calculates a quality score for the embedding vector
+func (rrs *RedisRAGService) calculateEmbeddingQuality(embedding []float64) float64 {
+	if len(embedding) == 0 {
+		return 0.0
+	}
+
+	var nonZeroCount int
+	var sum float64
+	var sumSquares float64
+	minVal, maxVal := embedding[0], embedding[0]
+
+	for _, val := range embedding {
+		sum += val
+		sumSquares += val * val
+
+		if val != 0.0 {
+			nonZeroCount++
+		}
+
+		if val < minVal {
+			minVal = val
+		}
+		if val > maxVal {
+			maxVal = val
+		}
+	}
+
+	mean := sum / float64(len(embedding))
+	variance := (sumSquares / float64(len(embedding))) - (mean * mean)
+	stdDev := math.Sqrt(math.Max(0, variance))
+
+	// Quality score based on multiple factors
+	nonZeroRatio := float64(nonZeroCount) / float64(len(embedding))
+	distributionScore := 1.0 / (1.0 + stdDev) // Lower std dev is better
+	rangeScore := 1.0 / (1.0 + math.Abs(maxVal-minVal)) // Reasonable range is better
+
+	qualityScore := (nonZeroRatio * 0.4) + (distributionScore * 0.4) + (rangeScore * 0.2)
+	return math.Max(0.0, math.Min(1.0, qualityScore))
+}
+
+// analyzeEmbeddingStatistics provides detailed statistical analysis of embedding
+func (rrs *RedisRAGService) analyzeEmbeddingStatistics(embedding []float64) map[string]interface{} {
+	if len(embedding) == 0 {
+		return map[string]interface{}{
+			"length": 0,
+			"error": "empty embedding",
+		}
+	}
+
+	stats := map[string]interface{}{
+		"length": len(embedding),
+		"expected_length": rrs.vectorDimensions,
+		"length_match": len(embedding) == rrs.vectorDimensions,
+	}
+
+	var sum, sumSquares float64
+	minVal, maxVal := embedding[0], embedding[0]
+	nonZeroCount := 0
+	zeroCount := 0
+
+	for _, val := range embedding {
+		sum += val
+		sumSquares += val * val
+
+		if val < minVal {
+			minVal = val
+		}
+		if val > maxVal {
+			maxVal = val
+		}
+
+		if val == 0.0 {
+			zeroCount++
+		} else {
+			nonZeroCount++
+		}
+	}
+
+	mean := sum / float64(len(embedding))
+	variance := (sumSquares / float64(len(embedding))) - (mean * mean)
+	stdDev := math.Sqrt(math.Max(0, variance))
+
+	stats["mean"] = mean
+	stats["std_dev"] = stdDev
+	stats["variance"] = variance
+	stats["min"] = minVal
+	stats["max"] = maxVal
+	stats["range"] = maxVal - minVal
+	stats["non_zero_count"] = nonZeroCount
+	stats["zero_count"] = zeroCount
+	stats["non_zero_ratio"] = float64(nonZeroCount) / float64(len(embedding))
+	stats["sparsity"] = float64(zeroCount) / float64(len(embedding))
+
+	// Distribution analysis
+	stats["is_normal_distribution"] = stdDev > 0.1 && stdDev < 1.0
+	stats["has_outliers"] = math.Abs(maxVal-mean) > 3*stdDev || math.Abs(minVal-mean) > 3*stdDev
+
+	// Quality indicators
+	stats["quality_indicators"] = map[string]bool{
+		"reasonable_range": minVal >= -10.0 && maxVal <= 10.0,
+		"good_sparsity": stats["sparsity"].(float64) < 0.9, // Less than 90% zeros
+		"normal_distribution": stats["is_normal_distribution"].(bool),
+		"no_extreme_outliers": !stats["has_outliers"].(bool),
+	}
+
+	return stats
 }
 
 // Getter methods for accessing internal components

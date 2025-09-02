@@ -89,23 +89,75 @@ func (vo *VectorOperations) SearchSimilar(ctx context.Context, queryEmbedding []
 		vo.recordSearchTime(time.Since(startTime))
 	}()
 
+	// Enhanced logging for vector search pipeline debugging
+	logrus.WithFields(logrus.Fields{
+		"embedding_dim": len(queryEmbedding),
+		"limit": limit,
+		"index_name": vo.indexName,
+		"max_concurrency": vo.maxConcurrency,
+		"step": "vector_search_entry",
+	}).Info("🔍 [VECTOR_OPS] Starting vector similarity search with enhanced debugging")
+
 	// Use worker pool for concurrency control
 	select {
 	case vo.workerPool <- struct{}{}:
 		defer func() { <-vo.workerPool }()
+		logrus.Debug("🏗️ [VECTOR_OPS] Acquired worker from pool")
 	case <-ctx.Done():
+		logrus.WithError(ctx.Err()).Warn("❌ [VECTOR_OPS] Context cancelled before acquiring worker")
 		return nil, ctx.Err()
 	}
 
+	// Enhanced embedding validation and marshaling
+	if len(queryEmbedding) == 0 {
+		logrus.Error("❌ [VECTOR_OPS] Cannot perform search with empty embedding")
+		return nil, fmt.Errorf("query embedding is empty")
+	}
+	
+	// Validate embedding content
+	embeddingStats := map[string]interface{}{
+		"length": len(queryEmbedding),
+		"non_zero_count": 0,
+		"sum": 0.0,
+	}
+	
+	for _, val := range queryEmbedding {
+		embeddingStats["sum"] = embeddingStats["sum"].(float64) + val
+		if val != 0.0 {
+			embeddingStats["non_zero_count"] = embeddingStats["non_zero_count"].(int) + 1
+		}
+	}
+	
+	embeddingStats["mean"] = embeddingStats["sum"].(float64) / float64(len(queryEmbedding))
+	embeddingStats["non_zero_ratio"] = float64(embeddingStats["non_zero_count"].(int)) / float64(len(queryEmbedding))
+	
+	logrus.WithFields(logrus.Fields{
+		"embedding_stats": embeddingStats,
+		"step": "embedding_validation",
+	}).Debug("📊 [VECTOR_OPS] Embedding validation complete")
+
 	// Convert embedding to bytes for Redis with optimization
+	embeddingMarshalStart := time.Now()
 	embeddingBytes, err := vo.optimizedEmbeddingMarshal(queryEmbedding)
+	embeddingMarshalDuration := time.Since(embeddingMarshalStart)
+	
 	if err != nil {
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"embedding_length": len(queryEmbedding),
+			"marshal_duration": embeddingMarshalDuration,
+			"step": "embedding_marshal_failed",
+		}).Error("❌ [VECTOR_OPS] Failed to marshal query embedding")
 		return nil, fmt.Errorf("failed to marshal query embedding: %w", err)
 	}
+	
+	logrus.WithFields(logrus.Fields{
+		"embedding_bytes_length": len(embeddingBytes),
+		"marshal_duration": embeddingMarshalDuration,
+		"step": "embedding_marshal_success",
+	}).Debug("📦 [VECTOR_OPS] Embedding marshaled successfully")
 
-	// Perform optimized vector search using FT.SEARCH with KNN
+	// Build and log Redis search command
 	searchQuery := fmt.Sprintf("*=>[KNN %d @embedding $query_vector AS score]", limit)
-
 	searchCmd := []interface{}{
 		"FT.SEARCH", vo.indexName,
 		searchQuery,
@@ -115,31 +167,154 @@ func (vo *VectorOperations) SearchSimilar(ctx context.Context, queryEmbedding []
 		"RETURN", "10",
 		"content", "title", "service_type", "keywords", "indexed_at", "score",
 	}
+	
+	redisCommandInfo := map[string]interface{}{
+		"command": "FT.SEARCH",
+		"index_name": vo.indexName,
+		"search_query": searchQuery,
+		"limit": limit,
+		"params_count": 2,
+		"return_fields": []string{"content", "title", "service_type", "keywords", "indexed_at", "score"},
+	}
+	
+	logrus.WithFields(logrus.Fields{
+		"redis_command_info": redisCommandInfo,
+		"step": "redis_command_build",
+	}).Info("🔧 [VECTOR_OPS] Redis search command built")
 
+	// Perform optimized vector search using FT.SEARCH with KNN
+	redisSearchStart := time.Now()
 	result, err := vo.redis.Do(ctx, searchCmd...).Result()
+	redisSearchDuration := time.Since(redisSearchStart)
+	
+	redisSearchResults := map[string]interface{}{
+		"search_duration": redisSearchDuration,
+		"error": err != nil,
+		"result_nil": result == nil,
+	}
+	
 	if err != nil {
+		redisSearchResults["error_message"] = err.Error()
+		redisSearchResults["error_type"] = fmt.Sprintf("%T", err)
+		
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"redis_search_results": redisSearchResults,
+			"redis_command_info": redisCommandInfo,
+			"step": "redis_search_failed",
+		}).Error("❌ [VECTOR_OPS] Redis vector search failed")
 		return nil, fmt.Errorf("vector search failed: %w", err)
 	}
+	
+	// Analyze Redis result structure
+	if result != nil {
+		redisSearchResults["result_type"] = fmt.Sprintf("%T", result)
+		if resultSlice, ok := result.([]interface{}); ok {
+			redisSearchResults["result_slice_length"] = len(resultSlice)
+			if len(resultSlice) > 0 {
+				redisSearchResults["first_element_type"] = fmt.Sprintf("%T", resultSlice[0])
+				if totalResults, ok := resultSlice[0].(int64); ok {
+					redisSearchResults["total_results"] = totalResults
+				}
+			}
+		}
+	}
+	
+	logrus.WithFields(logrus.Fields{
+		"redis_search_results": redisSearchResults,
+		"step": "redis_search_success",
+	}).Info("✅ [VECTOR_OPS] Redis search completed successfully")
 
-	// Parse search results
+	// Parse search results with detailed logging
+	parseStart := time.Now()
 	documents, scores, err := vo.parseSearchResults(result)
+	parseDuration := time.Since(parseStart)
+	
+	parseResults := map[string]interface{}{
+		"parse_duration": parseDuration,
+		"parse_error": err != nil,
+		"documents_count": len(documents),
+		"scores_count": len(scores),
+		"documents_nil": documents == nil,
+		"scores_nil": scores == nil,
+	}
+	
 	if err != nil {
+		parseResults["error_message"] = err.Error()
+		
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"parse_results": parseResults,
+			"step": "result_parsing_failed",
+		}).Error("❌ [VECTOR_OPS] Failed to parse search results")
 		return nil, fmt.Errorf("failed to parse search results: %w", err)
+	}
+	
+	// Detailed analysis of parsed results
+	if len(documents) > 0 {
+		firstDoc := documents[0]
+		parseResults["first_doc_id"] = firstDoc.ID
+		parseResults["first_doc_service_type"] = firstDoc.ServiceType
+		parseResults["first_doc_content_length"] = len(firstDoc.Content)
+		parseResults["first_doc_title"] = firstDoc.Title
+	}
+	
+	if len(scores) > 0 {
+		parseResults["first_score"] = scores[0]
+		parseResults["scores_min"] = findMinFloat64(scores)
+		parseResults["scores_max"] = findMaxFloat64(scores)
 	}
 
 	queryTime := time.Since(startTime)
+	
+	// Final comprehensive logging
+	finalResults := map[string]interface{}{
+		"total_query_time": queryTime,
+		"redis_search_time": redisSearchDuration,
+		"parse_time": parseDuration,
+		"embedding_marshal_time": embeddingMarshalDuration,
+		"results_count": len(documents),
+		"scores_count": len(scores),
+		"limit_requested": limit,
+		"success": true,
+	}
 
 	logrus.WithFields(logrus.Fields{
-		"query_time":    queryTime,
-		"results_count": len(documents),
-		"limit":         limit,
-	}).Debug("🔍 Vector search completed")
+		"final_results": finalResults,
+		"parse_results": parseResults,
+		"step": "vector_search_complete",
+	}).Info("🎯 [VECTOR_OPS] Vector search pipeline completed successfully")
 
 	return &VectorSearchResult{
 		Documents: documents,
 		Scores:    scores,
 		QueryTime: queryTime,
 	}, nil
+}
+
+// Helper functions for vector operations logging
+func findMinFloat64(slice []float64) float64 {
+	if len(slice) == 0 {
+		return 0
+	}
+	min := slice[0]
+	for _, v := range slice[1:] {
+		if v < min {
+			min = v
+		}
+	}
+	return min
+}
+
+func findMaxFloat64(slice []float64) float64 {
+	if len(slice) == 0 {
+		return 0
+	}
+	max := slice[0]
+	for _, v := range slice[1:] {
+		if v > max {
+			max = v
+		}
+	}
+	return max
 }
 
 // parseSearchResults parses Redis search results
