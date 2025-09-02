@@ -202,48 +202,207 @@ func (es *EmbeddingService) GenerateEmbedding(ctx context.Context, text string) 
 	}()
 
 	if !es.isInitialized {
+		logrus.Error("❌ [EMBEDDING] Embedding service not initialized")
 		return nil, fmt.Errorf("embedding service not initialized")
 	}
 
-	// Multi-level cache check (L1 -> L2 -> Generate)
-	cacheKey := es.generateCacheKey(text)
+	// Enhanced text analysis for embedding generation debugging
+	textAnalysis := map[string]interface{}{
+		"text_length": len(text),
+		"text_empty": len(strings.TrimSpace(text)) == 0,
+		"text_preview": truncateEmbeddingText(text, 50),
+		"step": "text_analysis",
+	}
+	
+	logrus.WithFields(logrus.Fields{
+		"text_analysis": textAnalysis,
+	}).Debug("📝 [EMBEDDING] Starting embedding generation with text analysis")
 
-	// L1 Cache check (ultra-fast in-memory)
+	// Multi-level cache check (L1 -> L2 -> Generate) with detailed logging
+	cacheKey := es.generateCacheKey(text)
+	cacheInfo := map[string]interface{}{
+		"cache_key": cacheKey[:min(16, len(cacheKey))], // Show first 16 chars for debugging
+		"l1_cache_available": es.l1Cache != nil,
+		"l2_cache_available": es.l2Cache != nil,
+		"step": "cache_check",
+	}
+
+	// L1 Cache check (ultra-fast in-memory) with timing
+	l1CacheStart := time.Now()
 	if cached := es.getL1CachedEmbedding(cacheKey); cached != nil {
+		l1CacheDuration := time.Since(l1CacheStart)
+		
 		es.cacheMutex.Lock()
 		es.cacheHits++
 		es.cacheMutex.Unlock()
+		
+		cacheInfo["l1_cache_hit"] = true
+		cacheInfo["l1_cache_duration"] = l1CacheDuration
+		cacheInfo["embedding_length"] = len(cached)
+		
+		logrus.WithFields(logrus.Fields{
+			"cache_info": cacheInfo,
+			"step": "l1_cache_hit",
+		}).Debug("⚡ [EMBEDDING] L1 cache hit - returning cached embedding")
 		return cached, nil
 	}
+	
+	cacheInfo["l1_cache_hit"] = false
+	cacheInfo["l1_cache_duration"] = time.Since(l1CacheStart)
 
-	// L2 Cache check (Redis distributed cache)
+	// L2 Cache check (Redis distributed cache) with timing
+	l2CacheStart := time.Now()
 	if cached := es.getL2CachedEmbedding(ctx, cacheKey); cached != nil {
+		l2CacheDuration := time.Since(l2CacheStart)
+		
 		// Store in L1 cache for future ultra-fast access
 		es.setL1CachedEmbedding(cacheKey, cached)
 		es.cacheMutex.Lock()
 		es.cacheHits++
 		es.cacheMutex.Unlock()
+		
+		cacheInfo["l2_cache_hit"] = true
+		cacheInfo["l2_cache_duration"] = l2CacheDuration
+		cacheInfo["embedding_length"] = len(cached)
+		
+		logrus.WithFields(logrus.Fields{
+			"cache_info": cacheInfo,
+			"step": "l2_cache_hit",
+		}).Debug("💾 [EMBEDDING] L2 cache hit - storing in L1 and returning")
 		return cached, nil
 	}
+	
+	cacheInfo["l2_cache_hit"] = false
+	cacheInfo["l2_cache_duration"] = time.Since(l2CacheStart)
+	
+	logrus.WithFields(logrus.Fields{
+		"cache_info": cacheInfo,
+		"step": "cache_miss",
+	}).Debug("🔄 [EMBEDDING] Cache miss - generating new embedding")
 
-	// Process Indonesian text
+	// Process Indonesian text with detailed logging
+	processingStart := time.Now()
+	logrus.WithFields(logrus.Fields{
+		"text_preview": truncateEmbeddingText(text, 100),
+		"step": "text_processing_start",
+	}).Debug("🔤 [EMBEDDING] Processing Indonesian text")
+
 	processed, err := es.processIndonesianText(text)
+	processingDuration := time.Since(processingStart)
+	
 	if err != nil {
+		processingError := map[string]interface{}{
+			"error_message": err.Error(),
+			"processing_duration": processingDuration,
+			"text_length": len(text),
+			"step": "text_processing_failed",
+		}
+		
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"processing_error": processingError,
+		}).Error("❌ [EMBEDDING] Failed to process Indonesian text")
 		return nil, fmt.Errorf("failed to process Indonesian text: %w", err)
 	}
+	
+	// Validate processed text
+	processedValidation := map[string]interface{}{
+		"processing_duration": processingDuration,
+		"tokens_count": len(processed.Tokens),
+		"has_morphology": processed.Morphology != nil,
+		"has_cultural": processed.Cultural != nil,
+		"has_government": processed.Government != nil,
+		"step": "text_processing_success",
+	}
+	
+	if processed.Morphology != nil {
+		processedValidation["morphology_confidence"] = processed.Morphology.Confidence
+		processedValidation["root_words_count"] = len(processed.Morphology.RootWords)
+	}
+	
+	if processed.Cultural != nil {
+		processedValidation["cultural_confidence"] = processed.Cultural.Confidence
+		processedValidation["cultural_terms_count"] = len(processed.Cultural.CulturalTerms)
+	}
+	
+	if processed.Government != nil {
+		processedValidation["government_confidence"] = processed.Government.Confidence
+		processedValidation["document_types_count"] = len(processed.Government.DocumentTypes)
+	}
+	
+	logrus.WithFields(logrus.Fields{
+		"processed_validation": processedValidation,
+	}).Info("✅ [EMBEDDING] Indonesian text processed successfully")
 
 	// Generate embedding from processed text with parallel optimization
-	embedding := es.generateEmbeddingFromProcessedOptimized(processed)
+	embeddingGenStart := time.Now()
+	logrus.WithFields(logrus.Fields{
+		"parallel_workers": es.parallelWorkers,
+		"dimensions": es.dimensions,
+		"step": "embedding_generation_start",
+	}).Debug("🚀 [EMBEDDING] Generating embedding with parallel optimization")
 
-	// Cache the result in both L1 and L2 caches
+	embedding := es.generateEmbeddingFromProcessedOptimized(processed)
+	embeddingGenDuration := time.Since(embeddingGenStart)
+	
+	// Validate generated embedding
+	embeddingValidation := map[string]interface{}{
+		"generation_duration": embeddingGenDuration,
+		"embedding_length": len(embedding),
+		"expected_dimensions": es.dimensions,
+		"dimensions_match": len(embedding) == es.dimensions,
+		"embedding_non_zero": false,
+		"embedding_sum": 0.0,
+	}
+	
+	for _, val := range embedding {
+		embeddingValidation["embedding_sum"] = embeddingValidation["embedding_sum"].(float64) + val
+		if val != 0.0 {
+			embeddingValidation["embedding_non_zero"] = true
+		}
+	}
+	
+	embeddingValidation["embedding_mean"] = embeddingValidation["embedding_sum"].(float64) / float64(len(embedding))
+	
+	logrus.WithFields(logrus.Fields{
+		"embedding_validation": embeddingValidation,
+		"step": "embedding_generation_success",
+	}).Info("🎯 [EMBEDDING] Embedding generated and validated")
+
+	// Cache the result in both L1 and L2 caches with timing
+	cachingStart := time.Now()
 	es.setL1CachedEmbedding(cacheKey, embedding)
 	es.setL2CachedEmbedding(ctx, cacheKey, embedding)
+	cachingDuration := time.Since(cachingStart)
 
 	es.cacheMutex.Lock()
 	es.cacheMisses++
 	es.cacheMutex.Unlock()
+	
+	// Final generation summary
+	generationSummary := map[string]interface{}{
+		"total_generation_time": time.Since(startTime),
+		"text_processing_time": processingDuration,
+		"embedding_generation_time": embeddingGenDuration,
+		"caching_time": cachingDuration,
+		"embedding_dimensions": len(embedding),
+		"cache_miss": true,
+		"success": true,
+	}
+	
+	logrus.WithFields(logrus.Fields{
+		"generation_summary": generationSummary,
+		"step": "embedding_complete",
+	}).Info("🏁 [EMBEDDING] Embedding generation pipeline completed")
 
 	return embedding, nil
+}
+
+// Helper function for embedding text truncation
+func truncateEmbeddingText(text string, maxLength int) string {
+	if len(text) <= maxLength {
+		return text
+	}
+	return text[:maxLength] + "..."
 }
 
 // GenerateEmbeddingsBatch generates embeddings for multiple texts with batch optimization
@@ -333,71 +492,6 @@ func (es *EmbeddingService) processIndonesianText(text string) (*ProcessedText, 
 	}, nil
 }
 
-// generateEmbeddingFromProcessed generates embedding from processed text
-// TODO: This method is reserved for future implementation of custom embedding generation
-func (es *EmbeddingService) generateEmbeddingFromProcessed(processed *ProcessedText) []float64 {
-	embedding := make([]float64, es.dimensions)
-
-	// Base embedding from tokens
-	for i, token := range processed.Tokens {
-		hash := es.hashToken(token)
-		for j := 0; j < es.dimensions; j++ {
-			embedding[j] += math.Sin(float64(hash)+float64(i*j)) * 0.1
-		}
-	}
-
-	// Enhance with morphological features
-	if processed.Morphology != nil {
-		for i, rootWord := range processed.Morphology.RootWords {
-			hash := es.hashToken(rootWord)
-			for j := 0; j < es.dimensions; j++ {
-				embedding[j] += math.Cos(float64(hash)+float64(i*j)) * 0.2 * processed.Morphology.Confidence
-			}
-		}
-	}
-
-	// Enhance with cultural context
-	if processed.Cultural != nil {
-		for i, term := range processed.Cultural.CulturalTerms {
-			hash := es.hashToken(term)
-			for j := 0; j < es.dimensions; j++ {
-				embedding[j] += math.Sin(float64(hash)+float64(i*j)) * 0.15 * processed.Cultural.Confidence
-			}
-		}
-	}
-
-	// Enhance with government terminology
-	if processed.Government != nil {
-		for i, docType := range processed.Government.DocumentTypes {
-			hash := es.hashToken(docType)
-			for j := 0; j < es.dimensions; j++ {
-				embedding[j] += math.Cos(float64(hash)+float64(i*j)) * 0.25 * processed.Government.Confidence
-			}
-		}
-
-		for i, procedure := range processed.Government.Procedures {
-			hash := es.hashToken(procedure)
-			for j := 0; j < es.dimensions; j++ {
-				embedding[j] += math.Sin(float64(hash)+float64(i*j)) * 0.2 * processed.Government.Confidence
-			}
-		}
-	}
-
-	// Normalize embedding
-	norm := 0.0
-	for _, val := range embedding {
-		norm += val * val
-	}
-	norm = math.Sqrt(norm)
-
-	if norm > 0 {
-		for i := range embedding {
-			embedding[i] /= norm
-		}
-	}
-
-	return embedding
-}
 
 // generateEmbeddingFromProcessedOptimized generates embedding with performance optimizations
 func (es *EmbeddingService) generateEmbeddingFromProcessedOptimized(processed *ProcessedText) []float64 {
@@ -743,40 +837,6 @@ func (es *EmbeddingService) generateCacheKey(text string) string {
 	return fmt.Sprintf("%x", hash)
 }
 
-// getCachedEmbedding retrieves cached embedding
-// TODO: This method is reserved for future caching optimization
-func (es *EmbeddingService) getCachedEmbedding(key string) []float64 {
-	es.cacheMutex.RLock()
-	defer es.cacheMutex.RUnlock()
-
-	if embedding, exists := es.embeddingCache[key]; exists {
-		return embedding
-	}
-
-	return nil
-}
-
-// cacheEmbedding caches embedding
-// TODO: This method is reserved for future caching optimization
-func (es *EmbeddingService) cacheEmbedding(key string, embedding []float64) {
-	es.cacheMutex.Lock()
-	defer es.cacheMutex.Unlock()
-
-	// Simple cache size management
-	if len(es.embeddingCache) >= 10000 {
-		// Remove oldest entries (simple approach)
-		count := 0
-		for k := range es.embeddingCache {
-			delete(es.embeddingCache, k)
-			count++
-			if count >= 1000 {
-				break
-			}
-		}
-	}
-
-	es.embeddingCache[key] = embedding
-}
 
 // GetStats returns embedding service statistics
 func (es *EmbeddingService) GetStats() *EmbeddingStats {

@@ -339,13 +339,6 @@ func (rco *RAGCacheOptimizer) generateEmbeddingCacheKey(text string) string {
 	return fmt.Sprintf("%s%x", rco.embeddingCachePrefix, hash)
 }
 
-// recordCacheHit records a cache hit
-// TODO: This method is reserved for future cache analytics
-func (rco *RAGCacheOptimizer) recordCacheHit() {
-	rco.mu.Lock()
-	defer rco.mu.Unlock()
-	rco.cacheHits++
-}
 
 // recordCacheMiss records a cache miss
 func (rco *RAGCacheOptimizer) recordCacheMiss() {

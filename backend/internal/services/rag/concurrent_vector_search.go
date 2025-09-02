@@ -496,11 +496,6 @@ func (cvs *ConcurrentVectorSearch) GetDynamicWorkerPool() *DynamicWorkerPool {
 	return nil
 }
 
-// processTask processes a vector search task
-// TODO: This method is reserved for future task processing optimization
-func (vw *VectorWorker) processTask(task *VectorSearchTask) {
-	vw.processTaskWithMetrics(task, nil)
-}
 
 // processTaskWithMetrics processes a vector search task with optional metrics recording
 func (vw *VectorWorker) processTaskWithMetrics(task *VectorSearchTask, metrics *PoolMetrics) {
