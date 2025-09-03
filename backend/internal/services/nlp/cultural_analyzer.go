@@ -13,7 +13,6 @@ type CulturalAnalyzer struct {
 	regionalMarkers    map[string][]RegionalMarker
 	culturalPatterns   map[CulturalContext][]CulturalPattern
 	formalityIndicators map[FormalityLevel][]string
-	contextRules       []ContextRule
 }
 
 // RegionalMarker represents regional cultural markers

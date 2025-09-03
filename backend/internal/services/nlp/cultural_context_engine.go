@@ -131,14 +131,14 @@ func (c *CulturalContextEngine) initializeCulturalKnowledge() error {
 func (c *CulturalContextEngine) initializePolitenessRules() {
 	politenessRules := map[string]*Phase3PolitenessRule{
 		// Very polite expressions
-		"mohon": &Phase3PolitenessRule{
+		"mohon": {
 			Indicator:   "mohon",
 			Level:       "very_polite",
 			Score:       1.0,
 			Context:     "formal_request",
 			Explanation: "Very polite way to make a request",
 		},
-		"dengan hormat": &Phase3PolitenessRule{
+		"dengan hormat": {
 			Indicator:   "dengan hormat",
 			Level:       "very_polite",
 			Score:       1.0,
@@ -306,7 +306,7 @@ func (c *CulturalContextEngine) initializeFormalityIndicators() {
 // initializeCulturalPatterns initializes Indonesian cultural patterns
 func (c *CulturalContextEngine) initializeCulturalPatterns() {
 	culturalPatterns := map[string]*Phase3CulturalPattern{
-		"gotong_royong": &Phase3CulturalPattern{
+		"gotong_royong": {
 			Pattern:      "gotong royong",
 			Type:         "social_value",
 			Significance: 0.9,
@@ -314,7 +314,7 @@ func (c *CulturalContextEngine) initializeCulturalPatterns() {
 			Context:      map[string]interface{}{"category": "social_values", "importance": "high"},
 			Examples:     []string{"kerja bakti", "bantu-membantu", "kerjasama"},
 		},
-		"basa_basi": &Phase3CulturalPattern{
+		"basa_basi": {
 			Pattern:      "basa-basi",
 			Type:         "communication_style",
 			Significance: 0.8,
@@ -322,7 +322,7 @@ func (c *CulturalContextEngine) initializeCulturalPatterns() {
 			Context:      map[string]interface{}{"category": "communication", "purpose": "relationship_building"},
 			Examples:     []string{"apa kabar", "sudah makan", "bagaimana keluarga"},
 		},
-		"tidak_apa_apa": &Phase3CulturalPattern{
+		"tidak_apa_apa": {
 			Pattern:      "tidak apa-apa",
 			Type:         "conflict_avoidance",
 			Significance: 0.7,
@@ -330,7 +330,7 @@ func (c *CulturalContextEngine) initializeCulturalPatterns() {
 			Context:      map[string]interface{}{"category": "social_harmony", "meaning": "acceptance"},
 			Examples:     []string{"gak papa", "santai", "biasa saja"},
 		},
-		"hormat": &Phase3CulturalPattern{
+		"hormat": {
 			Pattern:      "hormat",
 			Type:         "respect",
 			Significance: 0.9,
@@ -349,14 +349,14 @@ func (c *CulturalContextEngine) initializeCulturalPatterns() {
 func (c *CulturalContextEngine) initializeRegionalMarkers() {
 	regionalMarkers := map[string]*Phase3RegionalMarker{
 		// Jakarta/Betawi
-		"gue": &Phase3RegionalMarker{
+		"gue": {
 			Marker:       "gue",
 			Region:       "Jakarta",
 			Confidence:   0.9,
 			Meaning:      "I/me (informal)",
 			Alternatives: []string{"saya", "aku"},
 		},
-		"lu": &Phase3RegionalMarker{
+		"lu": {
 			Marker:       "lu",
 			Region:       "Jakarta",
 			Confidence:   0.9,
@@ -365,14 +365,14 @@ func (c *CulturalContextEngine) initializeRegionalMarkers() {
 		},
 
 		// Javanese influence
-		"monggo": &Phase3RegionalMarker{
+		"monggo": {
 			Marker:       "monggo",
 			Region:       "Java",
 			Confidence:   0.8,
 			Meaning:      "please (polite invitation)",
 			Alternatives: []string{"silakan", "mari"},
 		},
-		"nggih": &Phase3RegionalMarker{
+		"nggih": {
 			Marker:       "nggih",
 			Region:       "Java",
 			Confidence:   0.8,
@@ -381,7 +381,7 @@ func (c *CulturalContextEngine) initializeRegionalMarkers() {
 		},
 
 		// Sundanese influence
-		"atuh": &Phase3RegionalMarker{
+		"atuh": {
 			Marker:       "atuh",
 			Region:       "West Java",
 			Confidence:   0.7,
@@ -390,7 +390,7 @@ func (c *CulturalContextEngine) initializeRegionalMarkers() {
 		},
 
 		// Batak influence
-		"horas": &Phase3RegionalMarker{
+		"horas": {
 			Marker:       "horas",
 			Region:       "North Sumatra",
 			Confidence:   0.9,

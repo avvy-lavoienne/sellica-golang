@@ -223,7 +223,7 @@ func (r *RegionalDialectHandler) initializeDialectPatterns() {
 			Context:      "emphasis",
 		},
 
-		// Batak patterns
+		// Batak patterns (Enhanced)
 		"horas": {
 			Pattern:      "horas",
 			Region:       "North Sumatra",
@@ -233,8 +233,26 @@ func (r *RegionalDialectHandler) initializeDialectPatterns() {
 			Examples:     []string{"horas bah", "horas kawan"},
 			Context:      "traditional_greeting",
 		},
+		"bah": {
+			Pattern:      "bah",
+			Region:       "North Sumatra",
+			Confidence:   0.8,
+			StandardForm: "ya",
+			Usage:        "casual_particle",
+			Examples:     []string{"iya bah", "gimana bah"},
+			Context:      "casual_conversation",
+		},
+		"do": {
+			Pattern:      "do",
+			Region:       "North Sumatra",
+			Confidence:   0.75,
+			StandardForm: "kok",
+			Usage:        "emphasis_particle",
+			Examples:     []string{"kenapa do", "masa do"},
+			Context:      "questioning_emphasis",
+		},
 
-		// Minang patterns
+		// Minang patterns (Enhanced)
 		"bana": {
 			Pattern:      "bana",
 			Region:       "West Sumatra",
@@ -243,6 +261,84 @@ func (r *RegionalDialectHandler) initializeDialectPatterns() {
 			Usage:        "confirmation",
 			Examples:     []string{"bana tu", "bana lah"},
 			Context:      "agreement",
+		},
+		"jan": {
+			Pattern:      "jan",
+			Region:       "West Sumatra",
+			Confidence:   0.85,
+			StandardForm: "jangan",
+			Usage:        "prohibition",
+			Examples:     []string{"jan pergi", "jan lupa"},
+			Context:      "warning_advice",
+		},
+		"dek": {
+			Pattern:      "dek",
+			Region:       "West Sumatra",
+			Confidence:   0.7,
+			StandardForm: "adik",
+			Usage:        "term_of_address",
+			Examples:     []string{"dek uda", "dek uni"},
+			Context:      "family_address",
+		},
+
+		// Betawi patterns (Enhanced)
+		"nih": {
+			Pattern:      "nih",
+			Region:       "Jakarta",
+			Confidence:   0.8,
+			StandardForm: "ini",
+			Usage:        "demonstrative",
+			Examples:     []string{"gimana nih", "udah nih"},
+			Context:      "casual_demonstrative",
+		},
+		"tuh": {
+			Pattern:      "tuh",
+			Region:       "Jakarta",
+			Confidence:   0.8,
+			StandardForm: "itu",
+			Usage:        "demonstrative",
+			Examples:     []string{"kayak tuh", "lihat tuh"},
+			Context:      "pointing_reference",
+		},
+		"sih": {
+			Pattern:      "sih",
+			Region:       "Jakarta",
+			Confidence:   0.75,
+			StandardForm: "sich",
+			Usage:        "emphasis_particle",
+			Examples:     []string{"kok gitu sih", "kenapa sih"},
+			Context:      "questioning_emphasis",
+		},
+
+		// Administrative term variations
+		"dukumen": {
+			Pattern:      "dukumen",
+			Region:       "Jakarta",
+			Confidence:   0.7,
+			StandardForm: "dokumen",
+			Usage:        "administrative_term",
+			Examples:     []string{"dukumen apa", "bawa dukumen"},
+			Context:      "document_reference",
+		},
+		"kantor_kelurahan": {
+			Pattern:      "kantor kelurahan|kelurahan",
+			Region:       "General",
+			Confidence:   0.9,
+			StandardForm: "kantor kelurahan",
+			Usage:        "administrative_location",
+			Examples:     []string{"ke kantor kelurahan", "di kelurahan"},
+			Context:      "government_office",
+		},
+
+		// Ceremonial and formal patterns
+		"monggo_sinten": {
+			Pattern:      "monggo sinten|sinten monggo",
+			Region:       "Java",
+			Confidence:   0.9,
+			StandardForm: "silakan siapa",
+			Usage:        "formal_invitation",
+			Examples:     []string{"monggo sinten yang mau", "sinten monggo masuk"},
+			Context:      "ceremonial_formal",
 		},
 	}
 
@@ -635,7 +731,7 @@ func (r *RegionalDialectHandler) addRegionalContext(result *RegionalInfo) {
 }
 
 // updateStats updates regional dialect processing statistics
-func (r *RegionalDialectHandler) updateStats(dialectMarkers, regionalTerms, locations int) {
+func (r *RegionalDialectHandler) updateStats(dialectMarkers, _ int, locations int) {
 	r.stats.mu.Lock()
 	defer r.stats.mu.Unlock()
 

@@ -12,7 +12,6 @@ import (
 type EntityRecognizer struct {
 	entityPatterns     map[EntityCategory][]EntityPattern
 	administrativeTerms map[string]AdministrativeInfo
-	locationPatterns   *regexp.Regexp
 	datePatterns       *regexp.Regexp
 	numberPatterns     *regexp.Regexp
 }

@@ -268,7 +268,7 @@ func (a *AdministrativeTerminologyProcessor) initializeDocumentTypes() {
 // initializeAdministrativeTerms initializes administrative terms
 func (a *AdministrativeTerminologyProcessor) initializeAdministrativeTerms() {
 	administrativeTerms := map[string]*Phase3AdministrativeTermInfo{
-		"dukcapil": &Phase3AdministrativeTermInfo{
+		"dukcapil": {
 			Term:         "dukcapil",
 			Definition:   "Dinas Kependudukan dan Pencatatan Sipil",
 			Category:     "instansi",
@@ -280,7 +280,7 @@ func (a *AdministrativeTerminologyProcessor) initializeAdministrativeTerms() {
 			Examples:     []string{"Daftar ke Dukcapil", "Layanan Dukcapil"},
 			Relevance:    0.9,
 		},
-		"nik": &Phase3AdministrativeTermInfo{
+		"nik": {
 			Term:         "nik",
 			Definition:   "Nomor Induk Kependudukan",
 			Category:     "identifikasi",
@@ -304,7 +304,7 @@ func (a *AdministrativeTerminologyProcessor) initializeAdministrativeTerms() {
 			Examples:     []string{"RT 001 RW 005", "Ketua RT/RW"},
 			Relevance:    0.8,
 		},
-		"legalisir": &Phase3AdministrativeTermInfo{
+		"legalisir": {
 			Term:         "legalisir",
 			Definition:   "Pengesahan dokumen oleh pejabat berwenang",
 			Category:     "proses",
