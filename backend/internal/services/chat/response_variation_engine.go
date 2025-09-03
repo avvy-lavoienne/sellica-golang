@@ -612,8 +612,14 @@ func (rve *ResponseVariationEngine) makeWarm(content string) string {
 
 // makeProfessional makes content more professional
 func (rve *ResponseVariationEngine) makeProfessional(content string) string {
-	// Ensure professional language
-	if !strings.Contains(content, "SELLY AI Assistant") {
+	// Check if content already has extensive SELLY introduction
+	lowerContent := strings.ToLower(content)
+	hasSellyIntro := strings.Contains(lowerContent, "selly") && 
+		(strings.Contains(lowerContent, "dinas kependudukan") || strings.Contains(lowerContent, "disdukcapil")) &&
+		(strings.Contains(lowerContent, "selamat") || strings.Contains(lowerContent, "asisten"))
+
+	// Ensure professional language only if not already extensively introduced
+	if !strings.Contains(content, "SELLY AI Assistant") && !hasSellyIntro {
 		content = "Saya SELLY AI Assistant dari Dinas Kependudukan dan Pencatatan Sipil Kabupaten Garut. " + content
 	}
 

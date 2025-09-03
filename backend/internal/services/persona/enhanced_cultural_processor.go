@@ -564,19 +564,33 @@ func (ecp *EnhancedCulturalProcessor) applyLanguageLevel(response, level string)
 
 // applyResponseModifier applies specific response modifier
 func (ecp *EnhancedCulturalProcessor) applyResponseModifier(response, modifier string, _ *CulturalContext, req *EnhancedCulturalRequest) string {
+	// Check if response already has extensive introductions to avoid stacking
+	lowerResponse := strings.ToLower(response)
+	hasExtensiveIntro := strings.Contains(lowerResponse, "selly") && 
+		(strings.Contains(lowerResponse, "dinas kependudukan") || strings.Contains(lowerResponse, "disdukcapil")) &&
+		(strings.Contains(lowerResponse, "selamat") || strings.Contains(lowerResponse, "halo"))
+
 	switch modifier {
 	case "add_institutional_context":
-		if !strings.Contains(response, "Dinas Kependudukan") {
+		if !strings.Contains(response, "Dinas Kependudukan") && !hasExtensiveIntro {
 			response = "Sebagai AI Assistant dari Dinas Kependudukan dan Pencatatan Sipil Kabupaten Garut, " + response
 		}
 	case "empathetic_tone":
-		response = "Saya memahami situasi Bapak/Ibu. " + response
+		if !hasExtensiveIntro && !strings.Contains(lowerResponse, "memahami situasi") {
+			response = "Saya memahami situasi Bapak/Ibu. " + response
+		}
 	case "reassuring_tone":
-		response = "Tenang saja, Bapak/Ibu. " + response
+		if !hasExtensiveIntro && !strings.Contains(lowerResponse, "tenang saja") {
+			response = "Tenang saja, Bapak/Ibu. " + response
+		}
 	case "patient_explanation":
-		response = "Baik, saya akan menjelaskan dengan detail. " + response
+		if !hasExtensiveIntro && !strings.Contains(lowerResponse, "baik, saya akan") && 
+		   !strings.Contains(lowerResponse, "saya akan menjelaskan") {
+			response = "Baik, saya akan menjelaskan dengan detail. " + response
+		}
 	case "islamic_greeting_response":
-		if strings.Contains(strings.ToLower(req.Query), "assalamualaikum") {
+		if strings.Contains(strings.ToLower(req.Query), "assalamualaikum") && 
+		   !strings.Contains(lowerResponse, "waalaikumsalam") {
 			response = "Waalaikumsalam warahmatullahi wabarakatuh. " + response
 		}
 	}

@@ -244,8 +244,21 @@ func (epi *EnhancedPersonaIntegration) combineGreetingAndResponse(greeting, resp
 		return response
 	}
 
-	// If response already starts with a greeting, don't duplicate
 	lowerResponse := strings.ToLower(response)
+	lowerGreeting := strings.ToLower(greeting)
+	
+	// Check for extensive introduction patterns that indicate the response already has enough context
+	hasExtensiveIntro := (strings.Contains(lowerResponse, "selly") || strings.Contains(lowerResponse, "asisten")) &&
+		strings.Contains(lowerResponse, "dinas kependudukan") &&
+		(strings.Contains(lowerResponse, "selamat") || strings.Contains(lowerResponse, "halo") || 
+		 strings.Contains(lowerResponse, "baik, saya akan") || strings.Contains(lowerResponse, "bagaimana saya"))
+
+	// If response already has extensive introduction, don't add greeting
+	if hasExtensiveIntro {
+		return response
+	}
+
+	// If response already starts with a greeting, don't duplicate
 	if strings.HasPrefix(lowerResponse, "selamat") ||
 	   strings.HasPrefix(lowerResponse, "halo") ||
 	   strings.HasPrefix(lowerResponse, "waalaikumsalam") {
@@ -254,7 +267,7 @@ func (epi *EnhancedPersonaIntegration) combineGreetingAndResponse(greeting, resp
 
 	// If response contains similar content to greeting, avoid duplication
 	if strings.Contains(lowerResponse, "selly ai assistant") &&
-	   strings.Contains(strings.ToLower(greeting), "selly ai assistant") {
+	   strings.Contains(lowerGreeting, "selly ai assistant") {
 		return greeting // Use greeting as it's more complete
 	}
 
