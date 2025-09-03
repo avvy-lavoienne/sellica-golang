@@ -5,8 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"selly-backend/pkg/types"
+
+	"github.com/sirupsen/logrus"
 )
 
 // EnhancedPersonaIntegration provides comprehensive SELLY persona integration
