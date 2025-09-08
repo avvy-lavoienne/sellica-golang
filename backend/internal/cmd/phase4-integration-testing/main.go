@@ -119,8 +119,8 @@ func main() {
 
 	config := &Phase4TestingConfig{
 		BaseURL:             "http://localhost:8080",
-		TestDataPath:        "backend/data/training/documents",
-		ResultsPath:         "backend/scripts/load-testing/results",
+		TestDataPath:        "data/training/documents",
+		ResultsPath:         "scripts/load-testing/results",
 		MaxConcurrentUsers:  100,
 		TestDurationMinutes: 10,
 		TargetResponseTimeMS: 100,
