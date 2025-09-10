@@ -139,8 +139,13 @@ func NewService(db *database.Service, cache *cache.Service, auth *auth.Service, 
 	logrus.Info("✅ SELLY Persona Integration initialized successfully")
 
 	// Initialize context enhancer for Phase 9B RAG improvements
+	logrus.Debug("🔧 Starting Phase 9B Context Enhancer initialization...")
 	contextEnhancer := NewContextEnhancer()
-	logrus.Info("✅ Context Enhancer initialized for Phase 9B RAG improvements")
+	if contextEnhancer != nil {
+		logrus.Info("✅ Context Enhancer initialized for Phase 9B RAG improvements")
+	} else {
+		logrus.Error("❌ Context Enhancer initialization failed - returned nil")
+	}
 
 	service := &Service{
 		db:                    db,
@@ -492,7 +497,14 @@ func (s *Service) ProcessChat(ctx context.Context, req *ChatRequest, authContext
 	}
 
 	// Phase 9B: Apply context enhancement to improve RAG accuracy
+	logrus.WithFields(logrus.Fields{
+		"rag_context_length":   len(ragContext),
+		"context_enhancer_nil": s.contextEnhancer == nil,
+		"service_type":         queryAnalysis.ServiceType,
+	}).Debug("🔧 Phase 9B context enhancement check")
+
 	if ragContext != "" && s.contextEnhancer != nil {
+		logrus.Info("🔧 Phase 9B context enhancement triggered")
 		enhancedResponse, enhanceErr := s.contextEnhancer.EnhanceResponse(
 			ctx,
 			req.Message,
@@ -511,6 +523,11 @@ func (s *Service) ProcessChat(ctx context.Context, req *ChatRequest, authContext
 				"validation_score":    enhancedResponse.ValidationResult.Score,
 			}).Info("✅ Phase 9B context enhancement applied successfully")
 		}
+	} else {
+		logrus.WithFields(logrus.Fields{
+			"rag_context_empty":    ragContext == "",
+			"context_enhancer_nil": s.contextEnhancer == nil,
+		}).Debug("🔧 Phase 9B context enhancement skipped")
 	}
 
 	// Apply SELLY persona enhancement with new enhanced system
