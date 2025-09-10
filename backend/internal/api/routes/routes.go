@@ -100,6 +100,9 @@ func setupHealthRoutes(router *gin.Engine, handler *handlers.HealthHandler) {
 	// Root health endpoint for load balancers
 	router.GET("/health", handler.GetHealth)
 
+	// Root readiness endpoint for compatibility
+	router.GET("/ready", handler.GetHealthReady) // GET /ready - Readiness probe (compatibility)
+
 	health := router.Group("/health")
 	{
 		health.GET("/simple", handler.GetHealthSimple) // GET /health/simple - Simple health check
@@ -181,6 +184,12 @@ func setupChatRoutes(router *gin.Engine, handler *handlers.ChatHandler, _ *auth.
 	// Public chat endpoints (with optional auth)
 	router.POST("/chat", handler.ProcessChat)
 	router.POST("/chat/session", handler.ProcessSessionChat)
+
+	// API chat endpoints (for compatibility with Next.js frontend)
+	api := router.Group("/api")
+	{
+		api.POST("/chat", handler.ProcessChat) // POST /api/chat - API chat endpoint
+	}
 
 	// Chat management endpoints
 	chat := router.Group("/chat")
