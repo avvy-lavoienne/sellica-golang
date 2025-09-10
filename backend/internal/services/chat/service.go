@@ -29,6 +29,7 @@ type Service struct {
 	sessions              *SessionManager
 	highPerformanceEngine *performance.HighPerformanceIntegration
 	personaIntegration    *persona.PersonaIntegrationService
+	contextEnhancer       *ContextEnhancer
 	mu                    sync.RWMutex
 	isHealthy             bool
 }
@@ -137,6 +138,10 @@ func NewService(db *database.Service, cache *cache.Service, auth *auth.Service, 
 	personaIntegration := persona.NewPersonaIntegrationService()
 	logrus.Info("✅ SELLY Persona Integration initialized successfully")
 
+	// Initialize context enhancer for Phase 9B RAG improvements
+	contextEnhancer := NewContextEnhancer()
+	logrus.Info("✅ Context Enhancer initialized for Phase 9B RAG improvements")
+
 	service := &Service{
 		db:                    db,
 		cache:                 cache,
@@ -146,6 +151,7 @@ func NewService(db *database.Service, cache *cache.Service, auth *auth.Service, 
 		sessions:              NewSessionManager(cache, db),
 		highPerformanceEngine: hpIntegration,
 		personaIntegration:    personaIntegration,
+		contextEnhancer:       contextEnhancer,
 		isHealthy:             true,
 	}
 
@@ -155,7 +161,7 @@ func NewService(db *database.Service, cache *cache.Service, auth *auth.Service, 
 
 // QueryAnalysis represents the analysis of a user query
 type QueryAnalysis struct {
-	ServiceType        string
+	ServiceType       string
 	Scenario          string
 	QuestionType      string
 	RequiresRAG       bool
@@ -198,43 +204,43 @@ func (s *Service) analyzeQuery(query string) *QueryAnalysis {
 
 		// Comprehensive scenario detection
 		if strings.Contains(lowerQuery, "hilang") || strings.Contains(lowerQuery, "rusak") ||
-		   strings.Contains(lowerQuery, "penggantian") || strings.Contains(lowerQuery, "duplikat") {
+			strings.Contains(lowerQuery, "penggantian") || strings.Contains(lowerQuery, "duplikat") {
 			analysis.Scenario = "C" // Lost/damaged certificate
 			analysis.Confidence = 1.0
 		} else if strings.Contains(lowerQuery, "baru lahir") || strings.Contains(lowerQuery, "bayi baru") ||
-				  (strings.Contains(lowerQuery, "baru") && strings.Contains(lowerQuery, "lahir")) ||
-				  strings.Contains(lowerQuery, "60 hari") {
+			(strings.Contains(lowerQuery, "baru") && strings.Contains(lowerQuery, "lahir")) ||
+			strings.Contains(lowerQuery, "60 hari") {
 			analysis.Scenario = "A" // Normal birth certificate (≤60 days)
 			analysis.Confidence = 0.95
 		} else if strings.Contains(lowerQuery, "terlambat") || strings.Contains(lowerQuery, "telat") ||
-				  strings.Contains(lowerQuery, "lebih dari 60") || strings.Contains(lowerQuery, "lewat 60") {
+			strings.Contains(lowerQuery, "lebih dari 60") || strings.Contains(lowerQuery, "lewat 60") {
 			analysis.Scenario = "B" // Late registration (>60 days)
 			analysis.Confidence = 0.95
 		} else if strings.Contains(lowerQuery, "koreksi") || strings.Contains(lowerQuery, "salah") ||
-				  strings.Contains(lowerQuery, "perbaikan") || strings.Contains(lowerQuery, "ubah data") {
+			strings.Contains(lowerQuery, "perbaikan") || strings.Contains(lowerQuery, "ubah data") {
 			analysis.Scenario = "D" // Data correction
 			analysis.Confidence = 0.95
 		} else if strings.Contains(lowerQuery, "luar negeri") || strings.Contains(lowerQuery, "lahir di luar") ||
-				  strings.Contains(lowerQuery, "wni luar negeri") || strings.Contains(lowerQuery, "kbri") {
+			strings.Contains(lowerQuery, "wni luar negeri") || strings.Contains(lowerQuery, "kbri") {
 			analysis.Scenario = "E" // Foreign births
 			analysis.Confidence = 0.95
 		}
 
 		// Detect question types
 		if strings.Contains(lowerQuery, "persyaratan") || strings.Contains(lowerQuery, "syarat") ||
-		   strings.Contains(lowerQuery, "dokumen") || strings.Contains(lowerQuery, "perlu apa") {
+			strings.Contains(lowerQuery, "dokumen") || strings.Contains(lowerQuery, "perlu apa") {
 			analysis.QuestionType = "requirements"
 		} else if strings.Contains(lowerQuery, "prosedur") || strings.Contains(lowerQuery, "langkah") ||
-				  strings.Contains(lowerQuery, "cara") || strings.Contains(lowerQuery, "bagaimana") {
+			strings.Contains(lowerQuery, "cara") || strings.Contains(lowerQuery, "bagaimana") {
 			analysis.QuestionType = "process"
 		} else if strings.Contains(lowerQuery, "biaya") || strings.Contains(lowerQuery, "gratis") ||
-				  strings.Contains(lowerQuery, "bayar") || strings.Contains(lowerQuery, "tarif") {
+			strings.Contains(lowerQuery, "bayar") || strings.Contains(lowerQuery, "tarif") {
 			analysis.QuestionType = "cost"
 		} else if strings.Contains(lowerQuery, "berapa lama") || strings.Contains(lowerQuery, "waktu") ||
-				  strings.Contains(lowerQuery, "hari kerja") || strings.Contains(lowerQuery, "selesai") {
+			strings.Contains(lowerQuery, "hari kerja") || strings.Contains(lowerQuery, "selesai") {
 			analysis.QuestionType = "time"
 		} else if strings.Contains(lowerQuery, "dasar hukum") || strings.Contains(lowerQuery, "undang-undang") ||
-				  strings.Contains(lowerQuery, "peraturan") || strings.Contains(lowerQuery, "uu") {
+			strings.Contains(lowerQuery, "peraturan") || strings.Contains(lowerQuery, "uu") {
 			analysis.QuestionType = "legal"
 		} else {
 			analysis.QuestionType = "general"
@@ -253,7 +259,7 @@ func (s *Service) analyzeQuery(query string) *QueryAnalysis {
 
 	} else if (strings.Contains(lowerQuery, "akta") || strings.Contains(lowerQuery, "akte")) &&
 		(strings.Contains(lowerQuery, "perkawinan") || strings.Contains(lowerQuery, "kawin") ||
-		 strings.Contains(lowerQuery, "nikah") || strings.Contains(lowerQuery, "menikah")) {
+			strings.Contains(lowerQuery, "nikah") || strings.Contains(lowerQuery, "menikah")) {
 		analysis.ServiceType = string(types.ServiceTypeAktaPerkawinan)
 		analysis.RequiresRAG = true
 		analysis.Confidence = 0.9
@@ -263,8 +269,8 @@ func (s *Service) analyzeQuery(query string) *QueryAnalysis {
 			analysis.SpecialCases = append(analysis.SpecialCases, "mixed_marriage")
 		}
 		if strings.Contains(lowerQuery, "kristen") || strings.Contains(lowerQuery, "katolik") ||
-		   strings.Contains(lowerQuery, "hindu") || strings.Contains(lowerQuery, "buddha") ||
-		   strings.Contains(lowerQuery, "konghucu") || strings.Contains(lowerQuery, "non muslim") {
+			strings.Contains(lowerQuery, "hindu") || strings.Contains(lowerQuery, "buddha") ||
+			strings.Contains(lowerQuery, "konghucu") || strings.Contains(lowerQuery, "non muslim") {
 			analysis.SpecialCases = append(analysis.SpecialCases, "non_muslim_marriage")
 		}
 		if strings.Contains(lowerQuery, "terlambat") || strings.Contains(lowerQuery, "lewat") {
@@ -295,7 +301,7 @@ func (s *Service) analyzeQuery(query string) *QueryAnalysis {
 // retrieveRelevantContent retrieves relevant content from the knowledge base
 func (s *Service) retrieveRelevantContent(ctx context.Context, query string, analysis *QueryAnalysis) (string, error) {
 	logrus.WithFields(logrus.Fields{
-		"query": query,
+		"query":        query,
 		"requires_rag": analysis.RequiresRAG,
 		"service_type": analysis.ServiceType,
 	}).Debug("🔍 Starting RAG content retrieval...")
@@ -314,7 +320,7 @@ func (s *Service) retrieveRelevantContent(ctx context.Context, query string, ana
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"query": query,
+		"query":         query,
 		"results_count": len(searchResults.Documents),
 		"search_scores": searchResults.Scores,
 	}).Debug("🔍 RAG search completed")
@@ -326,7 +332,7 @@ func (s *Service) retrieveRelevantContent(ctx context.Context, query string, ana
 
 	// Build context from retrieved documents
 	logrus.WithFields(logrus.Fields{
-		"query": query,
+		"query":           query,
 		"documents_found": len(searchResults.Documents),
 	}).Debug("📝 Building context from retrieved documents...")
 
@@ -340,10 +346,10 @@ func (s *Service) retrieveRelevantContent(ctx context.Context, query string, ana
 		}
 
 		logrus.WithFields(logrus.Fields{
-			"query": query,
-			"document_id": doc.ID,
+			"query":           query,
+			"document_id":     doc.ID,
 			"relevance_score": searchResults.Scores[i],
-			"document_title": doc.Title,
+			"document_title":  doc.Title,
 		}).Debug("📄 Adding document to context")
 
 		contextBuilder.WriteString(fmt.Sprintf("Document %d (Relevance: %.2f):\n", i+1, searchResults.Scores[i]))
@@ -357,7 +363,7 @@ func (s *Service) retrieveRelevantContent(ctx context.Context, query string, ana
 	finalContext := contextBuilder.String()
 
 	logrus.WithFields(logrus.Fields{
-		"query": query,
+		"query":          query,
 		"context_length": len(finalContext),
 		"documents_used": documentsUsed,
 	}).Info("📚 Retrieved relevant content from knowledge base")
@@ -394,12 +400,12 @@ func (s *Service) ProcessChat(ctx context.Context, req *ChatRequest, authContext
 
 	if queryAnalysis.RequiresRAG {
 		logrus.WithFields(logrus.Fields{
-			"service_type":   queryAnalysis.ServiceType,
-			"scenario":       queryAnalysis.Scenario,
-			"question_type":  queryAnalysis.QuestionType,
-			"keywords":       queryAnalysis.Keywords,
-			"confidence":     queryAnalysis.Confidence,
-			"special_cases":  queryAnalysis.SpecialCases,
+			"service_type":  queryAnalysis.ServiceType,
+			"scenario":      queryAnalysis.Scenario,
+			"question_type": queryAnalysis.QuestionType,
+			"keywords":      queryAnalysis.Keywords,
+			"confidence":    queryAnalysis.Confidence,
+			"special_cases": queryAnalysis.SpecialCases,
 		}).Info("🔍 RAG retrieval required for government service query")
 
 		ragContent, ragErr := s.retrieveRelevantContent(ctx, req.Message, queryAnalysis)
@@ -423,6 +429,9 @@ func (s *Service) ProcessChat(ctx context.Context, req *ChatRequest, authContext
 		enhancedContext["question_type"] = queryAnalysis.QuestionType
 		enhancedContext["confidence"] = queryAnalysis.Confidence
 		enhancedContext["special_cases"] = queryAnalysis.SpecialCases
+
+		// Phase 9B: Apply context enhancement for improved RAG accuracy
+		logrus.WithField("service_type", queryAnalysis.ServiceType).Info("🔧 Applying Phase 9B context enhancement")
 	}
 
 	// Process with high-performance engine if available, otherwise use standard AI service
@@ -482,6 +491,28 @@ func (s *Service) ProcessChat(ctx context.Context, req *ChatRequest, authContext
 		}
 	}
 
+	// Phase 9B: Apply context enhancement to improve RAG accuracy
+	if ragContext != "" && s.contextEnhancer != nil {
+		enhancedResponse, enhanceErr := s.contextEnhancer.EnhanceResponse(
+			ctx,
+			req.Message,
+			queryAnalysis.ServiceType,
+			ragContext,
+			aiResponse.Content,
+		)
+		if enhanceErr != nil {
+			logrus.WithError(enhanceErr).Warn("Phase 9B context enhancement failed, using original response")
+		} else {
+			// Update response with enhancement metadata
+			aiResponse.Content = enhancedResponse.EnhancedResponse
+			logrus.WithFields(logrus.Fields{
+				"phase9b_enhanced":    enhancedResponse.EnhancementApplied,
+				"key_terms_extracted": len(enhancedResponse.KeyTerms),
+				"validation_score":    enhancedResponse.ValidationResult.Score,
+			}).Info("✅ Phase 9B context enhancement applied successfully")
+		}
+	}
+
 	// Apply SELLY persona enhancement with new enhanced system
 	enhancedPersonaService := persona.GetGlobalPersonaService()
 	if enhancedPersonaService.IsEnabled() {
@@ -507,7 +538,7 @@ func (s *Service) ProcessChat(ctx context.Context, req *ChatRequest, authContext
 				UserID:              authContext.UserID,
 				SessionID:           sessionID,
 				BaseResponse:        aiResponse.Content,
-				IsFirstContact:      true, // Could be improved with session tracking
+				IsFirstContact:      true,       // Could be improved with session tracking
 				ConversationHistory: []string{}, // Could be improved with history
 				Context:             req.Context,
 			}
@@ -521,13 +552,13 @@ func (s *Service) ProcessChat(ctx context.Context, req *ChatRequest, authContext
 				aiResponse.Content = enhancedResponse.ProcessedResponse
 
 				logrus.WithFields(logrus.Fields{
-					"persona_applied":       enhancedResponse.PersonalityApplied,
-					"mood_detected":         enhancedResponse.MoodDetected,
-					"service_recognized":    enhancedResponse.ServiceRecognized,
-					"cultural_context":      enhancedResponse.CulturalContext,
+					"persona_applied":         enhancedResponse.PersonalityApplied,
+					"mood_detected":           enhancedResponse.MoodDetected,
+					"service_recognized":      enhancedResponse.ServiceRecognized,
+					"cultural_context":        enhancedResponse.CulturalContext,
 					"persona_processing_time": enhancedResponse.ProcessingTime,
-					"original_length":       len(originalContent),
-					"enhanced_length":       len(enhancedResponse.ProcessedResponse),
+					"original_length":         len(originalContent),
+					"enhanced_length":         len(enhancedResponse.ProcessedResponse),
 				}).Info("SELLY persona enhancement completed")
 			}
 		}
@@ -981,8 +1012,8 @@ func (s *Service) isPureGreeting(message string) bool {
 		}
 		// Also check for greetings with common suffixes
 		if strings.HasPrefix(trimmedMessage, pattern+" ") ||
-		   strings.HasPrefix(trimmedMessage, pattern+",") ||
-		   strings.HasPrefix(trimmedMessage, pattern+".") {
+			strings.HasPrefix(trimmedMessage, pattern+",") ||
+			strings.HasPrefix(trimmedMessage, pattern+".") {
 			return true
 		}
 	}
