@@ -2126,5 +2126,6 @@ Dengan mengikuti panduan komprehensif ini, AI Assistant yang dikembangkan tidak 
 67. SALAMAN Kota Bandung \- Aplikasi di Google Play, accessed August 4, 2025, [https://play.google.com/store/apps/details?id=gov.disdukcapilkotabdg.salaman\&hl=id](https://play.google.com/store/apps/details?id=gov.disdukcapilkotabdg.salaman&hl=id)  
 68. BUKU PETUNJUK PENGGUNAAN APLIKASI (User Manual ..., accessed August 4, 2025, [https://disdukcapil.bandung.go.id/api/web/buku-panduan-salaman](https://disdukcapil.bandung.go.id/api/web/buku-panduan-salaman)  
 69. Aplikasi SALAMAN Disdukcapil Bandung, Urus Dokumen Cukup Pakai HP \- detikcom, accessed August 4, 2025, [https://www.detik.com/jabar/berita/d-6289537/aplikasi-salaman-disdukcapil-bandung-urus-dokumen-cukup-pakai-hp](https://www.detik.com/jabar/berita/d-6289537/aplikasi-salaman-disdukcapil-bandung-urus-dokumen-cukup-pakai-hp)  
-70. Ini Cara dan Syarat Membuat Kartu Keluarga di Kota Bandung, accessed August 4, 2025, [https://www.radarbandung.id/2021/07/20/ini-cara-dan-syarat-membuat-kartu-keluarga-di-kota-bandung/](https://www.radarbandung.id/2021/07/20/ini-cara-dan-syarat-membuat-kartu-keluarga-di-kota-bandung/) 
+70. Ini Cara dan Syarat Membuat Kartu Keluarga di Kota Bandung, accessed August 4, 2025, [https://www.radarbandung.id/2021/07/20/ini-cara-dan-syarat-membuat-kartu-keluarga-di-kota-bandung/](https://www.radarbandung.id/2021/07/20/ini-cara-dan-syarat-membuat-kartu-keluarga-di-kota-bandung/)
+ 
  
