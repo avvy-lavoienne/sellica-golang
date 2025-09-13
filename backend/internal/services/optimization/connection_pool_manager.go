@@ -231,7 +231,7 @@ func (cpm *ConnectionPoolManager) performHealthCheck() {
 	if cpm.dbPoolStats != nil {
 		cpm.dbPoolStats.HealthChecksPassed++
 		if cpm.dbPoolStats.PoolUtilization > 0.9 {
-			logrus.Warn("⚠️ Database pool utilization high: %.1f%%", cpm.dbPoolStats.PoolUtilization*100)
+			logrus.Warnf("⚠️ Database pool utilization high: %.1f%%", cpm.dbPoolStats.PoolUtilization*100)
 		}
 	}
 	
@@ -239,7 +239,7 @@ func (cpm *ConnectionPoolManager) performHealthCheck() {
 	if cpm.redisPoolStats != nil {
 		cpm.redisPoolStats.HealthChecksPassed++
 		if cpm.redisPoolStats.PoolUtilization > 0.9 {
-			logrus.Warn("⚠️ Redis pool utilization high: %.1f%%", cpm.redisPoolStats.PoolUtilization*100)
+			logrus.Warnf("⚠️ Redis pool utilization high: %.1f%%", cpm.redisPoolStats.PoolUtilization*100)
 		}
 	}
 }

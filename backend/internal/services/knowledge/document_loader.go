@@ -225,6 +225,9 @@ func (dls *DocumentLoaderService) extractMetadata(content, filePath string) map[
 	if strings.Contains(filename, "akta-kelahiran") {
 		metadata["service_type"] = "akta_kelahiran"
 		metadata["service_name"] = "Akta Kelahiran"
+	} else if strings.Contains(filename, "akta-kematian") {
+		metadata["service_type"] = "akta_kematian"
+		metadata["service_name"] = "Akta Kematian"
 	} else if strings.Contains(filename, "kk-services") {
 		metadata["service_type"] = "kartu_keluarga"
 		metadata["service_name"] = "Kartu Keluarga"
@@ -367,7 +370,7 @@ func (dls *DocumentLoaderService) detectScenario(section, title string) string {
 	lowerSection := strings.ToLower(section)
 	lowerTitle := strings.ToLower(title)
 	
-	// Scenario detection patterns
+	// Birth certificate scenario detection patterns
 	if strings.Contains(lowerTitle, "skenario a") || strings.Contains(lowerSection, "bayi baru lahir") {
 		return "A"
 	}
@@ -382,6 +385,20 @@ func (dls *DocumentLoaderService) detectScenario(section, title string) string {
 	}
 	if strings.Contains(lowerTitle, "skenario e") || strings.Contains(lowerSection, "luar negeri") {
 		return "E"
+	}
+	
+	// Death certificate scenario detection patterns
+	if strings.Contains(lowerSection, "kematian normal") || strings.Contains(lowerTitle, "kematian normal") ||
+		(strings.Contains(lowerSection, "almarhum memiliki nik") && strings.Contains(lowerSection, "terdata")) {
+		return "DEATH_NORMAL"
+	}
+	if strings.Contains(lowerSection, "kematian tanpa nik") || strings.Contains(lowerTitle, "tanpa nik") ||
+		(strings.Contains(lowerSection, "tidak terdaftar") && strings.Contains(lowerSection, "penetapan pengadilan")) {
+		return "DEATH_NO_NIK"
+	}
+	if strings.Contains(lowerSection, "kematian dengan nik") || strings.Contains(lowerTitle, "dokumen hilang") ||
+		(strings.Contains(lowerSection, "sptjm") && strings.Contains(lowerSection, "surat pernyataan")) {
+		return "DEATH_LOST_DOCS"
 	}
 	
 	return ""

@@ -188,10 +188,12 @@ func (s *Service) analyzeQuery(query string) *QueryAnalysis {
 
 	// Check for government service keywords (including alternative spellings)
 	governmentKeywords := []string{
-		"akta", "akte", "kelahiran", "kk", "kartu keluarga", "ktp", "elektronik",
+		"akta", "akte", "kelahiran", "kematian", "meninggal", "wafat", "mati",
+		"kk", "kartu keluarga", "ktp", "elektronik",
 		"disdukcapil", "administrasi", "kependudukan", "dokumen", "persyaratan",
 		"hilang", "rusak", "penggantian", "duplikat", "koreksi", "syarat",
 		"prosedur", "biaya", "gratis", "waktu", "hari kerja", "undang-undang",
+		"sptjm", "penetapan", "pengadilan", "nik", "tanpa nik",
 	}
 
 	for _, keyword := range governmentKeywords {
@@ -280,6 +282,64 @@ func (s *Service) analyzeQuery(query string) *QueryAnalysis {
 		}
 		if strings.Contains(lowerQuery, "terlambat") || strings.Contains(lowerQuery, "lewat") {
 			analysis.SpecialCases = append(analysis.SpecialCases, "late_registration")
+		}
+
+	} else if (strings.Contains(lowerQuery, "akta") || strings.Contains(lowerQuery, "akte")) &&
+		(strings.Contains(lowerQuery, "kematian") || strings.Contains(lowerQuery, "meninggal") ||
+			strings.Contains(lowerQuery, "mati") || strings.Contains(lowerQuery, "wafat")) {
+		analysis.ServiceType = string(types.ServiceTypeAktaKematian)
+		analysis.RequiresRAG = true
+		analysis.Confidence = 0.9
+
+		// Comprehensive death certificate scenario detection
+		if strings.Contains(lowerQuery, "tanpa nik") || strings.Contains(lowerQuery, "tidak terdaftar") ||
+			strings.Contains(lowerQuery, "pengadilan") || strings.Contains(lowerQuery, "penetapan") {
+			analysis.Scenario = "DEATH_NO_NIK" // Death without NIK (court determination required)
+			analysis.Confidence = 1.0
+			analysis.SpecialCases = append(analysis.SpecialCases, "court_determination")
+		} else if strings.Contains(lowerQuery, "dokumen hilang") || strings.Contains(lowerQuery, "surat hilang") ||
+			strings.Contains(lowerQuery, "sptjm") || strings.Contains(lowerQuery, "pernyataan") {
+			analysis.Scenario = "DEATH_LOST_DOCS" // Death with NIK but lost documents
+			analysis.Confidence = 0.95
+			analysis.SpecialCases = append(analysis.SpecialCases, "sptjm_required")
+		} else if strings.Contains(lowerQuery, "normal") || strings.Contains(lowerQuery, "biasa") ||
+			(strings.Contains(lowerQuery, "nik") && !strings.Contains(lowerQuery, "tanpa")) {
+			analysis.Scenario = "DEATH_NORMAL" // Normal death with complete documents
+			analysis.Confidence = 0.95
+		}
+
+		// Detect question types for death certificates
+		if strings.Contains(lowerQuery, "persyaratan") || strings.Contains(lowerQuery, "syarat") ||
+			strings.Contains(lowerQuery, "dokumen") || strings.Contains(lowerQuery, "perlu apa") {
+			analysis.QuestionType = "requirements"
+		} else if strings.Contains(lowerQuery, "prosedur") || strings.Contains(lowerQuery, "langkah") ||
+			strings.Contains(lowerQuery, "cara") || strings.Contains(lowerQuery, "bagaimana") {
+			analysis.QuestionType = "process"
+		} else if strings.Contains(lowerQuery, "biaya") || strings.Contains(lowerQuery, "gratis") ||
+			strings.Contains(lowerQuery, "bayar") || strings.Contains(lowerQuery, "tarif") {
+			analysis.QuestionType = "cost"
+		} else if strings.Contains(lowerQuery, "berapa lama") || strings.Contains(lowerQuery, "waktu") ||
+			strings.Contains(lowerQuery, "hari kerja") || strings.Contains(lowerQuery, "selesai") {
+			analysis.QuestionType = "time"
+		} else if strings.Contains(lowerQuery, "dasar hukum") || strings.Contains(lowerQuery, "undang-undang") ||
+			strings.Contains(lowerQuery, "peraturan") || strings.Contains(lowerQuery, "uu") {
+			analysis.QuestionType = "legal"
+		} else {
+			analysis.QuestionType = "general"
+		}
+
+		// Detect special death certificate cases
+		if strings.Contains(lowerQuery, "kecelakaan") || strings.Contains(lowerQuery, "tindak pidana") ||
+			strings.Contains(lowerQuery, "kepolisian") || strings.Contains(lowerQuery, "polisi") {
+			analysis.SpecialCases = append(analysis.SpecialCases, "police_involved")
+		}
+		if strings.Contains(lowerQuery, "rumah sakit") || strings.Contains(lowerQuery, "rs") ||
+			strings.Contains(lowerQuery, "puskesmas") || strings.Contains(lowerQuery, "dokter") {
+			analysis.SpecialCases = append(analysis.SpecialCases, "medical_facility")
+		}
+		if strings.Contains(lowerQuery, "di rumah") || strings.Contains(lowerQuery, "kelurahan") ||
+			strings.Contains(lowerQuery, "desa") || strings.Contains(lowerQuery, "kepala desa") {
+			analysis.SpecialCases = append(analysis.SpecialCases, "home_death")
 		}
 
 	} else if strings.Contains(lowerQuery, "kk") || strings.Contains(lowerQuery, "kartu keluarga") {

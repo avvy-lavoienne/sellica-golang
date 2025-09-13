@@ -238,8 +238,16 @@ func (cb *CircuitBreaker) GetMetrics() *CircuitBreakerMetrics {
 	cb.metrics.mu.RLock()
 	defer cb.metrics.mu.RUnlock()
 	
-	// Create a copy to avoid race conditions
-	metrics := *cb.metrics
+	// Create a copy to avoid race conditions (without copying the mutex)
+	metrics := CircuitBreakerMetrics{
+		TotalRequests:    cb.metrics.TotalRequests,
+		SuccessfulCalls:  cb.metrics.SuccessfulCalls,
+		FailedCalls:      cb.metrics.FailedCalls,
+		RejectedCalls:    cb.metrics.RejectedCalls,
+		StateTransitions: cb.metrics.StateTransitions,
+		LastStateChange:  cb.metrics.LastStateChange,
+		CurrentState:     cb.metrics.CurrentState,
+	}
 	return &metrics
 }
 

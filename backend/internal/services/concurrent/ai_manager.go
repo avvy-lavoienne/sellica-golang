@@ -445,8 +445,17 @@ func (cam *ConcurrentAIManager) GetMetrics() *ConcurrentMetrics {
 	cam.metrics.mu.RLock()
 	defer cam.metrics.mu.RUnlock()
 
-	// Create a copy to avoid race conditions
-	metrics := *cam.metrics
+	// Create a copy to avoid race conditions (without copying the mutex)
+	metrics := ConcurrentMetrics{
+		TotalRequests:       cam.metrics.TotalRequests,
+		ConcurrentRequests:  cam.metrics.ConcurrentRequests,
+		CompletedRequests:   cam.metrics.CompletedRequests,
+		FailedRequests:      cam.metrics.FailedRequests,
+		AverageResponseTime: cam.metrics.AverageResponseTime,
+		PeakConcurrency:     cam.metrics.PeakConcurrency,
+		ThroughputPerSecond: cam.metrics.ThroughputPerSecond,
+		LastUpdated:         cam.metrics.LastUpdated,
+	}
 	return &metrics
 }
 

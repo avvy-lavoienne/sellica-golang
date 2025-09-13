@@ -37,8 +37,8 @@ type AlertRule struct {
 	Cooldown            time.Duration `json:"cooldown"`
 	
 	// Internal state
-	lastTriggered *time.Time `json:"lastTriggered,omitempty"`
-	isActive      bool       `json:"isActive"`
+	LastTriggered *time.Time `json:"lastTriggered,omitempty"`
+	IsActive      bool       `json:"isActive"`
 }
 
 // AlertEvent represents a triggered alert
@@ -260,11 +260,11 @@ func (am *AlertManager) evaluateRule(rule *AlertRule, metrics map[string]float64
 	}
 	
 	// Check cooldown period
-	if rule.lastTriggered != nil && now.Sub(*rule.lastTriggered) < rule.Cooldown {
+	if rule.LastTriggered != nil && now.Sub(*rule.LastTriggered) < rule.Cooldown {
 		return
 	}
 	
-	if shouldTrigger && !rule.isActive {
+	if shouldTrigger && !rule.IsActive {
 		// Trigger alert
 		event := &AlertEvent{
 			ID:        fmt.Sprintf("%s-%d", rule.ID, now.Unix()),
@@ -284,7 +284,7 @@ func (am *AlertManager) evaluateRule(rule *AlertRule, metrics map[string]float64
 		
 		am.triggerAlert(rule, event)
 		
-	} else if !shouldTrigger && rule.isActive {
+	} else if !shouldTrigger && rule.IsActive {
 		// Resolve alert
 		am.resolveAlert(rule, value)
 	}
@@ -295,8 +295,8 @@ func (am *AlertManager) triggerAlert(rule *AlertRule, event *AlertEvent) {
 	start := time.Now()
 	
 	am.mutex.Lock()
-	rule.isActive = true
-	rule.lastTriggered = &event.Timestamp
+	rule.IsActive = true
+	rule.LastTriggered = &event.Timestamp
 	am.events = append(am.events, *event)
 	am.alertsTriggered++
 	am.mutex.Unlock()
@@ -345,7 +345,7 @@ func (am *AlertManager) resolveAlert(rule *AlertRule, currentValue float64) {
 	am.mutex.Lock()
 	defer am.mutex.Unlock()
 	
-	rule.isActive = false
+	rule.IsActive = false
 	
 	// Find and resolve the latest event for this rule
 	for i := len(am.events) - 1; i >= 0; i-- {

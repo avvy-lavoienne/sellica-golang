@@ -197,8 +197,15 @@ func (rl *RateLimiter) GetMetrics() *RateLimiterMetrics {
 	rl.metrics.mu.RLock()
 	defer rl.metrics.mu.RUnlock()
 	
-	// Create a copy to avoid race conditions
-	metrics := *rl.metrics
+	// Create a copy to avoid race conditions (without copying the mutex)
+	metrics := RateLimiterMetrics{
+		TotalRequests:    rl.metrics.TotalRequests,
+		AllowedRequests:  rl.metrics.AllowedRequests,
+		RejectedRequests: rl.metrics.RejectedRequests,
+		CurrentRate:      rl.metrics.CurrentRate,
+		BurstCapacity:    rl.metrics.BurstCapacity,
+		LastUpdated:      rl.metrics.LastUpdated,
+	}
 	return &metrics
 }
 
