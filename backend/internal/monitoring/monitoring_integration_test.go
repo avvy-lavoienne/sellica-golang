@@ -35,6 +35,8 @@ func TestMonitoringIntegration(t *testing.T) {
 
 // testPrometheusMetricsIntegration tests Prometheus metrics integration
 func testPrometheusMetricsIntegration(t *testing.T, ctx context.Context) {
+	_ = ctx // Context parameter kept for future timeout/cancellation support
+	
 	// Create Prometheus metrics instance
 	metrics := NewPrometheusMetrics()
 	require.NotNil(t, metrics)

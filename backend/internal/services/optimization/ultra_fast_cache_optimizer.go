@@ -201,6 +201,11 @@ func (ufco *UltraFastCacheOptimizer) OptimizeCache(ctx context.Context, config *
 
 // optimizeL1Cache optimizes L1 memory cache
 func (ufco *UltraFastCacheOptimizer) optimizeL1Cache(ctx context.Context) error {
+	// Check if context is cancelled
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	
 	logrus.Info("  🔧 Optimizing L1 memory cache...")
 	
 	optimizations := []string{
@@ -221,6 +226,11 @@ func (ufco *UltraFastCacheOptimizer) optimizeL1Cache(ctx context.Context) error 
 
 // optimizeL2Cache optimizes L2 Redis cache
 func (ufco *UltraFastCacheOptimizer) optimizeL2Cache(ctx context.Context) error {
+	// Check if context is cancelled
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	
 	logrus.Info("  🔧 Optimizing L2 Redis cache...")
 	
 	optimizations := []string{
@@ -241,6 +251,11 @@ func (ufco *UltraFastCacheOptimizer) optimizeL2Cache(ctx context.Context) error 
 
 // setupL3Cache sets up L3 persistent cache
 func (ufco *UltraFastCacheOptimizer) setupL3Cache(ctx context.Context) error {
+	// Check if context is cancelled
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	
 	logrus.Info("  🔧 Setting up L3 persistent cache...")
 	
 	features := []string{
@@ -261,6 +276,11 @@ func (ufco *UltraFastCacheOptimizer) setupL3Cache(ctx context.Context) error {
 
 // enableBloomFilter enables bloom filter for negative lookups
 func (ufco *UltraFastCacheOptimizer) enableBloomFilter(ctx context.Context) error {
+	// Check if context is cancelled
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	
 	logrus.Info("  🔧 Enabling bloom filter for negative lookups...")
 	
 	ufco.bloomFilter.enabled = true
@@ -273,6 +293,11 @@ func (ufco *UltraFastCacheOptimizer) enableBloomFilter(ctx context.Context) erro
 
 // enablePrefetching enables predictive prefetching
 func (ufco *UltraFastCacheOptimizer) enablePrefetching(ctx context.Context) error {
+	// Check if context is cancelled
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	
 	logrus.Info("  🔧 Enabling predictive prefetching...")
 	
 	ufco.prefetchEngine.enabled = true
@@ -285,6 +310,11 @@ func (ufco *UltraFastCacheOptimizer) enablePrefetching(ctx context.Context) erro
 
 // enableCompression enables cache data compression
 func (ufco *UltraFastCacheOptimizer) enableCompression(ctx context.Context) error {
+	// Check if context is cancelled
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	
 	logrus.Info("  🔧 Enabling cache data compression...")
 	
 	ufco.compressionEngine.enabled = true
@@ -297,6 +327,11 @@ func (ufco *UltraFastCacheOptimizer) enableCompression(ctx context.Context) erro
 
 // setupTTLOptimization sets up intelligent TTL management
 func (ufco *UltraFastCacheOptimizer) setupTTLOptimization(ctx context.Context) error {
+	// Check if context is cancelled
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	
 	logrus.Info("  🔧 Setting up intelligent TTL optimization...")
 	
 	features := []string{

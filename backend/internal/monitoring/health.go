@@ -358,6 +358,11 @@ func (hc *HealthChecker) checkDependencies(ctx context.Context, status *HealthSt
 
 // checkServiceComponents checks internal service components
 func (hc *HealthChecker) checkServiceComponents(ctx context.Context, status *HealthStatus) {
+	// Check if context is cancelled
+	if ctx.Err() != nil {
+		return
+	}
+	
 	// AI Services
 	status.Services["ai_service"] = &ServiceHealth{
 		Status:    HealthStatusHealthy, // Would check actual AI service health

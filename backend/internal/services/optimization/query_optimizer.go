@@ -170,6 +170,11 @@ func (qo *QueryOptimizer) OptimizeQueries(ctx context.Context, config *QueryOpti
 
 // enableQueryCaching enables intelligent query result caching
 func (qo *QueryOptimizer) enableQueryCaching(ctx context.Context) error {
+	// Check if context is cancelled
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	
 	logrus.Info("  🔧 Enabling intelligent query result caching...")
 	
 	qo.queryCache.enabled = true
@@ -194,6 +199,11 @@ func (qo *QueryOptimizer) enableQueryCaching(ctx context.Context) error {
 
 // optimizeIndexes optimizes database indexes for better performance
 func (qo *QueryOptimizer) optimizeIndexes(ctx context.Context) error {
+	// Check if context is cancelled
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	
 	logrus.Info("  🔧 Optimizing database indexes...")
 	
 	qo.indexOptimizer.enabled = true
@@ -225,6 +235,11 @@ func (qo *QueryOptimizer) optimizeIndexes(ctx context.Context) error {
 
 // optimizeConnectionPooling optimizes database connection pooling
 func (qo *QueryOptimizer) optimizeConnectionPooling(ctx context.Context) error {
+	// Check if context is cancelled
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	
 	logrus.Info("  🔧 Optimizing database connection pooling...")
 	
 	optimizations := []string{
@@ -245,6 +260,11 @@ func (qo *QueryOptimizer) optimizeConnectionPooling(ctx context.Context) error {
 
 // configureReadReplicas configures read replica usage
 func (qo *QueryOptimizer) configureReadReplicas(ctx context.Context) error {
+	// Check if context is cancelled
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	
 	logrus.Info("  🔧 Configuring read replica optimization...")
 	
 	configurations := []string{
@@ -265,6 +285,11 @@ func (qo *QueryOptimizer) configureReadReplicas(ctx context.Context) error {
 
 // enableQueryPipelining enables query pipelining for batch operations
 func (qo *QueryOptimizer) enableQueryPipelining(ctx context.Context) error {
+	// Check if context is cancelled
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	
 	logrus.Info("  🔧 Enabling query pipelining...")
 	
 	features := []string{
@@ -285,6 +310,11 @@ func (qo *QueryOptimizer) enableQueryPipelining(ctx context.Context) error {
 
 // setupPreparedStatementCache sets up prepared statement caching
 func (qo *QueryOptimizer) setupPreparedStatementCache(ctx context.Context) error {
+	// Check if context is cancelled
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	
 	logrus.Info("  🔧 Setting up prepared statement caching...")
 	
 	features := []string{

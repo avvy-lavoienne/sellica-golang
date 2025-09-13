@@ -354,26 +354,23 @@ func (s *Service) startHealthChecks() {
 	ticker := time.NewTicker(s.config.HealthCheckInterval)
 	defer ticker.Stop()
 
-	for {
-		select {
-		case <-ticker.C:
-			if !s.IsRunning() {
-				return // Service stopped
-			}
+	for range ticker.C {
+		if !s.IsRunning() {
+			return // Service stopped
+		}
 
-			healthy := s.IsHealthy()
-			status := s.GetStatus()
+		healthy := s.IsHealthy()
+		status := s.GetStatus()
 
-			logrus.WithFields(logrus.Fields{
-				"healthy":      healthy,
-				"worker_pool":  status["worker_pool"] != nil,
-				"rate_limiter": status["rate_limiter"] != nil,
-				"ai_manager":   status["ai_manager"] != nil,
-			}).Debug("🔍 Concurrent processing service health check")
+		logrus.WithFields(logrus.Fields{
+			"healthy":      healthy,
+			"worker_pool":  status["worker_pool"] != nil,
+			"rate_limiter": status["rate_limiter"] != nil,
+			"ai_manager":   status["ai_manager"] != nil,
+		}).Debug("🔍 Concurrent processing service health check")
 
-			if !healthy {
-				logrus.Warn("⚠️ Concurrent processing service is unhealthy")
-			}
+		if !healthy {
+			logrus.Warn("⚠️ Concurrent processing service is unhealthy")
 		}
 	}
 }

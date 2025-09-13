@@ -364,9 +364,10 @@ func (hm *HealthMonitor) GetHealthHandler() gin.HandlerFunc {
 		
 		// Set appropriate HTTP status code
 		statusCode := http.StatusOK
-		if health.Status == HealthStatusDegraded {
+		switch health.Status {
+		case HealthStatusDegraded:
 			statusCode = http.StatusPartialContent
-		} else if health.Status == HealthStatusUnhealthy {
+		case HealthStatusUnhealthy:
 			statusCode = http.StatusServiceUnavailable
 		}
 		
