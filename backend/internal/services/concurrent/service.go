@@ -5,8 +5,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"selly-backend/internal/services/monitoring"
+
+	"github.com/sirupsen/logrus"
 )
 
 // Service provides concurrent processing capabilities for the application
