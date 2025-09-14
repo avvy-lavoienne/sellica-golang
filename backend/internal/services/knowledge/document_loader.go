@@ -21,13 +21,14 @@ import (
 
 // DocumentLoaderService handles loading and indexing of training documents
 type DocumentLoaderService struct {
-	ragService    *rag.RedisRAGService
-	cache         *cache.Service
-	fileWatcher   *fsnotify.Watcher
-	indexManager  *IndexManager
-	documentsPath string
-	enabled       bool
-	recursiveScan bool // Enable recursive scanning of subdirectories
+	ragService      *rag.RedisRAGService
+	cache           *cache.Service
+	fileWatcher     *fsnotify.Watcher
+	indexManager    *IndexManager
+	documentsPath   string
+	additionalPaths []string // For persona, profile, and other directories
+	enabled         bool
+	recursiveScan   bool // Enable recursive scanning of subdirectories
 }
 
 // DocumentChunk represents a chunk of a training document
@@ -578,7 +579,7 @@ func (dls *DocumentLoaderService) startIndexingWorkers() {
 	}
 }
 
-// LoadAllDocuments loads all training documents from the documents directory
+// LoadAllDocuments loads all training documents from the documents directory and additional paths
 func (dls *DocumentLoaderService) LoadAllDocuments() error {
 	if !dls.enabled {
 		return fmt.Errorf("document loader service is disabled")
@@ -586,12 +587,44 @@ func (dls *DocumentLoaderService) LoadAllDocuments() error {
 
 	logrus.WithField("recursive_scan", dls.recursiveScan).Info("📚 Loading training documents...")
 
-	// If recursive scan is disabled, only scan the root directory
+	// Load from main documents path
 	if !dls.recursiveScan {
-		return dls.loadDocumentsFromDirectory(dls.documentsPath)
+		err := dls.loadDocumentsFromDirectory(dls.documentsPath)
+		if err != nil {
+			return err
+		}
+	} else {
+		err := dls.loadDocumentsRecursively(dls.documentsPath)
+		if err != nil {
+			return err
+		}
 	}
 
-	err := filepath.Walk(dls.documentsPath, func(path string, info os.FileInfo, err error) error {
+	// Load from additional paths (persona, profile, etc.)
+	for _, additionalPath := range dls.additionalPaths {
+		logrus.WithField("path", additionalPath).Info("📁 Loading documents from additional path")
+		if !dls.recursiveScan {
+			err := dls.loadDocumentsFromDirectory(additionalPath)
+			if err != nil {
+				logrus.WithError(err).WithField("path", additionalPath).Warn("Failed to load documents from additional path")
+				continue // Don't fail completely, just warn and continue
+			}
+		} else {
+			err := dls.loadDocumentsRecursively(additionalPath)
+			if err != nil {
+				logrus.WithError(err).WithField("path", additionalPath).Warn("Failed to recursively load documents from additional path")
+				continue // Don't fail completely, just warn and continue
+			}
+		}
+	}
+
+	logrus.Info("✅ All training documents loaded successfully")
+	return nil
+}
+
+// loadDocumentsRecursively loads documents from a directory recursively
+func (dls *DocumentLoaderService) loadDocumentsRecursively(dirPath string) error {
+	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -616,10 +649,9 @@ func (dls *DocumentLoaderService) LoadAllDocuments() error {
 	})
 
 	if err != nil {
-		return fmt.Errorf("failed to walk documents directory: %w", err)
+		return fmt.Errorf("failed to walk directory %s: %w", dirPath, err)
 	}
 
-	logrus.Info("✅ All training documents loaded successfully")
 	return nil
 }
 
@@ -848,6 +880,9 @@ func (dls *DocumentLoaderService) AddDocumentPath(path string) error {
 		return nil // Don't fail, just warn
 	}
 
+	// Add to additional paths list
+	dls.additionalPaths = append(dls.additionalPaths, path)
+
 	// Add to file watcher
 	err := dls.fileWatcher.Add(path)
 	if err != nil {
@@ -863,6 +898,37 @@ func (dls *DocumentLoaderService) AddDocumentPath(path string) error {
 	}
 
 	logrus.WithField("path", path).Info("✅ Added additional document path to watcher")
+	return nil
+}
+
+// AddSellyIntelligencePaths adds persona and profile directories for SELLY intelligence
+func (dls *DocumentLoaderService) AddSellyIntelligencePaths(trainingBasePath string) error {
+	if !dls.enabled {
+		return fmt.Errorf("document loader service is disabled")
+	}
+
+	// Define persona and profile paths relative to training base path
+	personaPath := filepath.Join(trainingBasePath, "persona")
+	profilePath := filepath.Join(trainingBasePath, "profile")
+
+	logrus.WithFields(logrus.Fields{
+		"persona_path": personaPath,
+		"profile_path": profilePath,
+	}).Info("🎭 Adding SELLY intelligence paths (persona and profile)")
+
+	// Add persona path
+	if err := dls.AddDocumentPath(personaPath); err != nil {
+		logrus.WithError(err).WithField("path", personaPath).Error("Failed to add persona path")
+		return fmt.Errorf("failed to add persona path: %w", err)
+	}
+
+	// Add profile path
+	if err := dls.AddDocumentPath(profilePath); err != nil {
+		logrus.WithError(err).WithField("path", profilePath).Error("Failed to add profile path")
+		return fmt.Errorf("failed to add profile path: %w", err)
+	}
+
+	logrus.Info("✅ SELLY intelligence paths added successfully")
 	return nil
 }
 
@@ -886,10 +952,11 @@ func (dls *DocumentLoaderService) SetRecursiveScan(enabled bool) {
 
 // GetStats returns statistics about the knowledge service
 func (dls *DocumentLoaderService) GetStats() *KnowledgeStats {
-	// Count actual files in the documents directory
+	// Count actual files in the documents directory and additional paths
 	documentsLoaded := 0
 	jsonFilesProcessed := 0
 
+	// Count files in main documents path
 	if dls.recursiveScan {
 		filepath.Walk(dls.documentsPath, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -917,10 +984,44 @@ func (dls *DocumentLoaderService) GetStats() *KnowledgeStats {
 		}
 	}
 
+	// Count files in additional paths (persona, profile, etc.)
+	for _, additionalPath := range dls.additionalPaths {
+		if dls.recursiveScan {
+			filepath.Walk(additionalPath, func(path string, info os.FileInfo, err error) error {
+				if err != nil {
+					return nil // Skip errors
+				}
+				if !info.IsDir() {
+					documentsLoaded++
+					if strings.HasSuffix(path, ".json") {
+						jsonFilesProcessed++
+					}
+				}
+				return nil
+			})
+		} else {
+			entries, err := os.ReadDir(additionalPath)
+			if err == nil {
+				for _, entry := range entries {
+					if !entry.IsDir() {
+						documentsLoaded++
+						if strings.HasSuffix(entry.Name(), ".json") {
+							jsonFilesProcessed++
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Prepare all watched paths
+	watchedPaths := []string{dls.documentsPath}
+	watchedPaths = append(watchedPaths, dls.additionalPaths...)
+
 	return &KnowledgeStats{
 		DocumentsLoaded:    documentsLoaded,
 		JSONFilesProcessed: jsonFilesProcessed,
-		PathsWatched:       []string{dls.documentsPath},
+		PathsWatched:       watchedPaths,
 		LastUpdated:        time.Now(),
 	}
 }
