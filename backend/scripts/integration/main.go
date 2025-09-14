@@ -30,19 +30,19 @@ func main() {
 	fmt.Println("📋 Initializing services...")
 
 	// Database service
-	dbService, err := database.NewService("", "")
+	dbService, err := database.NewService(cfg.Database.URL, cfg.Database.ServiceRoleKey)
 	if err != nil {
 		log.Fatalf("Failed to initialize database service: %v", err)
 	}
 
-	// Cache service
-	cacheService, err := cache.NewService("")
+	// Cache service with Redis URL from config
+	cacheService, err := cache.NewService(cfg.Cache.RedisURL)
 	if err != nil {
 		log.Fatalf("Failed to initialize cache service: %v", err)
 	}
 
 	// Auth service
-	authService := auth.NewService("test-secret", dbService)
+	authService := auth.NewService(cfg.Auth.JWTSecret, dbService)
 
 	// RAG service
 	ragService := rag.NewRedisRAGService(cacheService.GetRedisClient())
@@ -69,6 +69,14 @@ func main() {
 
 	// Enable recursive scanning
 	knowledgeService.SetRecursiveScan(true)
+
+	// Add SELLY intelligence paths (persona and profile)
+	trainingBasePath := filepath.Dir(absPath) // Go up one level from documents to training
+	fmt.Printf("🎭 Adding SELLY intelligence paths from: %s\n", trainingBasePath)
+	if err := knowledgeService.AddSellyIntelligencePaths(trainingBasePath); err != nil {
+		log.Printf("Warning: Failed to add SELLY intelligence paths: %v", err)
+		// Continue execution, this is not critical for basic functionality
+	}
 
 	// Load all documents
 	fmt.Printf("📚 Loading documents from: %s\n", absPath)
