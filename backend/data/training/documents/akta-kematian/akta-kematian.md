@@ -1,26 +1,48 @@
 
-# Akta Kematian - Panduan Lengkap Pelayanan (Versi Dioptimalkan untuk RAG)
+# Akta Kematian - Panduan Lengkap Pelayanan (Enhanced dengan "Sahabat Adminduk")
+
+<!-- SELLY PERSONA INTEGRATION: Compassionate and supportive guidance for families dealing with loss -->
+<!-- RAG OPTIMIZATION: Empathy-driven language patterns for grief-sensitive situations -->
+
+**💙 Pesan dari Sahabat Adminduk:**
+"Saya turut berduka cita atas kehilangan yang Anda alami. Di saat yang berat ini, saya akan membantu Anda menyelesaikan urusan administrasi dengan sejelas-jelasnya dan secepat mungkin, agar Anda bisa fokus pada hal-hal yang lebih penting."
 
 Dokumen ini telah dioptimalkan untuk Retrieval-Augmented Generation (RAG) dengan perbaikan sebagai berikut:
 
 - **Verifikasi Faktual**: Informasi diverifikasi berdasarkan regulasi terbaru dari Kemendagri dan Disdukcapil per Agustus 2025, termasuk Perpres 96/2018, Permendagri 108/2019, dan aturan pencatatan kematian sesuai UU 24/2013. Sumber: Situs resmi dukcapil.kemendagri.go.id dan berbagai Disdukcapil daerah.
 - **Standarisasi Format**: Struktur heading konsisten, penambahan metadata (kategori layanan, tingkat kesulitan, estimasi waktu), format FAQ terstruktur, dan referensi akurat.
 - **Optimalisasi AI**: Bahasa Indonesia formal yang jelas, terminologi pemerintahan tepat, struktur logis, serta penambahan kata kunci untuk pencarian.
+- **SELLY Persona Integration**: Penambahan pola respons empati "Sahabat Adminduk" dengan bahasa yang menenangkan dan dukungan proaktif untuk keluarga yang berduka.
 - **Compliance**: Mematuhi Undang-Undang Nomor 24 Tahun 2013 tentang Administrasi Kependudukan, prinsip transparansi informasi publik, dan standar komunikasi pemerintah Indonesia.
 
 **Metadata**:  
 
 - Kategori Layanan: Pencatatan Sipil  
 - Tingkat Kesulitan: Rendah (untuk kematian normal dengan dokumen lengkap) hingga Tinggi (untuk kematian tanpa NIK)  
-- Estimasi Waktu: 1-3 hari kerja untuk kasus normal, 7-14 hari kerja untuk kasus khusus  
+- Estimasi Waktu: 1-3 hari kerja untuk kasus normal, 7-14 hari kerja untuk kasus khusus
+- **Dukungan Empati**: Guidance khusus untuk keluarga yang berduka dengan pendekatan yang sensitif dan memahami
 
-## Definisi Akta Kematian
+## 💝 Definisi Akta Kematian - Perspektif "Sahabat Adminduk"
 
-Akta Kematian adalah dokumen resmi yang mencatat peristiwa kematian seseorang, diterbitkan oleh Dinas Kependudukan dan Pencatatan Sipil (Disdukcapil) berdasarkan laporan kematian. Dokumen ini berfungsi sebagai bukti sah dan otentik atas peristiwa kematian, diperlukan untuk mengurus berbagai hak keperdataan seperti warisan, asuransi, dan perubahan status perkawinan.
+**Dengan bahasa yang mudah dipahami:**
 
-Bagi negara, pencatatan kematian melalui akta ini penting untuk menjaga akurasi data kependudukan nasional, mencegah penyalahgunaan NIK almarhum, dan memastikan data pemilih serta penerima bantuan sosial tetap valid. Bagi keluarga, Akta Kematian adalah syarat wajib untuk mengurus warisan, klaim asuransi, dana pensiun, dan penetapan status janda/duda.
+Akta Kematian adalah dokumen resmi yang mencatat bahwa seseorang yang kita sayangi telah meninggal dunia. Dokumen ini diterbitkan oleh Dinas Kependudukan dan Pencatatan Sipil (Disdukcapil) dan sangat penting untuk mengurus berbagai keperluan setelah kepergian beliau.
 
-Keywords: definisi akta kematian, dokumen resmi kematian, disdukcapil, pencatatan kematian, bukti kematian.
+**Mengapa dokumen ini penting untuk keluarga:**
+
+- Untuk mengurus warisan dan harta yang ditinggalkan
+- Klaim asuransi jiwa atau dana pensiun almarhum
+- Mengubah status perkawinan menjadi janda/duda
+- Memperbarui Kartu Keluarga (KK)
+- Persyaratan administrasi lainnya
+
+**💡 Tips Sahabat Adminduk:**
+"Jangan khawatir kalau prosesnya terasa ribet. Sekarang pemerintah sudah sangat mempermudah urusan ini. Yang terpenting adalah melaporkan dalam waktu 30 hari sejak wafat. Saya akan bantu Anda langkah demi langkah."
+
+**Manfaat untuk negara:**
+Bagi negara, pencatatan kematian melalui akta ini penting untuk menjaga akurasi data kependudukan nasional, mencegah penyalahgunaan NIK almarhum, dan memastikan data pemilih serta penerima bantuan sosial tetap valid.
+
+Keywords: definisi akta kematian, dokumen resmi kematian, disdukcapil, pencatatan kematian, bukti kematian, dukungan keluarga berduka.
 
 ## Dasar Hukum
 
@@ -44,27 +66,39 @@ Perpres ini menyederhanakan layanan dengan:
 
 Keywords: dasar hukum akta kematian, uu 24/2013, perpres 96/2018, permendagri 108/2019, kewajiban pelaporan kematian.
 
-## Persyaratan Umum Akta Kematian
+## 📋 Persyaratan Umum Akta Kematian - Panduan Lengkap "Sahabat Adminduk"
 
-### A. Kematian Normal (Almarhum Memiliki NIK dan Terdata)
+**🤗 Catatan Penting:**
+"Saya tahu di saat berduka seperti ini mungkin sulit untuk fokus mengurus dokumen. Tapi tenang, saya akan jelaskan semua persyaratan dengan detail supaya Anda tidak perlu bolak-balik atau bingung. Semuanya sudah disederhanakan oleh pemerintah."
 
-Untuk kasus paling umum di mana almarhum terdaftar dalam basis data kependudukan dan memiliki NIK.
+### A. 💚 Kematian Normal (Almarhum Memiliki NIK dan Terdata)
 
-#### Pihak yang Dapat Melaporkan
+**Kondisi:** Ini adalah kasus yang paling umum di mana almarhum sudah terdaftar dalam basis data kependudukan dan memiliki NIK.
 
-1. Ahli waris (suami, istri, atau anak kandung)
-2. Anggota keluarga lainnya
-3. Ketua Rukun Tetangga (RT) di wilayah domisili almarhum
+**🌟 Kabar Baik:** Proses ini relatif mudah dan cepat, biasanya selesai dalam 1-3 hari kerja.
 
-#### Dokumen Persyaratan
+#### 👥 Pihak yang Dapat Melaporkan
 
-1. **Bukti Peristiwa Kematian** (salah satu):
+**Yang bisa bantu Anda:**
+
+1. **Ahli waris** (suami, istri, atau anak kandung)
+2. **Anggota keluarga lainnya** (saudara, orang tua)
+3. **Ketua Rukun Tetangga (RT)** di wilayah domisili almarhum
+
+**💡 Tips Sahabat Adminduk:**
+"Kalau Anda sedang tidak kuat secara emosional, boleh banget minta tolong saudara atau bahkan Pak RT untuk membantu proses ini. Yang penting ada yang mewakili keluarga."
+
+#### 📄 Dokumen Persyaratan
+
+##### 🔖 Daftar Lengkap - Siapkan yang Ada, Jangan Stres kalau Ada yang Kurang
+
+1. **Bukti Peristiwa Kematian** (pilih salah satu yang paling mudah didapat):
    - Surat Keterangan Kematian dari dokter/rumah sakit/puskesmas (jika meninggal di fasilitas kesehatan)
    - Surat Keterangan Kematian dari kelurahan/kepala desa (jika meninggal di rumah)
    - Surat Keterangan dari kepolisian (untuk kasus kecelakaan/tindak pidana)
 
 2. **Dokumen Identitas Almarhum**:
-   - KTP-el asli almarhum (jika ada)
+   - KTP-el asli almarhum (kalau ada dan masih bisa ditemukan)
    - Kartu Keluarga (KK) asli tempat almarhum tercantum
 
 3. **Dokumen Identitas Pelapor dan Saksi**:
@@ -76,42 +110,59 @@ Untuk kasus paling umum di mana almarhum terdaftar dalam basis data kependudukan
    - Fotokopi Akta Perkawinan/buku nikah (jika almarhum berstatus kawin)
    - Fotokopi Akta Kelahiran almarhum (jika ada)
 
-Keywords: persyaratan akta kematian normal, dokumen identitas almarhum, formulir f-2.01, surat keterangan kematian.
+**🚨 Kalau Ada Dokumen yang Hilang:**
+"Jangan panik kalau ada dokumen yang hilang atau rusak. Ada solusinya! Misalnya kalau KTP almarhum hilang, yang penting dia terdaftar di KK. Kalau surat kematian hilang, bisa pakai SPTJM (Surat Pernyataan Tanggung Jawab Mutlak). Saya bantu jelaskan alternatifnya."
 
-### B. Kematian Tanpa NIK atau Data Tidak Terdaftar
+Keywords: persyaratan akta kematian normal, dokumen identitas almarhum, formulir f-2.01, surat keterangan kematian, dukungan keluarga berduka.
 
-Untuk kasus di mana almarhum tidak memiliki NIK atau tidak terdaftar dalam basis data kependudukan.
+### B. ⚖️ Kematian Tanpa NIK atau Data Tidak Terdaftar
 
-#### Jalur Penetapan Pengadilan Negeri (WAJIB)
+**Kondisi:** Ini untuk kasus di mana almarhum tidak memiliki NIK atau tidak terdaftar dalam basis data kependudukan.
 
-**Kondisi**: Almarhum tidak terdaftar dalam basis data kependudukan dan/atau tidak memiliki dokumen kependudukan sama sekali.
+**🤗 Jangan Khawatir:** Meskipun prosesnya sedikit lebih panjang, tetap ada solusinya dan pemerintah sangat memahami kondisi seperti ini.
 
-**Prosedur**:
+#### 🏛️ Jalur Penetapan Pengadilan Negeri (WAJIB)
 
-1. Ahli waris mengajukan permohonan penetapan kematian ke Pengadilan Negeri
-2. Melampirkan bukti-bukti yang ada dan kesaksian minimal 2 orang saksi
-3. Setelah penetapan berkekuatan hukum tetap, bawa Salinan Penetapan Pengadilan ke Disdukcapil
-4. Disdukcapil menerbitkan Akta Kematian tanpa mencantumkan NIK
+**Kapan harus ke jalur ini:**
+Almarhum tidak terdaftar dalam basis data kependudukan dan/atau tidak memiliki dokumen kependudukan sama sekali.
 
-**Output**: Akta Kematian tanpa NIK yang tetap sah secara hukum
+**💪 Langkah-langkah yang harus dilakukan:**
 
-Keywords: kematian tanpa nik, penetapan pengadilan, akta kematian tanpa nik, jalur yudisial.
+1. **Ahli waris mengajukan permohonan** penetapan kematian ke Pengadilan Negeri
+2. **Melampirkan bukti-bukti** yang ada dan kesaksian minimal 2 orang saksi
+3. **Setelah penetapan berkekuatan hukum tetap**, bawa Salinan Penetapan Pengadilan ke Disdukcapil
+4. **Disdukcapil menerbitkan Akta Kematian** tanpa mencantumkan NIK
 
-### C. Kematian dengan NIK tapi Dokumen Hilang
+**✅ Hasil Akhir:** Akta Kematian tanpa NIK yang tetap sah secara hukum
 
-Untuk kasus di mana almarhum terdaftar dalam database tetapi surat keterangan kematian hilang/tidak ada.
+**💡 Tips Sahabat Adminduk:**
+"Prosedur ini memang agak ribet, tapi jangan menyerah. Hasilnya tetap sah dan bisa digunakan untuk semua keperluan administrasi. Kalau butuh bantuan, biasanya advokat atau paralegal di sekitar pengadilan bisa membantu mempersiapkan berkas."
 
-#### Jalur SPTJM (Surat Pernyataan Tanggung Jawab Mutlak)
+Keywords: kematian tanpa nik, penetapan pengadilan, akta kematian tanpa nik, jalur yudisial, dukungan prosedur kompleks.
 
-**Kondisi**: Almarhum terdata di basis data kependudukan (memiliki NIK) namun bukti primer kematian tidak ada.
+### C. 📝 Kematian dengan NIK tapi Dokumen Hilang
 
-**Persyaratan Tambahan**:
+**Kondisi:** Almarhum terdaftar dalam database tetapi surat keterangan kematian hilang/tidak ada.
+
+**🌟 Kabar Baik:** Ada solusi yang lebih mudah dari jalur pengadilan!
+
+#### 🔖 Jalur SPTJM (Surat Pernyataan Tanggung Jawab Mutlak)
+
+**Kapan bisa pakai cara ini:**
+Almarhum terdata di basis data kependudukan (punya NIK) tapi bukti utama kematian tidak ada atau hilang.
+
+**📋 Persyaratan Tambahan:**
 
 - SPTJM Kebenaran Data Kematian bermaterai
 - Diketahui oleh 2 orang saksi
 - Pelapor menanggung konsekuensi hukum jika pernyataan tidak benar
 
-Keywords: sptjm kematian, kematian dokumen hilang, surat pernyataan tanggung jawab mutlak.
+**💡 Tips Sahabat Adminduk:**
+"SPTJM ini seperti 'surat pernyataan jujur' yang Anda tandatangani. Selama informasinya benar, tidak ada masalah. Ini solusi yang bagus kalau misalnya surat kematian dari dokter atau kelurahan hilang."
+
+**⚠️ Catatan Penting:** Pastikan semua informasi yang Anda berikan benar-benar akurat karena Anda bertanggung jawab penuh atas pernyataan tersebut.
+
+Keywords: sptjm kematian, kematian dokumen hilang, surat pernyataan tanggung jawab mutlak, solusi dokumen hilang.
 
 ## Tabel Perbandingan Jalur Pengurusan
 

@@ -203,6 +203,7 @@ func Load() *Config {
 			DocumentsPath:  getEnv("KNOWLEDGE_DOCUMENTS_PATH", "data/training/documents"),
 			AdditionalPaths: []string{
 				"data/training/documents/akta-kelahiran",
+				"data/training/documents/akta-kematian",
 				"data/training/documents/ktp",
 				"data/training/documents/kk",
 			},
