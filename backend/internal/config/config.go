@@ -202,10 +202,17 @@ func Load() *Config {
 		Knowledge: KnowledgeConfig{
 			DocumentsPath:  getEnv("KNOWLEDGE_DOCUMENTS_PATH", "data/training/documents"),
 			AdditionalPaths: []string{
+				// Legacy training document paths (maintain backward compatibility)
 				"data/training/documents/akta-kelahiran",
 				"data/training/documents/akta-kematian",
 				"data/training/documents/ktp",
 				"data/training/documents/kk",
+				// New reference structure paths (Phase 4 implementation)
+				"docs/reference/selly-intelligence/services/civil-registration",
+				"docs/reference/selly-intelligence/services/identity-documents", 
+				"docs/reference/selly-intelligence/services/general-services",
+				"docs/reference/selly-intelligence/persona",
+				"docs/reference/selly-intelligence/profile",
 			},
 			RecursiveScan:  getEnvAsBool("KNOWLEDGE_RECURSIVE_SCAN", true), // Enable recursive scanning by default
 			AutoIndexing:   getEnvAsBool("KNOWLEDGE_AUTO_INDEXING", true),
