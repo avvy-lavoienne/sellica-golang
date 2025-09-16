@@ -207,7 +207,7 @@ func (pi *ParallelIndexer) cacheResult(chunk *DocumentChunk) {
 }
 
 // processChunkOptimized processes a chunk with performance optimizations
-func (pi *ParallelIndexer) processChunkOptimized(chunk *DocumentChunk, ragService interface{}) error {
+func (pi *ParallelIndexer) processChunkOptimized(chunk *DocumentChunk, _ interface{}) error {
 	// Implementation would call the existing indexing logic
 	// but with optimizations like embedding caching, batch processing, etc.
 
