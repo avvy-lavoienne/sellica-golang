@@ -176,7 +176,7 @@ func makeAPICall(query string) string {
 	requestBody := fmt.Sprintf(`{"message": "%s"}`, query)
 	
 	resp, err := client.Post(
-		"http://localhost:8080/api/chat",
+		"http://localhost:8080/chat",
 		"application/json",
 		strings.NewReader(requestBody),
 	)
