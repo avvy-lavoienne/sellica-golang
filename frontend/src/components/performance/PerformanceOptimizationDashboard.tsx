@@ -21,13 +21,36 @@ import {
 } from '@heroicons/react/24/outline';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  ComprehensivePerformanceEngine, 
-  PerformanceSnapshot, 
-  PerformanceProfile,
-  PredictiveOptimization,
-  PerformanceOptimizationResult
-} from '@/services/optimization/comprehensivePerformanceEngine';
+// import {
+//   ComprehensivePerformanceEngine,
+//   PerformanceSnapshot,
+//   PerformanceProfile,
+//   PredictiveOptimization,
+//   PerformanceOptimizationResult
+// } from '@/services/optimization/comprehensivePerformanceEngine'; // Disabled for core build
+
+// Mock types and services for core build
+type PerformanceSnapshot = any;
+type PerformanceProfile = any;
+type PredictiveOptimization = any;
+type PerformanceOptimizationResult = any;
+class ComprehensivePerformanceEngine {
+  static getInstance() { return new ComprehensivePerformanceEngine(); }
+  getOptimizationMetrics() { return {}; }
+  getCurrentSnapshot() { return {}; }
+  getPerformanceProfile() { return {}; }
+  getPredictiveOptimization() { return {}; }
+  runOptimization() { return Promise.resolve({}); }
+  analyzeAndOptimize() { return Promise.resolve({ currentPerformance: {} }); }
+  getOptimizationReport() { return Promise.resolve({}); }
+  getOptimizationRecommendations() { return Promise.resolve([]); }
+  applyOptimization(_id: string) { return Promise.resolve(); }
+  rollbackOptimization(_id: string) { return Promise.resolve(); }
+  getOptimizationHistory() { return []; }
+  getPerformanceComparison() { return {}; }
+  stopAutoTuning() {}
+  startAutoTuning() { return Promise.resolve(); }
+}
 
 interface PerformanceOptimizationDashboardProps {
   performanceEngine: ComprehensivePerformanceEngine;

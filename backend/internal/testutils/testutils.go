@@ -20,6 +20,7 @@ import (
 	"selly-backend/internal/services/chat"
 	"selly-backend/internal/services/database"
 	"selly-backend/internal/services/training"
+	"selly-backend/pkg/types"
 )
 
 // TestConfig holds configuration for testing
@@ -204,7 +205,7 @@ func CreateTestTrainingData() *training.TrainingData {
 		SessionID: "test-session-123",
 		Timestamp: time.Now(),
 		Classification: training.QueryClassification{
-			ServiceType: "ktp_inquiry",
+			ServiceType: string(types.ServiceTypeKTPInquiry),
 			Intent:      "document_replacement",
 			Confidence:  0.95,
 			Complexity:  "medium",

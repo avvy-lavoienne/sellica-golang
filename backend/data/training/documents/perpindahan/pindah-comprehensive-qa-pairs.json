@@ -1,0 +1,162 @@
+[
+  {
+    "id": "pindah_001",
+    "question": "Apa itu NIK dan mengapa penting dalam proses perpindahan?",
+    "answer": "NIK (Nomor Induk Kependudukan) adalah identitas digital yang unik, tunggal, dan melekat pada setiap penduduk seumur hidup. NIK sangat penting dalam perpindahan karena menjadi kunci identitas yang memastikan data kependudukan tetap akurat dan terintegrasi secara nasional saat seseorang pindah domisili.",
+    "category": "konsep_dasar",
+    "keywords": ["NIK", "identitas", "perpindahan", "nomor induk kependudukan"],
+    "priority": "high"
+  },
+  {
+    "id": "pindah_002", 
+    "question": "Apa landasan hukum utama yang mengatur perpindahan penduduk di Indonesia?",
+    "answer": "Landasan hukum utama adalah UU No. 24 Tahun 2013 tentang Perubahan Atas UU No. 23 Tahun 2006 tentang Administrasi Kependudukan. Regulasi ini mengamanatkan sentralisasi data kependudukan, mewajibkan NIK sebagai dasar layanan publik, dan menghapuskan pungutan biaya untuk dokumen kependudukan dasar.",
+    "category": "landasan_hukum",
+    "keywords": ["UU 24/2013", "landasan hukum", "administrasi kependudukan"],
+    "priority": "high"
+  },
+  {
+    "id": "pindah_003",
+    "question": "Apa itu SKPWNI dan fungsinya dalam perpindahan?",
+    "answer": "SKPWNI (Surat Keterangan Pindah Warga Negara Indonesia) adalah dokumen resmi yang diterbitkan oleh Disdukcapil daerah asal. SKPWNI berfungsi sebagai otorisasi atau 'tiket' bagi penduduk untuk mendaftarkan diri di daerah tujuan. Penerbitan SKPWNI menandakan data penduduk telah resmi dilepaskan dari basis data kependudukan daerah asal.",
+    "category": "dokumen",
+    "keywords": ["SKPWNI", "surat keterangan pindah", "otorisasi", "tiket"],
+    "priority": "high"
+  },
+  {
+    "id": "pindah_004",
+    "question": "Apa itu Formulir F-1.03 dan kapan digunakan?",
+    "answer": "Formulir F-1.03 adalah formulir standar nasional yang digunakan untuk 'Pendaftaran Perpindahan Penduduk'. Penggunaan formulir ini diwajibkan oleh Permendagri No. 109 Tahun 2019 untuk memastikan keseragaman data yang dicatat dalam proses perpindahan di seluruh Indonesia.",
+    "category": "dokumen",
+    "keywords": ["formulir F-1.03", "pendaftaran perpindahan", "standar nasional"],
+    "priority": "medium"
+  },
+  {
+    "id": "pindah_005",
+    "question": "Apa yang dimaksud dengan 'Peristiwa Kependudukan' dalam konteks perpindahan?",
+    "answer": "Peristiwa Kependudukan adalah kejadian yang dialami penduduk yang harus dilaporkan karena membawa akibat terhadap penerbitan atau perubahan KK, KTP-el, dan/atau surat keterangan kependudukan lainnya. Definisi ini secara eksplisit mencakup 'pindah datang' dan 'perubahan alamat'.",
+    "category": "konsep_dasar",
+    "keywords": ["peristiwa kependudukan", "pindah datang", "perubahan alamat"],
+    "priority": "medium"
+  },
+  {
+    "id": "pindah_006",
+    "question": "Bagaimana proses 'Pindah Datang' secara umum?",
+    "answer": "Pindah Datang melibatkan dua tahap utama: 1) Pelaporan di daerah asal untuk mendapatkan surat keterangan pindah (pindah keluar), dan 2) Pendaftaran di daerah tujuan untuk penerbitan dokumen baru (pindah datang). Proses ini memastikan data kependudukan tetap akurat di kedua daerah.",
+    "category": "prosedur",
+    "keywords": ["pindah datang", "dua tahap", "pindah keluar", "pendaftaran"],
+    "priority": "high"
+  },
+  {
+    "id": "pindah_007",
+    "question": "Apakah ada biaya untuk layanan perpindahan penduduk?",
+    "answer": "Tidak ada biaya sama sekali. UU No. 24 Tahun 2013 secara tegas menghapuskan segala bentuk pungutan biaya untuk penerbitan dokumen kependudukan dasar, termasuk layanan perpindahan, penerbitan SKPWNI, KK baru, dan KTP-el baru.",
+    "category": "biaya",
+    "keywords": ["gratis", "tidak ada biaya", "UU 24/2013", "pungutan"],
+    "priority": "high"
+  },
+  {
+    "id": "pindah_008",
+    "question": "Siapa yang berwenang menerbitkan SKPWNI?",
+    "answer": "SKPWNI diterbitkan oleh Dinas Kependudukan dan Pencatatan Sipil (Disdukcapil) daerah asal tempat penduduk terdaftar sebelumnya. Hanya Disdukcapil yang memiliki kewenangan untuk melepaskan data penduduk dari basis data kependudukan daerah tersebut.",
+    "category": "kewenangan",
+    "keywords": ["Disdukcapil", "daerah asal", "kewenangan", "penerbitan"],
+    "priority": "medium"
+  },
+  {
+    "id": "pindah_009",
+    "question": "Apa perbedaan antara perpindahan dalam satu kabupaten/kota dengan antar kabupaten/kota?",
+    "answer": "Perpindahan dalam satu kabupaten/kota lebih sederhana karena tidak memerlukan SKPWNI, cukup melaporkan perubahan alamat ke Disdukcapil setempat. Sedangkan perpindahan antar kabupaten/kota memerlukan SKPWNI dari daerah asal dan proses pendaftaran lengkap di daerah tujuan.",
+    "category": "jenis_perpindahan",
+    "keywords": ["dalam kabupaten", "antar kabupaten", "SKPWNI", "perubahan alamat"],
+    "priority": "high"
+  },
+  {
+    "id": "pindah_010",
+    "question": "Mengapa data kependudukan yang akurat penting bagi negara?",
+    "answer": "Data kependudukan yang akurat menjadi fondasi bagi penyelenggaraan hampir seluruh aspek kehidupan bernegara, mulai dari layanan kesehatan BPJS, akses pendidikan, perencanaan pembangunan nasional, alokasi Dana Alokasi Umum (DAU), hingga penyusunan Daftar Pemilih Tetap (DPT) oleh KPU.",
+    "category": "pentingnya_data",
+    "keywords": ["data akurat", "BPJS", "pendidikan", "pembangunan", "DPT", "KPU"],
+    "priority": "medium"
+  },
+  {
+    "id": "pindah_011",
+    "question": "Apa saja peraturan pelaksanaan yang mengatur perpindahan penduduk?",
+    "answer": "Peraturan pelaksanaan meliputi: PP No. 40 Tahun 2019 (pelaksanaan UU Adminduk), Perpres No. 96 Tahun 2018 (persyaratan dan tata cara), Permendagri No. 108 Tahun 2019 (petunjuk teknis), dan Permendagri No. 109 Tahun 2019 (standardisasi formulir).",
+    "category": "landasan_hukum",
+    "keywords": ["PP 40/2019", "Perpres 96/2018", "Permendagri 108/2019", "Permendagri 109/2019"],
+    "priority": "medium"
+  },
+  {
+    "id": "pindah_012",
+    "question": "Bagaimana sistem Single Identity Number (SIN) berkaitan dengan perpindahan?",
+    "answer": "Sistem SIN dengan NIK sebagai kunci identitas memastikan bahwa meskipun seseorang pindah domisili, identitasnya tetap tunggal dan terlacak dalam sistem nasional. Ini mencegah duplikasi data dan memastikan integritas basis data kependudukan saat terjadi perpindahan.",
+    "category": "konsep_dasar",
+    "keywords": ["SIN", "single identity", "NIK", "duplikasi data", "integritas"],
+    "priority": "medium"
+  },
+  {
+    "id": "pindah_013",
+    "question": "Apa konsekuensi jika tidak melaporkan perpindahan?",
+    "answer": "Tidak melaporkan perpindahan dapat menyebabkan: data kependudukan tidak akurat, kesulitan mengakses layanan publik di daerah baru, potensi masalah hukum, dan gangguan terhadap integritas basis data kependudukan nasional yang merugikan perencanaan pembangunan.",
+    "category": "konsekuensi",
+    "keywords": ["tidak melaporkan", "data tidak akurat", "layanan publik", "masalah hukum"],
+    "priority": "high"
+  },
+  {
+    "id": "pindah_014",
+    "question": "Bagaimana perpindahan mempengaruhi akses ke layanan kesehatan BPJS?",
+    "answer": "Perpindahan yang tidak dilaporkan dapat mengganggu akses layanan kesehatan BPJS karena data domisili tidak sesuai dengan fasilitas kesehatan terdekat. Pelaporan perpindahan yang tepat memastikan data BPJS terupdate dan akses layanan kesehatan tetap lancar di daerah baru.",
+    "category": "dampak_layanan",
+    "keywords": ["BPJS", "layanan kesehatan", "domisili", "fasilitas kesehatan"],
+    "priority": "high"
+  },
+  {
+    "id": "pindah_015",
+    "question": "Mengapa transformasi digital penting dalam administrasi perpindahan?",
+    "answer": "Transformasi digital mengubah sistem dari berbasis dokumen yang terfragmentasi menjadi sistem berbasis data yang terintegrasi dan terpusat secara nasional. Ini meningkatkan efisiensi, mengurangi duplikasi, dan memastikan data kependudukan real-time untuk mendukung kebijakan pembangunan.",
+    "category": "transformasi_digital",
+    "keywords": ["transformasi digital", "berbasis data", "terintegrasi", "efisiensi"],
+    "priority": "medium"
+  },
+  {
+    "id": "pindah_016",
+    "question": "Bagaimana perpindahan mempengaruhi Daftar Pemilih Tetap (DPT)?",
+    "answer": "Data perpindahan yang akurat sangat penting untuk penyusunan DPT oleh KPU. Perpindahan yang tidak dilaporkan dapat menyebabkan seseorang terdaftar di daerah lama atau tidak terdaftar sama sekali, yang mengganggu hak pilih dan konsolidasi demokrasi.",
+    "category": "dampak_politik",
+    "keywords": ["DPT", "KPU", "hak pilih", "demokrasi", "pemilihan umum"],
+    "priority": "medium"
+  },
+  {
+    "id": "pindah_017",
+    "question": "Apa peran Disdukcapil dalam proses perpindahan?",
+    "answer": "Disdukcapil berperan sebagai instansi pelaksana yang: 1) Menerbitkan SKPWNI di daerah asal, 2) Memproses pendaftaran pindah datang di daerah tujuan, 3) Menerbitkan KK dan KTP-el baru, 4) Memastikan integritas data dalam sistem nasional, dan 5) Memberikan layanan sesuai SOP yang ditetapkan.",
+    "category": "peran_instansi",
+    "keywords": ["Disdukcapil", "instansi pelaksana", "SKPWNI", "KK", "KTP-el", "SOP"],
+    "priority": "high"
+  },
+  {
+    "id": "pindah_018",
+    "question": "Bagaimana proses verifikasi data dalam perpindahan?",
+    "answer": "Verifikasi data dilakukan melalui sistem terintegrasi yang memastikan: 1) Validitas NIK dalam basis data nasional, 2) Kesesuaian data dengan dokumen pendukung, 3) Tidak ada duplikasi data, 4) Kelengkapan persyaratan sesuai regulasi, dan 5) Integritas transfer data antar daerah.",
+    "category": "verifikasi",
+    "keywords": ["verifikasi data", "sistem terintegrasi", "validitas NIK", "duplikasi", "transfer data"],
+    "priority": "medium"
+  },
+  {
+    "id": "pindah_019",
+    "question": "Apa dampak perpindahan terhadap alokasi Dana Alokasi Umum (DAU)?",
+    "answer": "Data perpindahan yang akurat mempengaruhi perhitungan jumlah penduduk di setiap daerah, yang menjadi salah satu faktor penentu alokasi DAU. Data yang tidak akurat dapat menyebabkan alokasi yang tidak tepat dan merugikan perencanaan pembangunan daerah.",
+    "category": "dampak_fiskal",
+    "keywords": ["DAU", "alokasi dana", "jumlah penduduk", "pembangunan daerah"],
+    "priority": "medium"
+  },
+  {
+    "id": "pindah_020",
+    "question": "Bagaimana sistem nasional mencegah duplikasi data dalam perpindahan?",
+    "answer": "Sistem nasional mencegah duplikasi melalui: 1) NIK sebagai identitas tunggal, 2) Sentralisasi database di Kemendagri, 3) Proses pelepasan data di daerah asal sebelum pendaftaran di daerah tujuan, 4) Verifikasi real-time antar sistem daerah, dan 5) Monitoring integritas data secara berkelanjutan.",
+    "category": "sistem_nasional",
+    "keywords": ["duplikasi data", "sentralisasi", "Kemendagri", "verifikasi real-time", "monitoring"],
+    "priority": "medium"
+  }
+]

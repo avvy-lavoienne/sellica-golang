@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -16,12 +18,26 @@ import (
 )
 
 // Service provides training data collection and management
+// Enhanced architecture following Phase 1 and Phase 2 specifications
 type Service struct {
+	// Core components
+	collector       *DataCollector
+	processor       *BatchProcessor
+	validator       *TrainingDataValidator
+	analyzer        *QueryAnalyzer
+	cache          *TrainingCache
+	metrics        *PerformanceMetrics
+	supabase       *database.Service  // Supabase client service
+
+	// Phase 2 Advanced Components
+	advancedModules    *AdvancedTrainingModules
+	indonesianNLP      *IndonesianNLPService
+	abTesting          *ABTestingFramework
+	modelIntegration   *ModelIntegrationService
+
+	// Legacy components (maintained for compatibility)
 	db          *database.Service
-	cache       *cache.Service
-	validator   *TrainingDataValidator
-	collector   *DataCollector
-	analyzer    *QueryAnalyzer
+	legacyCache *cache.Service
 	mu          sync.RWMutex
 	stats       *ServiceStats
 }
@@ -46,7 +62,7 @@ type TrainingDataValidator struct {
 	requiredFields    []string
 }
 
-// DataCollector handles data collection operations
+// DataCollector handles data collection operations with enhanced caching
 type DataCollector struct {
 	service       *Service
 	batchSize     int
@@ -54,6 +70,12 @@ type DataCollector struct {
 	pendingBatch  []TrainingData
 	batchMutex    sync.Mutex
 	flushTimer    *time.Timer
+
+	// Enhanced Phase 1 Day 3-4 features
+	realTimeAnalyzer    *RealTimeAnalyzer
+	conversationTracker *ConversationTracker
+	performanceMonitor  *DataCollectionMetrics
+	cacheWarmer        *CacheWarmer
 }
 
 // QueryAnalyzer analyzes queries for classification and metadata
@@ -104,12 +126,55 @@ func NewService(db *database.Service, cache *cache.Service) (*Service, error) {
 		},
 	}
 
+	// Create enhanced components following Phase 1 specifications
+	batchProcessor := NewBatchProcessor(db, &BatchProcessorConfig{
+		BatchSize:            1000, // Optimal for Supabase REST API
+		MaxConcurrentBatches: 10,   // Concurrent batch operations
+		RetryAttempts:        3,    // Retry failed operations
+		BatchTimeout:         30 * time.Second,
+	})
+
+	// Enhanced training cache with analytics and optimization
+	analytics := NewCacheAnalytics()
+	trainingCache := NewTrainingCache(cache, &TrainingCacheConfig{
+		MemoryTTL:     5 * time.Minute,  // Fast memory cache
+		RedisTTL:      30 * time.Minute, // Distributed cache
+		MaxMemorySize: 1000,             // Max entries in memory
+	})
+
+	// Initialize cache optimizer
+	optimizer := NewCacheOptimizer(analytics, cache, trainingCache)
+	trainingCache.analytics = analytics
+	trainingCache.optimizer = optimizer
+	trainingCache.hitRatioTarget = 0.85 // 85% target hit ratio
+
+	// Initialize enhanced data collector components
+	realTimeAnalyzer := NewRealTimeAnalyzer(cache)
+	conversationTracker := NewConversationTracker()
+	performanceMonitor := NewDataCollectionMetrics()
+	cacheWarmer := NewCacheWarmer(cache, trainingCache)
+
+	// Update collector with enhanced features
+	collector.realTimeAnalyzer = realTimeAnalyzer
+	collector.conversationTracker = conversationTracker
+	collector.performanceMonitor = performanceMonitor
+	collector.cacheWarmer = cacheWarmer
+
+	performanceMetrics := NewPerformanceMetrics()
+
 	service := &Service{
-		db:        db,
-		cache:     cache,
-		validator: validator,
-		collector: collector,
-		analyzer:  analyzer,
+		// Enhanced components (Phase 1 architecture)
+		collector:       collector,
+		processor:       batchProcessor,
+		validator:       validator,
+		analyzer:        analyzer,
+		cache:          trainingCache,
+		metrics:        performanceMetrics,
+		supabase:       db, // Supabase client service
+
+		// Legacy components (maintained for compatibility)
+		db:          db,
+		legacyCache: cache,
 		stats: &ServiceStats{
 			LastUpdated: time.Now(),
 		},
@@ -118,9 +183,29 @@ func NewService(db *database.Service, cache *cache.Service) (*Service, error) {
 	// Set service reference in collector
 	collector.service = service
 
-	// Start batch processing goroutine
-	go service.startBatchProcessor()
+	// Initialize Phase 2 Advanced Components
+	logrus.Info("🚀 Initializing Phase 2 advanced training components...")
 
+	// Advanced training modules (KTP, KK, Akta)
+	service.advancedModules = NewAdvancedTrainingModules(service, cache, db)
+
+	// Indonesian NLP service
+	service.indonesianNLP = NewIndonesianNLPService(cache)
+
+	// A/B testing framework
+	service.abTesting = NewABTestingFramework(cache)
+
+	// Model integration service (placeholder for TensorFlow/IndoBERT)
+	service.modelIntegration = &ModelIntegrationService{
+		cache: cache,
+	}
+
+	// Start enhanced background processes
+	go service.startBatchProcessor()
+	go service.startCacheOptimization()
+	go service.startCacheWarming()
+
+	logrus.Info("✅ Enhanced training service initialized successfully with Phase 1 Day 3-4 + Phase 2 architecture")
 	return service, nil
 }
 
@@ -174,7 +259,7 @@ func (s *Service) GetTrainingData(ctx context.Context, req *TrainingDataRequest)
 	// Check cache first
 	cacheKey := s.buildCacheKey("training_data", req)
 	if s.cache != nil {
-		if cached, err := s.cache.Get(cacheKey); err == nil {
+		if cached, found := s.cache.Get(ctx, cacheKey); found {
 			s.incrementCacheHits()
 			if response, ok := cached.(*TrainingDataResponse); ok {
 				return response, nil
@@ -233,7 +318,7 @@ func (s *Service) GetTrainingData(ctx context.Context, req *TrainingDataRequest)
 
 	// Cache the response
 	if s.cache != nil {
-		s.cache.Set(cacheKey, response, 5*time.Minute)
+		s.cache.Set(ctx, cacheKey, response, 5*time.Minute)
 	}
 
 	return response, nil
@@ -244,7 +329,7 @@ func (s *Service) GetTrainingStats(ctx context.Context) (*TrainingStatsResponse,
 	// Check cache first
 	cacheKey := "training_stats"
 	if s.cache != nil {
-		if cached, err := s.cache.Get(cacheKey); err == nil {
+		if cached, found := s.cache.Get(ctx, cacheKey); found {
 			if stats, ok := cached.(*TrainingStatsResponse); ok {
 				return stats, nil
 			}
@@ -259,7 +344,7 @@ func (s *Service) GetTrainingStats(ctx context.Context) (*TrainingStatsResponse,
 
 	// Cache the stats
 	if s.cache != nil {
-		s.cache.Set(cacheKey, stats, 10*time.Minute)
+		s.cache.Set(ctx, cacheKey, stats, 10*time.Minute)
 	}
 
 	return stats, nil
@@ -736,6 +821,22 @@ func (s *Service) startBatchProcessor() {
 	}
 }
 
+// startCacheOptimization starts the cache optimization process
+func (s *Service) startCacheOptimization() {
+	if s.cache != nil && s.cache.optimizer != nil {
+		ctx := context.Background()
+		s.cache.optimizer.StartOptimization(ctx)
+	}
+}
+
+// startCacheWarming starts the cache warming process
+func (s *Service) startCacheWarming() {
+	if s.collector != nil && s.collector.cacheWarmer != nil {
+		ctx := context.Background()
+		s.collector.cacheWarmer.StartCacheWarming(ctx)
+	}
+}
+
 // storeTrainingDataInDB stores training data in the database using Supabase
 func (s *Service) storeTrainingDataInDB(ctx context.Context, data *TrainingData) error {
 	// Convert TrainingData to map for Supabase insertion
@@ -920,4 +1021,165 @@ func (s *Service) parseQuality(data map[string]interface{}) QualityMetrics {
 	}
 
 	return quality
+}
+
+// LoadJSONTrainingData loads and processes JSON training data files
+func (s *Service) LoadJSONTrainingData(filePath string) error {
+	if s.advancedModules == nil {
+		return fmt.Errorf("advanced training modules are not initialized")
+	}
+
+	logrus.WithField("file_path", filePath).Info("📖 Loading JSON training data...")
+
+	// Read and parse JSON file
+	jsonData, err := s.readJSONTrainingFile(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to read JSON training file: %w", err)
+	}
+
+	// Convert JSON data to TrainingData format
+	trainingDataList := s.convertJSONToTrainingData(jsonData)
+
+	// Process each training data entry
+	successCount := 0
+	for _, data := range trainingDataList {
+		err := s.SubmitTrainingData(context.Background(), &data)
+		if err != nil {
+			logrus.WithError(err).WithField("query", data.Query).Error("Failed to submit JSON training data")
+			continue
+		}
+		successCount++
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"file_path":       filePath,
+		"total_entries":   len(trainingDataList),
+		"successful":      successCount,
+		"service_type":    jsonData.ServiceType,
+	}).Info("✅ JSON training data loaded successfully")
+
+	return nil
+}
+
+// readJSONTrainingFile reads and parses a JSON training data file
+func (s *Service) readJSONTrainingFile(filePath string) (*JSONTrainingDataFile, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var jsonData []JSONTrainingData
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&jsonData); err != nil {
+		return nil, fmt.Errorf("failed to decode JSON: %w", err)
+	}
+
+	// Extract service type from filename
+	serviceType := s.extractServiceTypeFromPath(filePath)
+
+	return &JSONTrainingDataFile{
+		FilePath:    filePath,
+		ServiceType: serviceType,
+		Data:        jsonData,
+		LastUpdated: time.Now(),
+	}, nil
+}
+
+// extractServiceTypeFromPath extracts service type from file path
+func (s *Service) extractServiceTypeFromPath(filePath string) string {
+	filename := filepath.Base(filePath)
+	if strings.Contains(filename, "akta-kelahiran") {
+		return "akta_kelahiran"
+	} else if strings.Contains(filename, "akta-kematian") {
+		return "akta_kematian"
+	} else if strings.Contains(filename, "akta-perkawinan") {
+		return "akta_perkawinan"
+	} else if strings.Contains(filename, "kk") {
+		return "kartu_keluarga"
+	} else if strings.Contains(filename, "ktp") {
+		return "ktp_elektronik"
+	}
+	return "general"
+}
+
+// convertJSONToTrainingData converts JSON training data to TrainingData format
+func (s *Service) convertJSONToTrainingData(jsonFile *JSONTrainingDataFile) []TrainingData {
+	var trainingDataList []TrainingData
+
+	for i, jsonData := range jsonFile.Data {
+		// Create TrainingData from JSON data
+		data := TrainingData{
+			ID:        fmt.Sprintf("%s_json_%d", jsonFile.ServiceType, i),
+			Query:     jsonData.Question,
+			Response:  jsonData.Answer,
+			UserID:    "system", // System-generated training data
+			SessionID: fmt.Sprintf("json_training_%s", jsonFile.ServiceType),
+			Timestamp: time.Now(),
+			Status:    TrainingStatusPending,
+		}
+
+		// Set classification based on JSON data
+		data.Classification = QueryClassification{
+			ServiceType: jsonFile.ServiceType,
+			Intent:      jsonData.UserIntent,
+			Confidence:  0.9, // High confidence for structured training data
+			Complexity:  s.mapDifficultyToComplexity(jsonData.Difficulty),
+			Priority:    s.mapPriorityToInt(jsonData.ResponsePriority),
+		}
+
+		// Set metadata
+		data.Metadata = TrainingMetadata{
+			ProcessingTime:   0.0,
+			EnhancementMode:  true,
+			ProviderUsed:     "json_training",
+			ContextLayers:    []string{"structured_training", jsonData.Category},
+			SemanticAnalysis: &SemanticData{
+				Keywords:   jsonData.Keywords,
+				Sentiment:  "neutral",
+				Language:   "id",
+				Confidence: 0.95,
+			},
+		}
+
+		// Calculate quality metrics
+		data.Quality = s.calculateQualityMetrics(&data)
+
+		// Set timestamps
+		now := time.Now()
+		data.CreatedAt = now
+		data.UpdatedAt = now
+
+		trainingDataList = append(trainingDataList, data)
+	}
+
+	return trainingDataList
+}
+
+// mapDifficultyToComplexity maps JSON difficulty to complexity string
+func (s *Service) mapDifficultyToComplexity(difficulty string) string {
+	switch strings.ToLower(difficulty) {
+	case "rendah":
+		return "simple"
+	case "sedang":
+		return "medium"
+	case "tinggi":
+		return "complex"
+	default:
+		return "medium"
+	}
+}
+
+// mapPriorityToInt maps JSON response priority to integer priority
+func (s *Service) mapPriorityToInt(priority string) int {
+	switch strings.ToLower(priority) {
+	case "tinggi":
+		return 5
+	case "sedang":
+		return 3
+	case "rendah":
+		return 1
+	default:
+		return 3
+	}
 }

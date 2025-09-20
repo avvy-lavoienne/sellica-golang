@@ -1,0 +1,58 @@
+[
+  {
+    "query": "Apa saja syarat buat KK baru setelah menikah?",
+    "expectedResponse": "Untuk membuat KK baru setelah menikah, syaratnya:\n\n📋 **Dokumen Utama:**\n1. Formulir Pendaftaran Peristiwa Kependudukan (F-1.02) atau Formulir Biodata Keluarga (F-1.01)\n2. KK asli dari keluarga masing-masing pihak (suami dan istri)\n3. Fotokopi Buku Nikah (Muslim) atau Kutipan Akta Perkawinan (Non-Muslim)\n4. SKPWNI jika salah satu/kedua pasangan dari luar kabupaten/kota\n5. Dokumen pendukung lainnya jika ada perubahan data (ijazah, dll)\n\n⏱️ **Waktu**: 1-3 hari kerja\n💰 **Biaya**: GRATIS\n🏢 **Lokasi**: Disdukcapil sesuai domisili\n\n📋 **Output yang Diterima:**\n• 1 KK baru untuk pasangan\n• 2 KK yang diperbarui untuk masing-masing orang tua\n\nAda yang perlu dijelaskan lebih detail kak?",
+    "serviceType": "kartu_keluarga",
+    "category": "persyaratan_menikah",
+    "priority": "high"
+  },
+  {
+    "query": "Syarat tambah anggota keluarga karena kelahiran apa aja?",
+    "expectedResponse": "Untuk menambah anggota keluarga karena kelahiran:\n\n📋 **Dokumen Wajib:**\n1. KK asli orang tua\n2. Surat Keterangan Kelahiran asli dari dokter/bidan/RS\n3. Fotokopi Buku Nikah/Akta Perkawinan orang tua\n4. Fotokopi KTP-el kedua orang tua\n\n📋 **Jika Tidak Ada Surat Keterangan Kelahiran:**\n5. SPTJM Kebenaran Data Kelahiran (F-2.03) bermaterai\n6. 2 orang saksi dengan KTP-el\n\n📋 **Jika Perkawinan Tidak Tercatat:**\n7. SPTJM Kebenaran Sebagai Pasangan Suami Istri (F-2.04)\n\n⏱️ **Waktu**: 1 hari kerja (layanan terpadu 3-in-1)\n💰 **Biaya**: GRATIS\n\n📋 **Output**: Akta Kelahiran + KK baru + KIA\n\nSering jadi layanan terpadu ya kak, jadi sekali datang dapat 3 dokumen sekaligus!",
+    "serviceType": "kartu_keluarga",
+    "category": "persyaratan_kelahiran",
+    "priority": "high"
+  },
+  {
+    "query": "Dokumen apa yang perlu untuk pisah KK karena perceraian?",
+    "expectedResponse": "Untuk pisah KK karena perceraian, syaratnya:\n\n📋 **Dokumen Utama:**\n1. KK asli bersama (yang akan dipisah)\n2. Fotokopi Kutipan Akta Perceraian yang sudah berkekuatan hukum tetap\n   - Dari Pengadilan Agama (Muslim)\n   - Dari Pengadilan Negeri (Non-Muslim)\n3. KTP-el pemohon\n\n⏱️ **Waktu**: 1-3 hari kerja\n💰 **Biaya**: GRATIS\n\n📋 **Proses:**\n• KK lama ditarik dan status diubah jadi \"Cerai Hidup\"\n• Diterbitkan KK baru untuk masing-masing pihak\n• Anak masuk ke KK sesuai putusan hak asuh pengadilan\n\n💡 **Catatan**: Pastikan akta perceraian sudah final dan berkekuatan hukum tetap ya kak.\n\nAda pertanyaan tentang prosesnya?",
+    "serviceType": "kartu_keluarga",
+    "category": "persyaratan_perceraian",
+    "priority": "medium"
+  },
+  {
+    "query": "Syarat pisah KK dalam satu alamat gimana?",
+    "expectedResponse": "Untuk pisah KK dalam satu alamat (anak dewasa pisah dari orang tua):\n\n📋 **Syarat Utama:**\n1. KK asli keluarga asal\n2. KTP-el pemohon\n3. **Syarat usia**: Minimal 17 tahun ATAU sudah/pernah kawin\n\n⏱️ **Waktu**: 1-2 hari kerja\n💰 **Biaya**: GRATIS\n\n📋 **Hasil:**\n• KK baru atas nama pemohon sebagai Kepala Keluarga\n• Alamat sama persis dengan KK orang tua\n• Status di KK lama diperbarui\n\n💡 **Kegunaan:**\n• Untuk keperluan administrasi mandiri\n• Persiapan menikah\n• Kebutuhan pekerjaan/pendidikan\n\n⚠️ **Catatan**: Harus sudah dewasa secara hukum (17 tahun atau pernah kawin) ya kak.\n\nUmur kak sudah memenuhi syarat?",
+    "serviceType": "kartu_keluarga",
+    "category": "persyaratan_pisah_alamat_sama",
+    "priority": "medium"
+  },
+  {
+    "query": "Apa syarat untuk numpang KK?",
+    "expectedResponse": "Untuk numpang KK (menambah anggota dari luar keluarga):\n\n📋 **Dokumen Utama:**\n1. KK asli dari keluarga yang akan ditumpangi\n2. KK lama atau KTP-el dari penduduk yang akan numpang\n3. SKPWNI jika berasal dari luar kabupaten/kota\n4. Surat Pernyataan Tidak Keberatan dari Kepala Keluarga yang ditumpangi\n\n📋 **Jika Yang Numpang Anak di Bawah 17 Tahun:**\n5. Surat Kuasa Pengasuhan Anak dari orang tua kandung\n\n⏱️ **Waktu**: 1-3 hari kerja\n💰 **Biaya**: GRATIS\n\n📋 **Status dalam KK**: \"Famili Lain\" atau sesuai hubungan keluarga\n\n💡 **Contoh Kasus:**\n• Anak kos/kontrak\n• Kerabat yang tinggal sementara\n• Anak yang diasuh saudara\n\nSurat pernyataan tidak keberatan ini penting banget ya kak, jadi pastikan kepala keluarga setuju dulu.",
+    "serviceType": "kartu_keluarga",
+    "category": "persyaratan_numpang",
+    "priority": "medium"
+  },
+  {
+    "query": "Bisa gak bikin KK untuk nikah siri?",
+    "expectedResponse": "Bisa kak! Pasangan nikah siri bisa buat KK bersama dengan syarat:\n\n📋 **Dokumen Utama:**\n1. SPTJM Kebenaran Sebagai Pasangan Suami Istri (F-2.04)\n2. KK asal masing-masing (jika ada)\n3. KTP-el kedua pihak\n4. 2 orang saksi dengan KTP-el\n\n⏱️ **Waktu**: 1-3 hari kerja\n💰 **Biaya**: GRATIS (hanya materai Rp 10.000)\n\n📋 **Status di KK**: \"Kawin Belum Tercatat\" atau \"Kawin Tidak Tercatat\"\n\n⚠️ **PENTING - Konsekuensi Hukum:**\n• KK ini BUKAN legalisasi nikah siri\n• Hanya untuk tertib administrasi\n• Anak tetap bisa dapat akta kelahiran\n• Tapi tidak ada perlindungan hukum perkawinan\n\n💡 **Solusi**: Untuk perlindungan hukum penuh, sebaiknya urus Isbat Nikah di Pengadilan Agama dulu ya kak.\n\nPerlu penjelasan tentang Isbat Nikah?",
+    "serviceType": "kartu_keluarga",
+    "category": "persyaratan_nikah_siri",
+    "priority": "high"
+  },
+  {
+    "query": "Apa itu SPTJM dan kapan diperlukan?",
+    "expectedResponse": "SPTJM adalah **Surat Pernyataan Tanggung Jawab Mutlak** - dokumen pengganti saat tidak ada dokumen formal.\n\n📝 **Jenis SPTJM untuk KK:**\n1. **F-2.03**: SPTJM Kebenaran Data Kelahiran\n2. **F-2.04**: SPTJM Kebenaran Sebagai Pasangan Suami Istri\n3. **F-1.05**: SPTJM Perkawinan/Perceraian Belum Tercatat\n\n📋 **Kapan Diperlukan:**\n• Tidak ada surat keterangan lahir\n• Tidak ada buku nikah/akta perkawinan\n• Perkawinan belum tercatat resmi\n• Dokumen hilang/rusak\n\n📋 **Syarat SPTJM:**\n• Dibuat di atas materai Rp 10.000\n• Ditandatangani pemohon + 2 saksi\n• Saksi punya KTP-el yang berlaku\n• Berisi data yang benar dan lengkap\n\n⚠️ **PERINGATAN**: SPTJM bukan pengganti dokumen resmi dan ada sanksi pidana jika terbukti palsu!\n\n💡 **Fungsi**: Memudahkan akses layanan administratif sambil tetap menjaga akurasi data.\n\nAda SPTJM yang perlu kak buat?",
+    "serviceType": "kartu_keluarga",
+    "category": "persyaratan_sptjm",
+    "priority": "high"
+  },
+  {
+    "query": "Syarat KK kalau pindah dari luar daerah apa?",
+    "expectedResponse": "Untuk KK setelah pindah dari luar daerah:\n\n📋 **Dokumen Utama:**\n1. **SKPWNI** (Surat Keterangan Pindah WNI) dari daerah asal\n2. KK lama dari daerah asal\n3. KTP-el yang masih berlaku\n4. Formulir Pendaftaran Perpindahan Penduduk (F-1.03)\n\n📋 **Jika Numpang KK:**\n5. KK asli keluarga yang akan ditumpangi\n6. Surat Pernyataan Tidak Keberatan dari Kepala Keluarga\n\n📋 **Jika Buat KK Baru:**\n7. Dokumen pendukung sesuai alasan (akta nikah, dll)\n\n⏱️ **Waktu**: 1-3 hari kerja\n💰 **Biaya**: GRATIS\n\n💡 **Catatan Penting:**\n• SKPWNI wajib untuk pindah antar kabupaten/kota\n• Lapor ke Disdukcapil daerah tujuan maksimal 30 hari\n• Data akan terintegrasi dengan sistem nasional\n\nKak pindah dari mana dan mau numpang atau buat KK baru?",
+    "serviceType": "kartu_keluarga",
+    "category": "persyaratan_pindah",
+    "priority": "medium"
+  }
+]

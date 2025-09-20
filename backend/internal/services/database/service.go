@@ -4,12 +4,20 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/supabase-community/supabase-go"
+)
+
+// Common database errors
+var (
+	ErrDatabaseNotHealthy = errors.New("database service is not healthy")
+	ErrUserNotFound       = errors.New("user not found")
+	ErrUserAlreadyExists  = errors.New("user already exists")
 )
 
 // Service provides database operations using Supabase
@@ -89,9 +97,13 @@ func (s *Service) Ping() error {
 		return fmt.Errorf("database client not initialized")
 	}
 
-	// Simple query to test connection - using a basic health check
-	// Note: This is a simplified health check since we don't have a specific health_check table
-	_, _, err := s.client.From("auth.users").Select("id", "", false).Limit(1, "").Execute()
+	// Enhanced health check - use our training_data table
+	// This verifies both connection and that our migration was successful
+	_, _, err := s.client.From("training_data").
+		Select("id", "", false).
+		Limit(1, "").
+		Execute()
+
 	if err != nil {
 		s.mu.Lock()
 		s.isHealthy = false
@@ -312,44 +324,7 @@ func (s *Service) Exec(ctx context.Context, query string, args ...interface{}) (
 	}, nil
 }
 
-// Mock implementations for database interfaces
-type mockRows struct {
-	closed bool
-}
-
-func (m *mockRows) Next() bool {
-	return false // No rows for now
-}
-
-func (m *mockRows) Scan(dest ...interface{}) error {
-	return fmt.Errorf("no rows available")
-}
-
-func (m *mockRows) Close() error {
-	m.closed = true
-	return nil
-}
-
-type mockRow struct {
-	err error
-}
-
-func (m *mockRow) Scan(dest ...interface{}) error {
-	if m.err != nil {
-		return m.err
-	}
-	return fmt.Errorf("no row available")
-}
-
-type mockResult struct{}
-
-func (m *mockResult) LastInsertId() (int64, error) {
-	return 0, nil
-}
-
-func (m *mockResult) RowsAffected() (int64, error) {
-	return 1, nil
-}
+// Mock implementations removed - using Supabase implementations only
 
 // Real Supabase implementations
 type supabaseRows struct {
@@ -572,4 +547,129 @@ func (s *Service) CountTrainingData(ctx context.Context, filters map[string]inte
 	}
 
 	return 0, nil
+}
+
+// CreateUser creates a new user in the database
+func (s *Service) CreateUser(user *User) error {
+	if !s.isHealthy {
+		return ErrDatabaseNotHealthy
+	}
+
+	client := s.GetPooledClient()
+	if client == nil {
+		return fmt.Errorf("failed to get database client")
+	}
+
+	// Insert user into the users table
+	_, _, err := client.From("users").Insert(user, false, "", "", "").Execute()
+	if err != nil {
+		logrus.WithError(err).Error("Failed to create user in database")
+		return fmt.Errorf("failed to create user: %w", err)
+	}
+
+	logrus.WithField("user_id", user.ID).Info("✅ User created in database")
+	return nil
+}
+
+// GetUser retrieves a user by ID from the database
+func (s *Service) GetUser(userID string) (*User, error) {
+	if !s.isHealthy {
+		return nil, ErrDatabaseNotHealthy
+	}
+
+	client := s.GetPooledClient()
+	if client == nil {
+		return nil, fmt.Errorf("failed to get database client")
+	}
+
+	// Query user from the users table
+	data, _, err := client.From("users").Select("*", "", false).Eq("id", userID).Execute()
+	if err != nil {
+		logrus.WithError(err).Error("Failed to query user from database")
+		return nil, fmt.Errorf("failed to get user: %w", err)
+	}
+
+	var users []User
+	if err := json.Unmarshal(data, &users); err != nil {
+		return nil, fmt.Errorf("failed to parse user data: %w", err)
+	}
+
+	if len(users) == 0 {
+		return nil, ErrUserNotFound
+	}
+
+	return &users[0], nil
+}
+
+// UpdateUser updates an existing user in the database
+func (s *Service) UpdateUser(user *User) error {
+	if !s.isHealthy {
+		return ErrDatabaseNotHealthy
+	}
+
+	client := s.GetPooledClient()
+	if client == nil {
+		return fmt.Errorf("failed to get database client")
+	}
+
+	// Update user in the users table
+	_, _, err := client.From("users").Update(user, "", "").Eq("id", user.ID).Execute()
+	if err != nil {
+		logrus.WithError(err).Error("Failed to update user in database")
+		return fmt.Errorf("failed to update user: %w", err)
+	}
+
+	logrus.WithField("user_id", user.ID).Info("✅ User updated in database")
+	return nil
+}
+
+// DeleteUser deletes a user from the database
+func (s *Service) DeleteUser(userID string) error {
+	if !s.isHealthy {
+		return ErrDatabaseNotHealthy
+	}
+
+	client := s.GetPooledClient()
+	if client == nil {
+		return fmt.Errorf("failed to get database client")
+	}
+
+	// Delete user from the users table
+	_, _, err := client.From("users").Delete("", "").Eq("id", userID).Execute()
+	if err != nil {
+		logrus.WithError(err).Error("Failed to delete user from database")
+		return fmt.Errorf("failed to delete user: %w", err)
+	}
+
+	logrus.WithField("user_id", userID).Info("✅ User deleted from database")
+	return nil
+}
+
+// ListUsers retrieves all users with pagination
+func (s *Service) ListUsers(limit, offset int) ([]User, error) {
+	if !s.isHealthy {
+		return nil, ErrDatabaseNotHealthy
+	}
+
+	client := s.GetPooledClient()
+	if client == nil {
+		return nil, fmt.Errorf("failed to get database client")
+	}
+
+	// Query users with pagination
+	data, _, err := client.From("users").Select("*", "", false).
+		Range(offset, offset+limit-1, "").
+		Order("created_at", nil).
+		Execute()
+	if err != nil {
+		logrus.WithError(err).Error("Failed to list users from database")
+		return nil, fmt.Errorf("failed to list users: %w", err)
+	}
+
+	var users []User
+	if err := json.Unmarshal(data, &users); err != nil {
+		return nil, fmt.Errorf("failed to parse users data: %w", err)
+	}
+
+	return users, nil
 }

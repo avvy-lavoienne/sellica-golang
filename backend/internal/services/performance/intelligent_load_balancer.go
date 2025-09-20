@@ -204,7 +204,7 @@ func (ilb *IntelligentLoadBalancer) calculatePerformanceScore(metrics *WorkerMet
 }
 
 // calculateLoadScore calculates load-based score
-func (ilb *IntelligentLoadBalancer) calculateLoadScore(worker *AIWorker, req *AIRequest) float64 {
+func (ilb *IntelligentLoadBalancer) calculateLoadScore(worker *AIWorker, _ *AIRequest) float64 {
 	worker.mu.RLock()
 	defer worker.mu.RUnlock()
 
@@ -241,7 +241,7 @@ func (ilb *IntelligentLoadBalancer) calculateSpecializationScore(worker *AIWorke
 	// Match worker specialization to request characteristics
 	specializationScore := 0.5 // Default neutral score
 
-	switch worker.workerType {
+	switch wt := worker.workerType; wt {
 	case WorkerTypeSimple:
 		if requestComplexity < 0.3 {
 			specializationScore = 1.0

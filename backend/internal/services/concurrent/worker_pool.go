@@ -230,11 +230,18 @@ func (wp *WorkerPool) GetMetrics() *WorkerMetrics {
 	wp.metrics.mu.RLock()
 	defer wp.metrics.mu.RUnlock()
 	
-	// Create a copy to avoid race conditions
-	metrics := *wp.metrics
-	metrics.QueuedTasks = int64(len(wp.taskQueue))
-	metrics.WorkerUtilization = float64(metrics.ActiveWorkers) / float64(wp.workers) * 100
-	metrics.LastUpdated = time.Now()
+	// Create a copy to avoid race conditions (without copying the mutex)
+	metrics := WorkerMetrics{
+		ActiveWorkers:     wp.metrics.ActiveWorkers,
+		QueuedTasks:       int64(len(wp.taskQueue)),
+		CompletedTasks:    wp.metrics.CompletedTasks,
+		FailedTasks:       wp.metrics.FailedTasks,
+		AverageTaskTime:   wp.metrics.AverageTaskTime,
+		TotalTaskTime:     wp.metrics.TotalTaskTime,
+		PeakQueueSize:     wp.metrics.PeakQueueSize,
+		WorkerUtilization: float64(wp.metrics.ActiveWorkers) / float64(wp.workers) * 100,
+		LastUpdated:       time.Now(),
+	}
 	
 	return &metrics
 }

@@ -31,8 +31,9 @@ export function TensorFlowMonitoringDashboard() {
   const fetchStatus = async () => {
     try {
       setLoading(true);
-      // Import AI service dynamically
-      const { aiService } = await import('@/services/chatbot/aiService');
+      // Import AI service dynamically - Disabled for core build
+      // const { aiService } = await import('@/services/chatbot/aiService');
+      const aiService = { getPerformanceMetrics: () => ({}) }; // Mock for core build
 
       // Type assertion to ensure method exists
       const aiServiceTyped = aiService as any;

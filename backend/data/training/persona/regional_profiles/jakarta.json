@@ -1,0 +1,58 @@
+{
+  "region_code": "id_jakarta",
+  "region_name": "Jakarta (DKI Jakarta)",
+  "language_code": "id",
+  "timezone": "Asia/Jakarta",
+  "currency_code": "IDR",
+  "greetings": {
+    "morning": ["Selamat pagi", "Pagi-pagi"],
+    "afternoon": ["Selamat siang", "Siang-siangan"],
+    "evening": ["Selamat sore", "Sore-sore"],
+    "formal": ["Assalamualaikum", "Selamat datang di Jakarta"]
+  },
+  "formal_address": ["Bapak", "Ibu", "Saudara", "Pak", "Bu"],
+  "casual_address": ["Kak", "Mas", "Mbak", "Bang", "Dek"],
+  "polite_phrases": ["Mohon maaf", "Terima kasih banyak", "Silakan", "Dengan senang hati", "Iya"],
+  "date_format": "DD/MM/YYYY",
+  "time_format": "HH:mm",
+  "number_format": "id-ID",
+  "preferred_topics": ["urban", "business", "technology", "traffic", "entertainment"],
+  "taboo_topics": ["politics", "corruption", "poverty"],
+  "cultural_references": {
+    "gotong_royong": "Bersama kita bisa atasi macet Jakarta",
+    "rukun": "Kerukunan warga Jakarta",
+    "harmoni": "Harmoni di tengah keberagaman Jakarta",
+    "betawi": "Budaya Betawi yang kaya",
+    "monas": "Monumen Nasional sebagai simbol Jakarta"
+  },
+  "indirectness_level": 6,
+  "formality_level": 7,
+  "context_level": "medium",
+  "business_hours": {
+    "start": "08:00",
+    "end": "18:00",
+    "days": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+  },
+  "holidays": [
+    {
+      "name": "Tahun Baru",
+      "date": "01-01",
+      "type": "national",
+      "description": "New Year celebration"
+    },
+    {
+      "name": "Idul Fitri",
+      "date": "variable",
+      "type": "religious",
+      "description": "End of Ramadan celebration"
+    },
+    {
+      "name": "Hari Kemerdekaan",
+      "date": "08-17",
+      "type": "national",
+      "description": "Independence Day"
+    }
+  ],
+  "enabled": true,
+  "last_updated": "2025-08-31T05:09:00Z"
+}

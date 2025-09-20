@@ -1,0 +1,70 @@
+﻿{
+    "DetailedResults":  [
+                            {
+                                "Query":  "syarat akta kelahiran",
+                                "Status":  "FAIL",
+                                "Timestamp":  {
+                                                  "value":  "\/Date(1757494058131)\/",
+                                                  "DisplayHint":  2,
+                                                  "DateTime":  "Wednesday, September 10, 2025 3:47:38 PM"
+                                              },
+                                "ResponseLength":  1124,
+                                "ExpectedContext":  "dokumen"
+                            },
+                            {
+                                "Query":  "berapa lama proses akta",
+                                "Status":  "FAIL",
+                                "Timestamp":  {
+                                                  "value":  "\/Date(1757494058197)\/",
+                                                  "DisplayHint":  2,
+                                                  "DateTime":  "Wednesday, September 10, 2025 3:47:38 PM"
+                                              },
+                                "ResponseLength":  1179,
+                                "ExpectedContext":  "proses"
+                            },
+                            {
+                                "Query":  "akta kelahiran online",
+                                "Status":  "PASS",
+                                "Timestamp":  {
+                                                  "value":  "\/Date(1757494058269)\/",
+                                                  "DisplayHint":  2,
+                                                  "DateTime":  "Wednesday, September 10, 2025 3:47:38 PM"
+                                              },
+                                "ResponseLength":  1315,
+                                "ExpectedContext":  "online"
+                            },
+                            {
+                                "Query":  "perpindahan KTP",
+                                "Status":  "FAIL",
+                                "Timestamp":  {
+                                                  "value":  "\/Date(1757494058335)\/",
+                                                  "DisplayHint":  2,
+                                                  "DateTime":  "Wednesday, September 10, 2025 3:47:38 PM"
+                                              },
+                                "ResponseLength":  495,
+                                "ExpectedContext":  "perpindahan"
+                            },
+                            {
+                                "Query":  "biaya akta kelahiran",
+                                "Status":  "PASS",
+                                "Timestamp":  {
+                                                  "value":  "\/Date(1757494058406)\/",
+                                                  "DisplayHint":  2,
+                                                  "DateTime":  "Wednesday, September 10, 2025 3:47:38 PM"
+                                              },
+                                "ResponseLength":  1195,
+                                "ExpectedContext":  "biaya"
+                            }
+                        ],
+    "Timestamp":  {
+                      "value":  "\/Date(1757494058424)\/",
+                      "DisplayHint":  2,
+                      "DateTime":  "Wednesday, September 10, 2025 3:47:38 PM"
+                  },
+    "TestSummary":  {
+                        "TotalQueries":  5,
+                        "SuccessfulQueries":  2,
+                        "AccuracyPercentage":  40
+                    },
+    "PerformanceAssessment":  "NEEDS_IMPROVEMENT"
+}

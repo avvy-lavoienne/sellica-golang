@@ -16,6 +16,7 @@ import (
 	"selly-backend/internal/services/chat"
 	"selly-backend/internal/services/database"
 	"selly-backend/internal/services/monitoring"
+	"selly-backend/internal/services/rag"
 	"selly-backend/internal/services/training"
 )
 
@@ -51,8 +52,11 @@ func setupTestServices(t *testing.T) *TestServices {
 	trainingService, err := training.NewService(dbService, cacheService)
 	require.NoError(t, err)
 
+	// Initialize RAG service for chat
+	ragService := rag.NewRedisRAGService(cacheService.GetRedisClient())
+
 	// Initialize chat service
-	chatService := chat.NewService(dbService, cacheService, authService)
+	chatService := chat.NewService(dbService, cacheService, authService, ragService)
 	require.NotNil(t, chatService)
 
 	return &TestServices{

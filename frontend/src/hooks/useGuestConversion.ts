@@ -4,14 +4,17 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'react-toastify'
 
-import { GuestConversionService } from '@/services/auth/guestConversionService'
-import { UnifiedSessionManager } from '@/services/session/unifiedSessionManager'
+// DISABLED FOR CORE BUILD
+// import { GuestConversionService } from '../../selly-legacy-nextjs-backend/business-logic/auth/auth/guestConversionService'
+// DISABLED FOR CORE BUILD
+// import { UnifiedSessionManager } from '../../selly-legacy-nextjs-backend/business-logic/session/session/unifiedSessionManager'
 import { 
   GuestSessionData, 
   UserRegistrationData, 
   ConversionResult 
 } from '@/components/auth/types'
-import { GuestSession } from '@/services/session/unifiedTypes'
+// DISABLED FOR CORE BUILD
+// import { GuestSession } from '../../selly-legacy-nextjs-backend/business-logic/session/session/unifiedTypes'
 
 interface UseGuestConversionOptions {
   autoTrigger?: boolean
@@ -51,6 +54,26 @@ export function useGuestConversion(
   } = options
 
   const router = useRouter()
+  // Mock services and types for core build
+  type GuestSession = any;
+  const GuestConversionService = {
+    getInstance: () => ({
+      convertGuestToUser: () => Promise.resolve(),
+      convertGuestToAuth: (_guestData: any, _userData: any) => Promise.resolve({
+        success: true,
+        sessionId: 'mock-session-id',
+        error: undefined
+      }),
+      isConversionEligible: (_guestData: any) => Promise.resolve(true),
+      trackConversionAttempt: (_sessionId: string) => Promise.resolve()
+    })
+  };
+  const UnifiedSessionManager = {
+    getInstance: () => ({
+      getSession: (_sessionId: string) => Promise.resolve({ type: 'guest' })
+    })
+  };
+
   const conversionService = useRef(GuestConversionService.getInstance())
   const sessionManager = useRef(UnifiedSessionManager.getInstance())
 

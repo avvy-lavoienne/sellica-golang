@@ -17,15 +17,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { UnifiedChatProvider, useUnifiedChat } from '@/contexts/UnifiedChatContext';
 import { EnhancedChatMessage } from '@/components/chatbot/EnhancedChatMessage';
 import { EnhancedSellyToggle } from '@/components/chatbot/EnhancedSellyToggle';
-import { aiService } from '@/services/chatbot/aiService';
+// DISABLED FOR CORE BUILD - Using simplified chat functionality
+// // DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// import { aiService } from '../../../selly-legacy-nextjs-backend/business-logic/chatbot/core/aiService';
 import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
 import { cn } from '@/lib/conn/utils';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { pageTransition, fadeInUp, staggerContainer } from '@/lib/animations';
 import { QUICK_ACTIONS } from '@/types/chatbot';
-import { SellyWelcomeCard } from './components/SellyWelcomeCard';
-import { MobileSellyInterface } from './components/MobileSellyInterface';
+import { SellyWelcomeCard } from './components/SellyWelcomeCard'; // Disabled for core build
+import { MobileSellyInterface } from './components/MobileSellyInterface'; // Disabled for core build
 import { isMobile } from '@/utils/mobile';
+import { SellyApiService } from '@/services/selly/sellyApiService';
 
 interface SellyAIPageContentProps {
   className?: string;
@@ -468,12 +472,12 @@ export default function SellyAIPage() {
     try {
       console.log('🔄 [SELLY_AI_PAGE] Resetting SELLY AI page services...');
 
-      // Clear EnhancedChatStorageService cache
+      // Clear EnhancedChatStorageService cache (disabled for core build)
       try {
-        const { EnhancedChatStorageService } = await import('@/services/chatbot/enhancedChatStorageService');
-        const chatStorageService = EnhancedChatStorageService.getInstance();
-        chatStorageService.clearLocalCache();
-        console.log('🧹 [SELLY_AI_PAGE] Cleared EnhancedChatStorageService cache');
+        // const { EnhancedChatStorageService } = await import('@/services/chatbot/enhancedChatStorageService'); // Disabled for core build
+        // const chatStorageService = EnhancedChatStorageService.getInstance(); // Disabled for core build
+        // chatStorageService.clearLocalCache(); // Disabled for core build
+        console.log('🧹 [SELLY_AI_PAGE] EnhancedChatStorageService cache clearing disabled in core build mode');
       } catch (cacheError) {
         console.warn('⚠️ [SELLY_AI_PAGE] Could not clear chat service cache:', cacheError);
       }
@@ -554,12 +558,12 @@ export default function SellyAIPage() {
     try {
       console.log('🚀 [SELLY_AI_PAGE] Processing message with enhanced workflow:', message);
 
-      // Enhanced context with proper metadata (matching dashboard implementation)
+      // Enhanced context with proper metadata (using shared service)
       const enhancedContext = {
         userId: userId,
         timestamp: new Date().toISOString(),
-        enhancedMode: enhancedMode, // Use actual enhancement mode state
-        source: 'selly-ai-page',
+        enhancedMode: enhancedMode,
+        source: 'selly-ai-page' as const,
         sessionId: `selly-ai-${userId}`,
         userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : '',
         metadata: {
@@ -569,56 +573,11 @@ export default function SellyAIPage() {
         }
       };
 
-      // First tier: Try API endpoint for AI-powered responses
-      try {
-        console.log('🔄 [SELLY_AI_PAGE] Attempting primary API call...');
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message,
-            context: enhancedContext,
-            enhancementMode: enhancedMode ? 'enhanced' : 'standard', // Dynamic enhancement mode
-          }),
-        });
+      // Use unified SELLY API service for Go backend integration
+      const response = await SellyApiService.processMessage(message, enhancedContext);
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.response) {
-            console.log('✅ [SELLY_AI_PAGE] Primary API call successful');
-            return data.response;
-          }
-        }
-
-        console.log('⚠️ [SELLY_AI_PAGE] Primary API call failed, trying fallback...');
-      } catch (apiError) {
-        console.log('⚠️ [SELLY_AI_PAGE] Primary API error, trying fallback:', apiError);
-      }
-
-      // Second tier: Fallback to local AI processing
-      try {
-        console.log('🔄 [SELLY_AI_PAGE] Attempting local AI processing...');
-        const localResponse = await aiService.processQuery(message);
-        if (localResponse && localResponse.content) {
-          console.log('✅ [SELLY_AI_PAGE] Local AI processing successful');
-          return localResponse.content;
-        }
-      } catch (localError) {
-        console.log('⚠️ [SELLY_AI_PAGE] Local AI processing failed:', localError);
-      }
-
-      // Third tier: Final fallback with helpful message
-      console.log('⚠️ [SELLY_AI_PAGE] All processing methods failed, using fallback message');
-      return `Maaf, saya sedang mengalami gangguan teknis sementara.
-
-Silakan coba:
-• Muat ulang halaman dan kirim pesan lagi
-• Periksa koneksi internet Anda
-• Coba lagi dalam beberapa menit
-
-Jika masalah berlanjut, silakan hubungi administrator sistem.`;
+      console.log('✅ [SELLY_AI_PAGE] SELLY API response received');
+      return response;
 
     } catch (error) {
       console.error('❌ [SELLY_AI_PAGE] Critical error in message processing:', error);

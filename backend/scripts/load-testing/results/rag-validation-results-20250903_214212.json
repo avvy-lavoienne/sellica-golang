@@ -1,0 +1,79 @@
+{
+  "failed": 5,
+  "passed": 0,
+  "results": [
+    {
+      "test_case": {
+        "Query": "Bagaimana cara mengurus akta kelahiran anak?",
+        "ExpectedContext": "akta kelahiran",
+        "MinConfidence": 0.7,
+        "Description": "Birth certificate basic query"
+      },
+      "success": false,
+      "response": "",
+      "confidence": 0,
+      "process_time": 0,
+      "service_type": "",
+      "error": "HTTP 404: 404 page not found"
+    },
+    {
+      "test_case": {
+        "Query": "Dokumen apa saja yang diperlukan untuk membuat akta kelahiran?",
+        "ExpectedContext": "dokumen",
+        "MinConfidence": 0.75,
+        "Description": "Birth certificate documents query"
+      },
+      "success": false,
+      "response": "",
+      "confidence": 0,
+      "process_time": 0,
+      "service_type": "",
+      "error": "HTTP 404: 404 page not found"
+    },
+    {
+      "test_case": {
+        "Query": "Berapa lama proses pembuatan akta kelahiran?",
+        "ExpectedContext": "proses",
+        "MinConfidence": 0.7,
+        "Description": "Birth certificate processing time query"
+      },
+      "success": false,
+      "response": "",
+      "confidence": 0,
+      "process_time": 0,
+      "service_type": "",
+      "error": "HTTP 404: 404 page not found"
+    },
+    {
+      "test_case": {
+        "Query": "Apakah bisa mengurus akta kelahiran secara online?",
+        "ExpectedContext": "online",
+        "MinConfidence": 0.65,
+        "Description": "Online birth certificate query"
+      },
+      "success": false,
+      "response": "",
+      "confidence": 0,
+      "process_time": 0,
+      "service_type": "",
+      "error": "HTTP 404: 404 page not found"
+    },
+    {
+      "test_case": {
+        "Query": "Syarat apa saja untuk perpindahan KTP?",
+        "ExpectedContext": "perpindahan",
+        "MinConfidence": 0.7,
+        "Description": "KTP transfer requirements query"
+      },
+      "success": false,
+      "response": "",
+      "confidence": 0,
+      "process_time": 0,
+      "service_type": "",
+      "error": "HTTP 404: 404 page not found"
+    }
+  ],
+  "success_rate": 0,
+  "timestamp": "2025-09-03T21:42:12+07:00",
+  "total_tests": 5
+}

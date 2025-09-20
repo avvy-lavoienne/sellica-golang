@@ -20,7 +20,10 @@ import {
 } from '@heroicons/react/24/outline';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AnalyticsDashboard, RealTimeInsight, Alert } from '@/services/analytics/enhancedSessionAnalytics';
+// import { AnalyticsDashboard, RealTimeInsight, Alert } from '@/services/analytics/enhancedSessionAnalytics'; // Disabled for core build
+type AnalyticsDashboard = any; // Mock type for core build
+type RealTimeInsight = any; // Mock type for core build
+type Alert = any; // Mock type for core build
 
 interface SessionAnalyticsDashboardProps {
   dashboard: AnalyticsDashboard;
@@ -111,8 +114,8 @@ export function SessionAnalyticsDashboard({
       : <ArrowTrendingDownIcon className="h-4 w-4 text-red-600" />;
   };
 
-  const criticalAlerts = dashboard.alerts.filter(a => a.severity === 'critical' && !a.acknowledged);
-  const highPriorityInsights = dashboard.insights.filter(i => i.severity === 'high' || i.severity === 'critical');
+  const criticalAlerts = dashboard.alerts.filter((a: any) => a.severity === 'critical' && !a.acknowledged);
+  const highPriorityInsights = dashboard.insights.filter((i: any) => i.severity === 'high' || i.severity === 'critical');
 
   return (
     <div className={`space-y-6 ${className}`}>
@@ -173,7 +176,7 @@ export function SessionAnalyticsDashboard({
             </h3>
           </div>
           <div className="space-y-2">
-            {criticalAlerts.slice(0, 3).map((alert) => (
+            {criticalAlerts.slice(0, 3).map((alert: any) => (
               <div key={alert.id} className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg p-3">
                 <div className="flex items-center space-x-3">
                   {getAlertIcon(alert.severity)}
@@ -272,7 +275,7 @@ export function SessionAnalyticsDashboard({
             Real-Time Insights
           </h3>
           <div className="space-y-4">
-            {highPriorityInsights.slice(0, 5).map((insight) => (
+            {highPriorityInsights.slice(0, 5).map((insight: any) => (
               <div key={insight.id} className="flex items-start space-x-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 {getInsightIcon(insight.type)}
                 <div className="flex-1">
@@ -300,7 +303,7 @@ export function SessionAnalyticsDashboard({
                         Recommendations:
                       </p>
                       <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                        {insight.recommendations.slice(0, 2).map((rec, index) => (
+                        {insight.recommendations.slice(0, 2).map((rec: any, index: number) => (
                           <li key={index} className="flex items-start">
                             <span className="text-blue-500 mr-1">•</span>
                             {rec}
@@ -328,7 +331,7 @@ export function SessionAnalyticsDashboard({
           </div>
           
           <div className="space-y-3">
-            {dashboard.trends.sessionGrowth.slice(-5).map((point, index) => (
+            {dashboard.trends.sessionGrowth.slice(-5).map((point: any, index: number) => (
               <div key={index} className="flex items-center justify-between">
                 <span className="text-sm text-gray-600 dark:text-gray-300">
                   {point.timestamp.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
@@ -358,7 +361,7 @@ export function SessionAnalyticsDashboard({
           </div>
           
           <div className="space-y-3">
-            {dashboard.trends.conversionTrend.slice(-5).map((point, index) => (
+            {dashboard.trends.conversionTrend.slice(-5).map((point: any, index: number) => (
               <div key={index} className="flex items-center justify-between">
                 <span className="text-sm text-gray-600 dark:text-gray-300">
                   {point.timestamp.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
@@ -388,7 +391,7 @@ export function SessionAnalyticsDashboard({
           </div>
           
           <div className="space-y-3">
-            {dashboard.trends.satisfactionTrend.slice(-5).map((point, index) => (
+            {dashboard.trends.satisfactionTrend.slice(-5).map((point: any, index: number) => (
               <div key={index} className="flex items-center justify-between">
                 <span className="text-sm text-gray-600 dark:text-gray-300">
                   {point.timestamp.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}

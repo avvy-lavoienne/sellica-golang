@@ -15,7 +15,8 @@ import { ChevronDown, ChevronRight, TrendingUp, AlertTriangle, Lightbulb, Databa
 import { ChatMessage } from '@/types/chatbot';
 import { EnhancedChart } from './EnhancedChart';
 import { MarkdownRenderer } from './MarkdownRenderer';
-import { ChartConfig } from '@/services/chatbot/visualizationEngine';
+// import { ChartConfig } from '@/services/chatbot/visualizationEngine'; // Moved to legacy backend
+type ChartConfig = any;
 
 interface EnhancedChatMessageProps {
   message: ChatMessage;

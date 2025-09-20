@@ -10,12 +10,14 @@ import (
 	"selly-backend/internal/services/chat"
 	"selly-backend/internal/services/concurrent"
 	"selly-backend/internal/services/database"
+	"selly-backend/internal/services/eventbus"
 	"selly-backend/internal/services/monitoring"
 	"selly-backend/internal/services/training"
 )
 
-// Services holds all application services for dependency injection
+// Services struct holds references to all application services
 type Services struct {
+	EventBus   eventbus.EventBusInterface
 	Database   *database.Service
 	Cache      *cache.Service
 	Auth       *auth.Service
@@ -73,7 +75,7 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	SetupConcurrentRoutes(router, services.Concurrent)
 
 	// Authentication routes (public)
-	setupAuthRoutes(router, services.Auth)
+	setupAuthRoutes(router, services.Auth, services.Database)
 
 	// Protected routes (require authentication)
 	protected := router.Group("/")
@@ -97,6 +99,9 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 func setupHealthRoutes(router *gin.Engine, handler *handlers.HealthHandler) {
 	// Root health endpoint for load balancers
 	router.GET("/health", handler.GetHealth)
+
+	// Root readiness endpoint for compatibility
+	router.GET("/ready", handler.GetHealthReady) // GET /ready - Readiness probe (compatibility)
 
 	health := router.Group("/health")
 	{
@@ -143,59 +148,48 @@ func setupCacheRoutes(router *gin.Engine, handler *handlers.CacheHandler) {
 }
 
 // setupAuthRoutes configures authentication endpoints
-func setupAuthRoutes(router *gin.Engine, authService *auth.Service) {
+func setupAuthRoutes(router *gin.Engine, authService *auth.Service, dbService *database.Service) {
+	// Create auth handler with both services
+	authHandler := handlers.NewAuthHandler(authService, dbService)
+
+	// Public auth endpoints
 	auth := router.Group("/auth")
 	{
-		auth.POST("/register", func(c *gin.Context) {
-			// Registration handler
-			var request struct {
-				Email    string `json:"email" binding:"required,email"`
-				Password string `json:"password" binding:"required,min=8"`
-			}
+		auth.POST("/register", authHandler.Register)
+		auth.POST("/login", authHandler.Login)
+		auth.POST("/logout", authHandler.Logout)
 
-			if err := c.ShouldBindJSON(&request); err != nil {
-				c.JSON(400, gin.H{
-					"success": false,
-					"error":   "Invalid request format",
-					"details": err.Error(),
-				})
-				return
-			}
-
-			result, err := authService.RegisterUser(request.Email, request.Password)
-			if err != nil {
-				c.JSON(500, gin.H{
-					"success": false,
-					"error":   "Registration failed",
-					"details": err.Error(),
-				})
-				return
-			}
-
-			c.JSON(200, gin.H{
-				"success": true,
-				"data":    result,
-			})
-		})
-
+		// Debug endpoint (keep existing functionality)
 		auth.GET("/debug", func(c *gin.Context) {
-			// Debug authentication
 			token := c.GetHeader("Authorization")
 			if token != "" {
 				token = token[7:] // Remove "Bearer " prefix
 			}
-
 			debugInfo := authService.DebugAuth(token)
 			c.JSON(200, debugInfo)
 		})
 	}
+
+	// Protected auth endpoints (require authentication)
+	authProtected := router.Group("/auth")
+	authProtected.Use(middleware.AuthMiddleware(authService))
+	{
+		authProtected.POST("/refresh", authHandler.RefreshToken)
+		authProtected.GET("/profile", authHandler.GetProfile)
+	}
 }
 
 // setupChatRoutes configures chat endpoints
-func setupChatRoutes(router *gin.Engine, handler *handlers.ChatHandler, authService *auth.Service) {
+func setupChatRoutes(router *gin.Engine, handler *handlers.ChatHandler, _ *auth.Service) {
 	// Public chat endpoints (with optional auth)
 	router.POST("/chat", handler.ProcessChat)
 	router.POST("/chat/session", handler.ProcessSessionChat)
+
+	// API chat endpoints (for compatibility with Next.js frontend)
+	api := router.Group("/api")
+	{
+		api.POST("/chat", handler.ProcessChat) // POST /api/chat - API chat endpoint
+	}
 
 	// Chat management endpoints
 	chat := router.Group("/chat")
@@ -217,10 +211,13 @@ func setupTrainingRoutes(router *gin.Engine, handler *handlers.TrainingHandler, 
 
 // setupPerformanceRoutes configures performance monitoring endpoints
 func setupPerformanceRoutes(router *gin.Engine, handler *handlers.PerformanceHandler) {
-	// Performance monitoring endpoints (public)
+	// Documented performance endpoint (primary path)
+	router.GET("/performance", handler.GetPerformanceMetrics) // GET /performance - Documented performance endpoint
+
+	// Performance monitoring endpoints (public) - backward compatibility
 	api := router.Group("/api/performance")
 	{
-		api.GET("/metrics", handler.GetHighPerformanceMetrics)  // GET /api/performance/metrics - High-performance AI metrics
+		api.GET("/metrics", handler.GetHighPerformanceMetrics) // GET /api/performance/metrics - High-performance AI metrics
 		api.GET("/health", handler.GetPerformanceHealth)       // GET /api/performance/health - Performance health check
 		api.GET("/stats", handler.GetPerformanceStats)         // GET /api/performance/stats - Performance statistics
 		api.POST("/test", handler.PostPerformanceTest)         // POST /api/performance/test - Performance test endpoint
@@ -228,8 +225,9 @@ func setupPerformanceRoutes(router *gin.Engine, handler *handlers.PerformanceHan
 }
 
 // GetServices creates and returns the services struct for dependency injection
-func GetServices(db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service) *Services {
+func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service) *Services {
 	return &Services{
+		EventBus:   eventBus,
 		Database:   db,
 		Cache:      cache,
 		Auth:       auth,

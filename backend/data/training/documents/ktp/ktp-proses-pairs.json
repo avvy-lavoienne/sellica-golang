@@ -1,0 +1,16 @@
+[
+  {
+    "query": "Berapa lama proses pembuatan KTP?",
+    "expectedResponse": "Proses perekaman biometrik memakan waktu 15-60 menit tergantung antrian. Setelah itu, pencetakan e-KTP fisik membutuhkan sekitar 14 hari kerja. Beberapa daerah seperti Bandung bisa lebih cepat (5 hari kerja).",
+    "serviceType": "ktp",
+    "category": "waktu_proses",
+    "priority": "medium"
+  },
+  {
+    "query": "Apa aja yang direkam saat bikin KTP?",
+    "expectedResponse": "Saat perekaman biometrik, akan diambil: foto digital (latar biru untuk lahir tahun genap, merah untuk ganjil), sidik jari semua jari, pemindaian retina mata, dan tanda tangan digital. Semua data ini disimpan dalam chip e-KTP.",
+    "serviceType": "ktp",
+    "category": "proses_perekaman",
+    "priority": "medium"
+  }
+]

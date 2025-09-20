@@ -199,3 +199,23 @@ type TrainingSuggestionsResponse struct {
 	Total       int                  `json:"total"`
 	Generated   time.Time            `json:"generated"`
 }
+
+// JSONTrainingData represents training data from JSON files (like selly_training_akta_kelahiran.json)
+type JSONTrainingData struct {
+	Question        string   `json:"question"`
+	Answer          string   `json:"answer"`
+	Category        string   `json:"category"`
+	ServiceType     string   `json:"service_type"`
+	Difficulty      string   `json:"difficulty"`
+	Keywords        []string `json:"keywords"`
+	UserIntent      string   `json:"user_intent"`
+	ResponsePriority string  `json:"response_priority"`
+}
+
+// JSONTrainingDataFile represents a complete JSON training data file
+type JSONTrainingDataFile struct {
+	FilePath    string             `json:"file_path"`
+	ServiceType string             `json:"service_type"`
+	Data        []JSONTrainingData `json:"data"`
+	LastUpdated time.Time          `json:"last_updated"`
+}

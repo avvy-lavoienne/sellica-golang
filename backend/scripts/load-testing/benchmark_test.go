@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"runtime"
@@ -16,7 +17,9 @@ import (
 	"selly-backend/internal/services/auth"
 	"selly-backend/internal/services/cache"
 	"selly-backend/internal/services/chat"
+	"selly-backend/internal/services/concurrent"
 	"selly-backend/internal/services/database"
+	"selly-backend/internal/services/eventbus"
 	"selly-backend/internal/services/monitoring"
 	"selly-backend/internal/services/training"
 )
@@ -59,21 +62,27 @@ func setupTestServer() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 
 	// Initialize services (mock implementations for benchmarking)
+	unifiedEventBus, err := eventbus.NewAutoEventBus()
+	if err != nil {
+		log.Fatalf("Failed to create event bus: %v", err)
+	}
 	dbService := &database.Service{}           // Mock service
 	cacheService := &cache.Service{}           // Mock service
 	authService := &auth.Service{}             // Mock service
 	chatService := &chat.Service{}             // Mock service
 	monitoringService := &monitoring.Service{} // Mock service
 	trainingService := &training.Service{}     // Mock service
+	concurrentService := (*concurrent.Service)(nil) // Mock concurrent service
 
 	services := routes.GetServices(
+		unifiedEventBus,
 		dbService,
 		cacheService,
 		authService,
 		chatService,
 		monitoringService,
 		trainingService,
-		nil, // concurrent service not needed for benchmarks
+		concurrentService,
 	)
 
 	router := gin.New()
@@ -223,7 +232,7 @@ func TestPerformanceMetrics(t *testing.T) {
 }
 
 // measureEndpointPerformance measures performance metrics for an endpoint
-func measureEndpointPerformance(t *testing.T, router *gin.Engine, method, endpoint string, payload interface{}) BenchmarkResult {
+func measureEndpointPerformance(_ *testing.T, router *gin.Engine, method, endpoint string, payload interface{}) BenchmarkResult {
 	const numRequests = 1000
 	const concurrency = 10
 

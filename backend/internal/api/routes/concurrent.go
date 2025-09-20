@@ -1,9 +1,10 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
 	"selly-backend/internal/api/handlers"
 	"selly-backend/internal/services/concurrent"
+
+	"github.com/gin-gonic/gin"
 )
 
 // SetupConcurrentRoutes sets up routes for concurrent processing endpoints
@@ -14,8 +15,11 @@ func SetupConcurrentRoutes(router *gin.Engine, concurrentService *concurrent.Ser
 	}
 
 	handler := handlers.NewConcurrentHandler(concurrentService)
-	
-	// Create concurrent processing API group
+
+	// Documented concurrent status endpoint (primary path)
+	router.GET("/concurrent/status", handler.GetStatus) // GET /concurrent/status - Documented concurrent status endpoint
+
+	// Create concurrent processing API group - backward compatibility
 	concurrentGroup := router.Group("/api/concurrent")
 	{
 		// Service-level endpoints
@@ -23,35 +27,35 @@ func SetupConcurrentRoutes(router *gin.Engine, concurrentService *concurrent.Ser
 		concurrentGroup.GET("/metrics", handler.GetMetrics)
 		concurrentGroup.GET("/health", handler.GetHealth)
 		concurrentGroup.GET("/metrics/detailed", handler.GetDetailedMetrics)
-		
+
 		// Worker pool endpoints
 		workerPoolGroup := concurrentGroup.Group("/worker-pool")
 		{
 			workerPoolGroup.GET("/status", handler.GetWorkerPoolStatus)
 			workerPoolGroup.GET("/metrics", handler.GetWorkerPoolMetrics)
 		}
-		
+
 		// Rate limiter endpoints
 		rateLimiterGroup := concurrentGroup.Group("/rate-limiter")
 		{
 			rateLimiterGroup.GET("/status", handler.GetRateLimiterStatus)
 			rateLimiterGroup.PUT("/limit", handler.UpdateRateLimit)
 		}
-		
+
 		// Circuit breaker endpoints
 		circuitBreakerGroup := concurrentGroup.Group("/circuit-breaker")
 		{
 			circuitBreakerGroup.GET("/status", handler.GetCircuitBreakerStatus)
 			circuitBreakerGroup.POST("/reset", handler.ResetCircuitBreaker)
 		}
-		
+
 		// AI manager endpoints
 		aiManagerGroup := concurrentGroup.Group("/ai-manager")
 		{
 			aiManagerGroup.GET("/status", handler.GetAIManagerStatus)
 			aiManagerGroup.GET("/metrics", handler.GetAIManagerMetrics)
 		}
-		
+
 		// AI processing endpoints
 		aiGroup := concurrentGroup.Group("/ai")
 		{

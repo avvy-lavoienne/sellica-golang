@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -72,10 +73,16 @@ func NewGroqProvider(apiKey string) *GroqProvider {
 		}
 	}
 
+	// Get model from environment or use default
+	model := os.Getenv("GROQ_MODEL")
+	if model == "" {
+		model = "llama-3.3-70b-versatile" // Updated default model
+	}
+
 	provider := &GroqProvider{
 		apiKey:  apiKey,
 		baseURL: "https://api.groq.com/openai/v1",
-		model:   "llama3-8b-8192", // Default model
+		model:   model,
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
@@ -162,7 +169,7 @@ func (p *GroqProvider) IsHealthy() bool {
 
 // buildSystemPrompt builds a system prompt for Indonesian government services
 func (p *GroqProvider) buildSystemPrompt(req *AIRequest) string {
-	basePrompt := `Anda adalah asisten AI untuk layanan pemerintah Indonesia yang membantu masyarakat dengan informasi administrasi dan layanan publik.
+	basePrompt := `Anda adalah SELLY, asisten AI untuk layanan pemerintah Indonesia yang membantu masyarakat dengan informasi administrasi dan layanan publik.
 
 PEDOMAN RESPONS:
 1. Gunakan bahasa Indonesia yang formal dan sopan
@@ -170,6 +177,7 @@ PEDOMAN RESPONS:
 3. Sertakan langkah-langkah praktis yang dapat diikuti
 4. Jika tidak yakin, arahkan ke instansi yang tepat
 5. Prioritaskan kejelasan dan kemudahan pemahaman
+6. WAJIB: Gunakan informasi dari knowledge base jika tersedia
 
 FOKUS LAYANAN:
 - Administrasi kependudukan (KTP, KK, Akta)
@@ -181,8 +189,46 @@ FOKUS LAYANAN:
 
 Berikan respons yang membantu dan informatif.`
 
-	// Add context-specific information
+	// Add RAG knowledge base context if available
 	if req.Context != nil {
+		if knowledgeContext, ok := req.Context["knowledge_base_context"].(string); ok && knowledgeContext != "" {
+			basePrompt += "\n\nINFORMASI KNOWLEDGE BASE:\n" + knowledgeContext
+			basePrompt += "\n\nPENTING: Gunakan informasi di atas untuk memberikan jawaban yang akurat dan spesifik. Jangan berikan jawaban generik jika informasi spesifik tersedia."
+
+			// Add service-specific context
+			if serviceType, ok := req.Context["service_type"].(string); ok && serviceType != "" {
+				basePrompt += "\n\nJENIS LAYANAN: " + serviceType
+			}
+
+			if scenario, ok := req.Context["scenario"].(string); ok && scenario != "" {
+				basePrompt += "\n\nSKENARIO: " + scenario
+			}
+		}
+
+		// Check for knowledge gap scenario
+		if knowledgeGap, ok := req.Context["knowledge_gap_detected"].(bool); ok && knowledgeGap {
+			basePrompt += "\n\nSITUASI KNOWLEDGE GAP TERDETEKSI:"
+			basePrompt += "\nAnda sedang menghadapi pertanyaan yang tidak memiliki informasi dalam knowledge base."
+
+			if requestedService, ok := req.Context["requested_service"].(string); ok && requestedService != "" {
+				basePrompt += "\nLayanan yang diminta: " + requestedService
+			}
+
+			if keywords, ok := req.Context["user_keywords"].([]string); ok && len(keywords) > 0 {
+				basePrompt += "\nKata kunci pengguna: " + strings.Join(keywords, ", ")
+			}
+
+			basePrompt += "\n\nRESPON KNOWLEDGE GAP YANG DIPERLUKAN:"
+			basePrompt += "\n1. Akui dengan sopan bahwa Anda belum memiliki informasi spesifik tentang pertanyaan tersebut"
+			basePrompt += "\n2. Jelaskan bahwa SELLY perlu mempelajari topik ini untuk memberikan jawaban yang akurat"
+			basePrompt += "\n3. Sampaikan bahwa pertanyaan mereka sangat berharga untuk meningkatkan knowledge base SELLY"
+			basePrompt += "\n4. Berikan kontak admin WhatsApp untuk bantuan langsung: +62-851-8304-3205"
+			basePrompt += "\n5. Gunakan nada layanan pemerintah Indonesia yang sopan, membantu, dan profesional"
+			basePrompt += "\n6. Tetap pertahankan persona SELLY sebagai asisten digital Disdukcapil Garut"
+			basePrompt += "\n7. Berikan apresiasi atas kesabaran pengguna"
+		}
+
+		// Add other context-specific information
 		if userLevel, ok := req.Context["userExpertiseLevel"].(string); ok {
 			if userLevel == "beginner" {
 				basePrompt += "\n\nCATATAN: Pengguna adalah pemula, berikan penjelasan yang detail dan mudah dipahami."

@@ -250,11 +250,8 @@ func (p *IndoBERTProcessor) initialize() error {
 func (w *IndoBERTWorker) run() {
 	logrus.WithField("worker_id", w.ID).Debug("🔧 IndoBERT worker started")
 
-	for {
-		select {
-		case task := <-w.processor.processingQueue:
-			w.processTask(task)
-		}
+	for task := range w.processor.processingQueue {
+		w.processTask(task)
 	}
 }
 
@@ -434,7 +431,7 @@ func (w *IndoBERTWorker) predictPOSTag(word string) string {
 }
 
 // performNER performs named entity recognition
-func (w *IndoBERTWorker) performNER(text string, tokens []Token) []NamedEntity {
+func (w *IndoBERTWorker) performNER(text string, _ []Token) []NamedEntity {
 	var entities []NamedEntity
 
 	// Indonesian administrative entities

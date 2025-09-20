@@ -1,0 +1,9 @@
+﻿{
+    "MonitoringSystems":  false,
+    "DatabaseConnectivity":  false,
+    "APIEndpoints":  true,
+    "TrainingDataIntegration":  true,
+    "RAGSystemReadiness":  true,
+    "OverallReadiness":  false,
+    "SystemHealth":  false
+}

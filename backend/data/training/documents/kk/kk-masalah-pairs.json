@@ -1,0 +1,58 @@
+[
+  {
+    "query": "KK saya ditolak, kenapa ya?",
+    "expectedResponse": "KK bisa ditolak karena beberapa alasan:\n\n❌ **Alasan Penolakan Umum:**\n\n**1. Dokumen Tidak Lengkap:**\n• Kurang fotokopi atau dokumen asli\n• Formulir tidak diisi lengkap\n• Tanda tangan kurang atau salah\n\n**2. Data Tidak Sesuai:**\n• Nama di dokumen berbeda-beda\n• Tanggal lahir tidak konsisten\n• Alamat tidak sesuai domisili\n\n**3. Dokumen Bermasalah:**\n• Dokumen palsu atau diragukan\n• Materai tidak sesuai atau palsu\n• Fotokopi tidak jelas/terpotong\n\n**4. Persyaratan Tidak Terpenuhi:**\n• Belum memenuhi syarat usia (pisah KK)\n• Status perkawinan belum jelas\n• Hubungan keluarga tidak bisa dibuktikan\n\n🔄 **Cara Mengatasi:**\n• **Tanya petugas** alasan penolakan yang spesifik\n• **Lengkapi dokumen** yang kurang\n• **Perbaiki data** yang salah\n• **Datang lagi** setelah semua beres\n\n💡 **Tips Mencegah Penolakan:**\n• Cek kelengkapan sebelum datang\n• Pastikan semua data konsisten\n• Bawa dokumen asli untuk verifikasi\n\nAlasan penolakan KK kak apa yang disebutkan petugas?",
+    "serviceType": "kartu_keluarga",
+    "category": "masalah_ditolak",
+    "priority": "high"
+  },
+  {
+    "query": "Data di KK salah, gimana cara betulkannya?",
+    "expectedResponse": "Cara betulkan data salah di KK:\n\n📋 **Jenis Kesalahan yang Bisa Dikoreksi:**\n• **Nama** (salah tulis/ejaan)\n• **Tanggal lahir** (salah input)\n• **Status perkawinan** (belum update)\n• **Pekerjaan** (sudah berubah)\n• **Pendidikan** (sudah lulus)\n• **Hubungan keluarga** (salah status)\n• **Alamat** (salah tulis)\n\n📋 **Dokumen untuk Koreksi:**\n1. **KK asli** yang salah\n2. **KTP-el** yang bersangkutan\n3. **Dokumen pendukung yang benar:**\n   - Ijazah (untuk pendidikan)\n   - Akta kelahiran (untuk tanggal lahir)\n   - Akta nikah/cerai (untuk status perkawinan)\n   - Surat keterangan kerja (untuk pekerjaan)\n4. **Surat pernyataan koreksi** bermaterai Rp 10.000\n\n⏱️ **Waktu Proses:** 3-7 hari kerja\n💰 **Biaya:** GRATIS (hanya materai)\n\n🔄 **Langkah-langkah:**\n1. Siapkan dokumen pendukung yang benar\n2. Buat surat pernyataan koreksi\n3. Datang ke Disdukcapil dengan dokumen lengkap\n4. Tunggu proses verifikasi\n5. Ambil KK yang sudah dikoreksi\n\n⚠️ **Catatan:** Koreksi hanya untuk kesalahan tulis, bukan perubahan data yang butuh dokumen baru.\n\nData apa yang salah di KK kak?",
+    "serviceType": "kartu_keluarga",
+    "category": "masalah_data_salah",
+    "priority": "high"
+  },
+  {
+    "query": "KK hilang tapi gak ada surat kehilangan, gimana?",
+    "expectedResponse": "Kalau KK hilang tapi belum ada surat kehilangan:\n\n📋 **Langkah yang Harus Dilakukan:**\n\n**1. Buat Surat Kehilangan Dulu (Wajib):**\n• Ke Polsek terdekat dengan tempat kehilangan\n• Bawa KTP-el asli + fotokopi\n• Ceritakan kronologi kehilangan\n• Bayar biaya Rp 10.000-30.000\n• Dapat Surat Keterangan Kehilangan\n\n**2. Baru Ke Disdukcapil:**\n• Bawa surat kehilangan dari polisi\n• KTP-el asli + fotokopi\n• Surat pernyataan kehilangan bermaterai\n\n❌ **Tidak Bisa Tanpa Surat Kehilangan:**\n• Disdukcapil wajib minta surat kehilangan\n• Ini prosedur standar nasional\n• Tidak ada pengecualian\n\n⏱️ **Total Waktu:**\n• Surat kehilangan: 30 menit - 1 jam\n• Proses KK pengganti: 1-3 hari kerja\n\n💡 **Tips:**\n• Langsung ke polsek jangan ditunda\n• Siapkan kronologi kehilangan yang jelas\n• Bawa uang tunai untuk biaya surat kehilangan\n\n🚨 **Alternatif Darurat:**\nJika butuh KK segera, bisa minta **Surat Keterangan Pengganti KK Sementara** dari RT/RW dengan KTP-el, tapi ini hanya untuk keperluan mendesak dan tidak bisa untuk semua keperluan.\n\nKK kak hilang dimana dan kapan?",
+    "serviceType": "kartu_keluarga",
+    "category": "masalah_hilang_tanpa_surat",
+    "priority": "high"
+  },
+  {
+    "query": "Kenapa KK saya lama sekali prosesnya?",
+    "expectedResponse": "KK lama prosesnya bisa karena beberapa hal:\n\n⏱️ **Penyebab Proses Lama:**\n\n**1. Dokumen Bermasalah:**\n• Ada dokumen yang perlu verifikasi tambahan\n• Data tidak konsisten antar dokumen\n• Perlu koordinasi dengan instansi lain\n\n**2. Kasus Kompleks:**\n• Menggunakan SPTJM (perlu penelitian)\n• Koreksi data yang rumit\n• Pindah dari luar daerah\n• Status perkawinan belum jelas\n\n**3. Faktor Eksternal:**\n• Beban kerja Disdukcapil tinggi\n• Sistem sedang maintenance\n• Libur panjang/hari besar\n• Koordinasi dengan pusat terhambat\n\n🔍 **Cara Cek Status:**\n• Website: disdukcapil.garutkab.go.id\n• Telepon: (0262) 232-XXX\n• Datang langsung dengan tanda terima\n\n🚀 **Cara Mempercepat:**\n• **Tanya langsung** ke petugas apa yang kurang\n• **Lengkapi dokumen** yang diminta\n• **Follow up** secara sopan setiap 2-3 hari\n• **Minta bantuan** kepala bagian jika perlu\n\n💡 **Batas Wajar:**\n• Normal: 1-3 hari kerja\n• Kompleks: 3-7 hari kerja\n• Lebih dari 7 hari: Perlu ditanyakan\n\nSudah berapa hari KK kak diproses?",
+    "serviceType": "kartu_keluarga",
+    "category": "masalah_lama",
+    "priority": "medium"
+  },
+  {
+    "query": "Alamat di KK beda dengan KTP, masalah gak?",
+    "expectedResponse": "Alamat KK beda dengan KTP bisa jadi masalah:\n\n⚠️ **Masalah yang Bisa Timbul:**\n• **BPJS**: Sulit daftar atau klaim\n• **Sekolah**: Zonasi tidak sesuai\n• **Bank**: Verifikasi alamat bermasalah\n• **Pekerjaan**: Administrasi terhambat\n• **Bantuan sosial**: Tidak sesuai kriteria\n• **Pilkada**: Hak pilih bermasalah\n\n🔄 **Solusi yang Harus Dilakukan:**\n\n**Jika Alamat KK yang Benar:**\n• Update KTP sesuai alamat di KK\n• Bawa KK + KTP lama ke Disdukcapil\n• Proses: 1-3 hari kerja, GRATIS\n\n**Jika Alamat KTP yang Benar:**\n• Update KK sesuai alamat di KTP\n• Bawa bukti domisili + KTP ke Disdukcapil\n• Proses: 1-3 hari kerja, GRATIS\n\n📋 **Dokumen Pendukung:**\n• Surat keterangan domisili dari RT/RW\n• Tagihan listrik/air/telepon\n• Kontrak sewa/sertifikat tanah\n• Surat keterangan pindah (jika ada)\n\n💡 **Tips Penting:**\n• **Selesaikan segera** untuk hindari masalah\n• **Pilih alamat yang paling sering digunakan**\n• **Pastikan konsisten** di semua dokumen\n\n⏱️ **Batas Waktu:** Update dalam 30 hari setelah pindah\n\nAlamat mana yang benar, di KK atau KTP kak?",
+    "serviceType": "kartu_keluarga",
+    "category": "masalah_alamat_beda",
+    "priority": "medium"
+  },
+  {
+    "query": "Nama di KK beda dengan ijazah, gimana?",
+    "expectedResponse": "Nama di KK beda dengan ijazah perlu diselesaikan:\n\n📋 **Tentukan Mana yang Benar:**\n\n**Jika Nama di Ijazah yang Benar:**\n• Koreksi nama di KK sesuai ijazah\n• Bawa: KK asli + ijazah asli + KTP-el\n• Buat surat pernyataan koreksi bermaterai\n• Proses: 3-7 hari kerja, GRATIS\n\n**Jika Nama di KK yang Benar:**\n• Koreksi nama di ijazah (lebih rumit)\n• Hubungi sekolah/universitas yang mengeluarkan\n• Proses bisa lama dan ada biaya\n\n💡 **Rekomendasi:** Biasanya lebih mudah koreksi KK mengikuti ijazah\n\n📋 **Dokumen untuk Koreksi KK:**\n1. KK asli yang akan dikoreksi\n2. Ijazah asli (sebagai acuan nama yang benar)\n3. KTP-el yang bersangkutan\n4. Akta kelahiran (jika ada)\n5. Surat pernyataan koreksi bermaterai Rp 10.000\n\n⚠️ **Dampak Jika Tidak Dikoreksi:**\n• Sulit daftar CPNS/kerja\n• Masalah verifikasi pendidikan\n• Terhambat daftar kuliah lanjutan\n• Bermasalah untuk beasiswa\n\n🔄 **Langkah-langkah:**\n1. Siapkan semua dokumen\n2. Buat surat pernyataan koreksi\n3. Datang ke Disdukcapil\n4. Tunggu proses verifikasi\n5. Ambil KK yang sudah dikoreksi\n\nNama yang mana yang mau dijadikan patokan kak?",
+    "serviceType": "kartu_keluarga",
+    "category": "masalah_nama_beda",
+    "priority": "medium"
+  },
+  {
+    "query": "KK rusak parah, masih bisa dipake gak?",
+    "expectedResponse": "KK rusak parah sebaiknya segera diganti:\n\n📋 **Tingkat Kerusakan KK:**\n\n**Rusak Ringan (Masih Bisa Dipakai):**\n• Sedikit sobek di pinggir\n• Warna agak pudar tapi tulisan jelas\n• Lipatan biasa\n• Data masih bisa dibaca semua\n\n**Rusak Sedang (Perlu Hati-hati):**\n• Sobek di bagian data penting\n• Tulisan mulai tidak jelas\n• Basah/lembab tapi belum hancur\n• Beberapa data sulit dibaca\n\n**Rusak Parah (Harus Diganti):**\n• Data tidak bisa dibaca\n• Sobek besar atau hancur\n• Terkena air/api/bahan kimia\n• Hilang sebagian besar\n\n⚠️ **Risiko KK Rusak Parah:**\n• Ditolak untuk keperluan administrasi\n• Tidak bisa untuk daftar sekolah/kerja\n• Bermasalah untuk BPJS/bank\n• Sulit untuk keperluan hukum\n\n🔄 **Cara Ganti KK Rusak:**\n1. **Bawa KK rusak** (jangan dibuang)\n2. **KTP-el** Kepala Keluarga/anggota\n3. **Surat pernyataan kerusakan** bermaterai\n4. **Dokumen pendukung** jika ada\n\n⏱️ **Proses:** 1-3 hari kerja\n💰 **Biaya:** GRATIS (hanya materai Rp 10.000)\n\n💡 **Tips:** Jangan tunggu rusak parah, segera ganti kalau sudah mulai rusak!\n\nSeberapa parah kerusakan KK kak?",
+    "serviceType": "kartu_keluarga",
+    "category": "masalah_rusak",
+    "priority": "medium"
+  },
+  {
+    "query": "Petugas minta uang padahal KK gratis, gimana?",
+    "expectedResponse": "Kalau petugas minta uang padahal KK gratis, itu PUNGLI!\n\n🚨 **Langkah Segera:**\n\n**1. Tolak dengan Sopan:**\n• \"Maaf pak/bu, setahu saya KK gratis\"\n• \"Bisa minta dasar hukum biayanya?\"\n• \"Boleh minta kwitansi resmi?\"\n\n**2. Kumpulkan Bukti:**\n• **Rekam audio/video** (diam-diam jika perlu)\n• **Catat nama petugas** dan loket\n• **Foto/screenshot** jika ada tarif tidak resmi\n• **Waktu dan tempat** kejadian\n\n**3. Lapor Segera:**\n📞 **Call Center Anti-Pungli**: 110\n📱 **WhatsApp**: 0811-1000-110\n🌐 **Website**: lapor.go.id\n📱 **Aplikasi**: LAPOR!\n\n**4. Lapor ke Internal:**\n• Minta bicara dengan **Kepala Bagian**\n• Lapor ke **Kepala Disdukcapil**\n• Hubungi **Ombudsman** daerah\n\n📋 **Informasi untuk Laporan:**\n• Nama dan jabatan petugas\n• Jumlah uang yang diminta\n• Alasan yang diberikan petugas\n• Saksi jika ada\n\n⚖️ **Dasar Hukum KK Gratis:**\n• UU No. 24/2013 tentang Administrasi Kependudukan\n• PP No. 40/2019 tentang Pelaksanaan UU Adminduk\n\n💪 **Ingat:** Kita punya hak mendapat layanan gratis dan berkualitas!\n\nBerapa uang yang diminta petugas ke kak?",
+    "serviceType": "kartu_keluarga",
+    "category": "masalah_pungli",
+    "priority": "high"
+  }
+]

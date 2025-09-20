@@ -1,0 +1,38 @@
+{
+  "service": "ktp",
+  "research_material": "ktp_dr.md",
+  "training_categories": [
+    {
+      "file": "ktp-surat-pengantar-pairs.json",
+      "category": "surat_pengantar",
+      "priority": "high",
+      "description": "RT/RW letter requirements"
+    },
+    {
+      "file": "ktp-persyaratan-pairs.json", 
+      "category": "persyaratan",
+      "priority": "high",
+      "description": "Document requirements"
+    },
+    {
+      "file": "ktp-biaya-pairs.json",
+      "category": "biaya", 
+      "priority": "high",
+      "description": "Cost and location information"
+    },
+    {
+      "file": "ktp-proses-pairs.json",
+      "category": "proses",
+      "priority": "medium", 
+      "description": "Process and timing"
+    },
+    {
+      "file": "ktp-perubahan-pairs.json",
+      "category": "perubahan_data",
+      "priority": "medium",
+      "description": "Data changes and updates"
+    }
+  ],
+  "total_training_pairs": 18,
+  "last_updated": "2025-01-XX"
+}

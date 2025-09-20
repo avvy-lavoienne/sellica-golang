@@ -7,7 +7,7 @@ High-performance Go backend for the SELLY application, migrated from Next.js API
 ### Prerequisites
 
 - Go 1.21 or higher
-- Redis (for caching)
+- Upstash Redis account (for caching) or local Redis
 - Supabase account (for database)
 
 ### Installation
@@ -194,7 +194,7 @@ backend/
 | `SUPABASE_URL` | Supabase project URL | Required |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | Required |
 | `SUPABASE_JWT_SECRET` | JWT secret for token validation | Required |
-| `REDIS_URL` | Redis connection URL | `redis://localhost:6379` |
+| `REDIS_URL` | Redis connection URL (supports Upstash rediss://) | `rediss://default:token@host:6379` |
 | `DB_POOL_MAX_SIZE` | Max database connections | `100` |
 | `CACHE_TTL_SECONDS` | Default cache TTL | `300` |
 

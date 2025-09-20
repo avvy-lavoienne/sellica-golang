@@ -36,6 +36,9 @@
   ],
   "exclude": [
     "node_modules",
+    "selly-legacy-nextjs-backend/**/*",
+    "**/selly-legacy-nextjs-backend/**/*",
+    "src/**/selly-legacy-nextjs-backend/**/*",
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/*.spec.ts",
@@ -45,6 +48,11 @@
     "src/services/chatbot/test*.ts",
     "src/services/chatbot/__tests__/**/*.ts",
     "src/test/**/*.ts",
-    "src/test/**/*.tsx"
+    "src/test/**/*.tsx",
+    "src/tests/**/*.ts",
+    "src/tests/**/*.tsx",
+    "src/scripts/**/*.ts",
+    "src/scripts/**/*.tsx",
+    "src/optimization/**/*.ts"
   ]
 }

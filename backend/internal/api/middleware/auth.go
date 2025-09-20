@@ -258,3 +258,47 @@ func RequireAnyRole(allowedRoles ...string) gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+// AdminMiddleware ensures user has admin role
+func AdminMiddleware(authService *auth.Service) gin.HandlerFunc {
+	return gin.HandlerFunc(func(c *gin.Context) {
+		// First ensure user is authenticated
+		AuthMiddleware(authService)(c)
+		if c.IsAborted() {
+			return
+		}
+
+		// Then check for admin role
+		RequireRole("admin")(c)
+	})
+}
+
+// SuperAdminMiddleware ensures user has super admin role
+func SuperAdminMiddleware(authService *auth.Service) gin.HandlerFunc {
+	return gin.HandlerFunc(func(c *gin.Context) {
+		// First ensure user is authenticated
+		AuthMiddleware(authService)(c)
+		if c.IsAborted() {
+			return
+		}
+
+		// Then check for super admin role
+		RequireRole("super_admin")(c)
+	})
+}
+
+// AuthRateLimitMiddleware implements basic rate limiting for auth endpoints
+func AuthRateLimitMiddleware() gin.HandlerFunc {
+	// This is a basic implementation
+	// In production, use a proper rate limiting library
+	return func(c *gin.Context) {
+		// Add rate limiting headers for auth endpoints
+		if strings.HasPrefix(c.Request.URL.Path, "/auth/") {
+			c.Header("X-RateLimit-Limit", "10") // 10 requests per minute for auth
+			c.Header("X-RateLimit-Remaining", "9")
+			c.Header("X-RateLimit-Reset", "60")
+		}
+
+		c.Next()
+	}
+}

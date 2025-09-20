@@ -7,8 +7,8 @@
 
 import { performance } from 'perf_hooks';
 import { getEnhancedCoverageSystem } from '@/tests/coverage/EnhancedCoverageSystem';
-import { getUnifiedMonitoringSystem } from '@/services/monitoring/UnifiedMonitoringSystem';
-import { getMultiLevelCacheManager } from '@/services/cache/MultiLevelCacheManager';
+// import { getUnifiedMonitoringSystem } from '@/services/monitoring/UnifiedMonitoringSystem';
+// import { getMultiLevelCacheManager } from '@/services/cache/MultiLevelCacheManager';
 
 export interface LoadTestConfig {
   enableGovernmentScaleTests: boolean;
