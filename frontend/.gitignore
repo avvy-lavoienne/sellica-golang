@@ -5,6 +5,7 @@
 /.pnp
 .pnp.js
 .yarn/install-state.gz
+package-lock.json
 
 # testing
 /coverage
@@ -13,9 +14,16 @@
 /.next/
 /out/
 
+# turbo
+/.turbo/
+
 # production
 /build
 dist
+
+# deployment artifacts (generated files)
+/deployment/static-build/
+deployment/static-build
 
 # misc
 .DS_Store

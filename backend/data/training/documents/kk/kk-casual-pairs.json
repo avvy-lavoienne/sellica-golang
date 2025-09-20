@@ -1,0 +1,86 @@
+[
+  {
+    "query": "mau bikin KK dong",
+    "expectedResponse": "Halo kak! 😊 Mau bikin KK ya? SELLY siap bantu!\n\nKK untuk situasi apa nih kak?\n• Habis nikah mau pisah dari ortu?\n• Ada bayi baru lahir?\n• Mau pisah KK sendiri?\n• KK hilang/rusak?\n• Atau yang lain?\n\nCeritain aja situasinya, nanti SELLY kasih panduan lengkap sesuai kebutuhan kak! 🤝",
+    "serviceType": "kartu_keluarga",
+    "category": "casual_general",
+    "priority": "high"
+  },
+  {
+    "query": "KK gratis kan?",
+    "expectedResponse": "Iya kak, KK 100% GRATIS! 🆓\n\nSemua jenis KK gratis:\n• KK baru setelah nikah ✅\n• Tambah anggota keluarga ✅\n• Pisah KK ✅\n• Ganti KK hilang/rusak ✅\n• Pindah alamat ✅\n• Koreksi data ✅\n\nYang mungkin ada biaya:\n• Materai Rp 10.000 (kalau perlu SPTJM)\n• Surat kehilangan Rp 10.000-30.000 (kalau KK hilang)\n• Fotokopi Rp 500/lembar (kalau lupa bawa)\n\nKalau ada yang minta bayar untuk KK, itu PUNGLI! Langsung lapor ke 110 ya kak! 📞\n\nMau bikin KK jenis apa nih?",
+    "serviceType": "kartu_keluarga",
+    "category": "casual_biaya",
+    "priority": "high"
+  },
+  {
+    "query": "syarat KK apa aja sih?",
+    "expectedResponse": "Syarat KK tergantung jenisnya kak! 📋\n\n**KK Baru Setelah Nikah:**\n• KK asli ortu masing-masing\n• Fotokopi buku nikah\n• Formulir pendaftaran\n\n**Tambah Anggota (Kelahiran):**\n• KK asli ortu\n• Surat keterangan lahir dari dokter/bidan\n• Fotokopi buku nikah ortu\n\n**Pisah KK:**\n• KK asli keluarga\n• KTP-el (minimal 17 tahun)\n\n**KK Hilang:**\n• Surat kehilangan dari polisi\n• KTP-el\n• Surat pernyataan bermaterai\n\nMau yang mana kak? Nanti SELLY jelasin detail syarat lengkapnya! 😊",
+    "serviceType": "kartu_keluarga",
+    "category": "casual_syarat",
+    "priority": "high"
+  },
+  {
+    "query": "berapa lama bikin KK?",
+    "expectedResponse": "Lama bikin KK beda-beda kak:\n\n⚡ **Cepat (1 hari):**\n• KK baru habis nikah\n• Tambah bayi baru lahir\n• Pisah KK anak dewasa\n\n⏱️ **Normal (1-3 hari):**\n• KK pindah alamat\n• Numpang KK\n• Ganti KK hilang\n\n🐌 **Agak lama (3-7 hari):**\n• Koreksi data\n• Pakai SPTJM\n• Kasus rumit\n\nTips biar cepat:\n• Dokumen lengkap ✅\n• Data benar semua ✅\n• Datang pagi hari ✅\n\nKK yang mana yang mau kak bikin? 😊",
+    "serviceType": "kartu_keluarga",
+    "category": "casual_waktu",
+    "priority": "high"
+  },
+  {
+    "query": "dimana bikin KK di Garut?",
+    "expectedResponse": "Bikin KK di Garut gampang kak! 📍\n\n**Disdukcapil Kabupaten Garut**\n📍 Jl. Pembangunan No. 103, Tarogong Kidul\n🕐 Jam: 08:00-15:00 (Senin-Jumat)\n📞 Telp: (0262) 232-XXX\n\n**Cara ke sana:**\n• Naik angkot jurusan Terminal-Tarogong\n• Ojek online juga bisa\n• Dekat Terminal Guntur\n\n**Bisa juga di kecamatan** (tapi terbatas):\n• Kec. Tarogong Kidul\n• Kec. Garut Kota\n• Kec. Leles\n\n**Online:**\n🌐 disdukcapil.garutkab.go.id\n📱 Dukcapil Mobile Garut\n\nMending ke Disdukcapil pusat aja kak, lengkap dan pasti bisa! 😊\n\nDari mana kak lokasinya?",
+    "serviceType": "kartu_keluarga",
+    "category": "casual_lokasi",
+    "priority": "high"
+  },
+  {
+    "query": "KK hilang gimana?",
+    "expectedResponse": "Waduh KK hilang ya kak? 😅 Tenang, bisa diganti kok!\n\n**Langkah-langkahnya:**\n1. **Ke polsek dulu** buat surat kehilangan\n   • Bawa KTP-el\n   • Bayar sekitar Rp 10.000-30.000\n   • Ceritain kapan/dimana hilangnya\n\n2. **Ke Disdukcapil** dengan bawa:\n   • Surat kehilangan dari polisi ✅\n   • KTP-el asli + fotokopi ✅\n   • Surat pernyataan bermaterai Rp 10.000 ✅\n\n3. **Tunggu 1-3 hari** → KK pengganti siap!\n\n**Total biaya:** Cuma buat surat kehilangan + materai (sekitar Rp 20.000-40.000)\n\n**KK pengganti:** Ada tulisan \"DUPLIKAT\" tapi fungsinya sama aja!\n\nKK kak hilang dimana? Udah lama belum? 🤔",
+    "serviceType": "kartu_keluarga",
+    "category": "casual_hilang",
+    "priority": "high"
+  },
+  {
+    "query": "bisa pisah KK gak?",
+    "expectedResponse": "Bisa banget kak! 😊 Ada beberapa jenis pisah KK:\n\n**1. Pisah KK Anak Dewasa (Alamat Sama):**\n• Syarat: Minimal 17 tahun atau udah pernah nikah\n• Bawa: KK asli + KTP-el\n• Hasil: KK baru atas nama kak, alamat sama\n\n**2. Pisah KK Karena Cerai:**\n• Bawa: KK asli + akta cerai\n• Hasil: 2 KK terpisah\n\n**3. Pisah KK Pindah Alamat:**\n• Bawa: KK asli + bukti alamat baru\n• Hasil: KK baru dengan alamat beda\n\n**Semua GRATIS dan 1-3 hari jadi!**\n\nKak mau pisah KK yang mana? Masih tinggal sama ortu atau gimana? 🏠",
+    "serviceType": "kartu_keluarga",
+    "category": "casual_pisah",
+    "priority": "high"
+  },
+  {
+    "query": "habis nikah harus bikin KK baru ya?",
+    "expectedResponse": "Iya kak, habis nikah sebaiknya bikin KK baru! 💒\n\n**Kenapa harus bikin KK baru?**\n• Buat tertib administrasi keluarga baru\n• Nanti kalau ada anak, prosesnya lebih gampang\n• Untuk keperluan BPJS, bank, dll\n• Status resmi sebagai keluarga mandiri\n\n**Syaratnya gampang:**\n• KK asli dari keluarga masing-masing\n• Fotokopi buku nikah\n• Formulir pendaftaran\n• SKPWNI (kalau dari luar daerah)\n\n**Prosesnya:**\n• 1-3 hari kerja\n• GRATIS 100%\n• Dapat 1 KK baru + 2 KK ortu diupdate\n\n**Tips:** Tentuin dulu mau tinggal dimana, soalnya alamat KK harus sesuai domisili ya!\n\nKak udah nikah kapan? Mau tinggal dimana? 😊",
+    "serviceType": "kartu_keluarga",
+    "category": "casual_nikah",
+    "priority": "high"
+  },
+  {
+    "query": "ada bayi baru lahir, KK gimana?",
+    "expectedResponse": "Wah selamat ya kak! 👶 Ada bayi baru lahir!\n\n**Kabar baik:** Sekarang ada **layanan terpadu 3-in-1**!\nSekali datang dapat 3 dokumen:\n• Akta Kelahiran ✅\n• KK baru (ditambah si bayi) ✅\n• KIA (Kartu Identitas Anak) ✅\n\n**Yang perlu dibawa:**\n• KK asli ortu\n• Surat keterangan lahir dari dokter/bidan/RS\n• Fotokopi buku nikah ortu\n• Fotokopi KTP-el kedua ortu\n\n**Kalau gak ada surat keterangan lahir:**\n• Pakai SPTJM + 2 saksi\n• Materai Rp 10.000\n\n**Prosesnya:**\n• Cuma 1 hari kerja!\n• GRATIS semua!\n• Praktis banget!\n\nBayinya udah berapa hari kak? Surat keterangan lahir dari RS udah ada? 😊",
+    "serviceType": "kartu_keluarga",
+    "category": "casual_bayi",
+    "priority": "high"
+  },
+  {
+    "query": "KK rusak masih bisa dipake?",
+    "expectedResponse": "Tergantung seberapa rusak kak! 🤔\n\n**Rusak Ringan (Masih OK):**\n• Sedikit sobek di pinggir ✅\n• Warna pudar tapi tulisan jelas ✅\n• Lipatan biasa ✅\n\n**Rusak Sedang (Hati-hati):**\n• Sobek di bagian data ⚠️\n• Tulisan mulai blur ⚠️\n• Basah tapi belum hancur ⚠️\n\n**Rusak Parah (Harus ganti!):**\n• Data gak bisa dibaca ❌\n• Sobek besar/hancur ❌\n• Kena air/api ❌\n\n**Kalau rusak parah, segera ganti:**\n• Bawa KK rusak (jangan dibuang!)\n• KTP-el + surat pernyataan bermaterai\n• 1-3 hari jadi, GRATIS!\n\n**Risiko kalau gak diganti:**\n• Ditolak buat daftar sekolah/kerja\n• Bermasalah buat BPJS/bank\n\nKK kak rusaknya gimana? Masih bisa dibaca gak datanya? 📄",
+    "serviceType": "kartu_keluarga",
+    "category": "casual_rusak",
+    "priority": "medium"
+  },
+  {
+    "query": "pindah rumah KK harus diganti?",
+    "expectedResponse": "Iya kak, kalau pindah rumah KK harus diupdate! 🏠\n\n**Tergantung seberapa jauh pindahnya:**\n\n**Pindah dalam 1 RT/RW:**\n• Cukup lapor RT/RW\n• Update alamat di KK yang sama\n\n**Pindah antar kelurahan (1 kabupaten):**\n• KK baru dengan alamat baru\n• Bawa KK lama + surat pindah\n\n**Pindah antar kabupaten/kota:**\n• Wajib ada SKPWNI dari daerah asal\n• Daftar di Disdukcapil tujuan\n• Maksimal 30 hari setelah pindah\n\n**Semua GRATIS dan 1-3 hari jadi!**\n\n**Penting:** Alamat di KK harus sama dengan KTP ya! Kalau beda bisa bermasalah buat BPJS, sekolah, dll.\n\nKak pindah dari mana ke mana? Udah berapa lama? 🚚",
+    "serviceType": "kartu_keluarga",
+    "category": "casual_pindah",
+    "priority": "medium"
+  },
+  {
+    "query": "bisa numpang KK gak?",
+    "expectedResponse": "Bisa kak! Numpang KK untuk anak kos, tinggal sama saudara, dll 🏡\n\n**Syaratnya:**\n• KK asli keluarga yang mau ditumpangi\n• KK lama atau KTP-el kak\n• Surat pernyataan gak keberatan dari Kepala Keluarga\n• SKPWNI (kalau dari luar daerah)\n\n**Kalau yang numpang anak di bawah 17 tahun:**\n• Tambahan: Surat kuasa pengasuhan dari ortu kandung\n\n**Prosesnya:**\n• 1-3 hari kerja\n• GRATIS!\n• Status di KK: \"Famili Lain\" atau sesuai hubungan\n\n**Contoh situasi:**\n• Anak kos/kontrak\n• Tinggal sama nenek/tante\n• Pekerja tinggal di rumah majikan\n\n**Penting:** Yang punya rumah harus setuju dan tanda tangan surat pernyataan ya!\n\nKak mau numpang di rumah siapa? Hubungan keluarganya gimana? 😊",
+    "serviceType": "kartu_keluarga",
+    "category": "casual_numpang",
+    "priority": "medium"
+  }
+]

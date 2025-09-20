@@ -15,13 +15,20 @@ import {
   CreateMessageInput,
   CreateSessionInput 
 } from '@/types/chatbot';
-import {
-  SessionStorageAdapter,
-  HybridSessionStorage,
-  RedisStorageAdapter,
-  LocalStorageAdapter,
-  createDefaultStorage
-} from '@/services/session/storage';
+// import {
+//   SessionStorageAdapter,
+//   HybridSessionStorage,
+//   RedisStorageAdapter,
+//   LocalStorageAdapter,
+//   createDefaultStorage
+// } from '@/services/session/storage'; // Disabled for core build
+
+// Mock types and services for core build
+type SessionStorageAdapter = any;
+type HybridSessionStorage = any;
+type RedisStorageAdapter = any;
+type LocalStorageAdapter = any;
+const createDefaultStorage = () => ({ logError: () => {} });
 
 // Enhanced storage keys
 const ENHANCED_STORAGE_KEYS = {

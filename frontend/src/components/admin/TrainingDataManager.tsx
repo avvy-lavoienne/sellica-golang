@@ -1,7 +1,25 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { UnansweredQuery } from '@/services/chatbot/trainingDataCollector';
+// import { UnansweredQuery } from '@/services/chatbot/trainingDataCollector'; // Disabled for core build
+type UnansweredQuery = {
+  id: string;
+  query: string;
+  timestamp: string;
+  context?: any;
+  detectedServiceType: string;
+  priority: string;
+  status: string;
+  category?: string;
+  confidence?: number;
+  userFeedback?: string;
+  metadata?: {
+    tags?: string[];
+    source?: string;
+    sessionId?: string;
+    [key: string]: any;
+  };
+}; // Mock type for core build
 import {
   CheckCircle,
   Clock,
@@ -551,24 +569,24 @@ export function TrainingDataManager() {
                         </div>
                         <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
                           <div className="font-medium text-gray-900 dark:text-gray-100">Category</div>
-                          <div className="text-gray-600 dark:text-gray-400 mt-1">{formatServiceName(query.metadata.category)}</div>
+                          <div className="text-gray-600 dark:text-gray-400 mt-1">{formatServiceName(query.metadata?.category || 'Unknown')}</div>
                         </div>
                         <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
                           <div className="font-medium text-gray-900 dark:text-gray-100">Complexity</div>
-                          <div className="text-gray-600 dark:text-gray-400 mt-1 capitalize">{query.metadata.complexity}</div>
+                          <div className="text-gray-600 dark:text-gray-400 mt-1 capitalize">{query.metadata?.complexity || 'Unknown'}</div>
                         </div>
                         <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
                           <div className="font-medium text-gray-900 dark:text-gray-100">Confidence</div>
-                          <div className="text-gray-600 dark:text-gray-400 mt-1">{(query.metadata.confidence * 100).toFixed(0)}%</div>
+                          <div className="text-gray-600 dark:text-gray-400 mt-1">{((query.metadata?.confidence || 0) * 100).toFixed(0)}%</div>
                         </div>
                       </div>
 
                       {/* Tags */}
-                      {query.metadata.tags.length > 0 && (
+                      {query.metadata?.tags && query.metadata.tags.length > 0 && (
                         <div className="mt-4">
                           <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Tags:</div>
                           <div className="flex flex-wrap gap-2">
-                            {query.metadata.tags.map(tag => (
+                            {query.metadata?.tags?.map((tag: string) => (
                               <span key={tag} className="inline-flex items-center px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs font-medium rounded-full border border-blue-200 dark:border-blue-800">
                                 <Tag className="w-3 h-3 mr-1" />
                                 {tag}

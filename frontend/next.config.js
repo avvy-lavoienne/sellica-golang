@@ -10,6 +10,9 @@ if (process.env.DISABLE_RUNTIME_LOGS === 'true') {
 }
 
 const nextConfig = {
+  // Frontend-only configuration - server-side features disabled
+  // All API routes and server actions have been moved to Go backend
+
   // Enable experimental features for better optimization
   experimental: {
     // Enable modern bundling optimizations
@@ -25,6 +28,9 @@ const nextConfig = {
       '@radix-ui/react-tooltip',
     ],
   },
+
+  // Disable server-side features (API routes removed, using Go backend)
+  // output: 'export', // Uncomment for static export deployment
 
   // Optimize images
   images: {
@@ -44,6 +50,12 @@ const nextConfig = {
 
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
+    // Exclude legacy backend directory from builds
+    config.module.rules.push({
+      test: /selly-legacy-nextjs-backend/,
+      use: 'ignore-loader',
+    });
+
     // Suppress warnings from external libraries
     config.ignoreWarnings = [
       // Suppress Supabase realtime warning
@@ -53,6 +65,8 @@ const nextConfig = {
       },
       // Suppress other common warnings
       /Critical dependency: the request of a dependency is an expression/,
+      // Suppress warnings from legacy backend
+      /selly-legacy-nextjs-backend/,
     ];
 
     // Production optimizations

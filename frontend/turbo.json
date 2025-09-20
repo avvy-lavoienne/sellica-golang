@@ -1,0 +1,96 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*",
+        "!.env*.local"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**"
+      ],
+      "env": [
+        "NODE_ENV",
+        "NEXT_PUBLIC_*",
+        "SUPABASE_*",
+        "GROQ_*",
+        "HUGGINGFACE_*",
+        "DISABLE_RUNTIME_LOGS"
+      ],
+      "passThroughEnv": [
+        "DISABLE_RUNTIME_LOGS"
+      ]
+    },
+    "build:core": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*",
+        "!.env*.local",
+        "disable-problematic-routes.js"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**"
+      ],
+      "env": [
+        "NODE_ENV",
+        "NEXT_PUBLIC_*",
+        "SUPABASE_*",
+        "GROQ_*",
+        "HUGGINGFACE_*",
+        "DISABLE_RUNTIME_LOGS"
+      ],
+      "passThroughEnv": [
+        "DISABLE_RUNTIME_LOGS"
+      ]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "env": [
+        "NODE_ENV",
+        "NEXT_PUBLIC_*",
+        "SUPABASE_*",
+        "GROQ_*",
+        "HUGGINGFACE_*"
+      ]
+    },
+    "lint": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".eslintrc*",
+        "eslint.config.*"
+      ]
+    },
+    "type-check": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "tsconfig*.json"
+      ],
+      "outputs": [
+        "tsconfig.tsbuildinfo"
+      ]
+    },
+    "start": {
+      "dependsOn": ["build"],
+      "cache": false
+    },
+    "clean": {
+      "cache": false
+    }
+  },
+  "globalDependencies": [
+    "**/.env*",
+    "tsconfig.json",
+    "next.config.js",
+    "tailwind.config.ts",
+    "postcss.config.js"
+  ]
+}

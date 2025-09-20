@@ -1,30 +1,25 @@
 ---
 type: "always_apply"
-description: "Comprehensive development standards for SELLY project"
+description: "SELLY development standards"
 ---
 
-# SELLY Comprehensive Development Standards - Master Rule
+# SELLY Development Standards
 
-This master rule consolidates all development standards for the SELLY project, ensuring maintainable, scalable, and high-performance code that supports Indonesian government integration and national-scale deployment.
-
-## 1. CORE DEVELOPMENT PRINCIPLES
+## 1. CORE PRINCIPLES
 
 ### Context-First Approach
-**Rule**: Before touching any code, understand the full context including functional purpose, system architecture, design patterns, change history, and target audience.
+**Rule**: Understand full context before code changes: functional purpose, architecture, patterns, history, audience.
 
-**Implementation**: Always begin with "I understand what is wrong, but do I understand why this is important?"
+### Code Quality Standards
+**Rule**: Every change must improve code quality. No temporary patches without improvement.
 
-### Code Elevation Standards
-**Rule**: Every intervention must improve code quality through clarity, efficiency, robustness, or maintainability. Temporary patches without quality improvement are considered failures.
+### Three-Step Process
+1. **Diagnose**: Root cause analysis
+2. **Propose**: Clear solution with rationale and examples
+3. **Validate**: Unit tests, static analysis, review preparation
 
-### Three-Step Execution Loop
-**Mandatory Process**:
-1. **Diagnose**: Identify root cause, not just symptoms
-2. **Propose**: Present clear solution with problem description, solution rationale, code examples, and alternatives
-3. **Validate**: Proactively validate through unit tests, static analysis, and human review preparation
-
-### Collaborative Transparency
-**Rule**: Maintain transparent communication, educate developers, and seek validation. Never provide solutions without explanation.
+### Communication
+**Rule**: Transparent communication, educate developers, seek validation.
 
 ## 2. LANGUAGE AND COMMUNICATION STANDARDS
 
@@ -49,7 +44,7 @@ export const ErrorMessages = {
   // User-facing (Indonesian)
   INVALID_LOGIN: 'Email atau kata sandi tidak valid',
   SESSION_EXPIRED: 'Sesi Anda telah berakhir. Silakan masuk kembali',
-  
+
   // Debug information (English)
   DEBUG_INFO: {
     INVALID_LOGIN: 'Authentication failed: invalid credentials provided',
@@ -77,12 +72,87 @@ export const ErrorMessages = {
 
 ### Automated Git Workflow
 **Rule**: After completing each logical unit of work, automatically execute:
-1. `git add .` - Stage all changes
-2. `git commit -m "<descriptive message>"` - Use conventional commit format
-3. `git push` - Push to remote repository
+1. **Documentation Update** - Update relevant documentation (see Mandatory Documentation Updates)
+2. `git add .` - Stage all changes including documentation updates
+3. `git commit -m "<descriptive message>"` - Use conventional commit format
+4. `git push` - Push to remote repository
 
 **Commit Message Format**: `type(scope): description`
 - Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+
+### Mandatory Documentation Updates
+**Rule**: Documentation updates are REQUIRED before committing any successful implementation that was based on existing documentation.
+
+**Pre-Commit Documentation Requirements**:
+1. **Source Documentation Update**: Update the original documentation that guided the implementation
+2. **Implementation Notes**: Add lessons learned, corrections, or clarifications discovered during execution
+3. **Deviation Documentation**: Record any deviations from the original plan with rationale
+4. **Version Control**: Update version numbers and modification dates in affected documentation
+5. **Accuracy Verification**: Ensure documentation reflects the current state after implementation
+
+**Documentation Update Process**:
+```typescript
+interface DocumentationUpdateProcess {
+  sourceDocuments: string[];           // Original docs that guided implementation
+  implementationNotes: string[];       // Lessons learned during execution
+  deviations: {                       // Any changes from original plan
+    original: string;
+    actual: string;
+    rationale: string;
+  }[];
+  versionUpdates: {                   // Version control updates
+    document: string;
+    oldVersion: string;
+    newVersion: string;
+    modificationDate: string;
+  }[];
+  accuracyVerification: boolean;      // Confirmation docs match current state
+}
+```
+
+**Enforcement Integration**:
+- Documentation updates are mandatory before `git add .`
+- Commit messages must include `docs:` type when documentation is updated
+- Failed documentation updates block the automated git workflow
+- Documentation quality gates must pass before push
+
+**Examples of Required Updates**:
+```markdown
+# BEFORE Implementation (Original Plan)
+**Status**: 🔄 In Progress
+**Version**: 1.0
+**Last Modified**: 2025-08-20
+
+## Implementation Plan
+- Set up Redis connection
+- Configure caching layer
+- Test performance improvements
+
+# AFTER Implementation (Updated Documentation)
+**Status**: ✅ Complete
+**Version**: 1.1
+**Last Modified**: 2025-08-27
+
+## Implementation Plan
+- ✅ Set up Redis connection
+- ✅ Configure caching layer
+- ✅ Test performance improvements
+
+## Implementation Notes
+- Redis connection required additional timeout configuration (30s)
+- Caching layer needed custom serialization for complex objects
+- Performance improvements: 15x faster response times achieved
+
+## Deviations from Original Plan
+- **Original**: Use default Redis configuration
+- **Actual**: Custom timeout and connection pooling required
+- **Rationale**: Default settings caused connection timeouts under load
+
+## Validation Results
+- All tests passing
+- Performance targets exceeded (15x vs 10x target)
+- No regression in existing functionality
+```
 
 ### Build Recovery System
 **Rule**: Automatically diagnose and fix build errors up to 3 attempts:
@@ -147,17 +217,17 @@ export const Component: React.FC<ComponentProps> = ({
   className
 }) => {
   const [state, setState] = useState<State | null>(null);
-  
-  const memoizedValue = useMemo(() => 
+
+  const memoizedValue = useMemo(() =>
     state ? processData(state) : null,
     [state]
   );
-  
+
   const handleUpdate = useCallback((newData: Data) => {
     setState(newData);
     onUpdate(newData);
   }, [onUpdate]);
-  
+
   return (
     <div className={cn('component', className)}>
       {/* Implementation */}
@@ -258,7 +328,7 @@ export const Component: React.FC<ComponentProps> = ({
 ### Comprehensive Responsiveness
 **Rule**: Ensure perfect adaptation across all device types and resolutions:
 - Mobile devices
-- Tablets  
+- Tablets
 - Laptops
 - HD (1920x1080)
 - 2K (~2560x1440)
@@ -348,18 +418,15 @@ export const Component: React.FC<ComponentProps> = ({
 - [ ] Accessibility compliance verified
 - [ ] Government integration standards met
 - [ ] Documentation created and complete
+- [ ] Documentation updates completed for implementation-based work
+- [ ] Source documentation reflects current implementation state
 
-## DETAILED IMPLEMENTATION EXAMPLES
+## IMPLEMENTATION EXAMPLES
 
 ### Government System Error Handling
 ```typescript
-// Specialized error handling for government integration
 export class GovernmentErrorHandler {
-  async handleGovernmentSystemError(
-    error: GovernmentSystemError,
-    context: OperationContext
-  ): Promise<ErrorHandlingResult> {
-    // Log with appropriate classification
+  async handleGovernmentSystemError(error: GovernmentSystemError, context: OperationContext): Promise<ErrorHandlingResult> {
     await this.auditLogger.logSystemError({
       system: error.system,
       errorType: error.type,
@@ -368,89 +435,31 @@ export class GovernmentErrorHandler {
       timestamp: new Date()
     });
 
-    // Generate user-friendly Indonesian message
     const userMessage = await this.generateUserFriendlyMessage(error);
     const recoveryAction = await this.determineRecoveryAction(error);
 
-    return {
-      userMessage,
-      recoveryAction,
-      shouldRetry: this.shouldRetryOperation(error),
-      escalationRequired: this.requiresEscalation(error)
-    };
+    return { userMessage, recoveryAction, shouldRetry: this.shouldRetryOperation(error), escalationRequired: this.requiresEscalation(error) };
   }
 }
 ```
 
 ### Data Sovereignty Validation
 ```typescript
-// Ensure Indonesian government data remains in jurisdiction
 export class DataSovereigntyValidator {
   private readonly ALLOWED_REGIONS = ['ap-southeast-1', 'ap-southeast-3'];
   private readonly PROHIBITED_REGIONS = ['us-east-1', 'eu-west-1'];
 
   async validateDataLocation(request: GovernmentDataRequest): Promise<ValidationResult> {
     if (this.PROHIBITED_REGIONS.includes(request.region)) {
-      throw new DataSovereigntyViolation(
-        'Government data cannot be processed outside Indonesian jurisdiction'
-      );
+      throw new DataSovereigntyViolation('Government data cannot be processed outside Indonesian jurisdiction');
     }
-
     return { compliant: true, region: request.region };
   }
 }
 ```
 
-### Performance-Optimized Components
-```typescript
-// Enterprise-grade component with optimization
-export const OptimizedDataTable = React.memo<DataTableProps>(({
-  data,
-  columns,
-  onRowSelect
-}) => {
-  // Virtualization for large government datasets
-  const virtualizer = useVirtualizer({
-    count: data.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 50,
-    overscan: 10
-  });
-
-  // Memoize expensive calculations
-  const processedData = useMemo(() =>
-    data.map(row => processRowData(row, columns)),
-    [data, columns]
-  );
-
-  // Debounce search for better UX
-  const [searchTerm, setSearchTerm] = useState('');
-  const debouncedSearch = useDebounce(searchTerm, 300);
-
-  const filteredData = useMemo(() =>
-    processedData.filter(row =>
-      matchesSearchTerm(row, debouncedSearch)
-    ),
-    [processedData, debouncedSearch]
-  );
-
-  return (
-    <div className="optimized-data-table">
-      {/* Virtualized table implementation */}
-    </div>
-  );
-}, (prevProps, nextProps) => {
-  return (
-    prevProps.data.length === nextProps.data.length &&
-    prevProps.columns.length === nextProps.columns.length &&
-    shallowEqual(prevProps.data, nextProps.data)
-  );
-});
-```
-
 ### Encryption Service Implementation
 ```typescript
-// Government-grade encryption service
 export class EnterpriseEncryptionService {
   private readonly ENCRYPTION_STANDARDS = {
     dataAtRest: 'AES-256-GCM',
@@ -459,32 +468,12 @@ export class EnterpriseEncryptionService {
     hashing: 'SHA-256'
   };
 
-  private readonly KEY_ROTATION_INTERVAL = 90 * 24 * 60 * 60 * 1000; // 90 days
-
-  async encryptSensitiveData(
-    data: SensitiveData,
-    classification: DataClassification
-  ): Promise<EncryptedData> {
+  async encryptSensitiveData(data: SensitiveData, classification: DataClassification): Promise<EncryptedData> {
     const encryptionKey = await this.getOrCreateEncryptionKey(classification);
     const algorithm = this.getEncryptionAlgorithm(classification);
     const encrypted = await this.encrypt(data, encryptionKey, algorithm);
 
-    return {
-      encryptedData: encrypted,
-      keyId: encryptionKey.id,
-      algorithm,
-      timestamp: new Date(),
-      classification
-    };
-  }
-
-  private getEncryptionAlgorithm(classification: DataClassification): string {
-    switch (classification) {
-      case 'secret': return 'AES-256-GCM';
-      case 'confidential': return 'AES-256-CBC';
-      case 'internal': return 'AES-192-GCM';
-      default: return 'AES-128-GCM';
-    }
+    return { encryptedData: encrypted, keyId: encryptionKey.id, algorithm, timestamp: new Date(), classification };
   }
 }
 ```

@@ -1,36 +1,25 @@
-/**
- * Jest Setup Configuration
- * Sets up testing environment for SELLY AI Performance Optimization
- */
+// Jest setup file for global test configuration
+import '@testing-library/jest-dom';
 
-require('@testing-library/jest-dom');
+// Mock global objects for testing
+global.jest = jest;
+global.test = test;
+global.expect = expect;
+global.describe = describe;
+global.beforeEach = beforeEach;
+global.afterEach = afterEach;
+global.beforeAll = beforeAll;
+global.afterAll = afterAll;
+global.it = it;
 
-// Mock Next.js environment variables
-process.env.NEXT_PUBLIC_ENABLE_TENSORFLOW = 'true';
-process.env.NEXT_PUBLIC_TENSORFLOW_JS_MODEL_URL = '/models/basic-nlp/model.json';
+// Mock fetch globally
+global.fetch = jest.fn();
 
-// Mock browser APIs
-Object.defineProperty(window, 'performance', {
-  value: {
-    now: jest.fn(() => Date.now())
-  }
-});
-
-// Mock navigator
-Object.defineProperty(window, 'navigator', {
-  value: {
-    deviceMemory: 4,
-    connection: {
-      effectiveType: '4g'
-    }
-  }
-});
-
-// Global test utilities
+// Mock console methods to avoid noise in tests
 global.console = {
   ...console,
-  // Suppress console.log in tests unless needed
-  log: jest.fn(),
-  warn: jest.fn(),
-  error: jest.fn()
+  // Keep log and warn for debugging, but mock error to avoid test noise
+  error: jest.fn(),
 };
+
+// Add any other global mocks or setup here

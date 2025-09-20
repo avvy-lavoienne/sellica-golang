@@ -4,7 +4,14 @@
  */
 
 import { createServiceLogger } from '@/utils/buildLogger';
-import { GlobalServiceRegistry } from '@/services/core/GlobalServiceRegistry';
+// import { GlobalServiceRegistry } from '@/services/core/GlobalServiceRegistry'; // Moved to legacy backend
+
+// Mock GlobalServiceRegistry for core build
+const GlobalServiceRegistry = {
+  get: (_serviceName: string) => null,
+  register: (_serviceName: string, _service: any) => {},
+  isRegistered: (_serviceName: string) => false
+};
 
 export interface CacheEntry<T> {
   key: string;

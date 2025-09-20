@@ -6,7 +6,24 @@
  * Phase 3 Cache Warming Optimization components during server startup.
  */
 
-import { ApplicationStartupManager } from '@/services/core/ApplicationStartupManager';
+// import { ApplicationStartupManager } from '@/services/core/ApplicationStartupManager'; // Moved to legacy backend
+
+// Mock ApplicationStartupManager for core build
+const ApplicationStartupManager = {
+  isEnabled: () => false, // Disabled for core build
+  getInstance: () => Promise.resolve({
+    initializePhase3Services: () => Promise.resolve(),
+    startupComplete: () => Promise.resolve(),
+    getInitializationStatus: () => ({ isComplete: true, services: [] }),
+    getStartupMetrics: () => Promise.resolve({
+      totalStartupTime: 0,
+      servicesInitialized: 0,
+      failedServices: [], // Should be an array
+      startupPhases: []
+    }),
+    getInitializedServices: () => [] as string[] // Should accept strings
+  })
+};
 
 /**
  * Server initialization state

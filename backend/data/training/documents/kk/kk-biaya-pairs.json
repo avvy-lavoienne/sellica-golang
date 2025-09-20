@@ -1,0 +1,51 @@
+[
+  {
+    "query": "Berapa biaya bikin KK?",
+    "expectedResponse": "Biaya pembuatan KK di Indonesia:\n\n💰 **GRATIS 100%** untuk semua jenis KK!\n\n📋 **Yang GRATIS:**\n• KK baru setelah menikah\n• Tambah anggota keluarga\n• Pisah KK\n• Penggantian KK hilang/rusak\n• Pindah alamat\n• Koreksi data\n• Numpang KK\n\n💸 **Biaya Tambahan (Opsional):**\n• **Materai Rp 10.000** - untuk SPTJM jika diperlukan\n• **Surat kehilangan Rp 10.000-30.000** - jika KK hilang\n• **Fotokopi Rp 500-1.000/lembar** - jika lupa bawa\n• **Transport** - ke Disdukcapil\n\n⚠️ **WASPADA PUNGLI!**\nJika ada yang minta bayar untuk KK, itu PUNGLI (Pungutan Liar)!\n\n📞 **Lapor Pungli:**\n• Call Center: 110\n• Website: lapor.go.id\n• WhatsApp: 0811-1000-110\n\n💡 **Tips Hemat:**\n• Siapkan fotokopi di rumah\n• Bawa materai dari rumah\n• Datang dengan dokumen lengkap\n\n🎯 **Ingat**: Pelayanan KK adalah HAK warga negara dan GRATIS!\n\nAda yang coba minta bayar ke kak?",
+    "serviceType": "kartu_keluarga",
+    "category": "biaya_umum",
+    "priority": "high"
+  },
+  {
+    "query": "Kok ada yang bilang KK bayar?",
+    "expectedResponse": "Kalau ada yang bilang KK bayar, itu SALAH dan kemungkinan PUNGLI!\n\n❌ **MITOS yang Salah:**\n• \"KK bayar Rp 50.000\"\n• \"Ada biaya administrasi Rp 25.000\"\n• \"Biaya cetak KK Rp 15.000\"\n• \"Ongkos petugas Rp 20.000\"\n\n✅ **FAKTA yang Benar:**\n• KK 100% GRATIS berdasarkan UU No. 24/2013\n• Tidak ada biaya administrasi\n• Tidak ada biaya cetak\n• Tidak ada ongkos petugas\n\n🚨 **Jika Diminta Bayar:**\n1. **Tolak dengan sopan** - \"Maaf, saya tahu KK gratis\"\n2. **Minta kwitansi resmi** - Biasanya tidak bisa kasih\n3. **Tanya dasar hukumnya** - Pasti tidak ada\n4. **Lapor ke atasan** - Minta bicara dengan kepala\n\n📞 **Cara Lapor Pungli:**\n• **Telepon**: 110 (Call Center Anti-Pungli)\n• **WhatsApp**: 0811-1000-110\n• **Website**: lapor.go.id\n• **Aplikasi**: LAPOR!\n\n💡 **Bukti yang Perlu Dikumpulkan:**\n• Foto/rekaman saat diminta bayar\n• Nama petugas yang minta\n• Waktu dan tempat kejadian\n• Saksi jika ada\n\n🎯 **Ingat**: Lawan pungli dengan pengetahuan!\n\nKak pernah diminta bayar berapa?",
+    "serviceType": "kartu_keluarga",
+    "category": "biaya_pungli",
+    "priority": "high"
+  },
+  {
+    "query": "Biaya materai untuk KK berapa?",
+    "expectedResponse": "Biaya materai untuk KK:\n\n💰 **Materai Rp 10.000** - hanya jika diperlukan SPTJM\n\n📋 **Kapan Perlu Materai:**\n• **SPTJM Kebenaran Data Kelahiran** (F-2.03)\n• **SPTJM Kebenaran Sebagai Pasangan Suami Istri** (F-2.04)\n• **SPTJM Perkawinan/Perceraian Belum Tercatat** (F-1.05)\n• **Surat pernyataan kehilangan/kerusakan KK**\n• **Surat kuasa** jika diwakilkan\n\n📋 **Yang TIDAK Perlu Materai:**\n• KK baru setelah menikah (dokumen lengkap)\n• Tambah anggota keluarga (ada surat keterangan lahir)\n• Pisah KK (dokumen resmi ada)\n• Pindah alamat (ada SKPWNI)\n\n🛒 **Dimana Beli Materai:**\n• **Kantor Pos** - paling mudah dan pasti asli\n• **Bank** - BRI, BNI, Mandiri, dll\n• **Toko ATK** - pastikan asli\n• **Online** - e-meterai.co.id (resmi)\n\n⚠️ **Tips Materai:**\n• Beli di tempat resmi untuk hindari palsu\n• Cek hologram dan watermark\n• Jangan ditempel dulu, bawa terpisah\n• Petugas yang akan tempelkan\n\n💡 **Hemat**: Kalau dokumen lengkap, biasanya tidak perlu SPTJM = tidak perlu materai!\n\nKak butuh SPTJM untuk kasus apa?",
+    "serviceType": "kartu_keluarga",
+    "category": "biaya_materai",
+    "priority": "medium"
+  },
+  {
+    "query": "Berapa biaya surat kehilangan untuk KK?",
+    "expectedResponse": "Biaya surat kehilangan untuk KK hilang:\n\n💰 **Biaya di Polsek/Polres:**\n• **Rp 10.000 - Rp 30.000** (bervariasi per daerah)\n• Sudah termasuk materai dan administrasi\n• Bayar di loket resmi dengan kwitansi\n\n📋 **Yang Didapat:**\n• Surat Tanda Penerimaan Laporan (STPL)\n• Surat Keterangan Kehilangan\n• Nomor laporan polisi\n\n📍 **Dimana Buat:**\n• **Polsek** terdekat dengan tempat kehilangan\n• **Polres** jika polsek tidak bisa\n• **Polda** untuk kasus khusus\n\n📋 **Yang Perlu Dibawa:**\n• KTP-el asli\n• Fotokopi KTP-el\n• Keterangan kronologi kehilangan\n• Uang tunai untuk biaya\n\n⏱️ **Waktu Proses:** 30 menit - 1 jam\n\n💡 **Tips:**\n• Datang pagi hari untuk antrian sedikit\n• Siapkan uang pas\n• Ceritakan kronologi dengan jelas\n• Simpan surat kehilangan baik-baik\n\n⚠️ **Catatan**: Biaya ini untuk surat kehilangan, bukan untuk KK-nya. KK tetap GRATIS!\n\nKK kak hilang dimana?",
+    "serviceType": "kartu_keluarga",
+    "category": "biaya_surat_hilang",
+    "priority": "medium"
+  },
+  {
+    "query": "Ada biaya fotokopi untuk KK gak?",
+    "expectedResponse": "Biaya fotokopi untuk KK:\n\n💰 **Jika Lupa Bawa Fotokopi:**\n• **Rp 500 - Rp 1.000 per lembar** di sekitar Disdukcapil\n• Biasanya ada warung fotokopi dekat kantor\n• Kualitas bagus dan cepat\n\n📋 **Yang Perlu Difotokopi:**\n• KK lama (jika ada)\n• KTP-el semua yang terkait\n• Buku nikah/akta perkawinan\n• Akta kelahiran (jika diperlukan)\n• SKPWNI (jika pindah)\n• Dokumen pendukung lainnya\n\n💡 **Tips Hemat:**\n• **Fotokopi di rumah** - lebih murah (Rp 200-300/lembar)\n• **Siapkan 2-3 lembar** untuk jaga-jaga\n• **Cek kualitas** - harus jelas dan tidak terpotong\n• **Bawa uang tunai** untuk fotokopi darurat\n\n🏪 **Lokasi Fotokopi Dekat Disdukcapil:**\n• Warung fotokopi di depan/samping kantor\n• Toko ATK terdekat\n• Rental komputer yang ada fotokopi\n\n⚠️ **Catatan Penting:**\n• Fotokopi bukan biaya resmi KK\n• Ini biaya pribadi karena lupa persiapan\n• KK tetap GRATIS, fotokopi hanya kebutuhan\n\n🎯 **Rekomendasi**: Siapkan fotokopi di rumah untuk hemat dan praktis!\n\nKak sudah siapkan fotokopi belum?",
+    "serviceType": "kartu_keluarga",
+    "category": "biaya_fotokopi",
+    "priority": "low"
+  },
+  {
+    "query": "Kalau pakai jasa calo KK berapa?",
+    "expectedResponse": "❌ **JANGAN PAKAI JASA CALO!**\n\nKenapa tidak disarankan:\n\n💸 **Biaya Tidak Wajar:**\n• Calo biasanya minta **Rp 100.000 - Rp 500.000**\n• Padahal KK **GRATIS 100%**\n• Uang kak hanya masuk kantong calo\n\n⚠️ **Risiko Berbahaya:**\n• **Dokumen palsu** - bisa kena pidana\n• **Data disalahgunakan** - identitas dicuri\n• **Tidak ada jaminan** - kalau gagal uang hilang\n• **Melanggar hukum** - ikut praktik ilegal\n\n🚨 **Konsekuensi Hukum:**\n• **Pasal 93 UU No. 24/2013**: Pidana penjara 6 bulan atau denda Rp 25 juta\n• **Dokumen palsu**: Pidana lebih berat\n• **Pencatatan tidak sah**: KK bisa dibatalkan\n\n✅ **Alternatif Legal:**\n• **Datang sendiri** - gratis dan aman\n• **Minta bantuan keluarga** - dengan surat kuasa resmi\n• **Konsultasi petugas** - gratis dan terpercaya\n• **Layanan online** - resmi dari pemerintah\n\n💡 **Ingat**: Proses KK sebenarnya mudah dan cepat kalau dokumen lengkap!\n\n📞 **Lapor Calo**: 110 atau lapor.go.id\n\n🎯 **Pesan**: Jangan biarkan calo memanfaatkan ketidaktahuan kita!\n\nKak sudah pernah didekati calo?",
+    "serviceType": "kartu_keluarga",
+    "category": "biaya_calo",
+    "priority": "high"
+  },
+  {
+    "query": "Biaya transport ke Disdukcapil berapa?",
+    "expectedResponse": "Biaya transport ke Disdukcapil Garut:\n\n🚗 **Dari Dalam Kota Garut:**\n• **Angkot**: Rp 3.000 - Rp 5.000\n• **Ojek konvensional**: Rp 5.000 - Rp 10.000\n• **Ojek online**: Rp 8.000 - Rp 15.000\n• **Motor pribadi**: Rp 5.000 - Rp 10.000 (bensin)\n\n🚌 **Dari Luar Kota Garut:**\n• **Bus antar kota**: Rp 15.000 - Rp 50.000\n• **Travel**: Rp 25.000 - Rp 75.000\n• **Kereta + angkot**: Rp 20.000 - Rp 40.000\n• **Motor pribadi**: Rp 20.000 - Rp 100.000 (bensin)\n\n🅿️ **Parkir di Disdukcapil:**\n• **Motor**: Rp 2.000 - Rp 3.000\n• **Mobil**: Rp 5.000 - Rp 10.000\n• **Parkir luas** dan aman tersedia\n\n💡 **Tips Hemat Transport:**\n• **Berangkat pagi** - angkot lebih murah\n• **Gabung dengan keluarga** - bagi biaya\n• **Pilih hari kerja** - tarif normal\n• **Gunakan transportasi umum** - lebih ekonomis\n\n📍 **Alamat Lengkap:**\nJl. Pembangunan No. 103, Tarogong Kidul, Garut\n(Dekat Terminal Guntur)\n\n🎯 **Total Estimasi:**\nDari dalam kota: **Rp 10.000 - Rp 25.000** PP\nDari luar kota: **Rp 50.000 - Rp 200.000** PP\n\nKak berangkat dari mana?",
+    "serviceType": "kartu_keluarga",
+    "category": "biaya_transport",
+    "priority": "low"
+  }
+]

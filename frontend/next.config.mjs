@@ -1,4 +1,5 @@
 /** @type {import("next").NextConfig} */
+// Phase 1 Frontend-Backend Separation: Static Export Configuration
 const nextConfig = {
   // Image optimization configuration
   images: {
@@ -40,6 +41,8 @@ const nextConfig = {
     minimumCacheTTL: 60,
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    // Disable image optimization for static export
+    unoptimized: true,
   },
 
   // Security headers
@@ -158,15 +161,7 @@ const nextConfig = {
           },
         ],
       },
-      {
-        source: '/api/(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'no-store, must-revalidate',
-          },
-        ],
-      },
+
       {
         source: '/_next/static/(.*)',
         headers: [
@@ -192,24 +187,10 @@ const nextConfig = {
     ];
   },
 
-  // Redirects for staging
-  async redirects() {
-    return [
-      {
-        source: '/health',
-        destination: '/api/health',
-        permanent: false,
-      },
-      {
-        source: '/metrics',
-        destination: '/api/metrics',
-        permanent: false,
-      },
-    ];
-  },
 
-  // Output configuration (disabled standalone due to Windows symlink issues)
-  // output: 'standalone',
+
+  // Output configuration - Enable static export for CDN deployment
+  output: 'export',
 };
 
 export default nextConfig;

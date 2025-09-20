@@ -1,12 +1,12 @@
 /**
- * Supabase Authentication Utilities
- * 
- * Purpose: Provide proper SSR-compatible authentication for both client and server
- * Context: Fix authentication harmony between browser and API routes
+ * Supabase Authentication Utilities - Client-Side Only
+ *
+ * Purpose: Provide client-side authentication utilities for browser operations
+ * Context: Pure frontend authentication - server-side operations moved to Go backend
  */
 
-import { createBrowserClient, createServerClient } from '@supabase/ssr';
-import { NextRequest } from 'next/server';
+import { createBrowserClient } from '@supabase/ssr';
+// Server-side imports removed - frontend is now client-side only
 
 // Environment variables
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -24,55 +24,7 @@ export function createSupabaseBrowserClient() {
   return createBrowserClient(supabaseUrl, supabaseAnonKey);
 }
 
-/**
- * Create server client for API routes and server-side operations
- * This properly handles cookies in server context
- */
-export function createSupabaseServerClient(request: NextRequest) {
-  return createServerClient(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          // In API routes, we can't set cookies directly
-          // This is handled by the middleware
-        },
-      },
-    }
-  );
-}
-
-/**
- * Get authenticated user from server context
- * Use this in API routes to get the current user
- */
-export async function getServerUser(request: NextRequest) {
-  const supabase = createSupabaseServerClient(request);
-  
-  try {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    
-    if (error) {
-      console.log('🔍 [SERVER_AUTH] Auth error:', error.message);
-      return { user: null, error };
-    }
-    
-    if (user) {
-      console.log('✅ [SERVER_AUTH] User authenticated:', user.id.slice(0, 8) + '...', user.email);
-    } else {
-      console.log('⚠️ [SERVER_AUTH] No authenticated user found');
-    }
-    
-    return { user, error: null };
-  } catch (error) {
-    console.error('❌ [SERVER_AUTH] Failed to get user:', error);
-    return { user: null, error };
-  }
-}
+// Server-side functions removed - frontend is now client-side only
 
 /**
  * Get authenticated user from browser context

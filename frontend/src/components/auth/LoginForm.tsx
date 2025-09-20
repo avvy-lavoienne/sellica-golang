@@ -34,6 +34,8 @@ import { ThemeToggle } from "@/components/landing/ThemeToggle";
 import { FormField } from "./FormField";
 import { PasswordStrengthIndicator } from "./PasswordStrengthIndicator";
 import { LoginFormData, ValidationState, FormState } from "./types";
+import { useGoAuth } from "@/hooks/useGoAuth";
+import { useGoBackend, useAuthFallback } from "@/lib/config/features";
 
 // Form validation rules
 const validationRules = {
@@ -69,6 +71,11 @@ const itemVariants = {
 
 export default function LoginForm() {
   const router = useRouter();
+
+  // Feature flags for authentication system selection
+  const shouldUseGoAuth = useGoBackend();
+  const enableFallback = useAuthFallback();
+  const goAuth = useGoAuth();
 
   // Form state
   const [formData, setFormData] = useState<LoginFormData>({
@@ -236,50 +243,100 @@ export default function LoginForm() {
     }));
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
+      let authResult;
+      let authError = null;
 
-      if (error) {
-        let errorMessage = "An error occurred during login";
+      // Use Go backend authentication if enabled
+      if (shouldUseGoAuth) {
+        console.log('🚀 Using Go backend authentication');
+        authResult = await goAuth.login(formData.email, formData.password);
 
-        if (error.message.includes("Invalid login credentials")) {
-          errorMessage =
-            "Invalid email or password. Please check your credentials and try again.";
-        } else if (error.message.includes("Email not confirmed")) {
-          errorMessage =
-            "Please check your email and click the confirmation link before logging in.";
-        } else if (error.message.includes("Too many requests")) {
-          errorMessage =
-            "Too many login attempts. Please wait a moment before trying again.";
+        if (authResult.success && authResult.user) {
+          console.log('✅ Go backend authentication successful');
+          toast.success("Login successful! Redirecting to dashboard...");
+
+          // Add a small delay for better UX
+          setTimeout(() => {
+            router.push("/dashboard");
+          }, 1500);
+          return;
         } else {
-          errorMessage = error.message;
+          authError = authResult.error;
+          console.warn('⚠️ Go backend authentication failed:', authError);
+
+          // Try fallback to Supabase if enabled
+          if (enableFallback) {
+            console.log('🔄 Attempting fallback to Supabase authentication');
+          } else {
+            throw new Error(authError || 'Go backend authentication failed');
+          }
+        }
+      }
+
+      // Use Supabase authentication (original or fallback)
+      if (!shouldUseGoAuth || (enableFallback && authError)) {
+        console.log(shouldUseGoAuth ? '🔄 Using Supabase fallback authentication' : '📱 Using Supabase authentication');
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (error) {
+          let errorMessage = "An error occurred during login";
+
+          if (error.message.includes("Invalid login credentials")) {
+            errorMessage =
+              "Invalid email or password. Please check your credentials and try again.";
+          } else if (error.message.includes("Email not confirmed")) {
+            errorMessage =
+              "Please check your email and click the confirmation link before logging in.";
+          } else if (error.message.includes("Too many requests")) {
+            errorMessage =
+              "Too many login attempts. Please wait a moment before trying again.";
+          } else {
+            errorMessage = error.message;
+          }
+
+          setFormState((prev) => ({
+            ...prev,
+            isSubmitting: false,
+            errors: [errorMessage],
+          }));
+          return;
         }
 
-        setFormState((prev) => ({
-          ...prev,
-          isSubmitting: false,
-          errors: [errorMessage],
-        }));
-        return;
-      }
+        if (data.user) {
+          console.log('✅ Supabase authentication successful');
+          toast.success("Login successful! Redirecting to dashboard...");
 
-      if (data.user) {
-        toast.success("Login successful! Redirecting to dashboard...");
-
-        // Add a small delay for better UX
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 1500);
+          // Add a small delay for better UX
+          setTimeout(() => {
+            router.push("/dashboard");
+          }, 1500);
+        }
       }
     } catch (err: any) {
+      console.error('❌ Authentication error:', err);
+
+      let errorMessage = "Unable to connect to server. Please check your internet connection and try again.";
+
+      // Handle Go backend specific errors
+      if (shouldUseGoAuth && err.message) {
+        if (err.message.includes("Invalid credentials")) {
+          errorMessage = "Invalid email or password. Please check your credentials and try again.";
+        } else if (err.message.includes("Network error")) {
+          errorMessage = "Network error. Please check your connection and try again.";
+        } else if (err.message.includes("timeout")) {
+          errorMessage = "Request timeout. Please try again.";
+        } else {
+          errorMessage = err.message;
+        }
+      }
+
       setFormState((prev) => ({
         ...prev,
         isSubmitting: false,
-        errors: [
-          "Unable to connect to server. Please check your internet connection and try again.",
-        ],
+        errors: [errorMessage],
       }));
     }
   };
@@ -353,6 +410,14 @@ export default function LoginForm() {
                   </motion.div>
                 )}
               </AnimatePresence>
+
+              {/* Authentication System Indicator */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="text-xs text-muted-foreground text-center p-2 bg-muted/50 rounded-md">
+                  🔧 Auth System: {shouldUseGoAuth ? '🚀 Go Backend' : '📱 Next.js/Supabase'}
+                  {shouldUseGoAuth && enableFallback && ' (with fallback)'}
+                </div>
+              )}
 
               {/* Login Form */}
               <motion.form

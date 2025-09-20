@@ -15,7 +15,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { UnifiedChatProvider, useUnifiedChat } from '@/contexts/UnifiedChatContext';
 import { EnhancedChatMessage } from '@/components/chatbot/EnhancedChatMessage';
 import { MobileNavigation } from '@/components/mobile/MobileNavigation';
-import { aiService } from '@/services/chatbot/aiService';
+// DISABLED FOR CORE BUILD - Using simplified chat functionality
+// // DISABLED FOR CORE BUILD
+// // DISABLED FOR CORE BUILD
+// import { aiService } from '../../../selly-legacy-nextjs-backend/business-logic/chatbot/core/aiService';
 import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
 import { cn } from '@/lib/conn/utils';
 
@@ -419,7 +422,8 @@ export default function MobileChatPage() {
 
   const handleMessageSent = useCallback(async (message: string) => {
     try {
-      const response = await aiService.processQuery(message);
+      // const response = await aiService.processQuery(message); // Disabled for core build
+      const response = { content: `Core build mode response: ${message}` }; // Mock response
       return response.content;
     } catch (error) {
       console.error('Error processing message:', error);
