@@ -58,20 +58,24 @@ import { useDebounce } from "@/hooks/use-debounce";
 import type {
   SilpanaData,
   SilpanaFormData,
+  EnhancedSilpanaData,
 } from "@/types/silpana/silpana";
 import SilpanaHeader from "@/components/silpana/SilpanaHeader";
 import SilpanaActions from "@/components/silpana/SilpanaActions";
 import SilpanaForm from "@/components/silpana/SilpanaForm";
 import SilpanaTable from "@/components/silpana/SilpanaTable";
+import TicketLookup from "@/components/silpana/TicketLookup";
 import EmptyState from "@/components/silpana/EmptyState";
 import LoadingState from "@/components/silpana/LoadingState";
 
 export default function SilpanaPage() {
-  // Enhanced state management for public SILPANA page
+  // Enhanced state management for SILPANA ticketing system
   const [showForm, setShowForm] = useState(false);
-  const [showRekap, setShowRekap] = useState(true); // Default to showing data for public access
+  const [showRekap, setShowRekap] = useState(false);
+  const [showLookup, setShowLookup] = useState(true); // Default to lookup for user-friendly access
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<SilpanaData | null>(null);
+  const [foundTicket, setFoundTicket] = useState<EnhancedSilpanaData | null>(null);
   const [formData, setFormData] = useState<SilpanaFormData>({
     nik_pengaduan: "",
     nama_pengaduan: "",
@@ -315,6 +319,22 @@ export default function SilpanaPage() {
   const handleRekapitulasi = useCallback(() => {
     setShowRekap(true);
     setShowForm(false);
+    setShowLookup(false);
+  }, []);
+
+  const handleTicketLookup = useCallback(() => {
+    setShowLookup(true);
+    setShowForm(false);
+    setShowRekap(false);
+  }, []);
+
+  const handleTicketFound = useCallback((ticket: EnhancedSilpanaData) => {
+    setFoundTicket(ticket);
+  }, []);
+
+  const handleLookupError = useCallback((error: string) => {
+    setFoundTicket(null);
+    toast.error(error);
   }, []);
 
   const handlePageChange = useCallback((page: number) => {
@@ -613,6 +633,7 @@ export default function SilpanaPage() {
                 onAjukan={() => {
                   setShowForm(true);
                   setShowRekap(false);
+                  setShowLookup(false);
                   setIsEditing(false);
                   setEditData(null);
                   setFormData({
@@ -629,7 +650,8 @@ export default function SilpanaPage() {
                   });
                 }}
                 onRekapitulasi={handleRekapitulasi}
-                activeMode={showForm ? "form" : showRekap ? "table" : "none"}
+                onTicketLookup={handleTicketLookup}
+                activeMode={showForm ? "form" : showRekap ? "table" : showLookup ? "lookup" : "none"}
                 onDateRangeChange={(start, end, filterField) => {
                   setStartDate(start);
                   setEndDate(end);
@@ -742,6 +764,7 @@ export default function SilpanaPage() {
                               onAddNew={() => {
                                 setShowForm(true);
                                 setShowRekap(false);
+                                setShowLookup(false);
                               }}
                             />
                           </div>
@@ -750,7 +773,25 @@ export default function SilpanaPage() {
                     </motion.div>
                   )}
 
-                  {!showForm && !showRekap && (
+                  {showLookup && (
+                    <motion.div
+                      key="lookup"
+                      initial={{ opacity: 0, y: 20, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -20, scale: 0.98 }}
+                      transition={{
+                        duration: shouldAnimate ? 0.4 : 0,
+                        ease: "easeOut",
+                      }}
+                    >
+                      <TicketLookup
+                        onTicketFound={handleTicketFound}
+                        onError={handleLookupError}
+                      />
+                    </motion.div>
+                  )}
+
+                  {!showForm && !showRekap && !showLookup && (
                     <motion.div
                       key="welcome"
                       initial={{ opacity: 0, y: 20, scale: 0.98 }}
@@ -785,6 +826,7 @@ export default function SilpanaPage() {
                           onAddNew={() => {
                             setShowForm(true);
                             setShowRekap(false);
+                            setShowLookup(false);
                           }}
                         />
                       </div>

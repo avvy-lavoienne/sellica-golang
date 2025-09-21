@@ -78,7 +78,7 @@ interface SilpanaActionsProps {
   /** Table view handler */
   onRekapitulasi: () => void;
   /** Current active mode */
-  activeMode: "form" | "table" | "none";
+  activeMode: "form" | "table" | "lookup" | "none";
   /** Date range change handler */
   onDateRangeChange: (
     startDate: Date | null,
@@ -91,6 +91,8 @@ interface SilpanaActionsProps {
   onSearch: (search: string) => void;
   /** Current search query */
   searchQuery: string;
+  /** Ticket lookup handler */
+  onTicketLookup: () => void;
   /** Custom className */
   className?: string;
   /** Animation delay */
@@ -119,6 +121,7 @@ interface SilpanaActionsProps {
 function SilpanaActions({
   onAjukan,
   onRekapitulasi,
+  onTicketLookup,
   activeMode,
   onDateRangeChange,
   onResetFilters,
@@ -477,11 +480,13 @@ function SilpanaActions({
                 ? "form"
                 : activeMode === "table"
                   ? "table"
-                  : "none"
+                  : activeMode === "lookup"
+                    ? "lookup"
+                    : "none"
             }
             className="w-full"
           >
-            <TabsList className="grid h-12 w-full grid-cols-2 bg-muted/50 backdrop-blur-sm">
+            <TabsList className="grid h-12 w-full grid-cols-3 bg-muted/50 backdrop-blur-sm">
               <TabsTrigger
                 value="form"
                 onClick={onAjukan}
@@ -492,9 +497,10 @@ function SilpanaActions({
                 )}
               >
                 <PlusCircle className="h-4 w-4" />
-                <span>Input Data SILPANA</span>
+                <span className="hidden sm:inline">Ajukan</span>
+                <span className="sm:hidden">Form</span>
                 {activeMode === "form" && (
-                  <Badge variant="secondary" className="ml-2 text-xs">
+                  <Badge variant="secondary" className="ml-1 text-xs">
                     <Sparkles className="h-3 w-3" />
                   </Badge>
                 )}
@@ -509,10 +515,29 @@ function SilpanaActions({
                 )}
               >
                 <ListFilter className="h-4 w-4" />
-                <span>Lihat Data SILPANA</span>
+                <span className="hidden sm:inline">Rekapitulasi</span>
+                <span className="sm:hidden">Data</span>
                 {activeMode === "table" && (
-                  <Badge variant="secondary" className="ml-2 text-xs">
+                  <Badge variant="secondary" className="ml-1 text-xs">
                     <TrendingUp className="h-3 w-3" />
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger
+                value="lookup"
+                onClick={onTicketLookup}
+                className={cn(
+                  "flex items-center gap-2 transition-all duration-200",
+                  "data-[state=active]:bg-background data-[state=active]:shadow-sm",
+                  "hover:bg-background/50",
+                )}
+              >
+                <Search className="h-4 w-4" />
+                <span className="hidden sm:inline">Lihat Pengaduan Saya</span>
+                <span className="sm:hidden">Cari</span>
+                {activeMode === "lookup" && (
+                  <Badge variant="secondary" className="ml-1 text-xs">
+                    <Eye className="h-3 w-3" />
                   </Badge>
                 )}
               </TabsTrigger>

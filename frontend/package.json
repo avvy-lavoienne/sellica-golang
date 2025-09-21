@@ -26,6 +26,8 @@
     "test:db-pool:watch": "npx tsx watch src/scripts/testConnectionPooling.ts",
     "test:cache:watch": "jest src/tests/cache/intelligentCacheManagement.test.ts --watch",
     "migration:selly-chat": "npx tsx src/scripts/run-migration.ts",
+    "migration:silpana-ticketing": "npx tsx src/scripts/run-ticketing-migration.ts",
+    "migration:silpana-ticketing:rollback": "npx tsx src/scripts/run-ticketing-migration.ts --rollback",
     "migrate:uuid": "npx tsx src/scripts/run-uuid-migration.ts",
     "migrate:uuid:rollback": "npx tsx src/scripts/run-uuid-migration.ts --rollback",
     "test:uuid": "jest src/__tests__/uuid-optimization.test.ts",
