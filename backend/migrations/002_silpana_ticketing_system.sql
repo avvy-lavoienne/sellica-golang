@@ -2,26 +2,54 @@
 -- SILPANA Ticketing System Database Migration
 -- Version: 1.0
 -- Date: 2025-09-21
--- Description: Transform SILPANA into comprehensive ticketing system
+-- Description: Create SILPANA ticketing system from scratch
 -- ============================================================================
 
--- Create backup table before making changes
-CREATE TABLE IF NOT EXISTS silpana_backup_20250921 AS SELECT * FROM silpana;
-
 -- ============================================================================
--- PHASE 1: ALTER EXISTING SILPANA TABLE
+-- PHASE 1: CREATE BASE SILPANA TABLE
 -- ============================================================================
 
--- Add new columns for ticket system
-ALTER TABLE silpana ADD COLUMN IF NOT EXISTS ticket_code VARCHAR(20) UNIQUE;
-ALTER TABLE silpana ADD COLUMN IF NOT EXISTS ticket_status VARCHAR(20) DEFAULT 'submitted' NOT NULL;
-ALTER TABLE silpana ADD COLUMN IF NOT EXISTS priority_level VARCHAR(10) DEFAULT 'medium' NOT NULL;
-ALTER TABLE silpana ADD COLUMN IF NOT EXISTS assigned_to VARCHAR(100);
-ALTER TABLE silpana ADD COLUMN IF NOT EXISTS estimated_resolution TIMESTAMP;
-ALTER TABLE silpana ADD COLUMN IF NOT EXISTS actual_resolution TIMESTAMP;
-ALTER TABLE silpana ADD COLUMN IF NOT EXISTS resolution_notes TEXT;
-ALTER TABLE silpana ADD COLUMN IF NOT EXISTS created_by_ip INET;
-ALTER TABLE silpana ADD COLUMN IF NOT EXISTS last_updated TIMESTAMP DEFAULT NOW() NOT NULL;
+-- Create the main silpana table with all fields including ticketing system
+CREATE TABLE IF NOT EXISTS silpana (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  
+  -- Original Silpana fields
+  nama_pengaduan VARCHAR(200) NOT NULL,
+  jenis_pengaduan VARCHAR(100) NOT NULL,
+  detail_pengaduan TEXT NOT NULL,
+  nama_pelapor VARCHAR(100) NOT NULL,
+  nik VARCHAR(20) NOT NULL,
+  no_telp VARCHAR(20) NOT NULL,
+  email VARCHAR(100),
+  alamat TEXT NOT NULL,
+  
+  -- Ticketing system fields
+  ticket_code VARCHAR(20) UNIQUE,
+  ticket_status VARCHAR(20) DEFAULT 'submitted' NOT NULL,
+  priority_level VARCHAR(10) DEFAULT 'medium' NOT NULL,
+  assigned_to VARCHAR(100),
+  estimated_resolution TIMESTAMP,
+  actual_resolution TIMESTAMP,
+  resolution_notes TEXT,
+  created_by_ip INET,
+  
+  -- Timestamps
+  created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMP DEFAULT NOW() NOT NULL,
+  last_updated TIMESTAMP DEFAULT NOW() NOT NULL
+);
+
+-- Create backup table if original exists (for future migrations)
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'silpana_original') THEN
+    CREATE TABLE IF NOT EXISTS silpana_backup_20250921 AS SELECT * FROM silpana_original;
+  END IF;
+END $$;
+
+-- ============================================================================
+-- PHASE 2: CREATE INDEXES AND CONSTRAINTS
+-- ============================================================================
 
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_silpana_ticket_code ON silpana(ticket_code);
@@ -29,6 +57,9 @@ CREATE INDEX IF NOT EXISTS idx_silpana_ticket_status ON silpana(ticket_status);
 CREATE INDEX IF NOT EXISTS idx_silpana_priority_level ON silpana(priority_level);
 CREATE INDEX IF NOT EXISTS idx_silpana_last_updated ON silpana(last_updated);
 CREATE INDEX IF NOT EXISTS idx_silpana_assigned_to ON silpana(assigned_to);
+CREATE INDEX IF NOT EXISTS idx_silpana_created_at ON silpana(created_at);
+CREATE INDEX IF NOT EXISTS idx_silpana_nik ON silpana(nik);
+CREATE INDEX IF NOT EXISTS idx_silpana_no_telp ON silpana(no_telp);
 
 -- Add constraints
 ALTER TABLE silpana ADD CONSTRAINT chk_ticket_status 
@@ -38,7 +69,7 @@ ALTER TABLE silpana ADD CONSTRAINT chk_priority_level
 CHECK (priority_level IN ('low', 'medium', 'high', 'critical'));
 
 -- ============================================================================
--- PHASE 2: CREATE TICKET HISTORY TABLE
+-- PHASE 3: CREATE TICKET HISTORY TABLE
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS ticket_history (
@@ -60,7 +91,7 @@ CREATE INDEX IF NOT EXISTS idx_ticket_history_changed_at ON ticket_history(chang
 CREATE INDEX IF NOT EXISTS idx_ticket_history_status_to ON ticket_history(status_to);
 
 -- ============================================================================
--- PHASE 3: CREATE TICKET COMMUNICATION TABLE
+-- PHASE 4: CREATE TICKET COMMUNICATION TABLE
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS ticket_communication (
@@ -81,7 +112,7 @@ CREATE INDEX IF NOT EXISTS idx_ticket_communication_created_at ON ticket_communi
 CREATE INDEX IF NOT EXISTS idx_ticket_communication_sender_type ON ticket_communication(sender_type);
 
 -- ============================================================================
--- PHASE 4: TICKET CODE GENERATION SYSTEM
+-- PHASE 5: TICKET CODE GENERATION SYSTEM
 -- ============================================================================
 
 -- Create sequence for ticket numbering
@@ -130,22 +161,25 @@ CREATE TRIGGER trigger_set_ticket_code
   EXECUTE FUNCTION set_ticket_code();
 
 -- ============================================================================
--- PHASE 5: UPDATE EXISTING RECORDS WITH TICKET CODES
--- ============================================================================
-
--- Generate ticket codes for existing records that don't have them
-UPDATE silpana 
-SET ticket_code = generate_ticket_code(),
-    last_updated = NOW()
-WHERE ticket_code IS NULL;
-
--- ============================================================================
 -- PHASE 6: ROW LEVEL SECURITY POLICIES
 -- ============================================================================
 
--- Enable RLS on new tables
+-- Enable RLS on all tables
+ALTER TABLE silpana ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ticket_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ticket_communication ENABLE ROW LEVEL SECURITY;
+
+-- Policy for silpana - allow all authenticated users to read
+CREATE POLICY "silpana_select_policy" ON silpana
+    FOR SELECT USING (auth.role() = 'authenticated');
+
+-- Policy for silpana - allow authenticated users to insert
+CREATE POLICY "silpana_insert_policy" ON silpana
+    FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+-- Policy for silpana - allow users to update their own submissions (by phone/nik)
+CREATE POLICY "silpana_update_policy" ON silpana
+    FOR UPDATE USING (auth.role() = 'authenticated');
 
 -- Policy for ticket_history - allow all authenticated users to read public history
 CREATE POLICY "ticket_history_select_policy" ON ticket_history
@@ -164,8 +198,18 @@ CREATE POLICY "ticket_communication_insert_policy" ON ticket_communication
     FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 
 -- ============================================================================
--- PHASE 7: VERIFICATION AND CLEANUP
+-- PHASE 7: SAMPLE DATA AND VERIFICATION
 -- ============================================================================
+
+-- Insert sample data for testing
+INSERT INTO silpana (
+    nama_pengaduan, jenis_pengaduan, detail_pengaduan, 
+    nama_pelapor, nik, no_telp, email, alamat,
+    priority_level
+) VALUES 
+    ('Perbaikan Jalan Rusak', 'Infrastruktur', 'Jalan di depan Kantor Kelurahan berlubang besar dan mengganggu aktivitas warga', 'Ahmad Sutanto', '3273081234567890', '081234567890', 'ahmad.sutanto@email.com', 'Jl. Merdeka No. 123, Bandung', 'high'),
+    ('Lampu Jalan Mati', 'Infrastruktur', 'Lampu penerangan jalan di Jl. Sudirman tidak menyala sejak 3 hari yang lalu', 'Siti Nurhaliza', '3273081234567891', '081234567891', 'siti.nurhaliza@email.com', 'Jl. Sudirman No. 45, Bandung', 'medium'),
+    ('Masalah Drainase', 'Lingkungan', 'Saluran air tersumbat menyebabkan banjir saat hujan deras', 'Budi Santoso', '3273081234567892', '081234567892', 'budi.santoso@email.com', 'Jl. Gatot Subroto No. 67, Bandung', 'high');
 
 -- Verify the migration
 SELECT 
