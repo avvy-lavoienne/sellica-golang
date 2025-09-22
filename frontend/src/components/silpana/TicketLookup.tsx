@@ -82,7 +82,7 @@ export default function TicketLookup({
     }
 
     if (!isValidTicketCode(lookupData.ticket_code.trim())) {
-      return "Format kode tiket tidak valid. Contoh: SILP-2025-001234";
+      return "Format kode tiket tidak valid. Contoh: SPL25092268D6AC9E";
     }
 
     if (verificationType === 'phone') {

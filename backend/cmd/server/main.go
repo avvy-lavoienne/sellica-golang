@@ -24,6 +24,7 @@ import (
 	"selly-backend/internal/services/knowledge"
 	"selly-backend/internal/services/monitoring"
 	"selly-backend/internal/services/rag"
+	"selly-backend/internal/services/silpana"
 	"selly-backend/internal/services/training"
 )
 
@@ -61,6 +62,7 @@ func main() {
 		services.Monitoring,
 		services.Training,
 		services.Concurrent,
+		services.Silpana,
 	)
 	routes.SetupRoutes(router, routeServices)
 
@@ -120,6 +122,7 @@ type Services struct {
 	Knowledge  *knowledge.DocumentLoaderService
 	RAG        *rag.RedisRAGService
 	Concurrent *concurrent.Service
+	Silpana    silpana.ServiceInterface
 
 	// Enhanced Services (Optimization Layer) - Placeholder interfaces
 	AI           interface{} // *ai.Service - To be implemented
@@ -306,6 +309,14 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	// Initialize chat service with RAG integration (after RAG service is ready)
 	chatService := chat.NewService(dbService, cacheService, authService, ragService)
 
+	// Initialize SILPANA ticketing service
+	silpanaFactory := silpana.NewServiceFactory(dbService, cacheService, monitoringService)
+	silpanaService, err := silpanaFactory.CreateSilpanaService()
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize SILPANA service: %w", err)
+	}
+	logrus.Info("🎫 SILPANA ticketing service initialized successfully")
+
 	// Initialize Enhanced Services (Optimization Layer)
 	logrus.Info("🚀 Initializing enhanced services...")
 
@@ -358,6 +369,7 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		Knowledge:  knowledgeService,
 		RAG:        ragService,
 		Concurrent: concurrentService,
+		Silpana:    silpanaService,
 
 		// Enhanced Services (placeholders)
 		AI:           aiService,

@@ -118,38 +118,140 @@ interface TicketCommunication {
 
 ## � **Golang Backend Integration Architecture**
 
-### **Backend Service Integration Overview**
+### **🔍 Existing Backend Infrastructure Analysis**
 
-Building upon the existing frontend implementation, we're integrating a robust Golang backend service to handle advanced ticketing operations, real-time processing, and enterprise-level features.
+**Current High-Performance Backend Status:**
+- ✅ **Proven Performance**: 20-289x faster than Next.js (1.7-28ms response times)
+- ✅ **Enterprise Scale**: 20.25x higher throughput (126-405 RPS under load)
+- ✅ **Production Ready**: Comprehensive monitoring, health checks, Docker deployment
+- ✅ **Advanced Infrastructure**: Supabase integration, Redis caching, connection pooling
+- ✅ **Microservices Architecture**: Well-organized service layers with dependency injection
 
-#### **Golang Backend Components**
+### **Integration Strategy: Extend Existing Backend**
 
-##### **1. Core Ticket Service (`/backend/internal/services/ticket`)**
+Instead of building from scratch, we'll **extend the existing high-performance backend** with SILPANA ticketing capabilities, leveraging the proven infrastructure.
+
+#### **Existing Backend Components to Leverage**
+
+##### **1. Database Service Integration (`/backend/internal/services/database`)**
 ```go
-type TicketService struct {
-    db          *sql.DB
-    supabase    *supabase.Client
-    redisCache  *redis.Client
-    logger      *zap.Logger
+// Existing: High-performance Supabase client with connection pooling
+type Service struct {
+    client     *supabase.Client
+    pool       *ConnectionPool  // Already implemented
+    url        string
+    serviceKey string
+    isHealthy  bool
 }
 
-type TicketOperations interface {
-    GenerateTicketCode(ctx context.Context) (string, error)
-    CreateTicket(ctx context.Context, req *CreateTicketRequest) (*TicketResponse, error)
+// New: Extend for SILPANA operations
+type SilpanaOperations interface {
+    CreateTicket(ctx context.Context, ticket *SilpanaTicket) (*TicketResponse, error)
     LookupTicket(ctx context.Context, code string, verification *VerificationData) (*TicketResponse, error)
-    UpdateTicketStatus(ctx context.Context, ticketID string, status TicketStatus, notes string) error
+    UpdateTicketStatus(ctx context.Context, ticketID string, status TicketStatus) error
     GetTicketHistory(ctx context.Context, ticketID string) ([]*TicketHistory, error)
-    ProcessBulkOperations(ctx context.Context, operations []*BulkOperation) error
+    // Leverages existing connection pooling and health monitoring
 }
 ```
 
-##### **2. Real-time Notification System (`/backend/internal/notifications`)**
+##### **2. Cache Service Integration (`/backend/internal/services/cache`)**
 ```go
-type NotificationService struct {
-    websocket   *WebSocketManager
-    emailSender *EmailService
-    smsSender   *SMSService
-    templates   *TemplateEngine
+// Existing: Smart Redis caching with TTL management
+type Service struct {
+    client    *redis.Client
+    pool      *sync.Pool     // Connection pooling already implemented
+    ttl       time.Duration
+    isHealthy bool
+}
+
+// New: Extend for SILPANA ticket caching
+type SilpanaCacheOperations interface {
+    CacheTicket(ctx context.Context, code string, ticket *SilpanaTicket) error
+    GetCachedTicket(ctx context.Context, code string) (*SilpanaTicket, error)
+    InvalidateTicketCache(ctx context.Context, code string) error
+    // Leverages existing TTL and health monitoring
+}
+```
+
+##### **3. Monitoring Service Integration (`/backend/internal/services/monitoring`)**
+```go
+// Existing: Comprehensive metrics and health checks
+type Service struct {
+    registry  prometheus.Registerer
+    healthMap map[string]bool
+    metrics   *MetricsCollector  // Already implemented
+}
+
+// New: Extend for SILPANA monitoring
+type SilpanaMonitoring interface {
+    TrackTicketOperation(operation string, duration time.Duration)
+    RecordTicketStatus(status string, count int)
+    MonitorLookupPerformance(lookupTime time.Duration)
+    // Leverages existing Prometheus integration
+}
+```
+
+##### **4. API Router Integration (`/backend/cmd/server/main.go`)**
+```go
+// Existing: High-performance Gin router with middleware
+func main() {
+    // Load existing configuration
+    config := config.LoadConfig()
+    
+    // Initialize existing services (already implemented)
+    dbService := database.NewService(config.Database)
+    cacheService := cache.NewService(config.Redis)
+    monitoringService := monitoring.NewService()
+    
+    // New: Initialize SILPANA service
+    silpanaService := silpana.NewService(dbService, cacheService, monitoringService)
+    
+    // Setup existing Gin router
+    router := gin.Default()
+    
+    // Existing middleware stack
+    router.Use(middleware.CORS())
+    router.Use(middleware.Logger())
+    router.Use(middleware.Recovery())
+    
+    // New: Add SILPANA routes to existing router
+    v1 := router.Group("/api/v1")
+    {
+        silpana := v1.Group("/silpana")
+        {
+            silpana.POST("/tickets", silpanaService.CreateTicket)
+            silpana.GET("/tickets/:code", silpanaService.LookupTicket)
+            silpana.PUT("/tickets/:id/status", silpanaService.UpdateStatus)
+            silpana.GET("/tickets/:id/history", silpanaService.GetHistory)
+        }
+    }
+    
+    // Leverage existing server configuration
+    router.Run(config.Server.Address)
+}
+```
+
+##### **5. WebSocket Real-time Updates (Extend existing infrastructure)**
+```go
+// New: Add to existing WebSocket handler
+type SilpanaWebSocket struct {
+    hub        *websocket.Hub  // Leverage existing WebSocket infrastructure
+    clients    map[string]*websocket.Client
+    broadcast  chan []byte
+}
+
+// Real-time ticket status updates
+func (s *SilpanaWebSocket) BroadcastStatusUpdate(ticketCode string, status TicketStatus) {
+    message := WebSocketMessage{
+        Type: "ticket_update",
+        Data: map[string]interface{}{
+            "code":   ticketCode,
+            "status": status,
+            "timestamp": time.Now(),
+        },
+    }
+    s.broadcast <- message.ToJSON()
+}
 }
 
 // Real-time status updates via WebSocket
