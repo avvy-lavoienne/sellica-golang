@@ -216,7 +216,7 @@ export default function TicketSuccessFeedback({
                 </li>
                 <li className="flex items-start gap-2">
                   <div className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-500" />
-                  Gunakan tab "Lihat Pengaduan Saya" untuk melacak status
+                  Gunakan tab &quot;Lihat Pengaduan Saya&quot; untuk melacak status
                 </li>
                 <li className="flex items-start gap-2">
                   <div className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-500" />

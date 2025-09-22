@@ -35,6 +35,7 @@ import {
 import { toast } from "react-toastify";
 import { lookupTicket } from "@/lib/ticketing/api";
 import { getStatusConfig, getPriorityConfig, isValidTicketCode } from "@/lib/ticketing/utils";
+import TicketStatusDisplay from "./TicketStatusDisplay";
 import type { 
   TicketLookupRequest, 
   EnhancedSilpanaData,
@@ -329,140 +330,11 @@ export default function TicketLookup({
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
           >
-            <Card className="relative overflow-hidden border border-border/50 bg-background/80 backdrop-blur-sm">
-              <div className="absolute inset-0 opacity-30">
-                <div className="absolute -left-6 -bottom-6 h-24 w-24 rounded-full bg-green-500/20 blur-2xl" />
-              </div>
-
-              <CardHeader className="relative z-10">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    Tiket Ditemukan
-                  </CardTitle>
-                  <Badge 
-                    variant="outline" 
-                    className={cn(
-                      "font-mono",
-                      getStatusConfig(foundTicket.ticket_status).bgColor,
-                      getStatusConfig(foundTicket.ticket_status).textColor
-                    )}
-                  >
-                    {foundTicket.ticket_code}
-                  </Badge>
-                </div>
-              </CardHeader>
-
-              <CardContent className="relative z-10 space-y-4">
-                {/* Basic Info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Nama Pengadu
-                    </Label>
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <span>{foundTicket.nama_pengaduan}</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Tanggal Pengaduan
-                    </Label>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>{new Date(foundTicket.tanggal_pengaduan).toLocaleDateString('id-ID')}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Status and Priority */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Status
-                    </Label>
-                    <Badge 
-                      className={cn(
-                        getStatusConfig(foundTicket.ticket_status).bgColor,
-                        getStatusConfig(foundTicket.ticket_status).textColor
-                      )}
-                    >
-                      {getStatusConfig(foundTicket.ticket_status).icon} {getStatusConfig(foundTicket.ticket_status).label}
-                    </Badge>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Prioritas
-                    </Label>
-                    <Badge 
-                      variant="outline"
-                      className={cn(
-                        getPriorityConfig(foundTicket.priority_level).bgColor,
-                        getPriorityConfig(foundTicket.priority_level).textColor
-                      )}
-                    >
-                      {getPriorityConfig(foundTicket.priority_level).icon} {getPriorityConfig(foundTicket.priority_level).label}
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* Description */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-muted-foreground">
-                    Kategori & Deskripsi
-                  </Label>
-                  <div className="rounded-lg bg-muted/50 p-3 space-y-2">
-                    <p className="font-medium">{foundTicket.kategori_pengaduan}</p>
-                    {foundTicket.sub_kategori_pengaduan && (
-                      <p className="text-sm text-muted-foreground">{foundTicket.sub_kategori_pengaduan}</p>
-                    )}
-                    <p className="text-sm">{foundTicket.alasan_pengaduan}</p>
-                    {foundTicket.deskripsi_pengaduan && (
-                      <p className="text-sm text-muted-foreground">{foundTicket.deskripsi_pengaduan}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Action Button */}
-                <div className="pt-2">
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="outline" className="w-full">
-                        <Eye className="h-4 w-4 mr-2" />
-                        Lihat Detail Lengkap
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Detail Tiket {foundTicket.ticket_code}</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Informasi lengkap tentang pengaduan Anda.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <div className="space-y-3 text-sm">
-                        <div><strong>Status:</strong> {getStatusConfig(foundTicket.ticket_status).label}</div>
-                        <div><strong>Prioritas:</strong> {getPriorityConfig(foundTicket.priority_level).label}</div>
-                        {foundTicket.assigned_to && (
-                          <div><strong>Ditangani oleh:</strong> {foundTicket.assigned_to}</div>
-                        )}
-                        {foundTicket.estimated_resolution && (
-                          <div><strong>Estimasi selesai:</strong> {new Date(foundTicket.estimated_resolution).toLocaleDateString('id-ID')}</div>
-                        )}
-                        {foundTicket.resolution_notes && (
-                          <div><strong>Catatan:</strong> {foundTicket.resolution_notes}</div>
-                        )}
-                      </div>
-                      <AlertDialogFooter>
-                        <AlertDialogAction>Tutup</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </CardContent>
-            </Card>
+            <TicketStatusDisplay
+              ticket={foundTicket}
+              onRefresh={handleLookup}
+              showInteractiveFeatures={true}
+            />
           </motion.div>
         )}
       </AnimatePresence>
