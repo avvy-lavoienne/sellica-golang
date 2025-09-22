@@ -59,12 +59,15 @@ import type {
   SilpanaData,
   SilpanaFormData,
   EnhancedSilpanaData,
+  PriorityLevel,
+  TicketStatus,
 } from "@/types/silpana/silpana";
 import SilpanaHeader from "@/components/silpana/SilpanaHeader";
 import SilpanaActions from "@/components/silpana/SilpanaActions";
 import SilpanaForm from "@/components/silpana/SilpanaForm";
 import SilpanaTable from "@/components/silpana/SilpanaTable";
 import TicketLookup from "@/components/silpana/TicketLookup";
+import TicketSuccessFeedback from "@/components/silpana/TicketSuccessFeedback";
 import EmptyState from "@/components/silpana/EmptyState";
 import LoadingState from "@/components/silpana/LoadingState";
 
@@ -87,6 +90,7 @@ export default function SilpanaPage() {
     tindak_lanjut_pengaduan: "",
     tanggal_pengaduan: new Date().toISOString().split("T")[0],
     is_anonymous: false,
+    priority_level: 'medium' as PriorityLevel,
   });
   const [rekapData, setRekapData] = useState<SilpanaData[]>([]);
   const [loading, setLoading] = useState(false);
@@ -103,6 +107,16 @@ export default function SilpanaPage() {
   const [isHovered, setIsHovered] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [pageProgress, setPageProgress] = useState(0);
+  
+  // Enhanced loading and error states
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionProgress, setSubmissionProgress] = useState(0);
+  
+  // Success feedback state for ticket generation
+  const [showSuccessFeedback, setShowSuccessFeedback] = useState(false);
+  const [generatedTicketCode, setGeneratedTicketCode] = useState<string | null>(null);
 
   // Refs for enhanced functionality
   const containerRef = useRef<HTMLDivElement>(null);
@@ -282,8 +296,172 @@ export default function SilpanaPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // For public SILPANA page, we'll disable form submission for now
-    toast.info("Form submission is not available for public access.");
+    
+    // Reset previous states
+    setSubmissionError(null);
+    setValidationErrors({});
+    setIsSubmitting(true);
+    setLoading(true);
+    setSubmissionProgress(0);
+
+    try {
+      // Step 1: Client-side validation (20% progress)
+      setSubmissionProgress(20);
+      const errors: Record<string, string> = {};
+
+      if (!formData.nik_pengaduan.trim()) {
+        errors.nik_pengaduan = "NIK wajib diisi";
+      } else if (!/^\d{16}$/.test(formData.nik_pengaduan.replace(/\s+/g, ''))) {
+        errors.nik_pengaduan = "NIK harus 16 digit angka";
+      }
+
+      if (!formData.nama_pengaduan.trim()) {
+        errors.nama_pengaduan = "Nama wajib diisi";
+      } else if (formData.nama_pengaduan.trim().length < 2) {
+        errors.nama_pengaduan = "Nama minimal 2 karakter";
+      }
+
+      if (!formData.kategori_pengaduan) {
+        errors.kategori_pengaduan = "Kategori pengaduan wajib dipilih";
+      }
+
+      if (!formData.sub_kategori_pengaduan) {
+        errors.sub_kategori_pengaduan = "Sub kategori pengaduan wajib dipilih";
+      }
+
+      if (!formData.alasan_pengaduan.trim()) {
+        errors.alasan_pengaduan = "Alasan pengaduan wajib diisi";
+      }
+
+      if (!formData.deskripsi_pengaduan.trim()) {
+        errors.deskripsi_pengaduan = "Deskripsi pengaduan wajib diisi";
+      } else if (formData.deskripsi_pengaduan.trim().length < 10) {
+        errors.deskripsi_pengaduan = "Deskripsi minimal 10 karakter";
+      }
+
+      // Enhanced phone number validation
+      if (formData.nomor_telepon && !/^(\+62|62|0)\d{8,13}$/.test(formData.nomor_telepon.replace(/\s+/g, ''))) {
+        errors.nomor_telepon = "Format nomor telepon tidak valid (contoh: 081234567890)";
+      }
+
+      if (Object.keys(errors).length > 0) {
+        setValidationErrors(errors);
+        toast.error("Harap perbaiki kesalahan pada form");
+        setIsSubmitting(false);
+        setLoading(false);
+        setSubmissionProgress(0);
+        return;
+      }
+
+      // Step 2: Prepare data (40% progress)
+      setSubmissionProgress(40);
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate processing
+
+      const submissionData = {
+        nik_pengaduan: formData.nik_pengaduan.replace(/\s+/g, ''),
+        nama_pengaduan: formData.nama_pengaduan.trim(),
+        kategori_pengaduan: formData.kategori_pengaduan,
+        sub_kategori_pengaduan: formData.sub_kategori_pengaduan,
+        alasan_pengaduan: formData.alasan_pengaduan.trim(),
+        deskripsi_pengaduan: formData.deskripsi_pengaduan.trim(),
+        nomor_telepon: formData.nomor_telepon.replace(/\s+/g, ''),
+        tindak_lanjut_pengaduan: formData.tindak_lanjut_pengaduan,
+        tanggal_pengaduan: formData.tanggal_pengaduan,
+        is_anonymous: formData.is_anonymous || false,
+        priority_level: formData.priority_level || 'medium',
+        ticket_status: 'submitted',
+        created_by_ip: 'web_submission',
+      };
+
+      // Step 3: Submit to database (80% progress)
+      setSubmissionProgress(80);
+      const { data, error } = await supabase
+        .from('silpana')
+        .insert([submissionData])
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Submission error:', error);
+        let errorMessage = "Gagal mengirim pengaduan";
+        
+        // Handle specific database errors
+        if (error.code === '23505') {
+          errorMessage = "Data pengaduan sudah ada. Silakan periksa kembali NIK Anda.";
+        } else if (error.code === '23514') {
+          errorMessage = "Data tidak valid. Harap periksa kembali form Anda.";
+        } else if (error.message.includes('duplicate')) {
+          errorMessage = "Pengaduan dengan data serupa sudah pernah dikirim";
+        } else if (error.message.includes('network')) {
+          errorMessage = "Masalah koneksi jaringan. Silakan coba lagi.";
+        }
+        
+        setSubmissionError(errorMessage);
+        toast.error(errorMessage);
+        setIsSubmitting(false);
+        setLoading(false);
+        setSubmissionProgress(0);
+        return;
+      }
+
+      // Step 4: Success processing (100% progress)
+      setSubmissionProgress(100);
+      await new Promise(resolve => setTimeout(resolve, 300)); // Show completion
+
+      const ticketCode = data.ticket_code;
+      
+      if (!ticketCode) {
+        throw new Error("Ticket code not generated");
+      }
+
+      // Show success feedback modal
+      setGeneratedTicketCode(ticketCode);
+      setShowSuccessFeedback(true);
+
+      // Show toast notification
+      toast.success(
+        <div className="space-y-2">
+          <div className="font-semibold">Pengaduan berhasil dikirim!</div>
+          <div className="text-sm">
+            <div>Kode Tiket: <span className="font-mono font-bold text-green-600">{ticketCode}</span></div>
+            <div className="mt-1">Simpan kode ini untuk melacak status pengaduan Anda</div>
+          </div>
+        </div>,
+        {
+          autoClose: 8000,
+          hideProgressBar: false,
+        }
+      );
+
+      // Reset form and clear errors
+      setFormData({
+        nik_pengaduan: "",
+        nama_pengaduan: "",
+        kategori_pengaduan: "",
+        sub_kategori_pengaduan: "",
+        alasan_pengaduan: "",
+        deskripsi_pengaduan: "",
+        nomor_telepon: "",
+        tindak_lanjut_pengaduan: "",
+        tanggal_pengaduan: new Date().toISOString().split("T")[0],
+        is_anonymous: false,
+        priority_level: 'medium' as PriorityLevel,
+      });
+      
+      // Clear any remaining errors
+      setValidationErrors({});
+      setSubmissionError(null);
+
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      const errorMessage = error instanceof Error ? error.message : "Terjadi kesalahan yang tidak terduga";
+      setSubmissionError(errorMessage);
+      toast.error("Terjadi kesalahan yang tidak terduga. Silakan coba lagi.");
+    } finally {
+      setIsSubmitting(false);
+      setLoading(false);
+      setSubmissionProgress(0);
+    }
   };
 
   const handleEdit = useCallback((data: SilpanaData) => {
@@ -699,10 +877,13 @@ export default function SilpanaPage() {
                           setFormData={setFormData}
                           onSubmit={handleSubmit}
                           onCancel={handleCancel}
-                          loading={loading}
+                          loading={isSubmitting}
                           isEditing={isEditing}
                           editData={editData}
                           userRole="public"
+                          errors={validationErrors}
+                          showProgress={true}
+                          submissionProgress={submissionProgress}
                         />
                       </div>
                     </motion.div>
@@ -838,6 +1019,18 @@ export default function SilpanaPage() {
           </motion.div>
         </div>
       </motion.div>
+      
+      {/* Success Feedback Modal */}
+      <TicketSuccessFeedback
+        ticketCode={generatedTicketCode || ""}
+        isVisible={showSuccessFeedback}
+        onClose={() => {
+          setShowSuccessFeedback(false);
+          setGeneratedTicketCode(null);
+          setShowForm(false);
+          setShowLookup(true);
+        }}
+      />
     </TooltipProvider>
   );
 }
