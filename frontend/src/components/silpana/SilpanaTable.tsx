@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, memo, useCallback, useMemo, useRef } from "react";
-import type { SilpanaData } from "@/types/silpana/silpana";
+import { SilpanaData, TicketStatus, PriorityLevel } from "@/types/silpana/silpana";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/conn/utils";
 import { typo, textColors } from "@/lib/typography";
@@ -59,6 +59,14 @@ import {
   ChevronsRight,
   Download,
   Archive,
+  Ticket,
+  AlertTriangle,
+  ArrowUpCircle,
+  ArrowRightCircle,
+  CheckCircle2,
+  XCircle,
+  PauseCircle,
+  Flag,
 } from "lucide-react";
 
 // Enhanced interface with enterprise-grade features
@@ -102,6 +110,18 @@ interface SilpanaTableProps {
   onBulkArchive?: (ids: string[]) => void;
   /** Export handler */
   onExport?: () => void;
+  /** Status filter */
+  statusFilter?: TicketStatus | null;
+  /** Priority filter */
+  priorityFilter?: PriorityLevel | null;
+  /** Date range filter */
+  dateRangeFilter?: { start: Date | null; end: Date | null };
+  /** Status update handler */
+  onStatusUpdate?: (id: string, status: TicketStatus) => void;
+  /** Priority update handler */
+  onPriorityUpdate?: (id: string, priority: PriorityLevel) => void;
+  /** Ticket lookup handler */
+  onTicketLookup?: (ticketCode: string) => void;
 }
 
 function SilpanaTable({
@@ -125,12 +145,18 @@ function SilpanaTable({
   onBulkDelete,
   onBulkArchive,
   onExport,
+  statusFilter,
+  priorityFilter,
+  dateRangeFilter,
+  onStatusUpdate,
+  onPriorityUpdate,
+  onTicketLookup,
 }: SilpanaTableProps) {
   // Enhanced state management for enterprise UX
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"nama" | "tanggal" | "creator">(
+  const [sortBy, setSortBy] = useState<"nama" | "tanggal" | "creator" | "ticket_code" | "ticket_status" | "priority_level" | "last_updated">(
     "tanggal",
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
@@ -175,6 +201,115 @@ function SilpanaTable({
     }),
     [],
   );
+
+  // Ticket Status and Priority Utilities
+  const getStatusConfig = useCallback((status?: TicketStatus) => {
+    switch (status) {
+      case TicketStatus.SUBMITTED:
+        return {
+          label: "Submitted",
+          icon: ArrowUpCircle,
+          color: "bg-blue-100 text-blue-800 border-blue-200",
+          darkColor: "dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700",
+        };
+      case TicketStatus.UNDER_REVIEW:
+        return {
+          label: "Under Review",
+          icon: Eye,
+          color: "bg-yellow-100 text-yellow-800 border-yellow-200",
+          darkColor: "dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700",
+        };
+      case TicketStatus.IN_PROGRESS:
+        return {
+          label: "In Progress",
+          icon: ArrowRightCircle,
+          color: "bg-purple-100 text-purple-800 border-purple-200",
+          darkColor: "dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700",
+        };
+      case TicketStatus.PENDING_INFO:
+        return {
+          label: "Pending Info",
+          icon: PauseCircle,
+          color: "bg-orange-100 text-orange-800 border-orange-200",
+          darkColor: "dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700",
+        };
+      case TicketStatus.ESCALATED:
+        return {
+          label: "Escalated",
+          icon: TrendingUp,
+          color: "bg-red-100 text-red-800 border-red-200",
+          darkColor: "dark:bg-red-900/30 dark:text-red-300 dark:border-red-700",
+        };
+      case TicketStatus.RESOLVED:
+        return {
+          label: "Resolved",
+          icon: CheckCircle2,
+          color: "bg-green-100 text-green-800 border-green-200",
+          darkColor: "dark:bg-green-900/30 dark:text-green-300 dark:border-green-700",
+        };
+      case TicketStatus.CLOSED:
+        return {
+          label: "Closed",
+          icon: CheckCircle,
+          color: "bg-gray-100 text-gray-800 border-gray-200",
+          darkColor: "dark:bg-gray-700/30 dark:text-gray-300 dark:border-gray-600",
+        };
+      case TicketStatus.REJECTED:
+        return {
+          label: "Rejected",
+          icon: XCircle,
+          color: "bg-red-100 text-red-800 border-red-200",
+          darkColor: "dark:bg-red-900/30 dark:text-red-300 dark:border-red-700",
+        };
+      default:
+        return {
+          label: "Unknown",
+          icon: AlertCircle,
+          color: "bg-gray-100 text-gray-800 border-gray-200",
+          darkColor: "dark:bg-gray-700/30 dark:text-gray-300 dark:border-gray-600",
+        };
+    }
+  }, []);
+
+  const getPriorityConfig = useCallback((priority?: PriorityLevel) => {
+    switch (priority) {
+      case PriorityLevel.LOW:
+        return {
+          label: "Low",
+          icon: ArrowRightCircle,
+          color: "bg-gray-100 text-gray-700 border-gray-200",
+          darkColor: "dark:bg-gray-700/30 dark:text-gray-300 dark:border-gray-600",
+        };
+      case PriorityLevel.MEDIUM:
+        return {
+          label: "Medium",
+          icon: Flag,
+          color: "bg-blue-100 text-blue-700 border-blue-200",
+          darkColor: "dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700",
+        };
+      case PriorityLevel.HIGH:
+        return {
+          label: "High",
+          icon: AlertTriangle,
+          color: "bg-orange-100 text-orange-700 border-orange-200",
+          darkColor: "dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700",
+        };
+      case PriorityLevel.CRITICAL:
+        return {
+          label: "Critical",
+          icon: AlertCircle,
+          color: "bg-red-100 text-red-700 border-red-200",
+          darkColor: "dark:bg-red-900/30 dark:text-red-300 dark:border-red-700",
+        };
+      default:
+        return {
+          label: "Normal",
+          icon: Flag,
+          color: "bg-gray-100 text-gray-700 border-gray-200",
+          darkColor: "dark:bg-gray-700/30 dark:text-gray-300 dark:border-gray-600",
+        };
+    }
+  }, []);
 
   const rowsPerPage = 5;
   const totalPages = Math.ceil(totalCount / rowsPerPage);
@@ -253,16 +388,25 @@ function SilpanaTable({
 
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return "-";
+    
+    // Use a consistent format to avoid hydration mismatches
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) {
         throw new Error("Invalid date");
       }
-      return date.toLocaleDateString("id-ID", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      });
+      
+      // Use a consistent format that works on both server and client
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      
+      const months = [
+        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+      ];
+      
+      return `${day.toString().padStart(2, '0')} ${months[month - 1]} ${year}`;
     } catch (error) {
       try {
         if (dateString.includes("-")) {
@@ -272,11 +416,16 @@ function SilpanaTable({
               ? new Date(`${parts[0]}-${parts[1]}-${parts[2]}`)
               : new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
           if (!isNaN(newDate.getTime())) {
-            return newDate.toLocaleDateString("id-ID", {
-              day: "2-digit",
-              month: "long",
-              year: "numeric",
-            });
+            const year = newDate.getFullYear();
+            const month = newDate.getMonth() + 1;
+            const day = newDate.getDate();
+            
+            const months = [
+              "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+              "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+            ];
+            
+            return `${day.toString().padStart(2, '0')} ${months[month - 1]} ${year}`;
           }
         }
         return dateString;
@@ -290,13 +439,20 @@ function SilpanaTable({
     if (!dateString) return "-";
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString("id-ID", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+      
+      // Use a consistent format to avoid hydration mismatches
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      const hours = date.getHours();
+      const minutes = date.getMinutes();
+      
+      const months = [
+        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+      ];
+      
+      return `${day.toString().padStart(2, '0')} ${months[month - 1]} ${year}, ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
     } catch (error) {
       return dateString;
     }
@@ -516,19 +672,25 @@ function SilpanaTable({
                         </th>
                       )}
                       <th className={typo.table('header', 'p-4 text-left')}>
+                        Ticket Code
+                      </th>
+                      <th className={typo.table('header', 'p-4 text-left')}>
                         NIK & Nama
                       </th>
                       <th className={typo.table('header', 'p-4 text-left')}>
                         Pengaduan
                       </th>
                       <th className={typo.table('header', 'p-4 text-left')}>
-                        Kontak
-                      </th>
-                      <th className={typo.table('header', 'p-4 text-left')}>
-                        Tanggal
-                      </th>
-                      <th className={typo.table('header', 'p-4 text-left')}>
                         Status
+                      </th>
+                      <th className={typo.table('header', 'p-4 text-left')}>
+                        Priority
+                      </th>
+                      <th className={typo.table('header', 'p-4 text-left')}>
+                        Last Updated
+                      </th>
+                      <th className={typo.table('header', 'p-4 text-left')}>
+                        Kontak
                       </th>
                       <th className={typo.table('header', 'w-16 p-4 text-center')}>
                         Actions
@@ -562,6 +724,28 @@ function SilpanaTable({
                               />
                             </td>
                           )}
+                          
+                          {/* Ticket Code Column */}
+                          <td className="p-4">
+                            <div className="flex items-center gap-2">
+                              <Ticket className="h-4 w-4 text-muted-foreground" />
+                              <span className={cn(typo.table('cell', 'font-mono font-medium'))}>
+                                {item.ticket_code || "N/A"}
+                              </span>
+                              {item.ticket_code && onTicketLookup && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => onTicketLookup(item.ticket_code!)}
+                                >
+                                  <Eye className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* NIK & Nama Column */}
                           <td className="p-4">
                             <div className="space-y-1">
                               <div className="flex items-center gap-2">
@@ -575,6 +759,8 @@ function SilpanaTable({
                               </p>
                             </div>
                           </td>
+
+                          {/* Pengaduan Column */}
                           <td className="p-4">
                             <div className="space-y-1">
                               <div className="flex flex-wrap gap-1 mb-1">
@@ -597,20 +783,122 @@ function SilpanaTable({
                               </p>
                             </div>
                           </td>
+
+                          {/* Status Column */}
                           <td className="p-4">
-                            <div className="flex items-center gap-2">
-                              <Phone className="h-4 w-4 text-muted-foreground" />
-                              <span className={typo.ui('description')}>
-                                {item.nomor_telepon || "-"}
-                              </span>
-                            </div>
+                            {(() => {
+                              const statusConfig = getStatusConfig(item.ticket_status);
+                              const StatusIcon = statusConfig.icon;
+                              return (
+                                <div className="flex items-center gap-2">
+                                  <Badge
+                                    variant="outline"
+                                    className={cn(
+                                      statusConfig.color,
+                                      statusConfig.darkColor,
+                                      "gap-1 border"
+                                    )}
+                                  >
+                                    <StatusIcon className="h-3 w-3" />
+                                    {statusConfig.label}
+                                  </Badge>
+                                  {onStatusUpdate && userRole === "admin" && (
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                          <ChevronDown className="h-3 w-3" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent>
+                                        <DropdownMenuLabel>Update Status</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        {Object.values(TicketStatus).map((status) => (
+                                          <DropdownMenuItem
+                                            key={status}
+                                            onClick={() => onStatusUpdate(item.id || "", status)}
+                                            className="gap-2"
+                                          >
+                                            {(() => {
+                                              const config = getStatusConfig(status);
+                                              const Icon = config.icon;
+                                              return (
+                                                <>
+                                                  <Icon className="h-4 w-4" />
+                                                  {config.label}
+                                                </>
+                                              );
+                                            })()}
+                                          </DropdownMenuItem>
+                                        ))}
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </td>
+
+                          {/* Priority Column */}
+                          <td className="p-4">
+                            {(() => {
+                              const priorityConfig = getPriorityConfig(item.priority_level);
+                              const PriorityIcon = priorityConfig.icon;
+                              return (
+                                <div className="flex items-center gap-2">
+                                  <Badge
+                                    variant="outline"
+                                    className={cn(
+                                      priorityConfig.color,
+                                      priorityConfig.darkColor,
+                                      "gap-1 border"
+                                    )}
+                                  >
+                                    <PriorityIcon className="h-3 w-3" />
+                                    {priorityConfig.label}
+                                  </Badge>
+                                  {onPriorityUpdate && userRole === "admin" && (
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                          <ChevronDown className="h-3 w-3" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent>
+                                        <DropdownMenuLabel>Update Priority</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        {Object.values(PriorityLevel).map((priority) => (
+                                          <DropdownMenuItem
+                                            key={priority}
+                                            onClick={() => onPriorityUpdate(item.id || "", priority)}
+                                            className="gap-2"
+                                          >
+                                            {(() => {
+                                              const config = getPriorityConfig(priority);
+                                              const Icon = config.icon;
+                                              return (
+                                                <>
+                                                  <Icon className="h-4 w-4" />
+                                                  {config.label}
+                                                </>
+                                              );
+                                            })()}
+                                          </DropdownMenuItem>
+                                        ))}
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  )}
+                                </div>
+                              );
+                            })()}
+                          </td>
+
+                          {/* Last Updated Column */}
                           <td className="p-4">
                             <div className="space-y-1">
                               <div className="flex items-center gap-2">
-                                <Calendar className="h-4 w-4 text-muted-foreground" />
+                                <Clock className="h-4 w-4 text-muted-foreground" />
                                 <span className={typo.table('cell', 'font-medium')}>
-                                  {formatDate(item.tanggal_pengaduan)}
+                                  {formatDateTime(item.last_updated || item.created_at || "")}
                                 </span>
                               </div>
                               <p className={typo.ui('helper')}>
@@ -618,24 +906,15 @@ function SilpanaTable({
                               </p>
                             </div>
                           </td>
+
+                          {/* Kontak Column */}
                           <td className="p-4">
-                            <Badge
-                              variant={
-                                item.tindak_lanjut_pengaduan
-                                  ? "default"
-                                  : "secondary"
-                              }
-                              className={typo.ui('badge', 'gap-1')}
-                            >
-                              {item.tindak_lanjut_pengaduan ? (
-                                <CheckCircle className="h-3 w-3" />
-                              ) : (
-                                <Clock className="h-3 w-3" />
-                              )}
-                              {item.tindak_lanjut_pengaduan
-                                ? "Followed Up"
-                                : "Pending"}
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Phone className="h-4 w-4 text-muted-foreground" />
+                              <span className={typo.ui('description')}>
+                                {item.nomor_telepon || "-"}
+                              </span>
+                            </div>
                           </td>
                           <td className="p-4">
                             <DropdownMenu>
@@ -706,9 +985,27 @@ function SilpanaTable({
                         )}
                       >
                         <div className="space-y-3">
-                          {/* Header */}
+                          {/* Header with Ticket Code */}
                           <div className="flex items-start justify-between">
-                            <div className="space-y-1">
+                            <div className="space-y-1 flex-1">
+                              {item.ticket_code && (
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Ticket className="h-4 w-4 text-muted-foreground" />
+                                  <span className={cn(typo.table('cell', 'font-mono font-medium text-primary'))}>
+                                    {item.ticket_code}
+                                  </span>
+                                  {onTicketLookup && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-6 w-6 p-0"
+                                      onClick={() => onTicketLookup(item.ticket_code!)}
+                                    >
+                                      <Eye className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                </div>
+                              )}
                               <div className="flex items-center gap-2">
                                 <User className="h-4 w-4 text-muted-foreground" />
                                 <span className={typo.table('cell', 'font-medium')}>
@@ -719,24 +1016,45 @@ function SilpanaTable({
                                 {item.nama_pengaduan || "-"}
                               </p>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Badge
-                                variant={
-                                  item.tindak_lanjut_pengaduan
-                                    ? "default"
-                                    : "secondary"
-                                }
-                                className={typo.ui('badge', 'gap-1')}
-                              >
-                                {item.tindak_lanjut_pengaduan ? (
-                                  <CheckCircle className="h-3 w-3" />
-                                ) : (
-                                  <Clock className="h-3 w-3" />
-                                )}
-                                {item.tindak_lanjut_pengaduan
-                                  ? "Done"
-                                  : "Pending"}
-                              </Badge>
+                            <div className="flex flex-col items-end gap-2">
+                              {/* Status Badge */}
+                              {(() => {
+                                const statusConfig = getStatusConfig(item.ticket_status);
+                                const StatusIcon = statusConfig.icon;
+                                return (
+                                  <Badge
+                                    variant="outline"
+                                    className={cn(
+                                      statusConfig.color,
+                                      statusConfig.darkColor,
+                                      "gap-1 border"
+                                    )}
+                                  >
+                                    <StatusIcon className="h-3 w-3" />
+                                    {statusConfig.label}
+                                  </Badge>
+                                );
+                              })()}
+                              
+                              {/* Priority Badge */}
+                              {(() => {
+                                const priorityConfig = getPriorityConfig(item.priority_level);
+                                const PriorityIcon = priorityConfig.icon;
+                                return (
+                                  <Badge
+                                    variant="outline"
+                                    className={cn(
+                                      priorityConfig.color,
+                                      priorityConfig.darkColor,
+                                      "gap-1 border"
+                                    )}
+                                  >
+                                    <PriorityIcon className="h-3 w-3" />
+                                    {priorityConfig.label}
+                                  </Badge>
+                                );
+                              })()}
+                              
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button
@@ -810,6 +1128,10 @@ function SilpanaTable({
                                 {item.nomor_telepon || "-"}
                               </div>
                               <div className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {formatDateTime(item.last_updated || item.created_at || "")}
+                              </div>
+                              <div className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
                                 {formatDate(item.tanggal_pengaduan)}
                               </div>
@@ -827,6 +1149,61 @@ function SilpanaTable({
                                 className="border-t border-border/50 pt-3"
                               >
                                 <div className="space-y-2">
+                                  {/* Ticket Information */}
+                                  {item.ticket_code && (
+                                    <div>
+                                      <h5 className={typo.ui('label', 'mb-1')}>
+                                        Ticket Code:
+                                      </h5>
+                                      <p className={typo.table('cell', 'font-mono')}>
+                                        {item.ticket_code}
+                                      </p>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Status Updates for Admin */}
+                                  {userRole === "admin" && (
+                                    <div className="grid grid-cols-2 gap-2">
+                                      {onStatusUpdate && (
+                                        <div>
+                                          <h5 className={typo.ui('label', 'mb-1')}>
+                                            Update Status:
+                                          </h5>
+                                          <select
+                                            className="w-full rounded border border-border/50 bg-background px-2 py-1 text-sm"
+                                            value={item.ticket_status || TicketStatus.SUBMITTED}
+                                            onChange={(e) => onStatusUpdate(item.id || "", e.target.value as TicketStatus)}
+                                          >
+                                            {Object.values(TicketStatus).map((status) => (
+                                              <option key={status} value={status}>
+                                                {getStatusConfig(status).label}
+                                              </option>
+                                            ))}
+                                          </select>
+                                        </div>
+                                      )}
+                                      
+                                      {onPriorityUpdate && (
+                                        <div>
+                                          <h5 className={typo.ui('label', 'mb-1')}>
+                                            Update Priority:
+                                          </h5>
+                                          <select
+                                            className="w-full rounded border border-border/50 bg-background px-2 py-1 text-sm"
+                                            value={item.priority_level || PriorityLevel.MEDIUM}
+                                            onChange={(e) => onPriorityUpdate(item.id || "", e.target.value as PriorityLevel)}
+                                          >
+                                            {Object.values(PriorityLevel).map((priority) => (
+                                              <option key={priority} value={priority}>
+                                                {getPriorityConfig(priority).label}
+                                              </option>
+                                            ))}
+                                          </select>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                  
                                   <div>
                                     <h5 className={typo.ui('label', 'mb-1')}>
                                       Full Description:
@@ -845,13 +1222,27 @@ function SilpanaTable({
                                       </p>
                                     </div>
                                   )}
-                                  <div>
-                                    <h5 className={typo.ui('label', 'mb-1')}>
-                                      Created:
-                                    </h5>
-                                    <p className={typo.table('cell')}>
-                                      {formatDateTime(item.created_at || "")}
-                                    </p>
+                                  
+                                  {/* Ticket Metadata */}
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                      <h5 className={typo.ui('label', 'mb-1')}>
+                                        Created:
+                                      </h5>
+                                      <p className={typo.table('cell')}>
+                                        {formatDateTime(item.created_at || "")}
+                                      </p>
+                                    </div>
+                                    {item.last_updated && (
+                                      <div>
+                                        <h5 className={typo.ui('label', 'mb-1')}>
+                                          Last Updated:
+                                        </h5>
+                                        <p className={typo.table('cell')}>
+                                          {formatDateTime(item.last_updated)}
+                                        </p>
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               </motion.div>

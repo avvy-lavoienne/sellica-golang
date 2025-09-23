@@ -34,7 +34,6 @@ import {
   FileText,
   AlertCircle,
   CheckCircle,
-  Clock,
   Sparkles,
   Target,
   TrendingUp,
@@ -70,6 +69,7 @@ import TicketLookup from "@/components/silpana/TicketLookup";
 import TicketSuccessFeedback from "@/components/silpana/TicketSuccessFeedback";
 import EmptyState from "@/components/silpana/EmptyState";
 import LoadingState from "@/components/silpana/LoadingState";
+import LastUpdatedBadge from "@/components/silpana/LastUpdatedBadge";
 
 export default function SilpanaPage() {
   // Enhanced state management for SILPANA ticketing system
@@ -213,7 +213,7 @@ export default function SilpanaPage() {
 
         if (searchQuery) {
           query = query.or(
-            `nik_pengaduan.ilike.%${searchQuery}%,nama_pengaduan.ilike.%${searchQuery}%,alasan_pengaduan.ilike.%${searchQuery}%`,
+            `nik_pengaduan.ilike.%${searchQuery}%,nama_pengaduan.ilike.%${searchQuery}%,nama_pelapor.ilike.%${searchQuery}%,alasan_pengaduan.ilike.%${searchQuery}%,deskripsi_pengaduan.ilike.%${searchQuery}%`,
           );
         }
 
@@ -254,7 +254,40 @@ export default function SilpanaPage() {
           throw new Error(`Gagal mengambil data SILPANA: ${error.message}`);
         }
 
-        setRekapData(silpanaData || []);
+        // Transform database column names to match TypeScript interface
+        const transformedData = (silpanaData || []).map((item: any) => ({
+          id: item.id,
+          // Database has both nama_pengaduan and nama_pelapor - use appropriate mapping
+          nik_pengaduan: item.nik_pengaduan,
+          nama_pengaduan: item.nama_pengaduan || item.nama_pelapor,
+          kategori_pengaduan: item.kategori_pengaduan,
+          sub_kategori_pengaduan: item.sub_kategori_pengaduan || 'Umum',
+          alasan_pengaduan: item.alasan_pengaduan,
+          deskripsi_pengaduan: item.deskripsi_pengaduan || item.alasan_pengaduan,
+          nomor_telepon: item.nomor_telepon,
+          tindak_lanjut_pengaduan: item.tindak_lanjut_pengaduan || '',
+          tanggal_pengaduan: item.tanggal_pengaduan,
+          is_anonymous: item.is_anonymous || false,
+          // Ticketing system fields
+          ticket_status: item.ticket_status || 'submitted',
+          priority_level: item.priority_level || 'medium',
+          ticket_code: item.ticket_code,
+          assigned_to: item.assigned_to,
+          resolution_notes: item.resolution_notes,
+          // Timestamps
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          // Optional fields
+          alamat: item.alamat,
+          email: item.email,
+          estimated_resolution: item.estimated_resolution,
+          actual_resolution: item.actual_resolution,
+          created_by_ip: item.created_by_ip,
+          creator_name: item.creator_name,
+          user_id: item.user_id,
+        }));
+
+        setRekapData(transformedData);
         return { totalCount: count || 0 };
       } catch (error: any) {
         toast.error(
@@ -358,19 +391,23 @@ export default function SilpanaPage() {
       await new Promise(resolve => setTimeout(resolve, 500)); // Simulate processing
 
       const submissionData = {
+        // Map to actual database column names from the schema
         nik_pengaduan: formData.nik_pengaduan.replace(/\s+/g, ''),
         nama_pengaduan: formData.nama_pengaduan.trim(),
+        nama_pelapor: formData.nama_pengaduan.trim(), // This field also exists in DB
         kategori_pengaduan: formData.kategori_pengaduan,
-        sub_kategori_pengaduan: formData.sub_kategori_pengaduan,
+        sub_kategori_pengaduan: formData.sub_kategori_pengaduan || 'Umum',
         alasan_pengaduan: formData.alasan_pengaduan.trim(),
-        deskripsi_pengaduan: formData.deskripsi_pengaduan.trim(),
+        deskripsi_pengaduan: formData.deskripsi_pengaduan?.trim() || formData.alasan_pengaduan.trim(),
         nomor_telepon: formData.nomor_telepon.replace(/\s+/g, ''),
-        tindak_lanjut_pengaduan: formData.tindak_lanjut_pengaduan,
+        tindak_lanjut_pengaduan: formData.tindak_lanjut_pengaduan || '',
         tanggal_pengaduan: formData.tanggal_pengaduan,
         is_anonymous: formData.is_anonymous || false,
         priority_level: formData.priority_level || 'medium',
         ticket_status: 'submitted',
-        created_by_ip: 'web_submission',
+        alamat: '', // Optional field in DB
+        email: '', // Optional field in DB
+        created_by_ip: null, // Optional field in DB
       };
 
       // Step 3: Submit to database (80% progress)
@@ -731,15 +768,7 @@ export default function SilpanaPage() {
                       </Badge>
                     )}
 
-                    <Badge
-                      variant="outline"
-                      className="gap-2 px-3 py-1 text-xs"
-                    >
-                      <Clock className="h-3 w-3" />
-                      <span>
-                        Last updated {new Date().toLocaleTimeString()}
-                      </span>
-                    </Badge>
+                    <LastUpdatedBadge />
 
                     {pageStats.currentMode === "form" && (
                       <Badge variant="default" className="gap-2 px-3 py-1">
