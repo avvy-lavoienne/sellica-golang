@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef, Suspense } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/conn/utils";
 import { supabase } from "@/lib/conn/supabaseClient";
@@ -70,12 +70,12 @@ import TicketSuccessFeedback from "@/components/silpana/TicketSuccessFeedback";
 import EmptyState from "@/components/silpana/EmptyState";
 import LoadingState from "@/components/silpana/LoadingState";
 import LastUpdatedBadge from "@/components/silpana/LastUpdatedBadge";
+import EnhancedNavigation from "@/components/silpana/EnhancedNavigation";
+import { SilpanaMode } from "@/types/silpana/silpana";
 
 export default function SilpanaPage() {
-  // Enhanced state management for SILPANA ticketing system
-  const [showForm, setShowForm] = useState(false);
-  const [showRekap, setShowRekap] = useState(false);
-  const [showLookup, setShowLookup] = useState(true); // Default to lookup for user-friendly access
+  // Enhanced navigation state with new enum system
+  const [activeMode, setActiveMode] = useState<SilpanaMode>(SilpanaMode.LOOKUP); // Default to lookup for user-friendly access
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<SilpanaData | null>(null);
   const [foundTicket, setFoundTicket] = useState<EnhancedSilpanaData | null>(null);
@@ -157,18 +157,18 @@ export default function SilpanaPage() {
     [],
   );
 
-  // Enhanced page statistics
+  // Enhanced page statistics with new navigation system
   const pageStats = useMemo(() => {
     const hasFilters = startDate || endDate || searchQuery.trim().length > 0;
     const hasData = rekapData.length > 0;
-    const isActive = showForm || showRekap;
+    const isActive = activeMode !== SilpanaMode.LOOKUP;
     return {
       hasFilters,
       hasData,
       isActive,
       totalItems: totalCount,
       filteredItems: rekapData.length,
-      currentMode: showForm ? "form" : showRekap ? "table" : "none",
+      currentMode: activeMode,
     };
   }, [
     startDate,
@@ -176,8 +176,7 @@ export default function SilpanaPage() {
     searchQuery,
     rekapData.length,
     totalCount,
-    showForm,
-    showRekap,
+    activeMode,
   ]);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
@@ -307,7 +306,7 @@ export default function SilpanaPage() {
   );
 
   useEffect(() => {
-    if (showRekap && !showForm) {
+    if (activeMode === SilpanaMode.REKAP) {
       memoizedFetchRekapData(
         currentPage,
         debouncedSearchQuery,
@@ -318,13 +317,12 @@ export default function SilpanaPage() {
     }
   }, [
     currentPage,
-    showRekap,
+    activeMode,
     debouncedSearchQuery,
     debouncedStartDate,
     debouncedEndDate,
     debouncedFilterBy,
     memoizedFetchRekapData,
-    showForm,
   ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -518,8 +516,7 @@ export default function SilpanaPage() {
         data.tanggal_pengaduan || new Date().toISOString().split("T")[0],
       is_anonymous: data.is_anonymous || false,
     });
-    setShowForm(true);
-    setShowRekap(false);
+    setActiveMode(SilpanaMode.FORM);
   }, []);
 
   const handleDelete = useCallback(
@@ -531,17 +528,30 @@ export default function SilpanaPage() {
     [], // No dependencies needed for disabled function
   );
 
-  const handleRekapitulasi = useCallback(() => {
-    setShowRekap(true);
-    setShowForm(false);
-    setShowLookup(false);
+  // Enhanced navigation handlers with new enum system
+  const handleModeChange = useCallback((newMode: SilpanaMode) => {
+    setActiveMode(newMode);
+    // Clear related state when switching modes
+    if (newMode !== SilpanaMode.LOOKUP) {
+      setFoundTicket(null);
+    }
+    if (newMode !== SilpanaMode.FORM) {
+      setIsEditing(false);
+      setEditData(null);
+    }
   }, []);
 
+  const handleRekapitulasi = useCallback(() => {
+    handleModeChange(SilpanaMode.REKAP);
+  }, [handleModeChange]);
+
   const handleTicketLookup = useCallback(() => {
-    setShowLookup(true);
-    setShowForm(false);
-    setShowRekap(false);
-  }, []);
+    handleModeChange(SilpanaMode.LOOKUP);
+  }, [handleModeChange]);
+
+  const handleFormMode = useCallback(() => {
+    handleModeChange(SilpanaMode.FORM);
+  }, [handleModeChange]);
 
   const handleTicketFound = useCallback((ticket: EnhancedSilpanaData) => {
     setFoundTicket(ticket);
@@ -575,7 +585,7 @@ export default function SilpanaPage() {
   }, []);
 
   const handleCancel = useCallback(() => {
-    setShowForm(false);
+    setActiveMode(SilpanaMode.LOOKUP);
     setIsEditing(false);
     setEditData(null);
     setFormData({
@@ -590,8 +600,12 @@ export default function SilpanaPage() {
       tanggal_pengaduan: new Date().toISOString().split("T")[0],
       is_anonymous: false,
     });
-    setShowRekap(true);
   }, []);
+
+  // Add the handleAjukan function for form navigation
+  const handleAjukan = useCallback(() => {
+    handleModeChange(SilpanaMode.FORM);
+  }, [handleModeChange]);
 
   const memoizedTableProps = useMemo(
     () => ({
@@ -770,17 +784,24 @@ export default function SilpanaPage() {
 
                     <LastUpdatedBadge />
 
-                    {pageStats.currentMode === "form" && (
+                    {activeMode === SilpanaMode.FORM && (
                       <Badge variant="default" className="gap-2 px-3 py-1">
                         <Sparkles className="h-4 w-4" />
                         <span>Form Mode</span>
                       </Badge>
                     )}
 
-                    {pageStats.currentMode === "table" && (
+                    {activeMode === SilpanaMode.REKAP && (
                       <Badge variant="default" className="gap-2 px-3 py-1">
                         <TrendingUp className="h-4 w-4" />
                         <span>Table Mode</span>
+                      </Badge>
+                    )}
+
+                    {activeMode === SilpanaMode.LOOKUP && (
+                      <Badge variant="default" className="gap-2 px-3 py-1">
+                        <Search className="h-4 w-4" />
+                        <span>Lookup Mode</span>
                       </Badge>
                     )}
                   </div>
@@ -836,48 +857,42 @@ export default function SilpanaPage() {
             </div>
 
             <div className="relative z-10 p-6 sm:p-8">
-              <SilpanaActions
-                onAjukan={() => {
-                  setShowForm(true);
-                  setShowRekap(false);
-                  setShowLookup(false);
-                  setIsEditing(false);
-                  setEditData(null);
-                  setFormData({
-                    nik_pengaduan: "",
-                    nama_pengaduan: "",
-                    kategori_pengaduan: "",
-                    sub_kategori_pengaduan: "",
-                    alasan_pengaduan: "",
-                    deskripsi_pengaduan: "",
-                    nomor_telepon: "",
-                    tindak_lanjut_pengaduan: "",
-                    tanggal_pengaduan: new Date().toISOString().split("T")[0],
-                    is_anonymous: false,
-                  });
-                }}
-                onRekapitulasi={handleRekapitulasi}
-                onTicketLookup={handleTicketLookup}
-                activeMode={showForm ? "form" : showRekap ? "table" : showLookup ? "lookup" : "none"}
-                onDateRangeChange={(start, end, filterField) => {
-                  setStartDate(start);
-                  setEndDate(end);
-                  setFilterBy(filterField);
-                  setCurrentPage(1);
-                }}
-                onResetFilters={handleRefresh}
-                onSearch={handleSearch}
-                searchQuery={searchQuery}
-                loading={loading || isTableLoading}
-                totalItems={pageStats.totalItems}
-                filteredItems={pageStats.filteredItems}
-                onRefresh={handleRefresh}
-              />
+              {/* Enhanced Navigation System */}
+              <Suspense fallback={<div>Loading navigation...</div>}>
+                <EnhancedNavigation
+                  onModeChange={handleModeChange}
+                  showKeyboardHints={true}
+                  className="mb-8"
+                />
+              </Suspense>
 
-              {/* Enhanced Content Section */}
+              {/* Legacy SilpanaActions for filtering - only show when in rekap mode */}
+              {activeMode === SilpanaMode.REKAP && (
+                <SilpanaActions
+                  onAjukan={handleAjukan}
+                  onRekapitulasi={handleRekapitulasi}
+                  onTicketLookup={handleTicketLookup}
+                  activeMode="table"
+                  onDateRangeChange={(start, end, filterField) => {
+                    setStartDate(start);
+                    setEndDate(end);
+                    setFilterBy(filterField);
+                    setCurrentPage(1);
+                  }}
+                  onResetFilters={handleRefresh}
+                  onSearch={handleSearch}
+                  searchQuery={searchQuery}
+                  loading={loading || isTableLoading}
+                  totalItems={pageStats.totalItems}
+                  filteredItems={pageStats.filteredItems}
+                  onRefresh={handleRefresh}
+                />
+              )}
+
+              {/* Enhanced Content Section with mode-based rendering */}
               <div className="mt-8 space-y-6">
                 <AnimatePresence mode="wait">
-                  {showForm && (
+                  {activeMode === SilpanaMode.FORM && (
                     <motion.div
                       key="form"
                       initial={{ opacity: 0, y: 20, scale: 0.98 }}
@@ -918,7 +933,7 @@ export default function SilpanaPage() {
                     </motion.div>
                   )}
 
-                  {showRekap && (
+                  {activeMode === SilpanaMode.REKAP && (
                     <motion.div
                       key="table"
                       initial={{ opacity: 0, y: 20, scale: 0.98 }}
@@ -972,9 +987,7 @@ export default function SilpanaPage() {
                           <div className="relative z-10 p-8">
                             <EmptyState
                               onAddNew={() => {
-                                setShowForm(true);
-                                setShowRekap(false);
-                                setShowLookup(false);
+                                handleModeChange(SilpanaMode.FORM);
                               }}
                             />
                           </div>
@@ -983,7 +996,7 @@ export default function SilpanaPage() {
                     </motion.div>
                   )}
 
-                  {showLookup && (
+                  {activeMode === SilpanaMode.LOOKUP && (
                     <motion.div
                       key="lookup"
                       initial={{ opacity: 0, y: 20, scale: 0.98 }}
@@ -1001,7 +1014,7 @@ export default function SilpanaPage() {
                     </motion.div>
                   )}
 
-                  {!showForm && !showRekap && !showLookup && (
+                  {activeMode === SilpanaMode.ADMIN && (
                     <motion.div
                       key="welcome"
                       initial={{ opacity: 0, y: 20, scale: 0.98 }}
@@ -1034,9 +1047,7 @@ export default function SilpanaPage() {
                       <div className="relative z-10 p-8">
                         <EmptyState
                           onAddNew={() => {
-                            setShowForm(true);
-                            setShowRekap(false);
-                            setShowLookup(false);
+                            handleModeChange(SilpanaMode.FORM);
                           }}
                         />
                       </div>
@@ -1056,8 +1067,7 @@ export default function SilpanaPage() {
         onClose={() => {
           setShowSuccessFeedback(false);
           setGeneratedTicketCode(null);
-          setShowForm(false);
-          setShowLookup(true);
+          handleModeChange(SilpanaMode.LOOKUP);
         }}
       />
     </TooltipProvider>

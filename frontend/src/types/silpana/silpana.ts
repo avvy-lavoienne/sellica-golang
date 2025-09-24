@@ -18,6 +18,33 @@ export enum PriorityLevel {
   CRITICAL = 'critical'
 }
 
+// Enhanced Navigation Mode Enum for better tab management
+export enum SilpanaMode {
+  FORM = 'form',
+  LOOKUP = 'lookup',
+  REKAP = 'rekap',
+  ADMIN = 'admin'
+}
+
+// Navigation Tab Configuration Interface
+export interface SilpanaTab {
+  id: SilpanaMode
+  label: string
+  icon: string
+  description: string
+  disabled?: boolean
+  keyboardShortcut?: string
+  requiresAuth?: boolean
+}
+
+// Navigation State Interface
+export interface NavigationState {
+  activeMode: SilpanaMode
+  previousMode: SilpanaMode | null
+  transitionDirection: 'forward' | 'backward' | 'none'
+  isLoading: boolean
+}
+
 // Enhanced SilpanaData interface with ticketing system
 export interface SilpanaData {
   id?: string
