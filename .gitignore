@@ -159,6 +159,8 @@ eggs/
 .eggs/
 lib/
 lib64/
+# Allow frontend/src/lib (source code)
+!frontend/src/lib/
 parts/
 sdist/
 var/
