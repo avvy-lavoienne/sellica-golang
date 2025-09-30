@@ -8,6 +8,7 @@ import { typo, textColors } from "@/lib/typography";
 import type {
   SilpanaData,
   SilpanaFormData,
+  PriorityLevel,
 } from "@/types/silpana/silpana";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -98,6 +99,8 @@ interface SilpanaFormProps {
   success?: boolean;
   /** Progress tracking */
   showProgress?: boolean;
+  /** Submission progress for loading states */
+  submissionProgress?: number;
 }
 
 export default function SilpanaForm({
@@ -117,6 +120,7 @@ export default function SilpanaForm({
   errors = {},
   success = false,
   showProgress = true,
+  submissionProgress = 0,
 }: SilpanaFormProps) {
   // Enhanced state management for enterprise UX
   const [activeSection, setActiveSection] = useState<string>("basic");
@@ -228,6 +232,22 @@ export default function SilpanaForm({
   useEffect(() => {
     setFormProgress(formValidation.progress);
   }, [formValidation.progress]);
+
+  // Merge external errors with field errors
+  useEffect(() => {
+    if (errors && Object.keys(errors).length > 0) {
+      setFieldErrors(prev => ({ ...prev, ...errors }));
+      
+      // Focus on first error field if available
+      const firstErrorField = Object.keys(errors)[0];
+      if (firstErrorField && firstErrorRef.current) {
+        const errorElement = document.querySelector(`[name="${firstErrorField}"]`) as HTMLElement;
+        if (errorElement) {
+          errorElement.focus();
+        }
+      }
+    }
+  }, [errors]);
 
   // Enhanced input change handler with validation
   const handleInputChange = useCallback(
@@ -447,13 +467,25 @@ export default function SilpanaForm({
               <div className="w-full laptop:w-48">
                 <div className="mb-2 flex items-center gap-2">
                   <span className={typo.ui('helper', textColors.secondary)}>
-                    Progress
+                    {loading ? "Submitting" : "Progress"}
                   </span>
                   <span className={typo.ui('helper', `${textColors.primary} font-medium`)}>
-                    {Math.round(formProgress)}%
+                    {Math.round(loading ? submissionProgress : formProgress)}%
                   </span>
                 </div>
-                <Progress value={formProgress} className="h-2" />
+                <Progress 
+                  value={loading ? submissionProgress : formProgress} 
+                  className={cn(
+                    "h-2 transition-all duration-300",
+                    loading && "bg-blue-100"
+                  )}
+                />
+                {loading && (
+                  <div className="mt-1 flex items-center gap-2 text-xs text-blue-600">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <span>Mengirim pengaduan...</span>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -462,6 +494,32 @@ export default function SilpanaForm({
         {/* Enhanced Form Content */}
         <motion.div variants={itemVariants} className="relative z-10 p-6">
           <form onSubmit={onSubmit} className="space-y-6">
+            {/* Error Summary */}
+            {Object.keys(fieldErrors).length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-lg border border-red-200 bg-red-50 p-4"
+              >
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                  <div className="flex-1">
+                    <h4 className="font-medium text-red-800 mb-2">
+                      Harap perbaiki kesalahan berikut:
+                    </h4>
+                    <ul className="space-y-1 text-sm text-red-700">
+                      {Object.entries(fieldErrors).map(([field, error]) => (
+                        <li key={field} className="flex items-center gap-2">
+                          <div className="h-1 w-1 rounded-full bg-red-500" />
+                          {error}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             {/* Enhanced Form Section */}
             <motion.div
               variants={itemVariants}
@@ -731,6 +789,66 @@ export default function SilpanaForm({
                         </p>
                       </div>
                     )}
+                  </div>
+
+                  {/* Priority Level Field */}
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="priority_level"
+                      className={typo.ui('label', 'flex items-center gap-2')}
+                    >
+                      <TrendingUp className="h-4 w-4" />
+                      Tingkat Prioritas
+                      <span className="text-muted-foreground text-xs">(Opsional)</span>
+                    </Label>
+                    <div className="relative">
+                      <Select
+                        value={formData.priority_level || 'medium'}
+                        onValueChange={(value) => handleSelectChange("priority_level", value as PriorityLevel)}
+                      >
+                        <SelectTrigger
+                          className={cn(
+                            "transition-all duration-200",
+                            "focus:border-primary focus:ring-2 focus:ring-primary/20",
+                            formData.priority_level && "border-green-500",
+                          )}
+                        >
+                          <SelectValue placeholder="Pilih tingkat prioritas" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">
+                            <div className="flex items-center gap-2">
+                              <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                              Rendah - Tidak mendesak
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="medium">
+                            <div className="flex items-center gap-2">
+                              <div className="h-2 w-2 rounded-full bg-yellow-500"></div>
+                              Sedang - Normal
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="high">
+                            <div className="flex items-center gap-2">
+                              <div className="h-2 w-2 rounded-full bg-orange-500"></div>
+                              Tinggi - Perlu perhatian
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="critical">
+                            <div className="flex items-center gap-2">
+                              <div className="h-2 w-2 rounded-full bg-red-500"></div>
+                              Kritis - Sangat mendesak
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {formData.priority_level && (
+                        <CheckCircle className="absolute right-8 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500" />
+                      )}
+                    </div>
+                    <p className={typo.ui('helper')}>
+                      Sistem akan menentukan prioritas secara otomatis berdasarkan kategori jika tidak dipilih
+                    </p>
                   </div>
                 </div>
 

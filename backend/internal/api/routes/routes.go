@@ -12,6 +12,7 @@ import (
 	"selly-backend/internal/services/database"
 	"selly-backend/internal/services/eventbus"
 	"selly-backend/internal/services/monitoring"
+	"selly-backend/internal/services/silpana"
 	"selly-backend/internal/services/training"
 )
 
@@ -25,6 +26,7 @@ type Services struct {
 	Monitoring *monitoring.Service
 	Training   *training.Service
 	Concurrent *concurrent.Service
+	Silpana    silpana.ServiceInterface
 }
 
 // SetupRoutes configures all API routes and middleware
@@ -76,6 +78,9 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 
 	// Authentication routes (public)
 	setupAuthRoutes(router, services.Auth, services.Database)
+
+	// SILPANA ticketing routes (public)
+	setupSilpanaRoutes(router, services.Silpana)
 
 	// Protected routes (require authentication)
 	protected := router.Group("/")
@@ -225,7 +230,7 @@ func setupPerformanceRoutes(router *gin.Engine, handler *handlers.PerformanceHan
 }
 
 // GetServices creates and returns the services struct for dependency injection
-func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service) *Services {
+func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service, silpanaService silpana.ServiceInterface) *Services {
 	return &Services{
 		EventBus:   eventBus,
 		Database:   db,
@@ -235,5 +240,29 @@ func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cach
 		Monitoring: monitoring,
 		Training:   training,
 		Concurrent: concurrent,
+		Silpana:    silpanaService,
+	}
+}
+
+// setupSilpanaRoutes configures SILPANA ticketing endpoints
+func setupSilpanaRoutes(router *gin.Engine, silpanaService silpana.ServiceInterface) {
+	// Create SILPANA handler
+	silpanaHandler := silpana.NewHandler(silpanaService)
+
+	// API group for SILPANA endpoints
+	api := router.Group("/api/v1/silpana")
+	{
+		// Ticket management endpoints
+		api.POST("/tickets", silpanaHandler.CreateTicket)         // POST /api/v1/silpana/tickets - Create new ticket
+		api.POST("/tickets/lookup", silpanaHandler.LookupTicket)  // POST /api/v1/silpana/tickets/lookup - Lookup ticket by code
+		api.GET("/tickets/:id", silpanaHandler.GetTicket)         // GET /api/v1/silpana/tickets/:id - Get ticket by ID
+		api.GET("/tickets/:id/history", silpanaHandler.GetTicketHistory) // GET /api/v1/silpana/tickets/:id/history - Get ticket history
+		
+		// Statistics and monitoring
+		api.GET("/stats", silpanaHandler.GetTicketStats)          // GET /api/v1/silpana/stats - Get ticket statistics
+		api.GET("/health", silpanaHandler.HealthCheck)            // GET /api/v1/silpana/health - SILPANA health check
+		
+		// Ticket filtering endpoints
+		api.GET("/tickets/status/:status", silpanaHandler.GetTicketsByStatus) // GET /api/v1/silpana/tickets/status/:status - Get tickets by status
 	}
 }

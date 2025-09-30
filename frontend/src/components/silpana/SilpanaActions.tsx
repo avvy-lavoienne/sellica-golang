@@ -45,6 +45,7 @@ import {
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { TicketStatus, PriorityLevel } from "@/types/silpana/silpana";
 import {
   PlusCircle,
   ListFilter,
@@ -78,7 +79,7 @@ interface SilpanaActionsProps {
   /** Table view handler */
   onRekapitulasi: () => void;
   /** Current active mode */
-  activeMode: "form" | "table" | "none";
+  activeMode: "form" | "table" | "lookup" | "none";
   /** Date range change handler */
   onDateRangeChange: (
     startDate: Date | null,
@@ -91,6 +92,8 @@ interface SilpanaActionsProps {
   onSearch: (search: string) => void;
   /** Current search query */
   searchQuery: string;
+  /** Ticket lookup handler */
+  onTicketLookup: () => void;
   /** Custom className */
   className?: string;
   /** Animation delay */
@@ -114,11 +117,24 @@ interface SilpanaActionsProps {
   onBulkArchive?: (ids: string[]) => void;
   /** Selected items */
   selectedItems?: string[];
+  /** Status filter handlers */
+  onStatusFilter?: (status: TicketStatus | null) => void;
+  /** Priority filter handlers */
+  onPriorityFilter?: (priority: PriorityLevel | null) => void;
+  /** Current status filter */
+  statusFilter?: TicketStatus | null;
+  /** Current priority filter */
+  priorityFilter?: PriorityLevel | null;
+  /** Quick status update handler */
+  onQuickStatusUpdate?: (ids: string[], status: TicketStatus) => void;
+  /** Quick priority update handler */
+  onQuickPriorityUpdate?: (ids: string[], priority: PriorityLevel) => void;
 }
 
 function SilpanaActions({
   onAjukan,
   onRekapitulasi,
+  onTicketLookup,
   activeMode,
   onDateRangeChange,
   onResetFilters,
@@ -136,6 +152,12 @@ function SilpanaActions({
   onBulkDelete,
   onBulkArchive,
   selectedItems = [],
+  onStatusFilter,
+  onPriorityFilter,
+  statusFilter,
+  priorityFilter,
+  onQuickStatusUpdate,
+  onQuickPriorityUpdate,
 }: SilpanaActionsProps) {
   // Enhanced state management for enterprise UX
   const [showFilters, setShowFilters] = useState(false);
@@ -189,17 +211,17 @@ function SilpanaActions({
 
   // Enhanced statistics
   const actionStats = useMemo(() => {
-    const hasFilters = startDate || endDate || showFilters;
+    const hasFilters = startDate || endDate || showFilters || statusFilter || priorityFilter;
     const hasSearch = searchQuery.trim().length > 0;
     const hasSelection = selectedItems.length > 0;
     return {
       hasFilters,
       hasSearch,
       hasSelection,
-      filterCount: [startDate, endDate].filter(Boolean).length,
+      filterCount: [startDate, endDate, statusFilter, priorityFilter].filter(Boolean).length,
       selectedCount: selectedItems.length,
     };
-  }, [startDate, endDate, showFilters, searchQuery, selectedItems.length]);
+  }, [startDate, endDate, showFilters, searchQuery, selectedItems.length, statusFilter, priorityFilter]);
 
   // Enhanced handlers with enterprise features
   const toggleFilters = useCallback(() => {
@@ -477,11 +499,13 @@ function SilpanaActions({
                 ? "form"
                 : activeMode === "table"
                   ? "table"
-                  : "none"
+                  : activeMode === "lookup"
+                    ? "lookup"
+                    : "none"
             }
             className="w-full"
           >
-            <TabsList className="grid h-12 w-full grid-cols-2 bg-muted/50 backdrop-blur-sm">
+            <TabsList className="grid h-12 w-full grid-cols-3 bg-muted/50 backdrop-blur-sm">
               <TabsTrigger
                 value="form"
                 onClick={onAjukan}
@@ -492,9 +516,10 @@ function SilpanaActions({
                 )}
               >
                 <PlusCircle className="h-4 w-4" />
-                <span>Input Data SILPANA</span>
+                <span className="hidden sm:inline">Ajukan</span>
+                <span className="sm:hidden">Form</span>
                 {activeMode === "form" && (
-                  <Badge variant="secondary" className="ml-2 text-xs">
+                  <Badge variant="secondary" className="ml-1 text-xs">
                     <Sparkles className="h-3 w-3" />
                   </Badge>
                 )}
@@ -509,10 +534,29 @@ function SilpanaActions({
                 )}
               >
                 <ListFilter className="h-4 w-4" />
-                <span>Lihat Data SILPANA</span>
+                <span className="hidden sm:inline">Rekapitulasi</span>
+                <span className="sm:hidden">Data</span>
                 {activeMode === "table" && (
-                  <Badge variant="secondary" className="ml-2 text-xs">
+                  <Badge variant="secondary" className="ml-1 text-xs">
                     <TrendingUp className="h-3 w-3" />
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger
+                value="lookup"
+                onClick={onTicketLookup}
+                className={cn(
+                  "flex items-center gap-2 transition-all duration-200",
+                  "data-[state=active]:bg-background data-[state=active]:shadow-sm",
+                  "hover:bg-background/50",
+                )}
+              >
+                <Search className="h-4 w-4" />
+                <span className="hidden sm:inline">Lihat Pengaduan Saya</span>
+                <span className="sm:hidden">Cari</span>
+                {activeMode === "lookup" && (
+                  <Badge variant="secondary" className="ml-1 text-xs">
+                    <Eye className="h-3 w-3" />
                   </Badge>
                 )}
               </TabsTrigger>
@@ -643,177 +687,349 @@ function SilpanaActions({
                     transition={{ duration: shouldAnimate ? 0.3 : 0 }}
                     className="overflow-hidden rounded-xl border border-border/50 bg-background/60 p-4 shadow-sm backdrop-blur-sm"
                   >
-                    <div className="space-y-4">
-                      <div className="mb-3 flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-primary" />
-                        <Label className="text-sm font-medium">
-                          Date Range Filters
-                        </Label>
-                      </div>
-
-                      <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
-                        {/* Filter Type Selection */}
-                        <div className="space-y-2">
-                          <Label
-                            htmlFor="filter-type"
-                            className="text-xs text-muted-foreground"
-                          >
-                            Filter By
+                    <div className="space-y-6">
+                      {/* Date Range Filters */}
+                      <div className="space-y-4">
+                        <div className="mb-3 flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-primary" />
+                          <Label className="text-sm font-medium">
+                            Date Range Filters
                           </Label>
-                          <Select
-                            value={filterBy}
-                            onValueChange={(value) => {
-                              setFilterBy(
-                                value as "created_at" | "tanggal_pengaduan",
-                              );
-                              onDateRangeChange(
-                                startDate,
-                                endDate,
-                                value as "created_at" | "tanggal_pengaduan",
-                              );
-                            }}
-                          >
-                            <SelectTrigger className="w-[180px] transition-all duration-200 focus:ring-2 focus:ring-primary/20">
-                              <SelectValue placeholder="Filter by" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="tanggal_pengaduan">
-                                Tanggal Pengaduan
-                              </SelectItem>
-                              <SelectItem value="created_at">
-                                Tanggal Dibuat
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
                         </div>
 
-                        {/* Date Range Pickers */}
-                        <LocalizationProvider dateAdapter={AdapterDateFns}>
-                          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                            <div className="space-y-2">
-                              <Label className="text-xs text-muted-foreground">
-                                Start Date
-                              </Label>
-                              <DatePicker
-                                label={
-                                  filterBy === "tanggal_pengaduan"
-                                    ? "Tanggal Pengaduan Mulai"
-                                    : "Tanggal Dibuat Mulai"
-                                }
-                                value={startDate}
-                                onChange={(newValue) =>
-                                  handleDateChange(newValue, endDate)
-                                }
-                                slotProps={{
-                                  textField: {
-                                    size: "small",
-                                    className: cn(
-                                      "w-auto transition-all duration-200",
-                                      "border-border/50 bg-background/50 backdrop-blur-sm",
-                                      "focus-visible:ring-primary/30 text-foreground",
-                                    ),
-                                  },
-                                }}
-                                sx={{
-                                  "& .MuiInputBase-input": {
-                                    color: "inherit",
-                                  },
-                                  "& .MuiInputLabel-root": {
-                                    color: "inherit",
-                                  },
-                                  "& .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "inherit",
-                                  },
-                                  "& .MuiInputBase-root": {
-                                    backgroundColor: "inherit",
-                                  },
-                                }}
-                              />
-                            </div>
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+                          {/* Filter Type Selection */}
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor="filter-type"
+                              className="text-xs text-muted-foreground"
+                            >
+                              Filter By
+                            </Label>
+                            <Select
+                              value={filterBy}
+                              onValueChange={(value) => {
+                                setFilterBy(
+                                  value as "created_at" | "tanggal_pengaduan",
+                                );
+                                onDateRangeChange(
+                                  startDate,
+                                  endDate,
+                                  value as "created_at" | "tanggal_pengaduan",
+                                );
+                              }}
+                            >
+                              <SelectTrigger className="w-[180px] transition-all duration-200 focus:ring-2 focus:ring-primary/20">
+                                <SelectValue placeholder="Filter by" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="tanggal_pengaduan">
+                                  Tanggal Pengaduan
+                                </SelectItem>
+                                <SelectItem value="created_at">
+                                  Tanggal Dibuat
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
 
-                            <div className="flex items-center justify-center pt-6">
-                              <span className="text-sm text-muted-foreground">
-                                to
+                          {/* Date Range Pickers */}
+                          <LocalizationProvider dateAdapter={AdapterDateFns}>
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                              <div className="space-y-2">
+                                <Label className="text-xs text-muted-foreground">
+                                  Start Date
+                                </Label>
+                                <DatePicker
+                                  label={
+                                    filterBy === "tanggal_pengaduan"
+                                      ? "Tanggal Pengaduan Mulai"
+                                      : "Tanggal Dibuat Mulai"
+                                  }
+                                  value={startDate}
+                                  onChange={(newValue) =>
+                                    handleDateChange(newValue, endDate)
+                                  }
+                                  slotProps={{
+                                    textField: {
+                                      size: "small",
+                                      className: cn(
+                                        "w-auto transition-all duration-200",
+                                        "border-border/50 bg-background/50 backdrop-blur-sm",
+                                        "focus-visible:ring-primary/30 text-foreground",
+                                      ),
+                                    },
+                                  }}
+                                  sx={{
+                                    "& .MuiInputBase-input": {
+                                      color: "inherit",
+                                    },
+                                    "& .MuiInputLabel-root": {
+                                      color: "inherit",
+                                    },
+                                    "& .MuiOutlinedInput-notchedOutline": {
+                                      borderColor: "inherit",
+                                    },
+                                    "& .MuiInputBase-root": {
+                                      backgroundColor: "inherit",
+                                    },
+                                  }}
+                                />
+                              </div>
+
+                              <div className="flex items-center justify-center pt-6">
+                                <span className="text-sm text-muted-foreground">
+                                  to
+                                </span>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-xs text-muted-foreground">
+                                  End Date
+                                </Label>
+                                <DatePicker
+                                  label={
+                                    filterBy === "tanggal_pengaduan"
+                                      ? "Tanggal Pengaduan Selesai"
+                                      : "Tanggal Dibuat Selesai"
+                                  }
+                                  value={endDate}
+                                  onChange={(newValue) =>
+                                    handleDateChange(startDate, newValue)
+                                  }
+                                  slotProps={{
+                                    textField: {
+                                      size: "small",
+                                      className: cn(
+                                        "w-auto transition-all duration-200",
+                                        "border-border/50 bg-background/50 backdrop-blur-sm",
+                                        "focus-visible:ring-primary/30 text-foreground",
+                                      ),
+                                    },
+                                  }}
+                                  sx={{
+                                    "& .MuiInputBase-input": {
+                                      color: "inherit",
+                                    },
+                                    "& .MuiInputLabel-root": {
+                                      color: "inherit",
+                                    },
+                                    "& .MuiOutlinedInput-notchedOutline": {
+                                      borderColor: "inherit",
+                                    },
+                                    "& .MuiInputBase-root": {
+                                      backgroundColor: "inherit",
+                                    },
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </LocalizationProvider>
+
+                          {/* Filter Actions */}
+                          <div className="flex items-center gap-2 pt-6">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={handleResetFilters}
+                                  className="transition-all duration-200 hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                                >
+                                  <X className="mr-2 h-4 w-4" />
+                                  Clear
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Clear date filters</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                        </div>
+
+                        {/* Filter Summary */}
+                        {(startDate || endDate) && (
+                          <div className="flex items-center gap-2 border-t border-border/50 pt-2">
+                            <Info className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground">
+                              Filtering by{" "}
+                              {filterBy === "tanggal_pengaduan"
+                                ? "complaint date"
+                                : "creation date"}
+                              {startDate &&
+                                ` from ${startDate.toLocaleDateString()}`}
+                              {endDate && ` to ${endDate.toLocaleDateString()}`}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Ticket Filters */}
+                      {(onStatusFilter || onPriorityFilter) && (
+                        <div className="space-y-4 border-t border-border/50 pt-4">
+                          <div className="mb-3 flex items-center gap-2">
+                            <Filter className="h-4 w-4 text-primary" />
+                            <Label className="text-sm font-medium">
+                              Ticket Filters
+                            </Label>
+                          </div>
+
+                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            {/* Status Filter */}
+                            {onStatusFilter && (
+                              <div className="space-y-2">
+                                <Label className="text-xs text-muted-foreground">
+                                  Status
+                                </Label>
+                                <Select
+                                  value={statusFilter || "all"}
+                                  onValueChange={(value) => {
+                                    const status = value === "all" ? null : (value as TicketStatus);
+                                    onStatusFilter(status);
+                                  }}
+                                >
+                                  <SelectTrigger className="w-full transition-all duration-200 focus:ring-2 focus:ring-primary/20">
+                                    <SelectValue placeholder="Filter by status" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="all">All Statuses</SelectItem>
+                                    {Object.values(TicketStatus).map((status) => (
+                                      <SelectItem key={status} value={status}>
+                                        {status.replace('_', ' ').toUpperCase()}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+
+                            {/* Priority Filter */}
+                            {onPriorityFilter && (
+                              <div className="space-y-2">
+                                <Label className="text-xs text-muted-foreground">
+                                  Priority
+                                </Label>
+                                <Select
+                                  value={priorityFilter || "all"}
+                                  onValueChange={(value) => {
+                                    const priority = value === "all" ? null : (value as PriorityLevel);
+                                    onPriorityFilter(priority);
+                                  }}
+                                >
+                                  <SelectTrigger className="w-full transition-all duration-200 focus:ring-2 focus:ring-primary/20">
+                                    <SelectValue placeholder="Filter by priority" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="all">All Priorities</SelectItem>
+                                    {Object.values(PriorityLevel).map((priority) => (
+                                      <SelectItem key={priority} value={priority}>
+                                        {priority.toUpperCase()}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Ticket Filter Summary */}
+                          {(statusFilter || priorityFilter) && (
+                            <div className="flex items-center gap-2 border-t border-border/50 pt-2">
+                              <Info className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-xs text-muted-foreground">
+                                Filtering by{" "}
+                                {statusFilter && `status: ${statusFilter.replace('_', ' ')}`}
+                                {statusFilter && priorityFilter && ", "}
+                                {priorityFilter && `priority: ${priorityFilter}`}
                               </span>
                             </div>
+                          )}
 
-                            <div className="space-y-2">
-                              <Label className="text-xs text-muted-foreground">
-                                End Date
-                              </Label>
-                              <DatePicker
-                                label={
-                                  filterBy === "tanggal_pengaduan"
-                                    ? "Tanggal Pengaduan Selesai"
-                                    : "Tanggal Dibuat Selesai"
-                                }
-                                value={endDate}
-                                onChange={(newValue) =>
-                                  handleDateChange(startDate, newValue)
-                                }
-                                slotProps={{
-                                  textField: {
-                                    size: "small",
-                                    className: cn(
-                                      "w-auto transition-all duration-200",
-                                      "border-border/50 bg-background/50 backdrop-blur-sm",
-                                      "focus-visible:ring-primary/30 text-foreground",
-                                    ),
-                                  },
-                                }}
-                                sx={{
-                                  "& .MuiInputBase-input": {
-                                    color: "inherit",
-                                  },
-                                  "& .MuiInputLabel-root": {
-                                    color: "inherit",
-                                  },
-                                  "& .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "inherit",
-                                  },
-                                  "& .MuiInputBase-root": {
-                                    backgroundColor: "inherit",
-                                  },
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </LocalizationProvider>
-
-                        {/* Filter Actions */}
-                        <div className="flex items-center gap-2 pt-6">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
+                          {/* Clear Ticket Filters */}
+                          {(statusFilter || priorityFilter) && (
+                            <div className="flex justify-end">
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={handleResetFilters}
+                                onClick={() => {
+                                  onStatusFilter?.(null);
+                                  onPriorityFilter?.(null);
+                                }}
                                 className="transition-all duration-200 hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
                               >
                                 <X className="mr-2 h-4 w-4" />
-                                Clear
+                                Clear Ticket Filters
                               </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Clear date filters</p>
-                            </TooltipContent>
-                          </Tooltip>
+                            </div>
+                          )}
                         </div>
-                      </div>
+                      )}
 
-                      {/* Filter Summary */}
-                      {(startDate || endDate) && (
-                        <div className="flex items-center gap-2 border-t border-border/50 pt-2">
-                          <Info className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">
-                            Filtering by{" "}
-                            {filterBy === "tanggal_pengaduan"
-                              ? "complaint date"
-                              : "creation date"}
-                            {startDate &&
-                              ` from ${startDate.toLocaleDateString()}`}
-                            {endDate && ` to ${endDate.toLocaleDateString()}`}
-                          </span>
+                      {/* Quick Actions for Selected Items */}
+                      {selectedItems.length > 0 && (onQuickStatusUpdate || onQuickPriorityUpdate) && (
+                        <div className="space-y-4 border-t border-border/50 pt-4">
+                          <div className="mb-3 flex items-center gap-2">
+                            <Sparkles className="h-4 w-4 text-primary" />
+                            <Label className="text-sm font-medium">
+                              Quick Actions ({selectedItems.length} selected)
+                            </Label>
+                          </div>
+
+                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            {/* Quick Status Update */}
+                            {onQuickStatusUpdate && (
+                              <div className="space-y-2">
+                                <Label className="text-xs text-muted-foreground">
+                                  Update Status
+                                </Label>
+                                <div className="flex gap-2">
+                                  <Select
+                                    onValueChange={(value) => {
+                                      onQuickStatusUpdate(selectedItems, value as TicketStatus);
+                                    }}
+                                  >
+                                    <SelectTrigger className="flex-1">
+                                      <SelectValue placeholder="Select status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {Object.values(TicketStatus).map((status) => (
+                                        <SelectItem key={status} value={status}>
+                                          {status.replace('_', ' ').toUpperCase()}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Quick Priority Update */}
+                            {onQuickPriorityUpdate && (
+                              <div className="space-y-2">
+                                <Label className="text-xs text-muted-foreground">
+                                  Update Priority
+                                </Label>
+                                <div className="flex gap-2">
+                                  <Select
+                                    onValueChange={(value) => {
+                                      onQuickPriorityUpdate(selectedItems, value as PriorityLevel);
+                                    }}
+                                  >
+                                    <SelectTrigger className="flex-1">
+                                      <SelectValue placeholder="Select priority" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {Object.values(PriorityLevel).map((priority) => (
+                                        <SelectItem key={priority} value={priority}>
+                                          {priority.toUpperCase()}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>

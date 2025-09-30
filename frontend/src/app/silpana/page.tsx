@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef, Suspense } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/conn/utils";
 import { supabase } from "@/lib/conn/supabaseClient";
@@ -34,7 +34,6 @@ import {
   FileText,
   AlertCircle,
   CheckCircle,
-  Clock,
   Sparkles,
   Target,
   TrendingUp,
@@ -58,20 +57,28 @@ import { useDebounce } from "@/hooks/use-debounce";
 import type {
   SilpanaData,
   SilpanaFormData,
+  EnhancedSilpanaData,
+  PriorityLevel,
+  TicketStatus,
 } from "@/types/silpana/silpana";
 import SilpanaHeader from "@/components/silpana/SilpanaHeader";
 import SilpanaActions from "@/components/silpana/SilpanaActions";
 import SilpanaForm from "@/components/silpana/SilpanaForm";
 import SilpanaTable from "@/components/silpana/SilpanaTable";
+import TicketLookup from "@/components/silpana/TicketLookup";
+import TicketSuccessFeedback from "@/components/silpana/TicketSuccessFeedback";
 import EmptyState from "@/components/silpana/EmptyState";
 import LoadingState from "@/components/silpana/LoadingState";
+import LastUpdatedBadge from "@/components/silpana/LastUpdatedBadge";
+import EnhancedNavigation from "@/components/silpana/EnhancedNavigation";
+import { SilpanaMode } from "@/types/silpana/silpana";
 
 export default function SilpanaPage() {
-  // Enhanced state management for public SILPANA page
-  const [showForm, setShowForm] = useState(false);
-  const [showRekap, setShowRekap] = useState(true); // Default to showing data for public access
+  // Enhanced navigation state with new enum system
+  const [activeMode, setActiveMode] = useState<SilpanaMode>(SilpanaMode.LOOKUP); // Default to lookup for user-friendly access
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<SilpanaData | null>(null);
+  const [foundTicket, setFoundTicket] = useState<EnhancedSilpanaData | null>(null);
   const [formData, setFormData] = useState<SilpanaFormData>({
     nik_pengaduan: "",
     nama_pengaduan: "",
@@ -83,6 +90,7 @@ export default function SilpanaPage() {
     tindak_lanjut_pengaduan: "",
     tanggal_pengaduan: new Date().toISOString().split("T")[0],
     is_anonymous: false,
+    priority_level: 'medium' as PriorityLevel,
   });
   const [rekapData, setRekapData] = useState<SilpanaData[]>([]);
   const [loading, setLoading] = useState(false);
@@ -99,6 +107,16 @@ export default function SilpanaPage() {
   const [isHovered, setIsHovered] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [pageProgress, setPageProgress] = useState(0);
+  
+  // Enhanced loading and error states
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionProgress, setSubmissionProgress] = useState(0);
+  
+  // Success feedback state for ticket generation
+  const [showSuccessFeedback, setShowSuccessFeedback] = useState(false);
+  const [generatedTicketCode, setGeneratedTicketCode] = useState<string | null>(null);
 
   // Refs for enhanced functionality
   const containerRef = useRef<HTMLDivElement>(null);
@@ -139,18 +157,18 @@ export default function SilpanaPage() {
     [],
   );
 
-  // Enhanced page statistics
+  // Enhanced page statistics with new navigation system
   const pageStats = useMemo(() => {
     const hasFilters = startDate || endDate || searchQuery.trim().length > 0;
     const hasData = rekapData.length > 0;
-    const isActive = showForm || showRekap;
+    const isActive = activeMode !== SilpanaMode.LOOKUP;
     return {
       hasFilters,
       hasData,
       isActive,
       totalItems: totalCount,
       filteredItems: rekapData.length,
-      currentMode: showForm ? "form" : showRekap ? "table" : "none",
+      currentMode: activeMode,
     };
   }, [
     startDate,
@@ -158,8 +176,7 @@ export default function SilpanaPage() {
     searchQuery,
     rekapData.length,
     totalCount,
-    showForm,
-    showRekap,
+    activeMode,
   ]);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
@@ -195,7 +212,7 @@ export default function SilpanaPage() {
 
         if (searchQuery) {
           query = query.or(
-            `nik_pengaduan.ilike.%${searchQuery}%,nama_pengaduan.ilike.%${searchQuery}%,alasan_pengaduan.ilike.%${searchQuery}%`,
+            `nik_pengaduan.ilike.%${searchQuery}%,nama_pengaduan.ilike.%${searchQuery}%,nama_pelapor.ilike.%${searchQuery}%,alasan_pengaduan.ilike.%${searchQuery}%,deskripsi_pengaduan.ilike.%${searchQuery}%`,
           );
         }
 
@@ -236,7 +253,40 @@ export default function SilpanaPage() {
           throw new Error(`Gagal mengambil data SILPANA: ${error.message}`);
         }
 
-        setRekapData(silpanaData || []);
+        // Transform database column names to match TypeScript interface
+        const transformedData = (silpanaData || []).map((item: any) => ({
+          id: item.id,
+          // Database has both nama_pengaduan and nama_pelapor - use appropriate mapping
+          nik_pengaduan: item.nik_pengaduan,
+          nama_pengaduan: item.nama_pengaduan || item.nama_pelapor,
+          kategori_pengaduan: item.kategori_pengaduan,
+          sub_kategori_pengaduan: item.sub_kategori_pengaduan || 'Umum',
+          alasan_pengaduan: item.alasan_pengaduan,
+          deskripsi_pengaduan: item.deskripsi_pengaduan || item.alasan_pengaduan,
+          nomor_telepon: item.nomor_telepon,
+          tindak_lanjut_pengaduan: item.tindak_lanjut_pengaduan || '',
+          tanggal_pengaduan: item.tanggal_pengaduan,
+          is_anonymous: item.is_anonymous || false,
+          // Ticketing system fields
+          ticket_status: item.ticket_status || 'submitted',
+          priority_level: item.priority_level || 'medium',
+          ticket_code: item.ticket_code,
+          assigned_to: item.assigned_to,
+          resolution_notes: item.resolution_notes,
+          // Timestamps
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          // Optional fields
+          alamat: item.alamat,
+          email: item.email,
+          estimated_resolution: item.estimated_resolution,
+          actual_resolution: item.actual_resolution,
+          created_by_ip: item.created_by_ip,
+          creator_name: item.creator_name,
+          user_id: item.user_id,
+        }));
+
+        setRekapData(transformedData);
         return { totalCount: count || 0 };
       } catch (error: any) {
         toast.error(
@@ -256,7 +306,7 @@ export default function SilpanaPage() {
   );
 
   useEffect(() => {
-    if (showRekap && !showForm) {
+    if (activeMode === SilpanaMode.REKAP) {
       memoizedFetchRekapData(
         currentPage,
         debouncedSearchQuery,
@@ -267,19 +317,186 @@ export default function SilpanaPage() {
     }
   }, [
     currentPage,
-    showRekap,
+    activeMode,
     debouncedSearchQuery,
     debouncedStartDate,
     debouncedEndDate,
     debouncedFilterBy,
     memoizedFetchRekapData,
-    showForm,
   ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // For public SILPANA page, we'll disable form submission for now
-    toast.info("Form submission is not available for public access.");
+    
+    // Reset previous states
+    setSubmissionError(null);
+    setValidationErrors({});
+    setIsSubmitting(true);
+    setLoading(true);
+    setSubmissionProgress(0);
+
+    try {
+      // Step 1: Client-side validation (20% progress)
+      setSubmissionProgress(20);
+      const errors: Record<string, string> = {};
+
+      if (!formData.nik_pengaduan.trim()) {
+        errors.nik_pengaduan = "NIK wajib diisi";
+      } else if (!/^\d{16}$/.test(formData.nik_pengaduan.replace(/\s+/g, ''))) {
+        errors.nik_pengaduan = "NIK harus 16 digit angka";
+      }
+
+      if (!formData.nama_pengaduan.trim()) {
+        errors.nama_pengaduan = "Nama wajib diisi";
+      } else if (formData.nama_pengaduan.trim().length < 2) {
+        errors.nama_pengaduan = "Nama minimal 2 karakter";
+      }
+
+      if (!formData.kategori_pengaduan) {
+        errors.kategori_pengaduan = "Kategori pengaduan wajib dipilih";
+      }
+
+      if (!formData.sub_kategori_pengaduan) {
+        errors.sub_kategori_pengaduan = "Sub kategori pengaduan wajib dipilih";
+      }
+
+      if (!formData.alasan_pengaduan.trim()) {
+        errors.alasan_pengaduan = "Alasan pengaduan wajib diisi";
+      }
+
+      if (!formData.deskripsi_pengaduan.trim()) {
+        errors.deskripsi_pengaduan = "Deskripsi pengaduan wajib diisi";
+      } else if (formData.deskripsi_pengaduan.trim().length < 10) {
+        errors.deskripsi_pengaduan = "Deskripsi minimal 10 karakter";
+      }
+
+      // Enhanced phone number validation
+      if (formData.nomor_telepon && !/^(\+62|62|0)\d{8,13}$/.test(formData.nomor_telepon.replace(/\s+/g, ''))) {
+        errors.nomor_telepon = "Format nomor telepon tidak valid (contoh: 081234567890)";
+      }
+
+      if (Object.keys(errors).length > 0) {
+        setValidationErrors(errors);
+        toast.error("Harap perbaiki kesalahan pada form");
+        setIsSubmitting(false);
+        setLoading(false);
+        setSubmissionProgress(0);
+        return;
+      }
+
+      // Step 2: Prepare data (40% progress)
+      setSubmissionProgress(40);
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate processing
+
+      const submissionData = {
+        // Map to actual database column names from the schema
+        nik_pengaduan: formData.nik_pengaduan.replace(/\s+/g, ''),
+        nama_pengaduan: formData.nama_pengaduan.trim(),
+        nama_pelapor: formData.nama_pengaduan.trim(), // This field also exists in DB
+        kategori_pengaduan: formData.kategori_pengaduan,
+        sub_kategori_pengaduan: formData.sub_kategori_pengaduan || 'Umum',
+        alasan_pengaduan: formData.alasan_pengaduan.trim(),
+        deskripsi_pengaduan: formData.deskripsi_pengaduan?.trim() || formData.alasan_pengaduan.trim(),
+        nomor_telepon: formData.nomor_telepon.replace(/\s+/g, ''),
+        tindak_lanjut_pengaduan: formData.tindak_lanjut_pengaduan || '',
+        tanggal_pengaduan: formData.tanggal_pengaduan,
+        is_anonymous: formData.is_anonymous || false,
+        priority_level: formData.priority_level || 'medium',
+        ticket_status: 'submitted',
+        alamat: '', // Optional field in DB
+        email: '', // Optional field in DB
+        created_by_ip: null, // Optional field in DB
+      };
+
+      // Step 3: Submit to database (80% progress)
+      setSubmissionProgress(80);
+      const { data, error } = await supabase
+        .from('silpana')
+        .insert([submissionData])
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Submission error:', error);
+        let errorMessage = "Gagal mengirim pengaduan";
+        
+        // Handle specific database errors
+        if (error.code === '23505') {
+          errorMessage = "Data pengaduan sudah ada. Silakan periksa kembali NIK Anda.";
+        } else if (error.code === '23514') {
+          errorMessage = "Data tidak valid. Harap periksa kembali form Anda.";
+        } else if (error.message.includes('duplicate')) {
+          errorMessage = "Pengaduan dengan data serupa sudah pernah dikirim";
+        } else if (error.message.includes('network')) {
+          errorMessage = "Masalah koneksi jaringan. Silakan coba lagi.";
+        }
+        
+        setSubmissionError(errorMessage);
+        toast.error(errorMessage);
+        setIsSubmitting(false);
+        setLoading(false);
+        setSubmissionProgress(0);
+        return;
+      }
+
+      // Step 4: Success processing (100% progress)
+      setSubmissionProgress(100);
+      await new Promise(resolve => setTimeout(resolve, 300)); // Show completion
+
+      const ticketCode = data.ticket_code;
+      
+      if (!ticketCode) {
+        throw new Error("Ticket code not generated");
+      }
+
+      // Show success feedback modal
+      setGeneratedTicketCode(ticketCode);
+      setShowSuccessFeedback(true);
+
+      // Show toast notification
+      toast.success(
+        <div className="space-y-2">
+          <div className="font-semibold">Pengaduan berhasil dikirim!</div>
+          <div className="text-sm">
+            <div>Kode Tiket: <span className="font-mono font-bold text-green-600">{ticketCode}</span></div>
+            <div className="mt-1">Simpan kode ini untuk melacak status pengaduan Anda</div>
+          </div>
+        </div>,
+        {
+          autoClose: 8000,
+          hideProgressBar: false,
+        }
+      );
+
+      // Reset form and clear errors
+      setFormData({
+        nik_pengaduan: "",
+        nama_pengaduan: "",
+        kategori_pengaduan: "",
+        sub_kategori_pengaduan: "",
+        alasan_pengaduan: "",
+        deskripsi_pengaduan: "",
+        nomor_telepon: "",
+        tindak_lanjut_pengaduan: "",
+        tanggal_pengaduan: new Date().toISOString().split("T")[0],
+        is_anonymous: false,
+        priority_level: 'medium' as PriorityLevel,
+      });
+      
+      // Clear any remaining errors
+      setValidationErrors({});
+      setSubmissionError(null);
+
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      const errorMessage = error instanceof Error ? error.message : "Terjadi kesalahan yang tidak terduga";
+      setSubmissionError(errorMessage);
+      toast.error("Terjadi kesalahan yang tidak terduga. Silakan coba lagi.");
+    } finally {
+      setIsSubmitting(false);
+      setLoading(false);
+      setSubmissionProgress(0);
+    }
   };
 
   const handleEdit = useCallback((data: SilpanaData) => {
@@ -299,8 +516,7 @@ export default function SilpanaPage() {
         data.tanggal_pengaduan || new Date().toISOString().split("T")[0],
       is_anonymous: data.is_anonymous || false,
     });
-    setShowForm(true);
-    setShowRekap(false);
+    setActiveMode(SilpanaMode.FORM);
   }, []);
 
   const handleDelete = useCallback(
@@ -312,9 +528,38 @@ export default function SilpanaPage() {
     [], // No dependencies needed for disabled function
   );
 
+  // Enhanced navigation handlers with new enum system
+  const handleModeChange = useCallback((newMode: SilpanaMode) => {
+    setActiveMode(newMode);
+    // Clear related state when switching modes
+    if (newMode !== SilpanaMode.LOOKUP) {
+      setFoundTicket(null);
+    }
+    if (newMode !== SilpanaMode.FORM) {
+      setIsEditing(false);
+      setEditData(null);
+    }
+  }, []);
+
   const handleRekapitulasi = useCallback(() => {
-    setShowRekap(true);
-    setShowForm(false);
+    handleModeChange(SilpanaMode.REKAP);
+  }, [handleModeChange]);
+
+  const handleTicketLookup = useCallback(() => {
+    handleModeChange(SilpanaMode.LOOKUP);
+  }, [handleModeChange]);
+
+  const handleFormMode = useCallback(() => {
+    handleModeChange(SilpanaMode.FORM);
+  }, [handleModeChange]);
+
+  const handleTicketFound = useCallback((ticket: EnhancedSilpanaData) => {
+    setFoundTicket(ticket);
+  }, []);
+
+  const handleLookupError = useCallback((error: string) => {
+    setFoundTicket(null);
+    toast.error(error);
   }, []);
 
   const handlePageChange = useCallback((page: number) => {
@@ -340,7 +585,7 @@ export default function SilpanaPage() {
   }, []);
 
   const handleCancel = useCallback(() => {
-    setShowForm(false);
+    setActiveMode(SilpanaMode.LOOKUP);
     setIsEditing(false);
     setEditData(null);
     setFormData({
@@ -355,8 +600,12 @@ export default function SilpanaPage() {
       tanggal_pengaduan: new Date().toISOString().split("T")[0],
       is_anonymous: false,
     });
-    setShowRekap(true);
   }, []);
+
+  // Add the handleAjukan function for form navigation
+  const handleAjukan = useCallback(() => {
+    handleModeChange(SilpanaMode.FORM);
+  }, [handleModeChange]);
 
   const memoizedTableProps = useMemo(
     () => ({
@@ -533,27 +782,26 @@ export default function SilpanaPage() {
                       </Badge>
                     )}
 
-                    <Badge
-                      variant="outline"
-                      className="gap-2 px-3 py-1 text-xs"
-                    >
-                      <Clock className="h-3 w-3" />
-                      <span>
-                        Last updated {new Date().toLocaleTimeString()}
-                      </span>
-                    </Badge>
+                    <LastUpdatedBadge />
 
-                    {pageStats.currentMode === "form" && (
+                    {activeMode === SilpanaMode.FORM && (
                       <Badge variant="default" className="gap-2 px-3 py-1">
                         <Sparkles className="h-4 w-4" />
                         <span>Form Mode</span>
                       </Badge>
                     )}
 
-                    {pageStats.currentMode === "table" && (
+                    {activeMode === SilpanaMode.REKAP && (
                       <Badge variant="default" className="gap-2 px-3 py-1">
                         <TrendingUp className="h-4 w-4" />
                         <span>Table Mode</span>
+                      </Badge>
+                    )}
+
+                    {activeMode === SilpanaMode.LOOKUP && (
+                      <Badge variant="default" className="gap-2 px-3 py-1">
+                        <Search className="h-4 w-4" />
+                        <span>Lookup Mode</span>
                       </Badge>
                     )}
                   </div>
@@ -609,46 +857,42 @@ export default function SilpanaPage() {
             </div>
 
             <div className="relative z-10 p-6 sm:p-8">
-              <SilpanaActions
-                onAjukan={() => {
-                  setShowForm(true);
-                  setShowRekap(false);
-                  setIsEditing(false);
-                  setEditData(null);
-                  setFormData({
-                    nik_pengaduan: "",
-                    nama_pengaduan: "",
-                    kategori_pengaduan: "",
-                    sub_kategori_pengaduan: "",
-                    alasan_pengaduan: "",
-                    deskripsi_pengaduan: "",
-                    nomor_telepon: "",
-                    tindak_lanjut_pengaduan: "",
-                    tanggal_pengaduan: new Date().toISOString().split("T")[0],
-                    is_anonymous: false,
-                  });
-                }}
-                onRekapitulasi={handleRekapitulasi}
-                activeMode={showForm ? "form" : showRekap ? "table" : "none"}
-                onDateRangeChange={(start, end, filterField) => {
-                  setStartDate(start);
-                  setEndDate(end);
-                  setFilterBy(filterField);
-                  setCurrentPage(1);
-                }}
-                onResetFilters={handleRefresh}
-                onSearch={handleSearch}
-                searchQuery={searchQuery}
-                loading={loading || isTableLoading}
-                totalItems={pageStats.totalItems}
-                filteredItems={pageStats.filteredItems}
-                onRefresh={handleRefresh}
-              />
+              {/* Enhanced Navigation System */}
+              <Suspense fallback={<div>Loading navigation...</div>}>
+                <EnhancedNavigation
+                  onModeChange={handleModeChange}
+                  showKeyboardHints={true}
+                  className="mb-8"
+                />
+              </Suspense>
 
-              {/* Enhanced Content Section */}
+              {/* Legacy SilpanaActions for filtering - only show when in rekap mode */}
+              {activeMode === SilpanaMode.REKAP && (
+                <SilpanaActions
+                  onAjukan={handleAjukan}
+                  onRekapitulasi={handleRekapitulasi}
+                  onTicketLookup={handleTicketLookup}
+                  activeMode="table"
+                  onDateRangeChange={(start, end, filterField) => {
+                    setStartDate(start);
+                    setEndDate(end);
+                    setFilterBy(filterField);
+                    setCurrentPage(1);
+                  }}
+                  onResetFilters={handleRefresh}
+                  onSearch={handleSearch}
+                  searchQuery={searchQuery}
+                  loading={loading || isTableLoading}
+                  totalItems={pageStats.totalItems}
+                  filteredItems={pageStats.filteredItems}
+                  onRefresh={handleRefresh}
+                />
+              )}
+
+              {/* Enhanced Content Section with mode-based rendering */}
               <div className="mt-8 space-y-6">
                 <AnimatePresence mode="wait">
-                  {showForm && (
+                  {activeMode === SilpanaMode.FORM && (
                     <motion.div
                       key="form"
                       initial={{ opacity: 0, y: 20, scale: 0.98 }}
@@ -677,16 +921,19 @@ export default function SilpanaPage() {
                           setFormData={setFormData}
                           onSubmit={handleSubmit}
                           onCancel={handleCancel}
-                          loading={loading}
+                          loading={isSubmitting}
                           isEditing={isEditing}
                           editData={editData}
                           userRole="public"
+                          errors={validationErrors}
+                          showProgress={true}
+                          submissionProgress={submissionProgress}
                         />
                       </div>
                     </motion.div>
                   )}
 
-                  {showRekap && (
+                  {activeMode === SilpanaMode.REKAP && (
                     <motion.div
                       key="table"
                       initial={{ opacity: 0, y: 20, scale: 0.98 }}
@@ -740,8 +987,7 @@ export default function SilpanaPage() {
                           <div className="relative z-10 p-8">
                             <EmptyState
                               onAddNew={() => {
-                                setShowForm(true);
-                                setShowRekap(false);
+                                handleModeChange(SilpanaMode.FORM);
                               }}
                             />
                           </div>
@@ -750,7 +996,25 @@ export default function SilpanaPage() {
                     </motion.div>
                   )}
 
-                  {!showForm && !showRekap && (
+                  {activeMode === SilpanaMode.LOOKUP && (
+                    <motion.div
+                      key="lookup"
+                      initial={{ opacity: 0, y: 20, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -20, scale: 0.98 }}
+                      transition={{
+                        duration: shouldAnimate ? 0.4 : 0,
+                        ease: "easeOut",
+                      }}
+                    >
+                      <TicketLookup
+                        onTicketFound={handleTicketFound}
+                        onError={handleLookupError}
+                      />
+                    </motion.div>
+                  )}
+
+                  {activeMode === SilpanaMode.ADMIN && (
                     <motion.div
                       key="welcome"
                       initial={{ opacity: 0, y: 20, scale: 0.98 }}
@@ -783,8 +1047,7 @@ export default function SilpanaPage() {
                       <div className="relative z-10 p-8">
                         <EmptyState
                           onAddNew={() => {
-                            setShowForm(true);
-                            setShowRekap(false);
+                            handleModeChange(SilpanaMode.FORM);
                           }}
                         />
                       </div>
@@ -796,6 +1059,17 @@ export default function SilpanaPage() {
           </motion.div>
         </div>
       </motion.div>
+      
+      {/* Success Feedback Modal */}
+      <TicketSuccessFeedback
+        ticketCode={generatedTicketCode || ""}
+        isVisible={showSuccessFeedback}
+        onClose={() => {
+          setShowSuccessFeedback(false);
+          setGeneratedTicketCode(null);
+          handleModeChange(SilpanaMode.LOOKUP);
+        }}
+      />
     </TooltipProvider>
   );
 }

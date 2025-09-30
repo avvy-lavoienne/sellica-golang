@@ -87,6 +87,21 @@ func (s *Service) RecordError() {
 	s.metrics.LastUpdated = time.Now()
 }
 
+// IncrementCounter increments a named counter with labels (for SILPANA compatibility)
+func (s *Service) IncrementCounter(name string, labels map[string]string) {
+	s.metrics.mu.Lock()
+	defer s.metrics.mu.Unlock()
+
+	// For now, we'll just log the counter increment
+	// In a production system, this would integrate with Prometheus or similar
+	logrus.WithFields(logrus.Fields{
+		"counter": name,
+		"labels":  labels,
+	}).Debug("Counter incremented")
+	
+	s.metrics.LastUpdated = time.Now()
+}
+
 // GetSystemMetrics returns current system metrics
 func (s *Service) GetSystemMetrics() *SystemMetrics {
 	var m runtime.MemStats
@@ -247,4 +262,27 @@ func (s *Service) startMetricsCollection() {
 			}).Info("📊 System health check")
 		}
 	}
+}
+
+// IsHealthy checks if the monitoring service is healthy
+func (s *Service) IsHealthy() bool {
+	return true // Monitoring service is always healthy for basic implementation
+}
+
+// RecordDuration records a duration metric
+func (s *Service) RecordDuration(name string, duration time.Duration, labels map[string]string) {
+	logrus.WithFields(logrus.Fields{
+		"metric":   name,
+		"duration": duration.String(),
+		"labels":   labels,
+	}).Debug("Recording duration metric")
+}
+
+// RecordMetric records a metric value with labels
+func (s *Service) RecordMetric(name string, value float64, labels map[string]string) {
+	logrus.WithFields(logrus.Fields{
+		"metric": name,
+		"value":  value,
+		"labels": labels,
+	}).Debug("Recording metric")
 }
