@@ -12,13 +12,15 @@ import (
 
 // Handler handles HTTP requests for SILPANA operations
 type Handler struct {
-	service ServiceInterface
+	service     ServiceInterface
+	broadcaster *WebSocketBroadcaster
 }
 
 // NewHandler creates a new SILPANA HTTP handler
-func NewHandler(service ServiceInterface) *Handler {
+func NewHandler(service ServiceInterface, broadcaster *WebSocketBroadcaster) *Handler {
 	return &Handler{
-		service: service,
+		service:     service,
+		broadcaster: broadcaster,
 	}
 }
 
@@ -58,6 +60,11 @@ func (h *Handler) CreateTicket(c *gin.Context) {
 
 	duration := time.Since(start)
 	logrus.Infof("Created ticket %s in %v", response.Ticket.Code, duration)
+
+	// Broadcast ticket creation event via WebSocket
+	if h.broadcaster != nil {
+		h.broadcaster.BroadcastTicketCreated(c.Request.Context(), response)
+	}
 
 	c.JSON(http.StatusCreated, response)
 }
@@ -185,6 +192,21 @@ func (h *Handler) UpdateTicketStatus(c *gin.Context) {
 
 	duration := time.Since(start)
 	logrus.Infof("Updated ticket %s status to %s in %v", ticketID, req.Status, duration)
+
+	// Broadcast status update event via WebSocket
+	// Get old status from history (the response includes history)
+	if h.broadcaster != nil && response.Ticket != nil && len(response.History) > 0 {
+		// The most recent history entry has the status change
+		latestHistory := response.History[len(response.History)-1]
+		h.broadcaster.BroadcastStatusUpdate(
+			c.Request.Context(),
+			response.Ticket.ID,
+			response.Ticket.Code,
+			string(latestHistory.OldStatus),
+			string(latestHistory.NewStatus),
+			latestHistory.ChangedBy,
+		)
+	}
 
 	c.JSON(http.StatusOK, response)
 }

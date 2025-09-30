@@ -26,6 +26,7 @@ import (
 	"selly-backend/internal/services/rag"
 	"selly-backend/internal/services/silpana"
 	"selly-backend/internal/services/training"
+	"selly-backend/internal/services/websocket"
 )
 
 func main() {
@@ -123,6 +124,10 @@ type Services struct {
 	RAG        *rag.RedisRAGService
 	Concurrent *concurrent.Service
 	Silpana    silpana.ServiceInterface
+
+	// Real-time Services
+	WebSocketHub        *websocket.Hub
+	SilpanaBroadcaster  *silpana.WebSocketBroadcaster
 
 	// Enhanced Services (Optimization Layer) - Placeholder interfaces
 	AI           interface{} // *ai.Service - To be implemented
@@ -317,6 +322,16 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	}
 	logrus.Info("🎫 SILPANA ticketing service initialized successfully")
 
+	// Initialize WebSocket hub for real-time features
+	logrus.Info("🔌 Initializing WebSocket hub...")
+	wsHub := websocket.NewHub(websocket.DefaultConfig())
+	go wsHub.Run() // Start hub in background goroutine
+	logrus.Info("🔌 WebSocket hub initialized and running")
+
+	// Create WebSocket broadcaster for SILPANA
+	silpanaBroadcaster := silpana.NewWebSocketBroadcaster(wsHub)
+	logrus.Info("📡 SILPANA WebSocket broadcaster initialized")
+
 	// Initialize Enhanced Services (Optimization Layer)
 	logrus.Info("🚀 Initializing enhanced services...")
 
@@ -370,6 +385,10 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		RAG:        ragService,
 		Concurrent: concurrentService,
 		Silpana:    silpanaService,
+
+		// Real-time Services
+		WebSocketHub:       wsHub,
+		SilpanaBroadcaster: silpanaBroadcaster,
 
 		// Enhanced Services (placeholders)
 		AI:           aiService,

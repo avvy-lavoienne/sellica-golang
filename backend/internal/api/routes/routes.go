@@ -18,15 +18,16 @@ import (
 
 // Services struct holds references to all application services
 type Services struct {
-	EventBus   eventbus.EventBusInterface
-	Database   *database.Service
-	Cache      *cache.Service
-	Auth       *auth.Service
-	Chat       *chat.Service
-	Monitoring *monitoring.Service
-	Training   *training.Service
-	Concurrent *concurrent.Service
-	Silpana    silpana.ServiceInterface
+	EventBus           eventbus.EventBusInterface
+	Database           *database.Service
+	Cache              *cache.Service
+	Auth               *auth.Service
+	Chat               *chat.Service
+	Monitoring         *monitoring.Service
+	Training           *training.Service
+	Concurrent         *concurrent.Service
+	Silpana            silpana.ServiceInterface
+	SilpanaBroadcaster *silpana.WebSocketBroadcaster
 }
 
 // SetupRoutes configures all API routes and middleware
@@ -80,7 +81,7 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	setupAuthRoutes(router, services.Auth, services.Database)
 
 	// SILPANA ticketing routes (public)
-	setupSilpanaRoutes(router, services.Silpana)
+	setupSilpanaRoutes(router, services.Silpana, services.SilpanaBroadcaster)
 
 	// Protected routes (require authentication)
 	protected := router.Group("/")
@@ -245,9 +246,9 @@ func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cach
 }
 
 // setupSilpanaRoutes configures SILPANA ticketing endpoints
-func setupSilpanaRoutes(router *gin.Engine, silpanaService silpana.ServiceInterface) {
-	// Create SILPANA handler
-	silpanaHandler := silpana.NewHandler(silpanaService)
+func setupSilpanaRoutes(router *gin.Engine, silpanaService silpana.ServiceInterface, broadcaster *silpana.WebSocketBroadcaster) {
+	// Create SILPANA handler with broadcaster
+	silpanaHandler := silpana.NewHandler(silpanaService, broadcaster)
 
 	// API group for SILPANA endpoints
 	api := router.Group("/api/v1/silpana")
