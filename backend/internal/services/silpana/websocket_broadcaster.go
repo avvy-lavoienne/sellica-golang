@@ -4,8 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"selly-backend/internal/services/websocket"
+
+	"github.com/sirupsen/logrus"
 )
 
 // WebSocketBroadcaster handles broadcasting ticket updates via WebSocket

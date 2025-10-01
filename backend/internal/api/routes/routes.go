@@ -1,7 +1,11 @@
 package routes
 
 import (
+	"log"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 
 	"selly-backend/internal/api/handlers"
 	"selly-backend/internal/api/middleware"
@@ -14,6 +18,7 @@ import (
 	"selly-backend/internal/services/monitoring"
 	"selly-backend/internal/services/silpana"
 	"selly-backend/internal/services/training"
+	ws "selly-backend/internal/services/websocket"
 )
 
 // Services struct holds references to all application services
@@ -82,6 +87,11 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 
 	// SILPANA ticketing routes (public)
 	setupSilpanaRoutes(router, services.Silpana, services.SilpanaBroadcaster)
+
+	// WebSocket routes (public)
+	if services.SilpanaBroadcaster != nil {
+		setupWebSocketRoutes(router, services.SilpanaBroadcaster)
+	}
 
 	// Protected routes (require authentication)
 	protected := router.Group("/")
@@ -267,3 +277,68 @@ func setupSilpanaRoutes(router *gin.Engine, silpanaService silpana.ServiceInterf
 		api.GET("/tickets/status/:status", silpanaHandler.GetTicketsByStatus) // GET /api/v1/silpana/tickets/status/:status - Get tickets by status
 	}
 }
+
+// setupWebSocketRoutes configures WebSocket endpoints for real-time updates
+func setupWebSocketRoutes(router *gin.Engine, broadcaster *silpana.WebSocketBroadcaster) {
+	// Get the hub from broadcaster
+	hub := broadcaster.GetHub()
+	if hub == nil {
+		return
+	}
+
+	// Create WebSocket handler
+	wsHandler := &WebSocketTicketHandler{
+		hub: hub,
+		upgrader: websocket.Upgrader{
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+			CheckOrigin: func(r *http.Request) bool {
+				// Allow all origins for now - should be restricted in production
+				return true
+			},
+		},
+	}
+
+	// WebSocket endpoint for ticket updates
+	router.GET("/ws/tickets", wsHandler.Handle)
+}
+
+// WebSocketTicketHandler handles WebSocket connections for ticket updates
+type WebSocketTicketHandler struct {
+	hub      *ws.Hub
+	upgrader websocket.Upgrader
+}
+
+// Handle handles WebSocket upgrade and registration
+func (h *WebSocketTicketHandler) Handle(c *gin.Context) {
+	// Extract user information from context (set by auth middleware)
+	userID, exists := c.Get("user_id")
+	if !exists {
+		// Allow anonymous connections for now
+		userID = "anonymous"
+	}
+
+	isAdmin := false
+	if role, exists := c.Get("role"); exists {
+		isAdmin = role == "admin"
+	}
+
+	// Upgrade HTTP connection to WebSocket
+	conn, err := h.upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		log.Printf("Failed to upgrade connection: %v", err)
+		return
+	}
+
+	// Create new client
+	client := ws.NewClient(h.hub, conn, userID.(string), isAdmin)
+
+	// The client will register itself and start pumps
+	go client.WritePump()
+	go client.ReadPump()
+
+	log.Printf("New WebSocket connection established for user: %s (admin: %v)", userID, isAdmin)
+}
+
+
+
