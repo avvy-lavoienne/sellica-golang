@@ -241,17 +241,18 @@ func setupPerformanceRoutes(router *gin.Engine, handler *handlers.PerformanceHan
 }
 
 // GetServices creates and returns the services struct for dependency injection
-func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service, silpanaService silpana.ServiceInterface) *Services {
+func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service, silpanaService silpana.ServiceInterface, silpanaBroadcaster *silpana.WebSocketBroadcaster) *Services {
 	return &Services{
-		EventBus:   eventBus,
-		Database:   db,
-		Cache:      cache,
-		Auth:       auth,
-		Chat:       chat,
-		Monitoring: monitoring,
-		Training:   training,
-		Concurrent: concurrent,
-		Silpana:    silpanaService,
+		EventBus:           eventBus,
+		Database:           db,
+		Cache:              cache,
+		Auth:               auth,
+		Chat:               chat,
+		Monitoring:         monitoring,
+		Training:           training,
+		Concurrent:         concurrent,
+		Silpana:            silpanaService,
+		SilpanaBroadcaster: silpanaBroadcaster,
 	}
 }
 
@@ -280,11 +281,15 @@ func setupSilpanaRoutes(router *gin.Engine, silpanaService silpana.ServiceInterf
 
 // setupWebSocketRoutes configures WebSocket endpoints for real-time updates
 func setupWebSocketRoutes(router *gin.Engine, broadcaster *silpana.WebSocketBroadcaster) {
+	log.Println("🔌 Setting up WebSocket routes...")
+	
 	// Get the hub from broadcaster
 	hub := broadcaster.GetHub()
 	if hub == nil {
+		log.Println("❌ WebSocket hub is nil, skipping WebSocket route setup")
 		return
 	}
+	log.Println("✅ WebSocket hub found, creating handler...")
 
 	// Create WebSocket handler
 	wsHandler := &WebSocketTicketHandler{
@@ -301,6 +306,8 @@ func setupWebSocketRoutes(router *gin.Engine, broadcaster *silpana.WebSocketBroa
 
 	// WebSocket endpoint for ticket updates
 	router.GET("/ws/tickets", wsHandler.Handle)
+	
+	log.Println("✅ WebSocket route registered at /ws/tickets")
 }
 
 // WebSocketTicketHandler handles WebSocket connections for ticket updates

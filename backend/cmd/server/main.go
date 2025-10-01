@@ -64,6 +64,7 @@ func main() {
 		services.Training,
 		services.Concurrent,
 		services.Silpana,
+		services.SilpanaBroadcaster,
 	)
 	routes.SetupRoutes(router, routeServices)
 

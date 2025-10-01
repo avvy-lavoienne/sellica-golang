@@ -387,6 +387,22 @@ Transform the existing SILPANA (Sistem Laporan Pengaduan Administratif) into a c
 - ✅ **Documentation**: Comprehensive implementation plan created
 - 🔄 **Frontend Development**: Starting WebSocket client integration
 
+### **🔧 PHASE 4 BUG FIX (October 1, 2025):**
+- ✅ **WebSocket Route Registration Issue**: Fixed missing broadcaster parameter
+  - **Root Cause**: `GetServices()` function not accepting `SilpanaBroadcaster` parameter
+  - **Solution**: Added broadcaster to function signature and updated main.go call
+  - **Files Modified**: 
+    - `backend/internal/api/routes/routes.go` - Added parameter to GetServices()
+    - `backend/cmd/server/main.go` - Updated call to pass SilpanaBroadcaster
+  - **Result**: ✅ Route `/ws/tickets` now registers successfully
+  - **Verification**: Server logs show:
+    ```
+    🔌 Setting up WebSocket routes...
+    ✅ WebSocket hub found, creating handler...
+    ✅ WebSocket route registered at /ws/tickets
+    [GIN-debug] GET /ws/tickets --> Handler (7 handlers)
+    ```
+
 ### **4.1 Real-time Updates System** - 🔄 **IN PROGRESS**
 
 #### **Backend WebSocket Infrastructure** ✅ **COMPLETE**
