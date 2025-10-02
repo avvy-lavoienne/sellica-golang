@@ -702,6 +702,7 @@ export default function SilpanaForm({
                           onValueChange={(value) => handleSelectChange("kategori_pengaduan", value)}
                         >
                           <SelectTrigger
+                            id="kategori_pengaduan"
                             className={cn(
                               "transition-all duration-200",
                               "focus:border-primary focus:ring-2 focus:ring-primary/20",
@@ -754,6 +755,7 @@ export default function SilpanaForm({
                             onValueChange={(value) => handleSelectChange("sub_kategori_pengaduan", value)}
                           >
                             <SelectTrigger
+                              id="sub_kategori_pengaduan"
                               className={cn(
                                 "transition-all duration-200",
                                 "focus:border-primary focus:ring-2 focus:ring-primary/20",
@@ -807,6 +809,7 @@ export default function SilpanaForm({
                         onValueChange={(value) => handleSelectChange("priority_level", value as PriorityLevel)}
                       >
                         <SelectTrigger
+                          id="priority_level"
                           className={cn(
                             "transition-all duration-200",
                             "focus:border-primary focus:ring-2 focus:ring-primary/20",

@@ -220,7 +220,11 @@ export default function EnhancedSilpanaPage() {
       if (!data.nama_pengaduan?.trim()) errors.nama_pengaduan = 'Nama pengadu harus diisi';
       if (!data.kategori_pengaduan?.trim()) errors.kategori_pengaduan = 'Kategori harus dipilih';
       if (!data.deskripsi_pengaduan?.trim()) errors.deskripsi_pengaduan = 'Deskripsi harus diisi';
-      if (!data.nomor_telepon?.trim()) errors.nomor_telepon = 'Nomor telepon harus diisi';
+      
+      // Only validate phone number if not anonymous
+      if (!data.is_anonymous && !data.nomor_telepon?.trim()) {
+        errors.nomor_telepon = 'Nomor telepon harus diisi';
+      }
 
       if (Object.keys(errors).length > 0) {
         setValidationErrors(errors);
@@ -435,7 +439,7 @@ export default function EnhancedSilpanaPage() {
               {/* Form Mode */}
               {activeMode === SilpanaMode.FORM && (
                 <motion.div
-                  key="form"
+                  key={SilpanaMode.FORM}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
@@ -465,7 +469,7 @@ export default function EnhancedSilpanaPage() {
               {/* Lookup Mode */}
               {activeMode === SilpanaMode.LOOKUP && (
                 <motion.div
-                  key="lookup"
+                  key={SilpanaMode.LOOKUP}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
@@ -491,7 +495,7 @@ export default function EnhancedSilpanaPage() {
               {/* Rekap Mode */}
               {activeMode === SilpanaMode.REKAP && (
                 <motion.div
-                  key="rekap"
+                  key={SilpanaMode.REKAP}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 1.05 }}

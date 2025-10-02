@@ -38,36 +38,33 @@ export function ConnectionStatus({
   };
 
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={statusText}
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        transition={{ duration: 0.2 }}
-        className={className}
+    <motion.div
+      key={statusText}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.2 }}
+      className={className}
+    >
+      <Badge
+        variant={getVariant()}
+        className={`
+          flex items-center gap-2
+          ${compact ? 'px-2 py-0.5 text-xs' : 'px-3 py-1'}
+          ${isConnected ? 'bg-green-500 text-white hover:bg-green-600' : ''}
+        `}
+        title={error ? `Error: ${error.message}` : undefined}
       >
-        <Badge
-          variant={getVariant()}
-          className={`
-            flex items-center gap-2
-            ${compact ? 'px-2 py-0.5 text-xs' : 'px-3 py-1'}
-            ${isConnected ? 'bg-green-500 text-white hover:bg-green-600' : ''}
-          `}
-          title={error ? `Error: ${error.message}` : undefined}
-        >
-          {showIcon && (
-            <motion.span
-              animate={isConnected ? { scale: [1, 1.2, 1] } : {}}
-              transition={{ duration: 1, repeat: isConnected ? Infinity : 0, repeatDelay: 2 }}
-            >
-              {statusIcon}
-            </motion.span>
-          )}
-          {showText && <span>{statusText}</span>}
-        </Badge>
-      </motion.div>
-    </AnimatePresence>
+        {showIcon && (
+          <motion.span
+            animate={isConnected ? { scale: [1, 1.2, 1] } : {}}
+            transition={{ duration: 1, repeat: isConnected ? Infinity : 0, repeatDelay: 2 }}
+          >
+            {statusIcon}
+          </motion.span>
+        )}
+        {showText && <span>{statusText}</span>}
+      </Badge>
+    </motion.div>
   );
 }
 

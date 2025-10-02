@@ -340,10 +340,13 @@ export default function SilpanaPage() {
       setSubmissionProgress(20);
       const errors: Record<string, string> = {};
 
-      if (!formData.nik_pengaduan.trim()) {
-        errors.nik_pengaduan = "NIK wajib diisi";
-      } else if (!/^\d{16}$/.test(formData.nik_pengaduan.replace(/\s+/g, ''))) {
-        errors.nik_pengaduan = "NIK harus 16 digit angka";
+      // Only validate NIK if not anonymous
+      if (!formData.is_anonymous) {
+        if (!formData.nik_pengaduan.trim()) {
+          errors.nik_pengaduan = "NIK wajib diisi";
+        } else if (!/^\d{16}$/.test(formData.nik_pengaduan.replace(/\s+/g, ''))) {
+          errors.nik_pengaduan = "NIK harus 16 digit angka";
+        }
       }
 
       if (!formData.nama_pengaduan.trim()) {
@@ -370,8 +373,8 @@ export default function SilpanaPage() {
         errors.deskripsi_pengaduan = "Deskripsi minimal 10 karakter";
       }
 
-      // Enhanced phone number validation
-      if (formData.nomor_telepon && !/^(\+62|62|0)\d{8,13}$/.test(formData.nomor_telepon.replace(/\s+/g, ''))) {
+      // Enhanced phone number validation - only if not anonymous
+      if (!formData.is_anonymous && formData.nomor_telepon && !/^(\+62|62|0)\d{8,13}$/.test(formData.nomor_telepon.replace(/\s+/g, ''))) {
         errors.nomor_telepon = "Format nomor telepon tidak valid (contoh: 081234567890)";
       }
 
@@ -390,14 +393,14 @@ export default function SilpanaPage() {
 
       const submissionData = {
         // Map to actual database column names from the schema
-        nik_pengaduan: formData.nik_pengaduan.replace(/\s+/g, ''),
+        nik_pengaduan: formData.is_anonymous ? '' : formData.nik_pengaduan.replace(/\s+/g, ''),
         nama_pengaduan: formData.nama_pengaduan.trim(),
         nama_pelapor: formData.nama_pengaduan.trim(), // This field also exists in DB
         kategori_pengaduan: formData.kategori_pengaduan,
         sub_kategori_pengaduan: formData.sub_kategori_pengaduan || 'Umum',
         alasan_pengaduan: formData.alasan_pengaduan.trim(),
         deskripsi_pengaduan: formData.deskripsi_pengaduan?.trim() || formData.alasan_pengaduan.trim(),
-        nomor_telepon: formData.nomor_telepon.replace(/\s+/g, ''),
+        nomor_telepon: formData.is_anonymous ? '' : formData.nomor_telepon.replace(/\s+/g, ''),
         tindak_lanjut_pengaduan: formData.tindak_lanjut_pengaduan || '',
         tanggal_pengaduan: formData.tanggal_pengaduan,
         is_anonymous: formData.is_anonymous || false,
@@ -894,7 +897,7 @@ export default function SilpanaPage() {
                 <AnimatePresence mode="wait">
                   {activeMode === SilpanaMode.FORM && (
                     <motion.div
-                      key="form"
+                      key={SilpanaMode.FORM}
                       initial={{ opacity: 0, y: 20, scale: 0.98 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -20, scale: 0.98 }}
@@ -935,7 +938,7 @@ export default function SilpanaPage() {
 
                   {activeMode === SilpanaMode.REKAP && (
                     <motion.div
-                      key="table"
+                      key={SilpanaMode.REKAP}
                       initial={{ opacity: 0, y: 20, scale: 0.98 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -20, scale: 0.98 }}
@@ -998,7 +1001,7 @@ export default function SilpanaPage() {
 
                   {activeMode === SilpanaMode.LOOKUP && (
                     <motion.div
-                      key="lookup"
+                      key={SilpanaMode.LOOKUP}
                       initial={{ opacity: 0, y: 20, scale: 0.98 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -20, scale: 0.98 }}
@@ -1016,7 +1019,7 @@ export default function SilpanaPage() {
 
                   {activeMode === SilpanaMode.ADMIN && (
                     <motion.div
-                      key="welcome"
+                      key={SilpanaMode.ADMIN}
                       initial={{ opacity: 0, y: 20, scale: 0.98 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -20, scale: 0.98 }}

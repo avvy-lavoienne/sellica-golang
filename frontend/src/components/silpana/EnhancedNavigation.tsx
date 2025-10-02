@@ -147,106 +147,104 @@ export default function EnhancedNavigation({
         role="tablist"
         aria-label="Navigation tabs"
       >
-        <AnimatePresence mode="wait">
-          {tabs.map((tab) => {
-            const isActive = tab.isActive;
-            const isDisabled = tab.isDisabled || !canNavigate(tab.id);
+        {tabs.map((tab) => {
+          const isActive = tab.isActive;
+          const isDisabled = tab.isDisabled || !canNavigate(tab.id);
 
-            return (
-              <Tooltip key={tab.id}>
-                <TooltipTrigger asChild>
-                  <motion.div
-                    variants={tabVariants}
-                    animate={isActive ? 'active' : 'inactive'}
-                    whileHover={!isDisabled ? 'hover' : 'inactive'}
-                    className="relative"
+          return (
+            <Tooltip key={tab.id}>
+              <TooltipTrigger asChild>
+                <motion.div
+                  variants={tabVariants}
+                  animate={isActive ? 'active' : 'inactive'}
+                  whileHover={!isDisabled ? 'hover' : 'inactive'}
+                  className="relative"
+                >
+                  {/* Glow effect for active tab */}
+                  {isActive && (
+                    <motion.div
+                      className="absolute inset-0 rounded-xl"
+                      variants={glowVariants}
+                      animate="active"
+                      initial="inactive"
+                    />
+                  )}
+                  
+                  <Button
+                    variant="ghost"
+                    size={variant === 'compact' ? 'sm' : 'default'}
+                    className={getTabStyles(tab.id, isActive)}
+                    onClick={() => handleTabClick(tab.id)}
+                    onKeyDown={(e) => handleKeyDown(e, tab.id)}
+                    disabled={isDisabled}
+                    data-mode={tab.id}
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-controls={`panel-${tab.id}`}
+                    tabIndex={isActive ? 0 : -1}
                   >
-                    {/* Glow effect for active tab */}
-                    {isActive && (
-                      <motion.div
-                        className="absolute inset-0 rounded-xl"
-                        variants={glowVariants}
-                        animate="active"
-                        initial="inactive"
-                      />
+                    {/* Icon */}
+                    <span 
+                      className="text-lg"
+                      role="img"
+                      aria-hidden="true"
+                    >
+                      {tab.icon}
+                    </span>
+                    
+                    {/* Label */}
+                    {variant !== 'compact' && (
+                      <span className="truncate">
+                        {tab.label}
+                      </span>
                     )}
                     
-                    <Button
-                      variant="ghost"
-                      size={variant === 'compact' ? 'sm' : 'default'}
-                      className={getTabStyles(tab.id, isActive)}
-                      onClick={() => handleTabClick(tab.id)}
-                      onKeyDown={(e) => handleKeyDown(e, tab.id)}
-                      disabled={isDisabled}
-                      data-mode={tab.id}
-                      role="tab"
-                      aria-selected={isActive}
-                      aria-controls={`panel-${tab.id}`}
-                      tabIndex={isActive ? 0 : -1}
-                    >
-                      {/* Icon */}
-                      <span 
-                        className="text-lg"
-                        role="img"
-                        aria-hidden="true"
+                    {/* Keyboard shortcut hint */}
+                    {showKeyboardHints && tab.keyboardShortcut && !isActive && (
+                      <Badge 
+                        variant="secondary" 
+                        className="ml-2 text-xs px-1.5 py-0.5 opacity-60 group-hover:opacity-100 transition-opacity"
                       >
-                        {tab.icon}
-                      </span>
-                      
-                      {/* Label */}
-                      {variant !== 'compact' && (
-                        <span className="truncate">
-                          {tab.label}
-                        </span>
-                      )}
-                      
-                      {/* Keyboard shortcut hint */}
-                      {showKeyboardHints && tab.keyboardShortcut && !isActive && (
-                        <Badge 
-                          variant="secondary" 
-                          className="ml-2 text-xs px-1.5 py-0.5 opacity-60 group-hover:opacity-100 transition-opacity"
-                        >
-                          Ctrl+Shift+{tab.keyboardShortcut}
-                        </Badge>
-                      )}
-                      
-                      {/* Active indicator */}
-                      {isActive && (
-                        <motion.div
-                          className="absolute bottom-0 left-1/2 w-8 h-0.5 bg-white rounded-full"
-                          layoutId="activeIndicator"
-                          initial={false}
-                          transition={{
-                            type: 'spring',
-                            stiffness: 500,
-                            damping: 30
-                          }}
-                          style={{ x: '-50%' }}
-                        />
-                      )}
-                    </Button>
-                  </motion.div>
-                </TooltipTrigger>
-                
-                <TooltipContent 
-                  side="bottom" 
-                  className="max-w-xs text-center"
-                  sideOffset={8}
-                >
-                  <div className="space-y-1">
-                    <p className="font-medium">{tab.label}</p>
-                    <p className="text-xs text-muted-foreground">{tab.description}</p>
-                    {showKeyboardHints && tab.keyboardShortcut && (
-                      <p className="text-xs font-mono bg-muted px-1 py-0.5 rounded">
                         Ctrl+Shift+{tab.keyboardShortcut}
-                      </p>
+                      </Badge>
                     )}
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            );
-          })}
-        </AnimatePresence>
+                    
+                    {/* Active indicator */}
+                    {isActive && (
+                      <motion.div
+                        className="absolute bottom-0 left-1/2 w-8 h-0.5 bg-white rounded-full"
+                        layoutId="activeIndicator"
+                        initial={false}
+                        transition={{
+                          type: 'spring',
+                          stiffness: 500,
+                          damping: 30
+                        }}
+                        style={{ x: '-50%' }}
+                      />
+                    )}
+                  </Button>
+                </motion.div>
+              </TooltipTrigger>
+              
+              <TooltipContent 
+                side="bottom" 
+                className="max-w-xs text-center"
+                sideOffset={8}
+              >
+                <div className="space-y-1">
+                  <p className="font-medium">{tab.label}</p>
+                  <p className="text-xs text-muted-foreground">{tab.description}</p>
+                  {showKeyboardHints && tab.keyboardShortcut && (
+                    <p className="text-xs font-mono bg-muted px-1 py-0.5 rounded">
+                      Ctrl+Shift+{tab.keyboardShortcut}
+                    </p>
+                  )}
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          );
+        })}
         
         {/* Transition indicator */}
         {isTransitioning && (

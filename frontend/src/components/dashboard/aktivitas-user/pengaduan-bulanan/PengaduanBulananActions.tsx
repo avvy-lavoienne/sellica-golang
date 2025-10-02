@@ -672,7 +672,10 @@ function PengaduanBulananActions({
                               );
                             }}
                           >
-                            <SelectTrigger className="w-[180px] transition-all duration-200 focus:ring-2 focus:ring-primary/20">
+                            <SelectTrigger 
+                              id="filter-type"
+                              className="w-[180px] transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                            >
                               <SelectValue placeholder="Filter by" />
                             </SelectTrigger>
                             <SelectContent>
