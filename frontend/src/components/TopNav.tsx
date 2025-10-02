@@ -25,6 +25,7 @@ import { toast } from "react-toastify";
 import { cn } from "@/lib/conn/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import SilpanaGuestAccess from "@/components/silpana/SilpanaGuestAccess";
 // Separator component will be created inline if needed
 import {
   Tooltip,
@@ -314,6 +315,9 @@ export default function TopNav({
             </div>
 
             <div className="flex items-center gap-2 laptop:gap-4">
+              {/* SILPANA Guest Access */}
+              <SilpanaGuestAccess showInNavbar={true} />
+
               {/* Enhanced Theme toggle */}
               <Tooltip>
                 <TooltipTrigger asChild>

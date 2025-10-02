@@ -197,12 +197,7 @@ export default function EnhancedSilpanaPage() {
     setActiveMode(mode);
     setError(null);
     setValidationErrors({});
-    
-    // Auto-fetch data when switching to rekap mode
-    if (mode === SilpanaMode.REKAP && rekapData.length === 0) {
-      fetchRekapData(1, searchQuery, startDate, endDate, filterBy);
-    }
-  }, [activeMode, rekapData.length, searchQuery, startDate, endDate, filterBy, fetchRekapData]);
+  }, [activeMode]);
 
   // Enhanced Form Submission with Progress Tracking
   const handleSubmit = useCallback(async (data: SilpanaFormData) => {
@@ -329,13 +324,6 @@ export default function EnhancedSilpanaPage() {
     }
   }, []);
 
-  // Data fetching effects
-  useEffect(() => {
-    if (activeMode === SilpanaMode.REKAP) {
-      fetchRekapData(currentPage, debouncedSearchQuery, debouncedStartDate, debouncedEndDate, filterBy);
-    }
-  }, [activeMode, currentPage, debouncedSearchQuery, debouncedStartDate, debouncedEndDate, filterBy, fetchRekapData]);
-
   // Page header configuration
   const headerProps = useMemo(() => ({
     title: 'SILPANA',
@@ -348,8 +336,7 @@ export default function EnhancedSilpanaPage() {
     badges: [
       { 
         label: activeMode === SilpanaMode.FORM ? 'Mode Pengaduan' : 
-              activeMode === SilpanaMode.LOOKUP ? 'Mode Pencarian' : 
-              activeMode === SilpanaMode.REKAP ? 'Mode Rekapitulasi' : 'Mode Admin',
+              activeMode === SilpanaMode.LOOKUP ? 'Mode Pencarian' : 'Mode',
         variant: 'outline' as const
       }
     ],
@@ -424,6 +411,7 @@ export default function EnhancedSilpanaPage() {
             <EnhancedNavigation
               onModeChange={handleModeChange}
               showKeyboardHints={true}
+              allowedModes={[SilpanaMode.FORM, SilpanaMode.LOOKUP]}
               className="mb-8"
             />
           </Suspense>
@@ -489,66 +477,6 @@ export default function EnhancedSilpanaPage() {
                       />
                     </CardContent>
                   </Card>
-                </motion.div>
-              )}
-
-              {/* Rekap Mode */}
-              {activeMode === SilpanaMode.REKAP && (
-                <motion.div
-                  key={SilpanaMode.REKAP}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 1.05 }}
-                  transition={{ duration: shouldAnimate ? 0.3 : 0 }}
-                  className="space-y-6"
-                >
-                  {rekapData.length > 0 ? (
-                    <Card className="overflow-hidden border-0 shadow-lg bg-white/80 backdrop-blur-sm dark:bg-gray-900/80">
-                      <CardContent className="p-0">
-                        <MemoizedSilpanaTable
-                          rekapData={rekapData}
-                          totalCount={totalCount}
-                          currentPage={currentPage}
-                          loading={isTableLoading}
-                          onPageChange={setCurrentPage}
-                          onSearch={(query) => setSearchQuery(query)}
-                          onRefresh={() => fetchRekapData(currentPage, searchQuery, startDate, endDate, filterBy)}
-                          onEdit={(data) => {
-                            setEditData(data);
-                            setIsEditing(true);
-                            handleModeChange(SilpanaMode.FORM);
-                          }}
-                          onDelete={async (id) => {
-                            try {
-                              const { error } = await supabase
-                                .from('silpana')
-                                .delete()
-                                .eq('id', id);
-                              
-                              if (error) throw error;
-                              toast.success('Data berhasil dihapus');
-                              fetchRekapData(currentPage, searchQuery, startDate, endDate, filterBy);
-                            } catch (error) {
-                              toast.error('Gagal menghapus data');
-                            }
-                          }}
-                          userRole="user"
-                        />
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    <Card className="overflow-hidden border-0 shadow-lg bg-white/80 backdrop-blur-sm dark:bg-gray-900/80">
-                      <CardContent className="p-8">
-                        {isTableLoading ? (
-                          <LoadingState />
-                        ) : (
-                          <MemoizedEmptyState
-                            onAddNew={() => handleModeChange(SilpanaMode.FORM)}
-                          />
-                        )}
-                      </CardContent>
-                    </Card>
-                  )}
                 </motion.div>
               )}
             </AnimatePresence>

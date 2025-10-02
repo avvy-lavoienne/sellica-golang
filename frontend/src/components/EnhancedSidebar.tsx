@@ -23,6 +23,9 @@ import {
   MoonIcon,
   Cog6ToothIcon,
   ClipboardDocumentListIcon,
+  MegaphoneIcon,
+  TicketIcon,
+  EyeIcon,
 } from "@heroicons/react/24/solid"
 import Image from "next/image"
 import { supabase } from "@/lib/conn/supabaseClient"
@@ -157,6 +160,31 @@ const categories: Category[] = [
         href: "/data-rekam/pengajuan-bulanan",
         icon: DocumentPlusIcon,
         description: "Monthly submission reports"
+      },
+    ],
+  },
+  {
+    name: "Sistem Layanan Pengaduan (SILPANA)",
+    icon: MegaphoneIcon,
+    description: "Public complaint management system",
+    subCategories: [
+      {
+        name: "Admin Dashboard",
+        href: "/silpana/admin",
+        icon: Cog6ToothIcon,
+        description: "Administrative interface for managing complaints"
+      },
+      {
+        name: "View All Complaints",
+        href: "/silpana/complaints",
+        icon: EyeIcon,
+        description: "View and manage all submitted complaints"
+      },
+      {
+        name: "Guest Interface",
+        href: "/silpana",
+        icon: TicketIcon,
+        description: "Public complaint submission interface"
       },
     ],
   },

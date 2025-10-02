@@ -305,26 +305,6 @@ export default function SilpanaPage() {
     [fetchRekapData],
   );
 
-  useEffect(() => {
-    if (activeMode === SilpanaMode.REKAP) {
-      memoizedFetchRekapData(
-        currentPage,
-        debouncedSearchQuery,
-        debouncedStartDate,
-        debouncedEndDate,
-        debouncedFilterBy,
-      ).then(({ totalCount }) => setTotalCount(totalCount));
-    }
-  }, [
-    currentPage,
-    activeMode,
-    debouncedSearchQuery,
-    debouncedStartDate,
-    debouncedEndDate,
-    debouncedFilterBy,
-    memoizedFetchRekapData,
-  ]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -543,10 +523,6 @@ export default function SilpanaPage() {
       setEditData(null);
     }
   }, []);
-
-  const handleRekapitulasi = useCallback(() => {
-    handleModeChange(SilpanaMode.REKAP);
-  }, [handleModeChange]);
 
   const handleTicketLookup = useCallback(() => {
     handleModeChange(SilpanaMode.LOOKUP);
@@ -865,32 +841,10 @@ export default function SilpanaPage() {
                 <EnhancedNavigation
                   onModeChange={handleModeChange}
                   showKeyboardHints={true}
+                  allowedModes={[SilpanaMode.FORM, SilpanaMode.LOOKUP]}
                   className="mb-8"
                 />
               </Suspense>
-
-              {/* Legacy SilpanaActions for filtering - only show when in rekap mode */}
-              {activeMode === SilpanaMode.REKAP && (
-                <SilpanaActions
-                  onAjukan={handleAjukan}
-                  onRekapitulasi={handleRekapitulasi}
-                  onTicketLookup={handleTicketLookup}
-                  activeMode="table"
-                  onDateRangeChange={(start, end, filterField) => {
-                    setStartDate(start);
-                    setEndDate(end);
-                    setFilterBy(filterField);
-                    setCurrentPage(1);
-                  }}
-                  onResetFilters={handleRefresh}
-                  onSearch={handleSearch}
-                  searchQuery={searchQuery}
-                  loading={loading || isTableLoading}
-                  totalItems={pageStats.totalItems}
-                  filteredItems={pageStats.filteredItems}
-                  onRefresh={handleRefresh}
-                />
-              )}
 
               {/* Enhanced Content Section with mode-based rendering */}
               <div className="mt-8 space-y-6">
@@ -936,69 +890,6 @@ export default function SilpanaPage() {
                     </motion.div>
                   )}
 
-                  {activeMode === SilpanaMode.REKAP && (
-                    <motion.div
-                      key={SilpanaMode.REKAP}
-                      initial={{ opacity: 0, y: 20, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -20, scale: 0.98 }}
-                      transition={{
-                        duration: shouldAnimate ? 0.4 : 0,
-                        ease: "easeOut",
-                      }}
-                      className="space-y-4"
-                    >
-                      {isTableLoading ? (
-                        <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          className="relative overflow-hidden rounded-xl border border-border/50 bg-background/60 shadow-sm backdrop-blur-sm"
-                        >
-                          <div className="p-8">
-                            <LoadingState />
-                          </div>
-                        </motion.div>
-                      ) : rekapData.length > 0 ? (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{
-                            duration: shouldAnimate ? 0.3 : 0,
-                            delay: 0.1,
-                          }}
-                        >
-                          <SilpanaTable {...memoizedTableProps} />
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: shouldAnimate ? 0.3 : 0 }}
-                          className="relative overflow-hidden rounded-xl border border-border/50 bg-background/60 shadow-sm backdrop-blur-sm"
-                        >
-                          {/* Background decoration for empty state */}
-                          <div className="absolute inset-0 opacity-30">
-                            <div
-                              className={cn(
-                                "absolute -bottom-6 -left-6 h-24 w-24 rounded-full blur-2xl",
-                                colorSchemes.green.bgClass,
-                                "opacity-40",
-                              )}
-                            />
-                          </div>
-
-                          <div className="relative z-10 p-8">
-                            <EmptyState
-                              onAddNew={() => {
-                                handleModeChange(SilpanaMode.FORM);
-                              }}
-                            />
-                          </div>
-                        </motion.div>
-                      )}
-                    </motion.div>
-                  )}
-
                   {activeMode === SilpanaMode.LOOKUP && (
                     <motion.div
                       key={SilpanaMode.LOOKUP}
@@ -1014,46 +905,6 @@ export default function SilpanaPage() {
                         onTicketFound={handleTicketFound}
                         onError={handleLookupError}
                       />
-                    </motion.div>
-                  )}
-
-                  {activeMode === SilpanaMode.ADMIN && (
-                    <motion.div
-                      key={SilpanaMode.ADMIN}
-                      initial={{ opacity: 0, y: 20, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -20, scale: 0.98 }}
-                      transition={{
-                        duration: shouldAnimate ? 0.4 : 0,
-                        ease: "easeOut",
-                      }}
-                      className="relative overflow-hidden rounded-xl border border-border/50 bg-background/60 shadow-sm backdrop-blur-sm"
-                    >
-                      {/* Background decoration for welcome state */}
-                      <div className="absolute inset-0 opacity-30">
-                        <div
-                          className={cn(
-                            "absolute -right-8 -top-8 h-32 w-32 rounded-full blur-3xl",
-                            colorSchemes.primary.bgClass,
-                            "opacity-40",
-                          )}
-                        />
-                        <div
-                          className={cn(
-                            "absolute bottom-1/4 left-1/4 h-24 w-24 rounded-full blur-2xl",
-                            colorSchemes.blue.bgClass,
-                            "opacity-30",
-                          )}
-                        />
-                      </div>
-
-                      <div className="relative z-10 p-8">
-                        <EmptyState
-                          onAddNew={() => {
-                            handleModeChange(SilpanaMode.FORM);
-                          }}
-                        />
-                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>

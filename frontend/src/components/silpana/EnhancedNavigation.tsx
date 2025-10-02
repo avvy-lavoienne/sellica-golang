@@ -13,6 +13,7 @@ interface EnhancedNavigationProps {
   className?: string;
   variant?: 'default' | 'compact' | 'mobile';
   showKeyboardHints?: boolean;
+  allowedModes?: SilpanaMode[]; // Restrict available modes for guest vs admin
   onModeChange?: (mode: SilpanaMode) => void;
 }
 
@@ -65,6 +66,7 @@ export default function EnhancedNavigation({
   className,
   variant = 'default',
   showKeyboardHints = true,
+  allowedModes,
   onModeChange
 }: EnhancedNavigationProps) {
   const {
@@ -77,6 +79,7 @@ export default function EnhancedNavigation({
   } = useEnhancedNavigation({
     enableKeyboardShortcuts: true,
     enableUrlSync: true,
+    allowedModes,
     onModeChange
   });
 
