@@ -216,3 +216,12 @@ grafana/data/
 # Local development
 .local/
 local/
+
+#templates
+templates/*
+
+# Template-specific patterns (from templates/.gitignore)
+templates/*/dist/
+templates/*/node_modules/
+templates/*/*.tsbuildinfo
+templates/*/yarn-error.log
