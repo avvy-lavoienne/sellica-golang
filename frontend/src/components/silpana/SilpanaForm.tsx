@@ -63,7 +63,74 @@ import {
   Eye,
   EyeOff,
   ListFilter,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
+
+// ============================================================================
+// VALIDATION UTILITIES
+// ============================================================================
+
+/**
+ * Validates NIK (Nomor Induk Kependudukan) - Indonesian National ID
+ * @param nik - The NIK string to validate
+ * @returns true if valid, error message string if invalid
+ */
+const validateNIK = (nik: string): string | true => {
+  if (!nik || nik.trim() === '') return 'NIK wajib diisi';
+  const cleanedNIK = nik.replace(/\D/g, '');
+  if (cleanedNIK.length !== 16) return 'NIK harus 16 digit';
+  if (!/^\d+$/.test(cleanedNIK)) return 'NIK hanya boleh berisi angka';
+  return true;
+};
+
+/**
+ * Validates Indonesian phone number
+ * @param phone - The phone number to validate
+ * @returns true if valid, error message string if invalid
+ */
+const validatePhone = (phone: string): string | true => {
+  if (!phone || phone.trim() === '') return 'Nomor telepon wajib diisi';
+  const cleanedPhone = phone.replace(/\D/g, '');
+  // Indonesian phone numbers: 08xxxxxxxxxx or +628xxxxxxxxxx or 628xxxxxxxxxx
+  const phoneRegex = /^(\+?62|0)[8][1-9][0-9]{6,9}$/;
+  if (!phoneRegex.test(cleanedPhone.startsWith('+') ? phone : cleanedPhone)) {
+    return 'Format: 08xxxxxxxxxx atau +628xxxxxxxxxx';
+  }
+  return true;
+};
+
+/**
+ * Formats NIK with dashes for better readability
+ * @param nik - The NIK to format
+ * @returns Formatted NIK (e.g., 1234-5678-9012-3456)
+ */
+const formatNIK = (nik: string): string => {
+  const cleaned = nik.replace(/\D/g, '');
+  const match = cleaned.match(/(\d{0,4})(\d{0,4})(\d{0,4})(\d{0,4})/);
+  if (match) {
+    return [match[1], match[2], match[3], match[4]].filter(Boolean).join('-');
+  }
+  return cleaned;
+};
+
+/**
+ * Formats phone number to Indonesian standard
+ * @param phone - The phone number to format
+ * @returns Cleaned phone number
+ */
+const formatPhone = (phone: string): string => {
+  let cleaned = phone.replace(/\D/g, '');
+  // Convert 62xxx to 0xxx for display
+  if (cleaned.startsWith('62')) {
+    cleaned = '0' + cleaned.substring(2);
+  }
+  return cleaned;
+};
+
+// ============================================================================
+// COMPONENT INTERFACES
+// ============================================================================
 
 // Enhanced interface with enterprise-grade features
 interface SilpanaFormProps {
@@ -101,6 +168,22 @@ interface SilpanaFormProps {
   showProgress?: boolean;
   /** Submission progress for loading states */
   submissionProgress?: number;
+  /** Enable multi-step wizard mode */
+  enableMultiStep?: boolean;
+}
+
+// ============================================================================
+// MULTI-STEP WIZARD CONFIGURATION
+// ============================================================================
+
+type FormStep = 'submission-type' | 'personal-info' | 'complaint-category' | 'complaint-details' | 'review';
+
+interface StepConfig {
+  id: FormStep;
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  estimatedTime: string;
 }
 
 export default function SilpanaForm({
@@ -121,6 +204,7 @@ export default function SilpanaForm({
   success = false,
   showProgress = true,
   submissionProgress = 0,
+  enableMultiStep = true,
 }: SilpanaFormProps) {
   // Enhanced state management for enterprise UX
   const [activeSection, setActiveSection] = useState<string>("basic");
@@ -132,6 +216,11 @@ export default function SilpanaForm({
     "idle" | "saving" | "saved"
   >("idle");
   const [formProgress, setFormProgress] = useState(0);
+  
+  // Multi-step wizard state
+  const [currentStep, setCurrentStep] = useState<FormStep>('submission-type');
+  const [completedSteps, setCompletedSteps] = useState<Set<FormStep>>(new Set());
+  const [visitedSteps, setVisitedSteps] = useState<Set<FormStep>>(new Set(['submission-type']));
 
   // Refs for enhanced functionality
   const formRef = useRef<HTMLFormElement>(null);
@@ -194,6 +283,136 @@ export default function SilpanaForm({
     return [];
   }, []);
 
+  // Multi-step wizard configuration
+  const formSteps: StepConfig[] = useMemo(() => [
+    {
+      id: 'submission-type',
+      title: 'Tipe Pengajuan',
+      description: 'Pilih cara mengajukan',
+      icon: Shield,
+      estimatedTime: '30 detik',
+    },
+    {
+      id: 'personal-info',
+      title: 'Informasi Pribadi',
+      description: 'Data diri pengadu',
+      icon: User,
+      estimatedTime: '1 menit',
+    },
+    {
+      id: 'complaint-category',
+      title: 'Kategori Pengaduan',
+      description: 'Klasifikasi pengaduan',
+      icon: ListFilter,
+      estimatedTime: '1 menit',
+    },
+    {
+      id: 'complaint-details',
+      title: 'Detail Pengaduan',
+      description: 'Rincian lengkap',
+      icon: MessageSquare,
+      estimatedTime: '2 menit',
+    },
+    {
+      id: 'review',
+      title: 'Tinjau & Kirim',
+      description: 'Periksa kembali',
+      icon: CheckCircle,
+      estimatedTime: '30 detik',
+    },
+  ], []);
+
+  // Get required fields for each step
+  const getStepFields = useCallback((stepId: FormStep): string[] => {
+    switch (stepId) {
+      case 'submission-type':
+        return ['is_anonymous'];
+      case 'personal-info':
+        return formData.is_anonymous 
+          ? ['nama_pengaduan'] 
+          : ['nik_pengaduan', 'nama_pengaduan', 'nomor_telepon'];
+      case 'complaint-category':
+        return ['kategori_pengaduan', 'sub_kategori_pengaduan'];
+      case 'complaint-details':
+        return ['alasan_pengaduan', 'deskripsi_pengaduan', 'tanggal_pengaduan'];
+      case 'review':
+        return [];
+      default:
+        return [];
+    }
+  }, [formData.is_anonymous]);
+
+  // Check if a step is complete
+  const isStepComplete = useCallback((stepId: FormStep): boolean => {
+    const requiredFields = getStepFields(stepId);
+    if (requiredFields.length === 0) return true; // No required fields = always complete
+    
+    return requiredFields.every(field => {
+      const value = formData[field as keyof SilpanaFormData];
+      if (typeof value === 'boolean') return true; // Boolean fields are always valid
+      return value !== undefined && value !== null && value.toString().trim() !== '';
+    });
+  }, [formData, getStepFields]);
+
+  // Check if current step is valid (can proceed)
+  const canProceedToNextStep = useCallback((): boolean => {
+    const currentStepFields = getStepFields(currentStep);
+    
+    // Check if all required fields are filled
+    const allFieldsFilled = currentStepFields.every(field => {
+      const value = formData[field as keyof SilpanaFormData];
+      if (typeof value === 'boolean') return true;
+      return value !== undefined && value !== null && value.toString().trim() !== '';
+    });
+    
+    // Check if there are validation errors for current step fields
+    const hasValidationErrors = currentStepFields.some(field => 
+      fieldErrors[field] !== undefined
+    );
+    
+    return allFieldsFilled && !hasValidationErrors;
+  }, [currentStep, formData, fieldErrors, getStepFields]);
+
+  // Get current step index
+  const getCurrentStepIndex = useCallback(() => {
+    return formSteps.findIndex(step => step.id === currentStep);
+  }, [currentStep, formSteps]);
+
+  // Navigate to next step
+  const goToNextStep = useCallback(() => {
+    const currentIndex = getCurrentStepIndex();
+    if (currentIndex < formSteps.length - 1 && canProceedToNextStep()) {
+      const nextStep = formSteps[currentIndex + 1].id;
+      setCompletedSteps(prev => new Set([...prev, currentStep]));
+      setCurrentStep(nextStep);
+      setVisitedSteps(prev => new Set([...prev, nextStep]));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [currentStep, formSteps, getCurrentStepIndex, canProceedToNextStep]);
+
+  // Navigate to previous step
+  const goToPreviousStep = useCallback(() => {
+    const currentIndex = getCurrentStepIndex();
+    if (currentIndex > 0) {
+      const prevStep = formSteps[currentIndex - 1].id;
+      setCurrentStep(prevStep);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [getCurrentStepIndex, formSteps]);
+
+  // Navigate to specific step (only if already visited or next step is valid)
+  const goToStep = useCallback((stepId: FormStep) => {
+    const targetIndex = formSteps.findIndex(s => s.id === stepId);
+    const currentIndex = getCurrentStepIndex();
+    
+    // Can go to any visited step, or next step if current is complete
+    if (visitedSteps.has(stepId) || (targetIndex === currentIndex + 1 && canProceedToNextStep())) {
+      setCurrentStep(stepId);
+      setVisitedSteps(prev => new Set([...prev, stepId]));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [formSteps, getCurrentStepIndex, visitedSteps, canProceedToNextStep]);
+
   // Form validation and progress calculation
   const formValidation = useMemo(() => {
     const requiredFields = formData.is_anonymous 
@@ -215,23 +434,101 @@ export default function SilpanaForm({
           "nomor_telepon",
           "tanggal_pengaduan",
         ];
+    
     const filledFields = requiredFields.filter((field) =>
       formData[field as keyof SilpanaFormData]?.toString().trim(),
     );
     const progress = (filledFields.length / requiredFields.length) * 100;
 
+    // Enhanced validation with detailed error messages
+    const validationErrors: Record<string, string> = {};
+    
+    // NIK validation (only if not anonymous and field is touched)
+    if (!formData.is_anonymous && touchedFields.has('nik_pengaduan')) {
+      const nikValidation = validateNIK(formData.nik_pengaduan || '');
+      if (nikValidation !== true) {
+        validationErrors.nik_pengaduan = nikValidation;
+      }
+    }
+    
+    // Phone validation (only if not anonymous and field is touched)
+    if (!formData.is_anonymous && touchedFields.has('nomor_telepon')) {
+      const phoneValidation = validatePhone(formData.nomor_telepon || '');
+      if (phoneValidation !== true) {
+        validationErrors.nomor_telepon = phoneValidation;
+      }
+    }
+
+    // Name validation
+    if (touchedFields.has('nama_pengaduan') && !formData.nama_pengaduan?.trim()) {
+      validationErrors.nama_pengaduan = 'Nama pengaduan wajib diisi';
+    }
+
+    // Category validation
+    if (touchedFields.has('kategori_pengaduan') && !formData.kategori_pengaduan) {
+      validationErrors.kategori_pengaduan = 'Kategori pengaduan wajib dipilih';
+    }
+
+    // Sub-category validation
+    if (touchedFields.has('sub_kategori_pengaduan') && !formData.sub_kategori_pengaduan) {
+      validationErrors.sub_kategori_pengaduan = 'Sub kategori pengaduan wajib dipilih';
+    }
+
+    // Reason validation
+    if (touchedFields.has('alasan_pengaduan') && !formData.alasan_pengaduan?.trim()) {
+      validationErrors.alasan_pengaduan = 'Alasan pengaduan wajib diisi';
+    }
+
+    // Description validation with minimum length
+    if (touchedFields.has('deskripsi_pengaduan')) {
+      if (!formData.deskripsi_pengaduan?.trim()) {
+        validationErrors.deskripsi_pengaduan = 'Deskripsi pengaduan wajib diisi';
+      } else if (formData.deskripsi_pengaduan.length < 20) {
+        validationErrors.deskripsi_pengaduan = 'Deskripsi minimal 20 karakter';
+      }
+    }
+
+    // Date validation
+    if (touchedFields.has('tanggal_pengaduan') && !formData.tanggal_pengaduan) {
+      validationErrors.tanggal_pengaduan = 'Tanggal pengajuan wajib diisi';
+    }
+
+    const hasErrors = Object.keys(validationErrors).length > 0;
+    const allFieldsFilled = filledFields.length === requiredFields.length;
+
     return {
-      isValid: filledFields.length === requiredFields.length,
+      isValid: allFieldsFilled && !hasErrors,
       progress,
       filledFields: filledFields.length,
       totalFields: requiredFields.length,
+      errors: validationErrors,
+      hasErrors,
     };
-  }, [formData]);
+  }, [formData, touchedFields]);
 
-  // Update progress
+  // Update progress and sync validation errors
   useEffect(() => {
     setFormProgress(formValidation.progress);
-  }, [formValidation.progress]);
+    // Sync validation errors to field errors state
+    if (formValidation.hasErrors) {
+      setFieldErrors(prev => ({ ...prev, ...formValidation.errors }));
+    }
+  }, [formValidation.progress, formValidation.errors, formValidation.hasErrors]);
+
+  // Set smart defaults on mount
+  useEffect(() => {
+    if (!isEditing) {
+      // Set today's date as default
+      if (!formData.tanggal_pengaduan) {
+        const today = new Date().toISOString().split('T')[0];
+        setFormData(prev => ({ ...prev, tanggal_pengaduan: today }));
+      }
+      // Set medium priority as default
+      if (!formData.priority_level) {
+        setFormData(prev => ({ ...prev, priority_level: 'medium' as PriorityLevel }));
+      }
+    }
+  }, [isEditing, formData.tanggal_pengaduan, formData.priority_level, setFormData]);
 
   // Merge external errors with field errors
   useEffect(() => {
@@ -249,18 +546,29 @@ export default function SilpanaForm({
     }
   }, [errors]);
 
-  // Enhanced input change handler with validation
+  // Enhanced input change handler with validation and auto-formatting
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const { name, value } = e.target;
 
-      // Update form data
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      // Apply smart formatting for specific fields
+      let formattedValue = value;
+      
+      if (name === 'nik_pengaduan') {
+        // Remove non-digits and limit to 16 characters
+        formattedValue = value.replace(/\D/g, '').slice(0, 16);
+      } else if (name === 'nomor_telepon') {
+        // Format phone number
+        formattedValue = formatPhone(value);
+      }
 
-      // Mark field as touched
+      // Update form data with formatted value
+      setFormData((prev) => ({ ...prev, [name]: formattedValue }));
+
+      // Mark field as touched for validation
       setTouchedFields((prev) => new Set([...prev, name]));
 
-      // Clear field error when user starts typing
+      // Clear specific field error when user starts typing
       if (fieldErrors[name]) {
         setFieldErrors((prev) => {
           const newErrors = { ...prev };
@@ -269,11 +577,11 @@ export default function SilpanaForm({
         });
       }
 
-      // Auto-save functionality
+      // Auto-save functionality with debounce
       if (enableAutoSave && onAutoSave) {
         setAutoSaveStatus("saving");
         const timeoutId = setTimeout(() => {
-          onAutoSave({ ...formData, [name]: value });
+          onAutoSave({ ...formData, [name]: formattedValue });
           setAutoSaveStatus("saved");
           setTimeout(() => setAutoSaveStatus("idle"), 2000);
         }, 1000);
@@ -520,6 +828,125 @@ export default function SilpanaForm({
               </motion.div>
             )}
 
+            {/* Multi-Step Progress Indicator */}
+            {enableMultiStep && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-xl border border-border/50 bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/50 p-6 shadow-sm backdrop-blur-sm dark:from-blue-950/20 dark:via-indigo-950/10 dark:to-purple-950/10"
+              >
+                {/* Step Counter & Time */}
+                <div className="mb-6 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <span className="text-sm font-bold">{getCurrentStepIndex() + 1}</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        Langkah {getCurrentStepIndex() + 1} dari {formSteps.length}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Estimasi: {formSteps[getCurrentStepIndex()].estimatedTime}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="gap-1 text-xs">
+                    <Target className="h-3 w-3" />
+                    {Math.round((getCurrentStepIndex() / (formSteps.length - 1)) * 100)}% Selesai
+                  </Badge>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="relative mb-6">
+                  <div className="absolute left-0 right-0 top-1/2 h-1 -translate-y-1/2 bg-border/30 rounded-full">
+                    <motion.div 
+                      className="h-full rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(getCurrentStepIndex() / (formSteps.length - 1)) * 100}%` }}
+                      transition={{ duration: 0.5, ease: "easeInOut" }}
+                    />
+                  </div>
+
+                  {/* Step Dots */}
+                  <div className="relative flex justify-between">
+                    {formSteps.map((step, index) => {
+                      const StepIcon = step.icon;
+                      const isActive = step.id === currentStep;
+                      const isCompleted = completedSteps.has(step.id);
+                      const isVisited = visitedSteps.has(step.id);
+                      const canAccess = isVisited || (index === getCurrentStepIndex() + 1 && canProceedToNextStep());
+                      
+                      return (
+                        <div key={step.id} className="relative flex flex-col items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => goToStep(step.id)}
+                            disabled={!canAccess}
+                            className={cn(
+                              "group relative z-10 flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-300",
+                              "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2",
+                              isActive && "scale-110 border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/30",
+                              isCompleted && !isActive && "border-green-500 bg-green-500 text-white",
+                              !isActive && !isCompleted && !isVisited && "border-border bg-muted text-muted-foreground",
+                              !isActive && !isCompleted && isVisited && "border-border bg-background text-foreground",
+                              canAccess && "cursor-pointer hover:scale-105",
+                              !canAccess && "cursor-not-allowed opacity-50"
+                            )}
+                            aria-label={`${step.title}: ${step.description}`}
+                            aria-current={isActive ? "step" : undefined}
+                          >
+                            {isCompleted && !isActive ? (
+                              <CheckCircle className="h-5 w-5" />
+                            ) : (
+                              <StepIcon className="h-5 w-5" />
+                            )}
+                          </button>
+
+                          {/* Step Label */}
+                          <div className="text-center max-w-[80px]">
+                            <p className={cn(
+                              "text-[10px] font-medium transition-colors leading-tight",
+                              isActive && "text-primary",
+                              isCompleted && !isActive && "text-green-600 dark:text-green-400",
+                              !isActive && !isCompleted && "text-muted-foreground"
+                            )}>
+                              {step.title}
+                            </p>
+                          </div>
+
+                          {/* Active Step Pulse */}
+                          {isActive && (
+                            <motion.div
+                              className="absolute top-0 h-10 w-10 rounded-full bg-primary/20"
+                              animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0, 0.5] }}
+                              transition={{ duration: 2, repeat: Infinity }}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Current Step Info */}
+                <div className="rounded-lg bg-background/60 p-3 backdrop-blur-sm">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                      <Info className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-foreground">
+                        {formSteps[getCurrentStepIndex()].title}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formSteps[getCurrentStepIndex()].description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             {/* Enhanced Form Section */}
             <motion.div
               variants={itemVariants}
@@ -537,62 +964,80 @@ export default function SilpanaForm({
               </div>
 
               <div className="relative z-10 space-y-6">
-                {/* Anonymous Submission Option */}
-                <div className="space-y-4">
-                  <div className="mb-4 flex items-center gap-2">
-                    <Shield className="h-5 w-5 text-primary" />
-                    <h4 className={typo.heading(4, textColors.primary)}>
-                      Opsi Pengajuan
-                    </h4>
-                  </div>
+                <AnimatePresence mode="wait">
+                  {/* Step 1: Submission Type */}
+                  {(!enableMultiStep || currentStep === 'submission-type') && (
+                    <motion.div
+                      key="submission-type"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3 }}
+                      className="space-y-4"
+                    >
+                      <div className="mb-4 flex items-center gap-2">
+                        <Shield className="h-5 w-5 text-primary" />
+                        <h4 className={typo.heading(4, textColors.primary)}>
+                          Opsi Pengajuan
+                        </h4>
+                      </div>
 
-                  <div className="flex items-start space-x-3 rounded-lg border border-border/50 bg-background/30 p-4">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="is_anonymous"
-                        name="is_anonymous"
-                        checked={formData.is_anonymous || false}
-                        onChange={(e) => {
-                          const isAnonymous = e.target.checked;
-                          setFormData((prev) => ({ 
-                            ...prev, 
-                            is_anonymous: isAnonymous,
-                            // Clear personal fields if going anonymous
-                            ...(isAnonymous ? {
-                              nik_pengaduan: "",
-                              nomor_telepon: ""
-                            } : {})
-                          }));
-                          setTouchedFields((prev) => new Set([...prev, "is_anonymous"]));
-                        }}
-                        className="h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-primary/20"
-                      />
-                      <Label 
-                        htmlFor="is_anonymous" 
-                        className={typo.ui('label', 'flex items-center gap-2 cursor-pointer')}
-                      >
-                        <Shield className="h-4 w-4" />
-                        Ajukan sebagai Anonim
-                      </Label>
-                    </div>
-                    <div className="flex-1">
-                      <p className={typo.ui('description')}>
-                        Centang opsi ini jika Anda ingin mengajukan pengaduan secara anonim. 
-                        Data pribadi seperti NIK dan nomor telepon tidak akan diperlukan.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                      <div className="flex items-start space-x-3 rounded-lg border border-border/50 bg-background/30 p-4">
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id="is_anonymous"
+                            name="is_anonymous"
+                            checked={formData.is_anonymous || false}
+                            onChange={(e) => {
+                              const isAnonymous = e.target.checked;
+                              setFormData((prev) => ({ 
+                                ...prev, 
+                                is_anonymous: isAnonymous,
+                                // Clear personal fields if going anonymous
+                                ...(isAnonymous ? {
+                                  nik_pengaduan: "",
+                                  nomor_telepon: ""
+                                } : {})
+                              }));
+                              setTouchedFields((prev) => new Set([...prev, "is_anonymous"]));
+                            }}
+                            className="h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-primary/20"
+                          />
+                          <Label 
+                            htmlFor="is_anonymous" 
+                            className={typo.ui('label', 'flex items-center gap-2 cursor-pointer')}
+                          >
+                            <Shield className="h-4 w-4" />
+                            Ajukan sebagai Anonim
+                          </Label>
+                        </div>
+                        <div className="flex-1">
+                          <p className={typo.ui('description')}>
+                            Centang opsi ini jika Anda ingin mengajukan pengaduan secara anonim. 
+                            Data pribadi seperti NIK dan nomor telepon tidak akan diperlukan.
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
 
-                {/* Basic Information Section */}
-                <div className="space-y-4">
-                  <div className="mb-4 flex items-center gap-2">
-                    <User className="h-5 w-5 text-primary" />
-                    <h4 className={typo.heading(4, textColors.primary)}>
-                      Informasi Dasar
-                    </h4>
-                  </div>
+                  {/* Step 2: Personal Information - Only show in multi-step OR always in single page */}
+                  {(!enableMultiStep || currentStep === 'personal-info') && (
+                    <motion.div
+                      key="personal-info"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3 }}
+                      className="space-y-4"
+                    >
+                      <div className="mb-4 flex items-center gap-2">
+                        <User className="h-5 w-5 text-primary" />
+                        <h4 className={typo.heading(4, textColors.primary)}>
+                          Informasi Dasar
+                        </h4>
+                      </div>
 
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     {/* NIK Pengaduan Field - Only show if not anonymous */}
@@ -617,26 +1062,28 @@ export default function SilpanaForm({
                             className={cn(
                               "transition-all duration-200",
                               "focus:border-primary focus:ring-2 focus:ring-primary/20",
-                              touchedFields.has("nik_pengaduan") &&
-                                !formData.nik_pengaduan &&
-                                "border-destructive",
-                              formData.nik_pengaduan && "border-green-500",
+                              fieldErrors.nik_pengaduan && "border-destructive ring-2 ring-destructive/20",
+                              formData.nik_pengaduan && !fieldErrors.nik_pengaduan && "border-green-500",
                             )}
                             required={!formData.is_anonymous}
                             maxLength={16}
+                            aria-invalid={!!fieldErrors.nik_pengaduan}
+                            aria-describedby={fieldErrors.nik_pengaduan ? "nik-error" : "nik-helper"}
                           />
-                          {formData.nik_pengaduan && (
+                          {formData.nik_pengaduan && !fieldErrors.nik_pengaduan && (
                             <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500" />
                           )}
-                        </div>
-                        {touchedFields.has("nik_pengaduan") &&
-                          !formData.nik_pengaduan && !formData.is_anonymous && (
-                            <p className={typo.ui('error', 'flex items-center gap-1')}>
-                              <AlertCircle className="h-3 w-3" />
-                              NIK wajib diisi
-                            </p>
+                          {fieldErrors.nik_pengaduan && (
+                            <AlertCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-destructive" />
                           )}
-                        <p className={typo.ui('helper')}>
+                        </div>
+                        {fieldErrors.nik_pengaduan && (
+                          <p id="nik-error" className={typo.ui('error', 'flex items-center gap-1')} role="alert">
+                            <AlertCircle className="h-3 w-3" />
+                            {fieldErrors.nik_pengaduan}
+                          </p>
+                        )}
+                        <p id="nik-helper" className={typo.ui('helper')}>
                           Masukkan NIK 16 digit sesuai KTP
                         </p>
                       </div>
@@ -853,9 +1300,19 @@ export default function SilpanaForm({
                       Sistem akan menentukan prioritas secara otomatis berdasarkan kategori jika tidak dipilih
                     </p>
                   </div>
-                </div>
+                    </motion.div>
+                  )}
 
-                {/* Complaint Details Section */}
+                  {/* Step 3: Complaint Details - Reason & Description & Date */}
+                  {(!enableMultiStep || currentStep === 'complaint-details') && (
+                    <motion.div
+                      key="complaint-details"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3 }}
+                      className="space-y-6"
+                    >
                 <div className="space-y-4">
                   <div className="mb-4 flex items-center gap-2">
                     <MessageSquare className="h-5 w-5 text-primary" />
@@ -924,35 +1381,49 @@ export default function SilpanaForm({
                         name="deskripsi_pengaduan"
                         value={formData.deskripsi_pengaduan}
                         onChange={handleInputChange}
-                        placeholder="Jelaskan secara detail pengaduan Anda..."
+                        placeholder="Jelaskan secara detail pengaduan Anda... (minimal 20 karakter)"
                         rows={4}
                         className={cn(
                           "resize-none transition-all duration-200",
                           "focus:border-primary focus:ring-2 focus:ring-primary/20",
-                          touchedFields.has("deskripsi_pengaduan") &&
-                            !formData.deskripsi_pengaduan &&
-                            "border-destructive",
-                          formData.deskripsi_pengaduan && "border-green-500",
+                          fieldErrors.deskripsi_pengaduan && "border-destructive ring-2 ring-destructive/20",
+                          formData.deskripsi_pengaduan && 
+                            formData.deskripsi_pengaduan.length >= 20 && 
+                            !fieldErrors.deskripsi_pengaduan && 
+                            "border-green-500",
                         )}
                         required
+                        aria-invalid={!!fieldErrors.deskripsi_pengaduan}
+                        aria-describedby={fieldErrors.deskripsi_pengaduan ? "description-error" : "description-helper"}
                       />
-                      {formData.deskripsi_pengaduan && (
+                      {formData.deskripsi_pengaduan && 
+                       formData.deskripsi_pengaduan.length >= 20 && 
+                       !fieldErrors.deskripsi_pengaduan && (
                         <CheckCircle className="absolute right-3 top-3 h-4 w-4 text-green-500" />
                       )}
-                    </div>
-                    {touchedFields.has("deskripsi_pengaduan") &&
-                      !formData.deskripsi_pengaduan && (
-                        <p className="flex items-center gap-1 text-xs text-destructive">
-                          <AlertCircle className="h-3 w-3" />
-                          Deskripsi pengaduan wajib diisi
-                        </p>
+                      {fieldErrors.deskripsi_pengaduan && (
+                        <AlertCircle className="absolute right-3 top-3 h-4 w-4 text-destructive" />
                       )}
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs text-muted-foreground">
-                        Berikan informasi detail tentang pengaduan Anda
+                    </div>
+                    {fieldErrors.deskripsi_pengaduan && (
+                      <p id="description-error" className="flex items-center gap-1 text-xs text-destructive" role="alert">
+                        <AlertCircle className="h-3 w-3" />
+                        {fieldErrors.deskripsi_pengaduan}
                       </p>
-                      <span className="text-xs text-muted-foreground">
-                        {formData.deskripsi_pengaduan?.length || 0} karakter
+                    )}
+                    <div className="flex items-center justify-between">
+                      <p id="description-helper" className="text-xs text-muted-foreground">
+                        Berikan informasi detail tentang pengaduan Anda (minimal 20 karakter)
+                      </p>
+                      <span className={cn(
+                        "text-xs font-medium transition-colors",
+                        formData.deskripsi_pengaduan?.length < 20 && touchedFields.has("deskripsi_pengaduan")
+                          ? "text-amber-600"
+                          : formData.deskripsi_pengaduan?.length >= 20
+                          ? "text-green-600"
+                          : "text-muted-foreground"
+                      )}>
+                        {formData.deskripsi_pengaduan?.length || 0} / 20 karakter
                       </span>
                     </div>
                   </div>
@@ -990,25 +1461,27 @@ export default function SilpanaForm({
                             className={cn(
                               "transition-all duration-200",
                               "focus:border-primary focus:ring-2 focus:ring-primary/20",
-                              touchedFields.has("nomor_telepon") &&
-                                !formData.nomor_telepon &&
-                                "border-destructive",
-                              formData.nomor_telepon && "border-green-500",
+                              fieldErrors.nomor_telepon && "border-destructive ring-2 ring-destructive/20",
+                              formData.nomor_telepon && !fieldErrors.nomor_telepon && "border-green-500",
                             )}
                             required={!formData.is_anonymous}
+                            aria-invalid={!!fieldErrors.nomor_telepon}
+                            aria-describedby={fieldErrors.nomor_telepon ? "phone-error" : "phone-helper"}
                           />
-                          {formData.nomor_telepon && (
+                          {formData.nomor_telepon && !fieldErrors.nomor_telepon && (
                             <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500" />
                           )}
-                        </div>
-                        {touchedFields.has("nomor_telepon") &&
-                          !formData.nomor_telepon && !formData.is_anonymous && (
-                            <p className={typo.ui('error', 'flex items-center gap-1')}>
-                              <AlertCircle className="h-3 w-3" />
-                              Nomor telepon wajib diisi
-                            </p>
+                          {fieldErrors.nomor_telepon && (
+                            <AlertCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-destructive" />
                           )}
-                        <p className={typo.ui('helper')}>
+                        </div>
+                        {fieldErrors.nomor_telepon && (
+                          <p id="phone-error" className={typo.ui('error', 'flex items-center gap-1')} role="alert">
+                            <AlertCircle className="h-3 w-3" />
+                            {fieldErrors.nomor_telepon}
+                          </p>
+                        )}
+                        <p id="phone-helper" className={typo.ui('helper')}>
                           Format: 08xxxxxxxxxx (nomor HP Indonesia)
                         </p>
                       </div>
@@ -1058,8 +1531,73 @@ export default function SilpanaForm({
                     </div>
                   </div>
                 </div>
+                    </motion.div>
+                  )}
 
-                {/* Admin Section */}
+                  {/* Step 4: Review (shown in review step or always in single-page mode) */}
+                  {(!enableMultiStep || currentStep === 'review') && (
+                    <motion.div
+                      key="review"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3 }}
+                      className="space-y-4"
+                    >
+                      <div className="rounded-lg bg-gradient-to-br from-green-50 to-emerald-50 p-6 dark:from-green-950/20 dark:to-emerald-950/20">
+                        <div className="mb-4 flex items-center gap-2">
+                          <CheckCircle className="h-5 w-5 text-green-600" />
+                          <h4 className="text-lg font-semibold text-green-900 dark:text-green-100">
+                            Tinjau Data Anda
+                          </h4>
+                        </div>
+                        <p className="text-sm text-green-700 dark:text-green-300 mb-4">
+                          Pastikan semua informasi yang Anda berikan sudah benar sebelum mengirim pengaduan.
+                        </p>
+                        <div className="space-y-3 rounded-lg bg-white/60 p-4 dark:bg-gray-900/40">
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <p className="font-medium text-muted-foreground">Status:</p>
+                              <p className="text-foreground">{formData.is_anonymous ? '🔒 Anonim' : '👤 Dengan Identitas'}</p>
+                            </div>
+                            {!formData.is_anonymous && formData.nik_pengaduan && (
+                              <div>
+                                <p className="font-medium text-muted-foreground">NIK:</p>
+                                <p className="text-foreground">{formData.nik_pengaduan}</p>
+                              </div>
+                            )}
+                            {formData.nama_pengaduan && (
+                              <div>
+                                <p className="font-medium text-muted-foreground">Nama:</p>
+                                <p className="text-foreground">{formData.nama_pengaduan}</p>
+                              </div>
+                            )}
+                            {formData.kategori_pengaduan && (
+                              <div>
+                                <p className="font-medium text-muted-foreground">Kategori:</p>
+                                <p className="text-foreground">{formData.kategori_pengaduan}</p>
+                              </div>
+                            )}
+                            {formData.sub_kategori_pengaduan && (
+                              <div>
+                                <p className="font-medium text-muted-foreground">Sub Kategori:</p>
+                                <p className="text-foreground">{formData.sub_kategori_pengaduan}</p>
+                              </div>
+                            )}
+                            {formData.priority_level && (
+                              <div>
+                                <p className="font-medium text-muted-foreground">Prioritas:</p>
+                                <p className="text-foreground capitalize">{formData.priority_level}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Admin Section - Always visible for admin */}
                 {userRole === "admin" && (
                   <div className="space-y-4">
                     <div className="mb-4 flex items-center gap-2">
@@ -1116,71 +1654,180 @@ export default function SilpanaForm({
               </div>
             </motion.div>
 
-            {/* Enhanced Form Actions */}
+            {/* Enhanced Form Actions with Multi-Step Navigation */}
             <motion.div
               variants={itemVariants}
-              className="flex flex-col gap-4 border-t border-border/50 pt-6 sm:flex-row sm:justify-end"
+              className="sticky bottom-0 z-20 -mx-6 -mb-6 border-t border-border/50 bg-background/95 p-4 backdrop-blur-sm sm:p-6"
             >
-              <div className="flex gap-3 sm:order-2">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={onCancel}
-                      disabled={loading}
-                      className="transition-all duration-200 hover:bg-muted/50"
-                    >
-                      <X className="mr-2 h-4 w-4" />
-                      Batal
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Batal dan buang perubahan</p>
-                  </TooltipContent>
-                </Tooltip>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                {/* Navigation Buttons */}
+                {enableMultiStep ? (
+                  <>
+                    {/* Left: Back Button */}
+                    <div className="flex gap-3">
+                      {getCurrentStepIndex() > 0 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={goToPreviousStep}
+                          disabled={loading}
+                          className="transition-all duration-200 hover:bg-muted/50"
+                        >
+                          <ChevronLeft className="mr-2 h-4 w-4" />
+                          Kembali
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={onCancel}
+                        disabled={loading}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="mr-2 h-4 w-4" />
+                        Batal
+                      </Button>
+                    </div>
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="submit"
-                      disabled={loading || !formValidation.isValid}
-                      className={cn(
-                        "transition-all duration-200",
-                        "hover:shadow-lg hover:shadow-primary/20",
-                        loading && "cursor-not-allowed",
-                      )}
-                    >
-                      {loading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Memproses...
-                        </>
-                      ) : isEditing ? (
-                        <>
-                          <Save className="mr-2 h-4 w-4" />
-                          Simpan Perubahan
-                        </>
+                    {/* Right: Next/Submit Button */}
+                    <div className="flex flex-1 items-center justify-end gap-3">
+                      {/* Progress indicator */}
+                      <div className="hidden text-sm text-muted-foreground sm:block">
+                        <span className="font-medium text-foreground">{getCurrentStepIndex() + 1}</span>
+                        {" "}dari{" "}
+                        <span className="font-medium text-foreground">{formSteps.length}</span>
+                      </div>
+
+                      {getCurrentStepIndex() < formSteps.length - 1 ? (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              type="button"
+                              onClick={goToNextStep}
+                              disabled={!canProceedToNextStep() || loading}
+                              className={cn(
+                                "min-w-[140px] transition-all duration-200",
+                                "hover:shadow-lg hover:shadow-primary/20",
+                                !canProceedToNextStep() && "cursor-not-allowed opacity-50"
+                              )}
+                            >
+                              Selanjutnya
+                              <ChevronRight className="ml-2 h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>
+                              {!canProceedToNextStep()
+                                ? "Lengkapi field yang wajib diisi untuk melanjutkan"
+                                : `Lanjut ke ${formSteps[getCurrentStepIndex() + 1].title}`}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
                       ) : (
-                        <>
-                          <Send className="mr-2 h-4 w-4" />
-                          Kirim Data SILPANA
-                        </>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              type="submit"
+                              disabled={loading || !formValidation.isValid}
+                              className={cn(
+                                "min-w-[140px] transition-all duration-200",
+                                "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700",
+                                "hover:shadow-lg hover:shadow-green-500/30",
+                                loading && "cursor-not-allowed",
+                              )}
+                            >
+                              {loading ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Mengirim...
+                                </>
+                              ) : (
+                                <>
+                                  <Send className="mr-2 h-4 w-4" />
+                                  Kirim Pengaduan
+                                </>
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>
+                              {loading
+                                ? "Mengirim pengaduan Anda..."
+                                : !formValidation.isValid
+                                  ? "Mohon lengkapi semua field yang wajib diisi"
+                                  : "Kirim pengaduan Anda"}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
                       )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>
-                      {loading
-                        ? "Memproses permintaan Anda..."
-                        : !formValidation.isValid
-                          ? "Mohon lengkapi semua field yang wajib diisi"
-                          : isEditing
-                            ? "Simpan perubahan Anda"
-                            : "Kirim data SILPANA Anda"}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
+                    </div>
+                  </>
+                ) : (
+                  // Single-page mode: Original buttons
+                  <>
+                    <div className="flex gap-3 sm:order-2">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={onCancel}
+                            disabled={loading}
+                            className="transition-all duration-200 hover:bg-muted/50"
+                          >
+                            <X className="mr-2 h-4 w-4" />
+                            Batal
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Batal dan buang perubahan</p>
+                        </TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="submit"
+                            disabled={loading || !formValidation.isValid}
+                            className={cn(
+                              "transition-all duration-200",
+                              "hover:shadow-lg hover:shadow-primary/20",
+                              loading && "cursor-not-allowed",
+                            )}
+                          >
+                            {loading ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Memproses...
+                              </>
+                            ) : isEditing ? (
+                              <>
+                                <Save className="mr-2 h-4 w-4" />
+                                Simpan Perubahan
+                              </>
+                            ) : (
+                              <>
+                                <Send className="mr-2 h-4 w-4" />
+                                Kirim Data SILPANA
+                              </>
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>
+                            {loading
+                              ? "Memproses permintaan Anda..."
+                              : !formValidation.isValid
+                                ? "Mohon lengkapi semua field yang wajib diisi"
+                                : isEditing
+                                  ? "Simpan perubahan Anda"
+                                  : "Kirim data SILPANA Anda"}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Form Status */}
