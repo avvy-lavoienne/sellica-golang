@@ -1,5 +1,38 @@
 # SELLY-AI Copilot Instructions
 
+## Development Environment
+
+**Operating System**: Windows 11
+**IDE**: Visual Studio Code
+**Shell**: PowerShell 5.1 (Windows PowerShell)
+**Package Manager**: pnpm 10.14.0 (MANDATORY - no npm or yarn)
+**Node.js**: v22.18.0
+**Go**: 1.25.0 windows/amd64
+
+### Critical Environment Notes
+
+**pnpm is MANDATORY**:
+- All `package.json` scripts use `pnpm`
+- `.npmrc` explicitly sets `package-manager=pnpm`
+- Never use `npm` or `yarn` commands
+- Global install: Already configured at system level
+
+**PowerShell-Specific Commands**:
+- Use `;` to chain commands: `cd backend; go build`
+- Environment variables: `$env:VARIABLE_NAME = "value"`
+- Path separators: Use `\` or let Node.js handle with `path.join()`
+- Always use PowerShell syntax in code blocks: ` ```powershell`
+
+**VS Code Configuration**:
+- Recommended extensions in `.vscode/extensions.json`
+- Task runner configured in `.vscode/tasks.json`
+- Workspace optimized for Go and TypeScript development
+
+**File System**:
+- Case-insensitive filesystem (Windows NTFS)
+- Always use forward slashes `/` in code for cross-platform compatibility
+- Use absolute paths starting with `d:\` for system commands
+
 ## Project Overview
 
 **SELLY** is a civil records management system with AI assistance capabilities, built as a hybrid Go backend + Next.js frontend monorepo. The project is undergoing an active migration from Next.js API routes to Go for 20x+ performance improvements while maintaining the Next.js frontend.
@@ -131,6 +164,51 @@ pnpm build  # Outputs to deployment/static-build/
 - Backend metrics: `http://localhost:8080/metrics`
 - Frontend: `http://localhost:3000`
 - Grafana dashboard: `http://localhost:3001` (admin/admin)
+
+### Common pnpm Commands
+
+**Installation & Management**:
+```powershell
+pnpm install              # Install all dependencies
+pnpm add <package>        # Add production dependency
+pnpm add -D <package>     # Add dev dependency
+pnpm remove <package>     # Remove dependency
+pnpm update               # Update dependencies
+```
+
+**Testing**:
+```powershell
+pnpm test                          # Run all tests
+pnpm test:watch                    # Watch mode
+pnpm test:coverage                 # With coverage
+pnpm test:performance              # Performance tests
+pnpm validate:performance          # Performance validation
+pnpm test:enhanced                 # Enhanced test suite
+pnpm test:unit                     # Unit tests only
+pnpm test:integration              # Integration tests only
+```
+
+**Development & Build**:
+```powershell
+pnpm dev                           # Start dev server (port 3000)
+pnpm build                         # Production build
+pnpm start                         # Start production server (port 4000)
+pnpm lint                          # ESLint
+pnpm type-check                    # TypeScript check
+```
+
+**Database Migrations**:
+```powershell
+pnpm migration:silpana-ticketing           # Run SILPANA migration
+pnpm migration:silpana-ticketing:rollback  # Rollback migration
+```
+
+**Safety & Validation**:
+```powershell
+pnpm safety:init                   # Initialize safety infrastructure
+pnpm apply:rls-fixes               # Apply RLS policy fixes
+pnpm test:rls-policies             # Test RLS policies
+```
 
 ### Testing Strategy
 
@@ -520,6 +598,104 @@ NEXT_PUBLIC_API_URL=http://localhost:8080
 2. Compare with `backend/PHASE3-IMPLEMENTATION-REPORT.md` targets
 3. Check cache hit ratio: `curl http://localhost:8080/cache/stats`
 4. Review monitoring dashboard: `http://localhost:3001` (Grafana)
+
+## VS Code & PowerShell Tips
+
+### VS Code Workspace
+
+**Recommended Extensions** (see `.vscode/extensions.json`):
+- `upstash.context7-mcp` - Context7 MCP integration
+
+**Available Tasks** (see `.vscode/tasks.json`):
+- "Run Baseline Performance Benchmarks" - Automated Go benchmark testing
+
+**Terminal Setup**:
+- Default shell: PowerShell 5.1
+- Multiple terminals supported
+- Integrated terminal for both frontend and backend
+
+### PowerShell-Specific Gotchas
+
+**Command Chaining**:
+```powershell
+# Use semicolon (;) not double ampersand (&&)
+cd backend; go build           # ✅ Correct
+cd backend && go build         # ❌ Wrong (bash syntax)
+```
+
+**Environment Variables**:
+```powershell
+# Set variable
+$env:PORT = "8080"
+
+# Use variable
+Write-Host $env:PORT
+
+# Temporary for single command
+$env:DEBUG = "true"; npm test
+```
+
+**Path Handling**:
+```powershell
+# PowerShell uses backslash, but Node.js prefers forward slash
+# In code, always use forward slash for cross-platform compatibility
+const filePath = path.join(__dirname, 'src/components')  # ✅ Correct
+
+# Absolute paths in PowerShell commands
+cd "d:\Journey Code\Project\lab\sellica-golang\backend"
+```
+
+**String Escaping**:
+```powershell
+# Single quotes preserve literal strings
+Write-Host 'Price: $100'      # Output: Price: $100
+
+# Double quotes allow variable expansion
+$price = 100
+Write-Host "Price: $$price"   # Output: Price: $100
+```
+
+**Piping and Output**:
+```powershell
+# Save command output
+go build 2>&1 | Tee-Object -FilePath build.log
+
+# Suppress output
+go test > $null 2>&1
+```
+
+**Case Sensitivity**:
+```powershell
+# PowerShell is case-insensitive for commands
+CD backend               # ✅ Works
+cd backend               # ✅ Works
+
+# But file system is case-insensitive
+# Always use consistent casing in code for portability
+```
+
+### Common Windows/PowerShell Commands
+
+```powershell
+# List files
+ls                              # or Get-ChildItem
+dir                             # alias for ls
+
+# Copy files
+Copy-Item src\* dest\          # or cp
+
+# Remove files
+Remove-Item -Recurse node_modules  # or rm -r
+
+# Find text in files
+Select-String -Pattern "TODO" -Path .\*.go
+
+# Check if running as admin
+([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+# Kill process by port
+Get-Process -Id (Get-NetTCPConnection -LocalPort 8080).OwningProcess | Stop-Process
+```
 
 ## Key Files Reference
 
