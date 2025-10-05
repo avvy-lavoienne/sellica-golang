@@ -510,7 +510,7 @@ function SilpanaTable({
           initial="hidden"
           animate="visible"
           className={cn(
-            "relative overflow-hidden rounded-xl border border-border/50 bg-background/80 shadow-lg backdrop-blur-sm",
+            "relative overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800",
             className,
           )}
         >
@@ -537,7 +537,7 @@ function SilpanaTable({
         initial="hidden"
         animate="visible"
         className={cn(
-          "relative overflow-hidden rounded-xl border border-border/50 bg-background/80 shadow-lg backdrop-blur-sm",
+          "relative overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800",
           className,
         )}
         onHoverStart={() => setIsHovered(true)}
@@ -566,24 +566,22 @@ function SilpanaTable({
         {/* Enhanced Header */}
         <motion.div
           variants={itemVariants}
-          className="relative z-10 border-b border-border/50 bg-background/60 p-6 backdrop-blur-sm"
+          className="relative z-10 border-b border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800/50"
         >
           <div className="flex flex-col gap-4 laptop:flex-row laptop:items-center laptop:justify-between">
             <div className="flex items-center gap-4">
               <motion.div
                 className={cn(
-                  "flex h-12 w-12 items-center justify-center rounded-2xl border transition-all duration-200",
-                  colorSchemes.blue.bgClass,
-                  colorSchemes.blue.borderClass,
+                  "flex h-12 w-12 items-center justify-center rounded-xl border-2 border-blue-200 bg-blue-50 transition-all duration-200 dark:border-blue-800 dark:bg-blue-900/20",
                 )}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <FileText className={cn("h-6 w-6", colorSchemes.blue.accent)} />
+                <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </motion.div>
 
               <div className="space-y-2">
-                <h3 className="text-xl font-bold text-foreground laptop:text-2xl">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white laptop:text-2xl">
                   Data SILPANA
                 </h3>
                 <div className="flex items-center gap-2">
@@ -614,7 +612,7 @@ function SilpanaTable({
                     size="sm"
                     onClick={onRefresh}
                     disabled={loading}
-                    className="transition-all duration-200 hover:border-primary/30 hover:bg-primary/10"
+                    className="rounded-lg border-gray-300 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-gray-600 dark:hover:border-blue-700 dark:hover:bg-blue-900/20"
                   >
                     <RefreshCw
                       className={cn("h-4 w-4", loading && "animate-spin")}
@@ -634,7 +632,7 @@ function SilpanaTable({
                       variant="outline"
                       size="sm"
                       onClick={onExport}
-                      className="transition-all duration-200 hover:border-green-200 hover:bg-green-50 hover:text-green-700 dark:hover:bg-green-900/20"
+                      className="rounded-lg border-gray-300 transition-all duration-200 hover:border-green-300 hover:bg-green-50 hover:text-green-700 dark:border-gray-600 dark:hover:border-green-700 dark:hover:bg-green-900/20"
                     >
                       <Download className="h-4 w-4" />
                       <span className="ml-2 hidden sm:inline">Export</span>
@@ -656,7 +654,7 @@ function SilpanaTable({
               {/* Desktop View */}
               <div className="hidden lg:block">
                 <table className="w-full">
-                  <thead className="border-b border-border/50 bg-muted/30">
+                  <thead className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50">
                     <tr>
                       {enableBulkActions && (
                         <th className="w-12 p-4 text-left">
@@ -667,37 +665,37 @@ function SilpanaTable({
                               rekapData.length > 0
                             }
                             onChange={toggleSelectAll}
-                            className="rounded border-border/50"
+                            className="rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600"
                           />
                         </th>
                       )}
-                      <th className={typo.table('header', 'p-4 text-left')}>
+                      <th className="p-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
                         Ticket Code
                       </th>
-                      <th className={typo.table('header', 'p-4 text-left')}>
+                      <th className="p-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
                         NIK & Nama
                       </th>
-                      <th className={typo.table('header', 'p-4 text-left')}>
+                      <th className="p-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
                         Pengaduan
                       </th>
-                      <th className={typo.table('header', 'p-4 text-left')}>
+                      <th className="p-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
                         Status
                       </th>
-                      <th className={typo.table('header', 'p-4 text-left')}>
+                      <th className="p-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
                         Priority
                       </th>
-                      <th className={typo.table('header', 'p-4 text-left')}>
+                      <th className="p-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
                         Last Updated
                       </th>
-                      <th className={typo.table('header', 'p-4 text-left')}>
+                      <th className="p-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
                         Kontak
                       </th>
-                      <th className={typo.table('header', 'w-16 p-4 text-center')}>
+                      <th className="w-16 p-4 text-center text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border/50">
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                     <AnimatePresence>
                       {rekapData.map((item, index) => (
                         <motion.tr
@@ -708,8 +706,8 @@ function SilpanaTable({
                           animate="visible"
                           exit={{ opacity: 0, x: -20 }}
                           className={cn(
-                            "transition-colors duration-200 hover:bg-muted/30",
-                            selectedItems.has(item.id || "") && "bg-primary/5",
+                            "transition-colors duration-200 hover:bg-gray-50 dark:hover:bg-gray-700/50",
+                            selectedItems.has(item.id || "") && "bg-blue-50 dark:bg-blue-900/20",
                           )}
                         >
                           {enableBulkActions && (
@@ -720,7 +718,7 @@ function SilpanaTable({
                                 onChange={() =>
                                   toggleItemSelection(item.id || "")
                                 }
-                                className="rounded border-border/50"
+                                className="rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600"
                               />
                             </td>
                           )}
@@ -728,8 +726,8 @@ function SilpanaTable({
                           {/* Ticket Code Column */}
                           <td className="p-4">
                             <div className="flex items-center gap-2">
-                              <Ticket className="h-4 w-4 text-muted-foreground" />
-                              <span className={cn(typo.table('cell', 'font-mono font-medium'))}>
+                              <Ticket className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                              <span className="font-mono font-medium text-gray-900 dark:text-white">
                                 {item.ticket_code || "N/A"}
                               </span>
                               {item.ticket_code && onTicketLookup && (
@@ -749,12 +747,12 @@ function SilpanaTable({
                           <td className="p-4">
                             <div className="space-y-1">
                               <div className="flex items-center gap-2">
-                                <User className="h-4 w-4 text-muted-foreground" />
-                                <span className={typo.table('cell', 'font-medium')}>
+                                <User className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                <span className="font-medium text-gray-900 dark:text-white">
                                   {item.nik_pengaduan || "-"}
                                 </span>
                               </div>
-                              <p className={typo.ui('description')}>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
                                 {item.nama_pengaduan || "-"}
                               </p>
                             </div>
@@ -765,20 +763,20 @@ function SilpanaTable({
                             <div className="space-y-1">
                               <div className="flex flex-wrap gap-1 mb-1">
                                 {item.kategori_pengaduan && (
-                                  <Badge variant="secondary" className={typo.ui('badge')}>
+                                  <Badge variant="secondary" className="text-xs">
                                     {item.kategori_pengaduan}
                                   </Badge>
                                 )}
                                 {item.sub_kategori_pengaduan && (
-                                  <Badge variant="outline" className={typo.ui('badge')}>
+                                  <Badge variant="outline" className="text-xs">
                                     {item.sub_kategori_pengaduan}
                                   </Badge>
                                 )}
                               </div>
-                              <p className={typo.table('cell', 'font-medium')}>
+                              <p className="font-medium text-gray-900 dark:text-white">
                                 {item.alasan_pengaduan || "-"}
                               </p>
-                              <p className={typo.ui('description', 'line-clamp-2')}>
+                              <p className="line-clamp-2 text-sm text-gray-600 dark:text-gray-400">
                                 {item.deskripsi_pengaduan || "-"}
                               </p>
                             </div>
@@ -896,12 +894,12 @@ function SilpanaTable({
                           <td className="p-4">
                             <div className="space-y-1">
                               <div className="flex items-center gap-2">
-                                <Clock className="h-4 w-4 text-muted-foreground" />
-                                <span className={typo.table('cell', 'font-medium')}>
+                                <Clock className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                <span className="font-medium text-gray-900 dark:text-white">
                                   {formatDateTime(item.last_updated || item.created_at || "")}
                                 </span>
                               </div>
-                              <p className={typo.ui('helper')}>
+                              <p className="text-xs text-gray-600 dark:text-gray-400">
                                 Created: {formatDateTime(item.created_at || "")}
                               </p>
                             </div>
@@ -910,8 +908,8 @@ function SilpanaTable({
                           {/* Kontak Column */}
                           <td className="p-4">
                             <div className="flex items-center gap-2">
-                              <Phone className="h-4 w-4 text-muted-foreground" />
-                              <span className={typo.ui('description')}>
+                              <Phone className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                              <span className="text-sm text-gray-600 dark:text-gray-400">
                                 {item.nomor_telepon || "-"}
                               </span>
                             </div>
@@ -980,8 +978,8 @@ function SilpanaTable({
                         animate="visible"
                         exit={{ opacity: 0, x: -20 }}
                         className={cn(
-                          "relative overflow-hidden rounded-lg border border-border/50 bg-background/60 p-4 shadow-sm backdrop-blur-sm",
-                          selectedItems.has(item.id || "") && "ring-2 ring-primary/20",
+                          "relative overflow-hidden rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800",
+                          selectedItems.has(item.id || "") && "ring-2 ring-blue-500/20 dark:ring-blue-400/20",
                         )}
                       >
                         <div className="space-y-3">
@@ -990,8 +988,8 @@ function SilpanaTable({
                             <div className="space-y-1 flex-1">
                               {item.ticket_code && (
                                 <div className="flex items-center gap-2 mb-2">
-                                  <Ticket className="h-4 w-4 text-muted-foreground" />
-                                  <span className={cn(typo.table('cell', 'font-mono font-medium text-primary'))}>
+                                  <Ticket className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                  <span className="font-mono font-medium text-blue-600 dark:text-blue-400">
                                     {item.ticket_code}
                                   </span>
                                   {onTicketLookup && (
@@ -1007,12 +1005,12 @@ function SilpanaTable({
                                 </div>
                               )}
                               <div className="flex items-center gap-2">
-                                <User className="h-4 w-4 text-muted-foreground" />
-                                <span className={typo.table('cell', 'font-medium')}>
+                                <User className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                <span className="font-medium text-gray-900 dark:text-white">
                                   {item.nik_pengaduan || "-"}
                                 </span>
                               </div>
-                              <p className={typo.ui('description')}>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
                                 {item.nama_pengaduan || "-"}
                               </p>
                             </div>
