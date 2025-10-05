@@ -187,19 +187,19 @@ export default function TicketLookup({
   return (
     <TooltipProvider>
       <div className={cn("space-y-6", className)}>
-        {/* Enhanced Search Form with Modern Dark Theme */}
-        <Card className="relative overflow-hidden border border-border/50 bg-gradient-to-br from-background/95 via-background/90 to-background/95 backdrop-blur-md shadow-2xl">
+        {/* Enhanced Search Form with Modern Design */}
+        <Card className="relative overflow-hidden border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800">
           {/* Animated Background Decorations */}
           <div className="absolute inset-0 opacity-40">
-            <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-blue-500/30 blur-3xl animate-pulse" />
-            <div className="absolute -left-8 -bottom-8 h-32 w-32 rounded-full bg-purple-500/20 blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+            <div className="absolute -right-8 -top-8 h-32 w-32 animate-pulse rounded-full bg-blue-500/30 blur-3xl" />
+            <div className="absolute -left-8 -bottom-8 h-32 w-32 animate-pulse rounded-full bg-purple-500/20 blur-3xl" style={{ animationDelay: '1s' }} />
           </div>
           
           <CardHeader className="relative z-10 space-y-3">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-3 text-2xl">
-                <div className="rounded-lg bg-blue-500/10 p-2 ring-2 ring-blue-500/20">
-                  <Search className="h-6 w-6 text-blue-500" aria-hidden="true" />
+                <div className="rounded-lg bg-blue-50 p-2 ring-2 ring-blue-200 dark:bg-blue-900/40 dark:ring-blue-800">
+                  <Search className="h-6 w-6 text-blue-600 dark:text-blue-400" aria-hidden="true" />
                 </div>
                 <span>Cari Pengaduan Anda</span>
               </CardTitle>
@@ -212,7 +212,7 @@ export default function TicketLookup({
                     className="h-8 w-8 p-0"
                     aria-label="Bantuan"
                   >
-                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                    <HelpCircle className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="left" className="max-w-xs">
@@ -241,7 +241,7 @@ export default function TicketLookup({
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                className="h-6 text-xs text-muted-foreground hover:text-foreground -ml-2"
+                className="-ml-2 h-6 text-xs text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
               >
                 {isDescriptionExpanded ? (
                   <>
@@ -307,7 +307,7 @@ export default function TicketLookup({
                 )}
               </AnimatePresence>
               
-              <p id="ticket_code_help" className="text-xs text-muted-foreground">
+              <p id="ticket_code_help" className="text-xs text-gray-600 dark:text-gray-400">
                 Format: SPL + Tahun (2 digit) + Bulan (2 digit) + Hari (2 digit) + Kode Unik
               </p>
             </div>
@@ -399,7 +399,7 @@ export default function TicketLookup({
                   </Label>
                   <div className="relative">
                     <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                      <Phone className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                      <Phone className="h-4 w-4 text-gray-600 dark:text-gray-400" aria-hidden="true" />
                     </div>
                     <Input
                       id="phone_number"
@@ -436,7 +436,7 @@ export default function TicketLookup({
                     )}
                   </AnimatePresence>
                   
-                  <p id="phone_help" className="text-xs text-muted-foreground">
+                  <p id="phone_help" className="text-xs text-gray-600 dark:text-gray-400">
                     Masukkan nomor telepon yang digunakan saat mengajukan pengaduan untuk verifikasi identitas
                   </p>
                 </motion.div>
@@ -459,7 +459,7 @@ export default function TicketLookup({
                   </Label>
                   <div className="relative">
                     <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                      <CreditCard className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                      <CreditCard className="h-4 w-4 text-gray-600 dark:text-gray-400" aria-hidden="true" />
                     </div>
                     <Input
                       id="nik"
@@ -499,7 +499,7 @@ export default function TicketLookup({
                     )}
                   </AnimatePresence>
                   
-                  <p id="nik_help" className="text-xs text-muted-foreground">
+                  <p id="nik_help" className="text-xs text-gray-600 dark:text-gray-400">
                     Masukkan NIK (16 digit) yang digunakan saat mengajukan pengaduan untuk verifikasi identitas
                   </p>
                 </motion.div>
@@ -554,7 +554,7 @@ export default function TicketLookup({
                     onClick={handleReset}
                     disabled={loading}
                     size="lg"
-                    className="h-12 px-4 transition-all duration-200 hover:bg-muted"
+                    className="h-12 px-4 transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700"
                     aria-label="Reset form"
                   >
                     <RefreshCw className="h-5 w-5" aria-hidden="true" />
@@ -587,31 +587,31 @@ export default function TicketLookup({
         </AnimatePresence>
 
         {/* Enhanced Help Section with Better Accessibility */}
-        <Card className="border-dashed border-border/50 bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-blue-50/50 dark:from-blue-950/20 dark:via-purple-950/10 dark:to-blue-950/20">
+        <Card className="border-dashed border-gray-300 bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-blue-50/50 dark:border-gray-600 dark:from-blue-950/20 dark:via-purple-950/10 dark:to-blue-950/20">
           <CardContent className="p-5">
             <div className="flex items-start gap-4">
-              <div className="rounded-lg bg-blue-500/10 p-2.5 ring-2 ring-blue-500/20">
-                <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0" aria-hidden="true" />
+              <div className="rounded-lg bg-blue-50 p-2.5 ring-2 ring-blue-200 dark:bg-blue-900/40 dark:ring-blue-800">
+                <Info className="h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" aria-hidden="true" />
               </div>
-              <div className="space-y-2 flex-1">
-                <h3 className="text-sm font-semibold text-foreground">
+              <div className="flex-1 space-y-2">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                   Bantuan Pencarian Tiket
                 </h3>
-                <ul className="text-xs text-muted-foreground space-y-2 list-none">
+                <ul className="list-none space-y-2 text-xs text-gray-600 dark:text-gray-400">
                   <li className="flex items-start gap-2">
-                    <CheckCircle className="h-3.5 w-3.5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" aria-hidden="true" />
+                    <CheckCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-green-600 dark:text-green-400" aria-hidden="true" />
                     <span>Kode tiket otomatis diberikan saat pengaduan berhasil diajukan</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircle className="h-3.5 w-3.5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" aria-hidden="true" />
+                    <CheckCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-green-600 dark:text-green-400" aria-hidden="true" />
                     <span>Gunakan nomor telepon atau NIK yang sama dengan data saat pengajuan pengaduan</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircle className="h-3.5 w-3.5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" aria-hidden="true" />
+                    <CheckCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-green-600 dark:text-green-400" aria-hidden="true" />
                     <span>Pastikan kode tiket dimasukkan dengan benar (huruf kapital, tanpa spasi)</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <AlertCircle className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" aria-hidden="true" />
+                    <AlertCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-amber-600 dark:text-amber-400" aria-hidden="true" />
                     <span>Hubungi administrator jika mengalami kesulitan dalam pencarian atau verifikasi</span>
                   </li>
                 </ul>
@@ -621,11 +621,11 @@ export default function TicketLookup({
         </Card>
 
         {/* Keyboard Navigation Hint */}
-        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-          <kbd className="rounded border border-border bg-muted px-2 py-1 font-mono">Enter</kbd>
+        <div className="flex items-center justify-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+          <kbd className="rounded border border-gray-300 bg-gray-100 px-2 py-1 font-mono dark:border-gray-600 dark:bg-gray-700">Enter</kbd>
           <span>untuk mencari</span>
           <span className="mx-2">•</span>
-          <kbd className="rounded border border-border bg-muted px-2 py-1 font-mono">Tab</kbd>
+          <kbd className="rounded border border-gray-300 bg-gray-100 px-2 py-1 font-mono dark:border-gray-600 dark:bg-gray-700">Tab</kbd>
           <span>untuk navigasi</span>
         </div>
       </div>

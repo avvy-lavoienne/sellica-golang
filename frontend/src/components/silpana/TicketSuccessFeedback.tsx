@@ -4,7 +4,6 @@ import React, { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import QRCode from "qrcode";
 import { cn } from "@/lib/conn/utils";
-import { typo, textColors } from "@/lib/typography";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,11 +12,8 @@ import {
   Copy,
   Download,
   FileText,
-  QrCode,
   Sparkles,
   X,
-  Phone,
-  MessageSquare,
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -75,7 +71,7 @@ export default function TicketSuccessFeedback({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm"
     >
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
@@ -87,29 +83,29 @@ export default function TicketSuccessFeedback({
           className
         )}
       >
-        <Card className="relative overflow-hidden border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 shadow-2xl">
+        <Card className="relative overflow-hidden border-green-200 bg-white shadow-2xl dark:border-green-700 dark:bg-gray-800">
           {/* Close button */}
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="absolute right-2 top-2 z-10 h-8 w-8 rounded-full p-0 hover:bg-red-100"
+            className="absolute right-2 top-2 z-10 h-8 w-8 rounded-full p-0 text-gray-600 hover:bg-red-50 hover:text-red-600 dark:text-gray-400 dark:hover:bg-red-900/20"
           >
             <X className="h-4 w-4" />
           </Button>
 
           {/* Header with animation */}
-          <CardHeader className="relative pb-4 text-center">
+          <CardHeader className="relative border-b border-green-100 bg-green-50 pb-6 text-center dark:border-green-800 dark:bg-green-900/20">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring" }}
-              className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100"
+              className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/40"
             >
-              <CheckCircle className="h-8 w-8 text-green-600" />
+              <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
             </motion.div>
             
-            <CardTitle className={typo.heading(3, "text-green-800 mb-2")}>
+            <CardTitle className="mb-2 text-2xl font-bold text-green-800 dark:text-green-300">
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -125,7 +121,7 @@ export default function TicketSuccessFeedback({
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className={typo.body('small', 'text-green-700')}
+              className="text-sm text-green-700 dark:text-green-400"
             >
               Kode tiket Anda telah berhasil dibuat. Simpan kode ini untuk melacak status pengaduan.
             </motion.p>
@@ -139,13 +135,13 @@ export default function TicketSuccessFeedback({
               transition={{ delay: 0.5 }}
               className="text-center"
             >
-              <p className={typo.body('small', 'text-gray-600 mb-2')}>
+              <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
                 Kode Tiket Anda:
               </p>
-              <div className="rounded-lg bg-white p-4 shadow-inner">
+              <div className="rounded-lg bg-gray-50 p-4 shadow-inner dark:bg-gray-700/50">
                 <Badge
                   variant="secondary"
-                  className="text-lg font-mono px-4 py-2 bg-blue-100 text-blue-800 hover:bg-blue-200"
+                  className="bg-blue-100 px-4 py-2 font-mono text-lg text-blue-800 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:hover:bg-blue-900/60"
                 >
                   {ticketCode}
                 </Badge>
@@ -159,10 +155,10 @@ export default function TicketSuccessFeedback({
               transition={{ delay: 0.6 }}
               className="text-center"
             >
-              <p className={typo.body('small', 'text-gray-600 mb-3')}>
+              <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
                 QR Code untuk akses cepat:
               </p>
-              <div className="mx-auto w-fit rounded-lg bg-white p-4 shadow-inner">
+              <div className="mx-auto w-fit rounded-lg bg-gray-50 p-4 shadow-inner dark:bg-gray-700/50">
                 <div style={{ height: "auto", maxWidth: "150px", width: "100%" }}>
                   <canvas
                     ref={qrCanvasRef}
@@ -183,7 +179,7 @@ export default function TicketSuccessFeedback({
               <Button
                 variant="outline"
                 onClick={copyToClipboard}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
               >
                 <Copy className="h-4 w-4" />
                 Salin Kode
@@ -191,7 +187,7 @@ export default function TicketSuccessFeedback({
               <Button
                 variant="outline"
                 onClick={downloadQRCode}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
               >
                 <Download className="h-4 w-4" />
                 Unduh QR
@@ -203,23 +199,23 @@ export default function TicketSuccessFeedback({
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.8 }}
-              className="rounded-lg bg-blue-50 p-4 space-y-3"
+              className="space-y-3 rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20"
             >
-              <h4 className={typo.heading(5, "text-blue-800 flex items-center gap-2")}>
+              <h4 className="flex items-center gap-2 text-base font-semibold text-blue-800 dark:text-blue-300">
                 <FileText className="h-4 w-4" />
                 Langkah Selanjutnya:
               </h4>
-              <ul className="space-y-2 text-sm text-blue-700">
+              <ul className="space-y-2 text-sm text-blue-700 dark:text-blue-400">
                 <li className="flex items-start gap-2">
-                  <div className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-500" />
+                  <div className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-600 dark:bg-blue-400" />
                   Simpan kode tiket <strong>{ticketCode}</strong> dengan aman
                 </li>
                 <li className="flex items-start gap-2">
-                  <div className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-500" />
+                  <div className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-600 dark:bg-blue-400" />
                   Gunakan tab &quot;Lihat Pengaduan Saya&quot; untuk melacak status
                 </li>
                 <li className="flex items-start gap-2">
-                  <div className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-500" />
+                  <div className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-600 dark:bg-blue-400" />
                   Anda akan menerima notifikasi tentang perkembangan pengaduan
                 </li>
               </ul>
@@ -233,7 +229,7 @@ export default function TicketSuccessFeedback({
             >
               <Button
                 onClick={onClose}
-                className="w-full bg-green-600 hover:bg-green-700"
+                className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800"
               >
                 Mengerti, Tutup
               </Button>
