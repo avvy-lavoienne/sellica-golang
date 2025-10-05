@@ -140,7 +140,7 @@ export default function EnhancedNavigation({
       <div
         ref={containerRef}
         className={cn(
-          'flex gap-2',
+          'flex gap-2 justify-center',
           {
             'flex-wrap': variant === 'mobile',
             'flex-nowrap': variant !== 'mobile'
@@ -232,16 +232,43 @@ export default function EnhancedNavigation({
               
               <TooltipContent 
                 side="bottom" 
-                className="max-w-xs text-center"
+                align="center"
+                className="z-50 max-w-sm overflow-hidden rounded-lg border border-gray-200 bg-white p-0 shadow-xl dark:border-gray-700 dark:bg-gray-800"
                 sideOffset={8}
+                collisionPadding={10}
+                avoidCollisions={true}
               >
-                <div className="space-y-1">
-                  <p className="font-medium">{tab.label}</p>
-                  <p className="text-xs text-muted-foreground">{tab.description}</p>
+                <div className="space-y-2 p-3">
+                  {/* Title with icon */}
+                  <div className="flex items-center gap-2">
+                    {tab.icon && (
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-lg dark:bg-blue-900/30">
+                        {tab.icon}
+                      </div>
+                    )}
+                    <p className="font-semibold text-gray-900 dark:text-white">{tab.label}</p>
+                  </div>
+                  
+                  {/* Description */}
+                  <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+                    {tab.description}
+                  </p>
+                  
+                  {/* Keyboard shortcut badge */}
                   {showKeyboardHints && tab.keyboardShortcut && (
-                    <p className="text-xs font-mono bg-muted px-1 py-0.5 rounded">
-                      Ctrl+Shift+{tab.keyboardShortcut}
-                    </p>
+                    <div className="flex items-center gap-2 rounded-md bg-gray-50 px-3 py-2 dark:bg-gray-700/50">
+                      <kbd className="rounded bg-white px-2 py-1 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 dark:bg-gray-800 dark:text-white dark:ring-gray-600">
+                        Ctrl
+                      </kbd>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">+</span>
+                      <kbd className="rounded bg-white px-2 py-1 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 dark:bg-gray-800 dark:text-white dark:ring-gray-600">
+                        Shift
+                      </kbd>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">+</span>
+                      <kbd className="rounded bg-white px-2 py-1 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 dark:bg-gray-800 dark:text-white dark:ring-gray-600">
+                        {tab.keyboardShortcut}
+                      </kbd>
+                    </div>
                   )}
                 </div>
               </TooltipContent>
