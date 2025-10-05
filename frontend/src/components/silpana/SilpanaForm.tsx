@@ -884,11 +884,11 @@ export default function SilpanaForm({
                             disabled={!canAccess}
                             className={cn(
                               "group relative z-10 flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-300",
-                              "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2",
-                              isActive && "scale-110 border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/30",
-                              isCompleted && !isActive && "border-green-500 bg-green-500 text-white",
-                              !isActive && !isCompleted && !isVisited && "border-border bg-muted text-muted-foreground",
-                              !isActive && !isCompleted && isVisited && "border-border bg-background text-foreground",
+                              "focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2",
+                              isActive && "scale-110 border-blue-600 bg-blue-600 text-white shadow-lg shadow-blue-500/30 dark:border-blue-500 dark:bg-blue-500",
+                              isCompleted && !isActive && "border-green-500 bg-green-500 text-white dark:border-green-400 dark:bg-green-400",
+                              !isActive && !isCompleted && !isVisited && "border-gray-200 bg-gray-100 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400",
+                              !isActive && !isCompleted && isVisited && "border-gray-300 bg-white text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white",
                               canAccess && "cursor-pointer hover:scale-105",
                               !canAccess && "cursor-not-allowed opacity-50"
                             )}
@@ -906,9 +906,9 @@ export default function SilpanaForm({
                           <div className="text-center max-w-[80px]">
                             <p className={cn(
                               "text-[10px] font-medium transition-colors leading-tight",
-                              isActive && "text-primary",
+                              isActive && "text-blue-600 dark:text-blue-400",
                               isCompleted && !isActive && "text-green-600 dark:text-green-400",
-                              !isActive && !isCompleted && "text-muted-foreground"
+                              !isActive && !isCompleted && "text-gray-600 dark:text-gray-400"
                             )}>
                               {step.title}
                             </p>
@@ -917,7 +917,7 @@ export default function SilpanaForm({
                           {/* Active Step Pulse */}
                           {isActive && (
                             <motion.div
-                              className="absolute top-0 h-10 w-10 rounded-full bg-primary/20"
+                              className="absolute top-0 h-10 w-10 rounded-full bg-blue-500/20 dark:bg-blue-400/20"
                               animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0, 0.5] }}
                               transition={{ duration: 2, repeat: Infinity }}
                             />
@@ -929,16 +929,16 @@ export default function SilpanaForm({
                 </div>
 
                 {/* Current Step Info */}
-                <div className="rounded-lg bg-background/60 p-3 backdrop-blur-sm">
+                <div className="rounded-lg bg-white/60 p-3 backdrop-blur-sm dark:bg-gray-800/60">
                   <div className="flex items-start gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                      <Info className="h-4 w-4 text-primary" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                      <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-foreground">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
                         {formSteps[getCurrentStepIndex()].title}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
                         {formSteps[getCurrentStepIndex()].description}
                       </p>
                     </div>
@@ -1137,11 +1137,11 @@ export default function SilpanaForm({
                     <div className="space-y-2">
                       <Label
                         htmlFor="kategori_pengaduan"
-                        className={typo.ui('label', 'flex items-center gap-2')}
+                        className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white"
                       >
                         <ListFilter className="h-4 w-4" />
                         Kategori Pengaduan
-                        <span className="text-destructive">*</span>
+                        <span className="text-red-600 dark:text-red-400">*</span>
                       </Label>
                       <div className="relative">
                         <Select
@@ -1151,12 +1151,12 @@ export default function SilpanaForm({
                           <SelectTrigger
                             id="kategori_pengaduan"
                             className={cn(
-                              "transition-all duration-200",
-                              "focus:border-primary focus:ring-2 focus:ring-primary/20",
+                              "rounded-lg border-gray-300 bg-white text-gray-900 transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white",
+                              "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
                               touchedFields.has("kategori_pengaduan") &&
                                 !formData.kategori_pengaduan &&
-                                "border-destructive",
-                              formData.kategori_pengaduan && "border-green-500",
+                                "border-red-500 dark:border-red-500",
+                              formData.kategori_pengaduan && "border-green-500 dark:border-green-500",
                             )}
                           >
                             <SelectValue placeholder="Pilih kategori pengaduan" />
@@ -1170,17 +1170,17 @@ export default function SilpanaForm({
                           </SelectContent>
                         </Select>
                         {formData.kategori_pengaduan && (
-                          <CheckCircle className="absolute right-8 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500" />
+                          <CheckCircle className="absolute right-8 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500 dark:text-green-400" />
                         )}
                       </div>
                       {touchedFields.has("kategori_pengaduan") &&
                         !formData.kategori_pengaduan && (
-                          <p className={typo.ui('error', 'flex items-center gap-1')}>
+                          <p className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
                             <AlertCircle className="h-3 w-3" />
                             Kategori pengaduan wajib dipilih
                           </p>
                         )}
-                      <p className={typo.ui('helper')}>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
                         Pilih kategori yang sesuai dengan pengaduan Anda
                       </p>
                     </div>
@@ -1190,11 +1190,11 @@ export default function SilpanaForm({
                       <div className="space-y-2">
                         <Label
                           htmlFor="sub_kategori_pengaduan"
-                          className={typo.ui('label', 'flex items-center gap-2')}
+                          className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white"
                         >
                           <Target className="h-4 w-4" />
                           Sub Kategori Pengaduan
-                          <span className="text-destructive">*</span>
+                          <span className="text-red-600 dark:text-red-400">*</span>
                         </Label>
                         <div className="relative">
                           <Select
@@ -1204,12 +1204,12 @@ export default function SilpanaForm({
                             <SelectTrigger
                               id="sub_kategori_pengaduan"
                               className={cn(
-                                "transition-all duration-200",
-                                "focus:border-primary focus:ring-2 focus:ring-primary/20",
+                                "rounded-lg border-gray-300 bg-white text-gray-900 transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white",
+                                "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
                                 touchedFields.has("sub_kategori_pengaduan") &&
                                   !formData.sub_kategori_pengaduan &&
-                                  "border-destructive",
-                                formData.sub_kategori_pengaduan && "border-green-500",
+                                  "border-red-500 dark:border-red-500",
+                                formData.sub_kategori_pengaduan && "border-green-500 dark:border-green-500",
                               )}
                             >
                               <SelectValue placeholder="Pilih sub kategori pengaduan" />
@@ -1223,17 +1223,17 @@ export default function SilpanaForm({
                             </SelectContent>
                           </Select>
                           {formData.sub_kategori_pengaduan && (
-                            <CheckCircle className="absolute right-8 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500" />
+                            <CheckCircle className="absolute right-8 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500 dark:text-green-400" />
                           )}
                         </div>
                         {touchedFields.has("sub_kategori_pengaduan") &&
                           !formData.sub_kategori_pengaduan && (
-                            <p className={typo.ui('error', 'flex items-center gap-1')}>
+                            <p className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
                               <AlertCircle className="h-3 w-3" />
                               Sub kategori pengaduan wajib dipilih
                             </p>
                           )}
-                        <p className={typo.ui('helper')}>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
                           Pilih sub kategori yang lebih spesifik
                         </p>
                       </div>
@@ -1244,11 +1244,11 @@ export default function SilpanaForm({
                   <div className="space-y-2">
                     <Label
                       htmlFor="priority_level"
-                      className={typo.ui('label', 'flex items-center gap-2')}
+                      className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white"
                     >
                       <TrendingUp className="h-4 w-4" />
                       Tingkat Prioritas
-                      <span className="text-muted-foreground text-xs">(Opsional)</span>
+                      <span className="text-xs text-gray-600 dark:text-gray-400">(Opsional)</span>
                     </Label>
                     <div className="relative">
                       <Select
@@ -1258,9 +1258,9 @@ export default function SilpanaForm({
                         <SelectTrigger
                           id="priority_level"
                           className={cn(
-                            "transition-all duration-200",
-                            "focus:border-primary focus:ring-2 focus:ring-primary/20",
-                            formData.priority_level && "border-green-500",
+                            "rounded-lg border-gray-300 bg-white text-gray-900 transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white",
+                            "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+                            formData.priority_level && "border-green-500 dark:border-green-500",
                           )}
                         >
                           <SelectValue placeholder="Pilih tingkat prioritas" />
@@ -1293,10 +1293,10 @@ export default function SilpanaForm({
                         </SelectContent>
                       </Select>
                       {formData.priority_level && (
-                        <CheckCircle className="absolute right-8 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500" />
+                        <CheckCircle className="absolute right-8 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500 dark:text-green-400" />
                       )}
                     </div>
-                    <p className={typo.ui('helper')}>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
                       Sistem akan menentukan prioritas secara otomatis berdasarkan kategori jika tidak dipilih
                     </p>
                   </div>
@@ -1315,8 +1315,8 @@ export default function SilpanaForm({
                     >
                 <div className="space-y-4">
                   <div className="mb-4 flex items-center gap-2">
-                    <MessageSquare className="h-5 w-5 text-primary" />
-                    <h4 className={typo.heading(4, textColors.primary)}>
+                    <MessageSquare className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
                       Detail Pengaduan
                     </h4>
                   </div>
@@ -1325,11 +1325,11 @@ export default function SilpanaForm({
                   <div className="space-y-2">
                     <Label
                       htmlFor="alasan_pengaduan"
-                      className={typo.ui('label', 'flex items-center gap-2')}
+                      className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white"
                     >
                       <MessageSquare className="h-4 w-4" />
                       Alasan Pengaduan
-                      <span className="text-destructive">*</span>
+                      <span className="text-red-600 dark:text-red-400">*</span>
                     </Label>
                     <div className="relative">
                       <Input
@@ -1340,27 +1340,27 @@ export default function SilpanaForm({
                         onChange={handleInputChange}
                         placeholder="Masukkan alasan pengaduan"
                         className={cn(
-                          "transition-all duration-200",
-                          "focus:border-primary focus:ring-2 focus:ring-primary/20",
+                          "rounded-lg border-gray-300 bg-white text-gray-900 transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white",
+                          "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
                           touchedFields.has("alasan_pengaduan") &&
                             !formData.alasan_pengaduan &&
-                            "border-destructive",
-                          formData.alasan_pengaduan && "border-green-500",
+                            "border-red-500 dark:border-red-500",
+                          formData.alasan_pengaduan && "border-green-500 dark:border-green-500",
                         )}
                         required
                       />
                       {formData.alasan_pengaduan && (
-                        <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500" />
+                        <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500 dark:text-green-400" />
                       )}
                     </div>
                     {touchedFields.has("alasan_pengaduan") &&
                       !formData.alasan_pengaduan && (
-                        <p className="flex items-center gap-1 text-xs text-destructive">
+                        <p className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
                           <AlertCircle className="h-3 w-3" />
                           Alasan pengaduan wajib diisi
                         </p>
                       )}
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
                       Alasan utama pengaduan Anda
                     </p>
                   </div>
@@ -1369,11 +1369,11 @@ export default function SilpanaForm({
                   <div className="space-y-2">
                     <Label
                       htmlFor="deskripsi_pengaduan"
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white"
                     >
                       <FileText className="h-4 w-4" />
                       Deskripsi Pengaduan
-                      <span className="text-destructive">*</span>
+                      <span className="text-red-600 dark:text-red-400">*</span>
                     </Label>
                     <div className="relative">
                       <Textarea
@@ -1384,13 +1384,13 @@ export default function SilpanaForm({
                         placeholder="Jelaskan secara detail pengaduan Anda... (minimal 20 karakter)"
                         rows={4}
                         className={cn(
-                          "resize-none transition-all duration-200",
-                          "focus:border-primary focus:ring-2 focus:ring-primary/20",
-                          fieldErrors.deskripsi_pengaduan && "border-destructive ring-2 ring-destructive/20",
+                          "resize-none rounded-lg border-gray-300 bg-white text-gray-900 transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white",
+                          "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+                          fieldErrors.deskripsi_pengaduan && "border-red-500 ring-2 ring-red-500/20 dark:border-red-500",
                           formData.deskripsi_pengaduan && 
                             formData.deskripsi_pengaduan.length >= 20 && 
                             !fieldErrors.deskripsi_pengaduan && 
-                            "border-green-500",
+                            "border-green-500 dark:border-green-500",
                         )}
                         required
                         aria-invalid={!!fieldErrors.deskripsi_pengaduan}
@@ -1399,29 +1399,29 @@ export default function SilpanaForm({
                       {formData.deskripsi_pengaduan && 
                        formData.deskripsi_pengaduan.length >= 20 && 
                        !fieldErrors.deskripsi_pengaduan && (
-                        <CheckCircle className="absolute right-3 top-3 h-4 w-4 text-green-500" />
+                        <CheckCircle className="absolute right-3 top-3 h-4 w-4 text-green-500 dark:text-green-400" />
                       )}
                       {fieldErrors.deskripsi_pengaduan && (
-                        <AlertCircle className="absolute right-3 top-3 h-4 w-4 text-destructive" />
+                        <AlertCircle className="absolute right-3 top-3 h-4 w-4 text-red-600 dark:text-red-400" />
                       )}
                     </div>
                     {fieldErrors.deskripsi_pengaduan && (
-                      <p id="description-error" className="flex items-center gap-1 text-xs text-destructive" role="alert">
+                      <p id="description-error" className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400" role="alert">
                         <AlertCircle className="h-3 w-3" />
                         {fieldErrors.deskripsi_pengaduan}
                       </p>
                     )}
                     <div className="flex items-center justify-between">
-                      <p id="description-helper" className="text-xs text-muted-foreground">
+                      <p id="description-helper" className="text-xs text-gray-600 dark:text-gray-400">
                         Berikan informasi detail tentang pengaduan Anda (minimal 20 karakter)
                       </p>
                       <span className={cn(
                         "text-xs font-medium transition-colors",
                         formData.deskripsi_pengaduan?.length < 20 && touchedFields.has("deskripsi_pengaduan")
-                          ? "text-amber-600"
+                          ? "text-amber-600 dark:text-amber-400"
                           : formData.deskripsi_pengaduan?.length >= 20
-                          ? "text-green-600"
-                          : "text-muted-foreground"
+                          ? "text-green-600 dark:text-green-400"
+                          : "text-gray-600 dark:text-gray-400"
                       )}>
                         {formData.deskripsi_pengaduan?.length || 0} / 20 karakter
                       </span>
@@ -1432,8 +1432,8 @@ export default function SilpanaForm({
                 {/* Contact Information Section */}
                 <div className="space-y-4">
                   <div className="mb-4 flex items-center gap-2">
-                    <Phone className="h-5 w-5 text-primary" />
-                    <h4 className="text-lg font-semibold text-foreground">
+                    <Phone className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
                       Informasi Kontak
                     </h4>
                   </div>
@@ -1444,11 +1444,11 @@ export default function SilpanaForm({
                       <div className="space-y-2">
                         <Label
                           htmlFor="nomor_telepon"
-                          className={typo.ui('label', 'flex items-center gap-2')}
+                          className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white"
                         >
                           <Phone className="h-4 w-4" />
                           Nomor Telepon
-                          <span className="text-destructive">*</span>
+                          <span className="text-red-600 dark:text-red-400">*</span>
                         </Label>
                         <div className="relative">
                           <Input
@@ -1459,29 +1459,29 @@ export default function SilpanaForm({
                             onChange={handleInputChange}
                             placeholder="08xxxxxxxxxx"
                             className={cn(
-                              "transition-all duration-200",
-                              "focus:border-primary focus:ring-2 focus:ring-primary/20",
-                              fieldErrors.nomor_telepon && "border-destructive ring-2 ring-destructive/20",
-                              formData.nomor_telepon && !fieldErrors.nomor_telepon && "border-green-500",
+                              "rounded-lg border-gray-300 bg-white text-gray-900 transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white",
+                              "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+                              fieldErrors.nomor_telepon && "border-red-500 ring-2 ring-red-500/20 dark:border-red-500",
+                              formData.nomor_telepon && !fieldErrors.nomor_telepon && "border-green-500 dark:border-green-500",
                             )}
                             required={!formData.is_anonymous}
                             aria-invalid={!!fieldErrors.nomor_telepon}
                             aria-describedby={fieldErrors.nomor_telepon ? "phone-error" : "phone-helper"}
                           />
                           {formData.nomor_telepon && !fieldErrors.nomor_telepon && (
-                            <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500" />
+                            <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500 dark:text-green-400" />
                           )}
                           {fieldErrors.nomor_telepon && (
-                            <AlertCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-destructive" />
+                            <AlertCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-red-600 dark:text-red-400" />
                           )}
                         </div>
                         {fieldErrors.nomor_telepon && (
-                          <p id="phone-error" className={typo.ui('error', 'flex items-center gap-1')} role="alert">
+                          <p id="phone-error" className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400" role="alert">
                             <AlertCircle className="h-3 w-3" />
                             {fieldErrors.nomor_telepon}
                           </p>
                         )}
-                        <p id="phone-helper" className={typo.ui('helper')}>
+                        <p id="phone-helper" className="text-xs text-gray-600 dark:text-gray-400">
                           Format: 08xxxxxxxxxx (nomor HP Indonesia)
                         </p>
                       </div>
@@ -1491,11 +1491,11 @@ export default function SilpanaForm({
                     <div className="space-y-2">
                       <Label
                         htmlFor="tanggal_pengajuan"
-                        className={typo.ui('label', 'flex items-center gap-2')}
+                        className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white"
                       >
                         <Calendar className="h-4 w-4" />
                         Tanggal Pengajuan
-                        <span className="text-destructive">*</span>
+                        <span className="text-red-600 dark:text-red-400">*</span>
                       </Label>
                       <div className="relative">
                         <Input
@@ -1505,27 +1505,27 @@ export default function SilpanaForm({
                           value={formData.tanggal_pengaduan}
                           onChange={handleInputChange}
                           className={cn(
-                            "transition-all duration-200",
-                            "focus:border-primary focus:ring-2 focus:ring-primary/20",
+                            "rounded-lg border-gray-300 bg-white text-gray-900 transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white",
+                            "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
                             touchedFields.has("tanggal_pengaduan") &&
                               !formData.tanggal_pengaduan &&
-                              "border-destructive",
-                            formData.tanggal_pengaduan && "border-green-500",
+                              "border-red-500 dark:border-red-500",
+                            formData.tanggal_pengaduan && "border-green-500 dark:border-green-500",
                           )}
                           required
                         />
                         {formData.tanggal_pengaduan && (
-                          <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500" />
+                          <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500 dark:text-green-400" />
                         )}
                       </div>
                       {touchedFields.has("tanggal_pengaduan") &&
                         !formData.tanggal_pengaduan && (
-                          <p className="flex items-center gap-1 text-xs text-destructive">
+                          <p className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
                             <AlertCircle className="h-3 w-3" />
                             Tanggal pengajuan wajib diisi
                           </p>
                         )}
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
                         Tanggal saat Anda mengajukan pengaduan ini
                       </p>
                     </div>
@@ -1557,37 +1557,37 @@ export default function SilpanaForm({
                         <div className="space-y-3 rounded-lg bg-white/60 p-4 dark:bg-gray-900/40">
                           <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
-                              <p className="font-medium text-muted-foreground">Status:</p>
-                              <p className="text-foreground">{formData.is_anonymous ? '🔒 Anonim' : '👤 Dengan Identitas'}</p>
+                              <p className="font-medium text-gray-600 dark:text-gray-400">Status:</p>
+                              <p className="text-gray-900 dark:text-white">{formData.is_anonymous ? '🔒 Anonim' : '👤 Dengan Identitas'}</p>
                             </div>
                             {!formData.is_anonymous && formData.nik_pengaduan && (
                               <div>
-                                <p className="font-medium text-muted-foreground">NIK:</p>
-                                <p className="text-foreground">{formData.nik_pengaduan}</p>
+                                <p className="font-medium text-gray-600 dark:text-gray-400">NIK:</p>
+                                <p className="text-gray-900 dark:text-white">{formData.nik_pengaduan}</p>
                               </div>
                             )}
                             {formData.nama_pengaduan && (
                               <div>
-                                <p className="font-medium text-muted-foreground">Nama:</p>
-                                <p className="text-foreground">{formData.nama_pengaduan}</p>
+                                <p className="font-medium text-gray-600 dark:text-gray-400">Nama:</p>
+                                <p className="text-gray-900 dark:text-white">{formData.nama_pengaduan}</p>
                               </div>
                             )}
                             {formData.kategori_pengaduan && (
                               <div>
-                                <p className="font-medium text-muted-foreground">Kategori:</p>
-                                <p className="text-foreground">{formData.kategori_pengaduan}</p>
+                                <p className="font-medium text-gray-600 dark:text-gray-400">Kategori:</p>
+                                <p className="text-gray-900 dark:text-white">{formData.kategori_pengaduan}</p>
                               </div>
                             )}
                             {formData.sub_kategori_pengaduan && (
                               <div>
-                                <p className="font-medium text-muted-foreground">Sub Kategori:</p>
-                                <p className="text-foreground">{formData.sub_kategori_pengaduan}</p>
+                                <p className="font-medium text-gray-600 dark:text-gray-400">Sub Kategori:</p>
+                                <p className="text-gray-900 dark:text-white">{formData.sub_kategori_pengaduan}</p>
                               </div>
                             )}
                             {formData.priority_level && (
                               <div>
-                                <p className="font-medium text-muted-foreground">Prioritas:</p>
-                                <p className="text-foreground capitalize">{formData.priority_level}</p>
+                                <p className="font-medium text-gray-600 dark:text-gray-400">Prioritas:</p>
+                                <p className="text-gray-900 dark:text-white capitalize">{formData.priority_level}</p>
                               </div>
                             )}
                           </div>
@@ -1601,8 +1601,8 @@ export default function SilpanaForm({
                 {userRole === "admin" && (
                   <div className="space-y-4">
                     <div className="mb-4 flex items-center gap-2">
-                      <Shield className="h-5 w-5 text-primary" />
-                      <h4 className="text-lg font-semibold text-foreground">
+                      <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
                         Aksi Admin
                       </h4>
                       <Badge variant="secondary" className="gap-1 text-xs">
@@ -1629,21 +1629,21 @@ export default function SilpanaForm({
                           placeholder="Tindak lanjut dari pengaduan (diisi oleh admin)..."
                           rows={3}
                           className={cn(
-                            "resize-none transition-all duration-200",
-                            "focus:border-primary focus:ring-2 focus:ring-primary/20",
+                            "resize-none rounded-lg border-gray-300 bg-white text-gray-900 transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white",
+                            "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
                             formData.tindak_lanjut_pengaduan &&
-                              "border-green-500",
+                              "border-green-500 dark:border-green-500",
                           )}
                         />
                         {formData.tindak_lanjut_pengaduan && (
-                          <CheckCircle className="absolute right-3 top-3 h-4 w-4 text-green-500" />
+                          <CheckCircle className="absolute right-3 top-3 h-4 w-4 text-green-500 dark:text-green-400" />
                         )}
                       </div>
                       <div className="flex items-center justify-between">
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
                           Tindak lanjut atau detail penyelesaian
                         </p>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-gray-600 dark:text-gray-400">
                           {formData.tindak_lanjut_pengaduan?.length || 0}{" "}
                           karakter
                         </span>
@@ -1657,7 +1657,7 @@ export default function SilpanaForm({
             {/* Enhanced Form Actions with Multi-Step Navigation */}
             <motion.div
               variants={itemVariants}
-              className="sticky bottom-0 z-20 -mx-6 -mb-6 border-t border-border/50 bg-background/95 p-4 backdrop-blur-sm sm:p-6"
+              className="sticky bottom-0 z-20 -mx-6 -mb-6 border-t border-gray-200 bg-white/95 p-4 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/95 sm:p-6"
             >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 {/* Navigation Buttons */}
@@ -1671,7 +1671,7 @@ export default function SilpanaForm({
                           variant="outline"
                           onClick={goToPreviousStep}
                           disabled={loading}
-                          className="transition-all duration-200 hover:bg-muted/50"
+                          className="rounded-lg border-gray-300 bg-white text-gray-900 transition-all duration-200 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
                         >
                           <ChevronLeft className="mr-2 h-4 w-4" />
                           Kembali
@@ -1682,7 +1682,7 @@ export default function SilpanaForm({
                         variant="ghost"
                         onClick={onCancel}
                         disabled={loading}
-                        className="text-muted-foreground hover:text-foreground"
+                        className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                       >
                         <X className="mr-2 h-4 w-4" />
                         Batal
@@ -1692,10 +1692,10 @@ export default function SilpanaForm({
                     {/* Right: Next/Submit Button */}
                     <div className="flex flex-1 items-center justify-end gap-3">
                       {/* Progress indicator */}
-                      <div className="hidden text-sm text-muted-foreground sm:block">
-                        <span className="font-medium text-foreground">{getCurrentStepIndex() + 1}</span>
+                      <div className="hidden text-sm text-gray-600 dark:text-gray-400 sm:block">
+                        <span className="font-medium text-gray-900 dark:text-white">{getCurrentStepIndex() + 1}</span>
                         {" "}dari{" "}
-                        <span className="font-medium text-foreground">{formSteps.length}</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{formSteps.length}</span>
                       </div>
 
                       {getCurrentStepIndex() < formSteps.length - 1 ? (
@@ -1706,8 +1706,7 @@ export default function SilpanaForm({
                               onClick={goToNextStep}
                               disabled={!canProceedToNextStep() || loading}
                               className={cn(
-                                "min-w-[140px] transition-all duration-200",
-                                "hover:shadow-lg hover:shadow-primary/20",
+                                "min-w-[140px] rounded-lg bg-blue-700 text-white transition-all duration-200 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800",
                                 !canProceedToNextStep() && "cursor-not-allowed opacity-50"
                               )}
                             >
@@ -1730,9 +1729,7 @@ export default function SilpanaForm({
                               type="submit"
                               disabled={loading || !formValidation.isValid}
                               className={cn(
-                                "min-w-[140px] transition-all duration-200",
-                                "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700",
-                                "hover:shadow-lg hover:shadow-green-500/30",
+                                "min-w-[140px] rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 text-white transition-all duration-200 hover:from-green-700 hover:to-emerald-700 focus:ring-4 focus:ring-green-300 dark:focus:ring-green-800",
                                 loading && "cursor-not-allowed",
                               )}
                             >
@@ -1773,7 +1770,7 @@ export default function SilpanaForm({
                             variant="outline"
                             onClick={onCancel}
                             disabled={loading}
-                            className="transition-all duration-200 hover:bg-muted/50"
+                            className="rounded-lg border-gray-300 bg-white text-gray-900 transition-all duration-200 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
                           >
                             <X className="mr-2 h-4 w-4" />
                             Batal
@@ -1790,8 +1787,7 @@ export default function SilpanaForm({
                             type="submit"
                             disabled={loading || !formValidation.isValid}
                             className={cn(
-                              "transition-all duration-200",
-                              "hover:shadow-lg hover:shadow-primary/20",
+                              "rounded-lg bg-blue-700 text-white transition-all duration-200 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800",
                               loading && "cursor-not-allowed",
                             )}
                           >
@@ -1831,15 +1827,15 @@ export default function SilpanaForm({
               </div>
 
               {/* Form Status */}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground sm:order-1">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 sm:order-1">
                 {success && (
-                  <div className="flex items-center gap-1 text-green-600">
+                  <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
                     <CheckCircle className="h-4 w-4" />
                     <span>Form berhasil dikirim!</span>
                   </div>
                 )}
                 {!formValidation.isValid && (
-                  <div className="flex items-center gap-1 text-amber-600">
+                  <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
                     <AlertCircle className="h-4 w-4" />
                     <span>
                       {formValidation.totalFields - formValidation.filledFields}{" "}
