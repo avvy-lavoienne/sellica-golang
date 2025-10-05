@@ -2,6 +2,7 @@
 
 import type React from "react";
 import { useEffect, useState, useCallback, useMemo, useRef, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/conn/utils";
 import { supabase } from "@/lib/conn/supabaseClient";
@@ -74,7 +75,11 @@ import LastUpdatedBadge from "@/components/silpana/LastUpdatedBadge";
 import EnhancedNavigation from "@/components/silpana/EnhancedNavigation";
 import { SilpanaMode } from "@/types/silpana/silpana";
 
-export default function SilpanaPage() {
+function SilpanaPageContent() {
+  // URL params and router for mode handling
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
   // Enhanced navigation state with new enum system
   const [activeMode, setActiveMode] = useState<SilpanaMode>(SilpanaMode.LOOKUP); // Default to lookup for user-friendly access
   const [isEditing, setIsEditing] = useState(false);
@@ -184,6 +189,32 @@ export default function SilpanaPage() {
   const debouncedStartDate = useDebounce(startDate, 500);
   const debouncedEndDate = useDebounce(endDate, 500);
   const debouncedFilterBy = useDebounce(filterBy, 500);
+
+  // Handle URL params and redirect to default mode if no param is present
+  useEffect(() => {
+    const mode = searchParams.get('mode');
+    
+    // If no mode param, redirect to lookup mode
+    if (!mode) {
+      router.replace('/silpana?mode=lookup');
+      return;
+    }
+    
+    // Set active mode based on URL param
+    switch (mode) {
+      case 'form':
+        setActiveMode(SilpanaMode.FORM);
+        break;
+      case 'table':
+      case 'rekap':
+        setActiveMode(SilpanaMode.REKAP);
+        break;
+      case 'lookup':
+      default:
+        setActiveMode(SilpanaMode.LOOKUP);
+        break;
+    }
+  }, [searchParams, router]);
 
   const validatePhoneNumber = (phone: string) => {
     return /^(\+62|62|0)[0-9]{9,12}$/.test(phone);
@@ -515,6 +546,12 @@ export default function SilpanaPage() {
   // Enhanced navigation handlers with new enum system
   const handleModeChange = useCallback((newMode: SilpanaMode) => {
     setActiveMode(newMode);
+    
+    // Update URL param based on mode
+    const modeParam = newMode === SilpanaMode.FORM ? 'form' : 
+                      newMode === SilpanaMode.REKAP ? 'table' : 'lookup';
+    router.push(`/silpana?mode=${modeParam}`);
+    
     // Clear related state when switching modes
     if (newMode !== SilpanaMode.LOOKUP) {
       setFoundTicket(null);
@@ -523,7 +560,7 @@ export default function SilpanaPage() {
       setIsEditing(false);
       setEditData(null);
     }
-  }, []);
+  }, [router]);
 
   const handleTicketLookup = useCallback(() => {
     handleModeChange(SilpanaMode.LOOKUP);
@@ -930,5 +967,14 @@ export default function SilpanaPage() {
         }}
       />
     </TooltipProvider>
+  );
+}
+
+// Wrap with Suspense for useSearchParams
+export default function SilpanaPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <SilpanaPageContent />
+    </Suspense>
   );
 }
