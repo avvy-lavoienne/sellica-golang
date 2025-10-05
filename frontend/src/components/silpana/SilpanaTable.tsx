@@ -171,16 +171,16 @@ function SilpanaTable({
   const prefersReducedMotion = useReducedMotion();
   const shouldAnimate = !disableAnimations && !prefersReducedMotion;
 
-  // Enhanced color system for glass-morphism effects
+  // Enhanced color system for decorative effects (Flowbite patterns)
   const colorSchemes = useMemo(
     () => ({
       primary: {
-        bg: "bg-primary/5",
-        text: "text-primary",
-        accent: "text-primary",
-        bgClass: "bg-primary/5",
-        borderClass: "border-primary/20",
-        glowClass: "shadow-primary/20",
+        bg: "bg-blue-50 dark:bg-blue-900/20",
+        text: "text-blue-700 dark:text-blue-300",
+        accent: "text-blue-600 dark:text-blue-400",
+        bgClass: "bg-blue-50 dark:bg-blue-900/20",
+        borderClass: "border-blue-200 dark:border-blue-800",
+        glowClass: "shadow-blue-500/20",
       },
       blue: {
         bg: "bg-blue-50 dark:bg-blue-900/20",
@@ -1103,24 +1103,24 @@ function SilpanaTable({
                             <div>
                               <div className="flex flex-wrap gap-1 mb-2">
                                 {item.kategori_pengaduan && (
-                                  <Badge variant="secondary" className={typo.ui('badge')}>
+                                  <Badge variant="secondary" className="text-xs">
                                     {item.kategori_pengaduan}
                                   </Badge>
                                 )}
                                 {item.sub_kategori_pengaduan && (
-                                  <Badge variant="outline" className={typo.ui('badge')}>
+                                  <Badge variant="outline" className="text-xs">
                                     {item.sub_kategori_pengaduan}
                                   </Badge>
                                 )}
                               </div>
-                              <p className={typo.table('cell', 'font-medium')}>
+                              <p className="font-medium text-gray-900 dark:text-white">
                                 {item.alasan_pengaduan || "-"}
                               </p>
-                              <p className={typo.ui('description', 'line-clamp-2')}>
+                              <p className="line-clamp-2 text-sm text-gray-600 dark:text-gray-400">
                                 {item.deskripsi_pengaduan || "-"}
                               </p>
                             </div>
-                            <div className={typo.ui('helper', 'flex items-center gap-4')}>
+                            <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400">
                               <div className="flex items-center gap-1">
                                 <Phone className="h-3 w-3" />
                                 {item.nomor_telepon || "-"}
@@ -1144,16 +1144,16 @@ function SilpanaTable({
                                 animate={{ opacity: 1, height: "auto" }}
                                 exit={{ opacity: 0, height: 0 }}
                                 transition={{ duration: 0.2 }}
-                                className="border-t border-border/50 pt-3"
+                                className="border-t border-gray-200 pt-3 dark:border-gray-700"
                               >
                                 <div className="space-y-2">
                                   {/* Ticket Information */}
                                   {item.ticket_code && (
                                     <div>
-                                      <h5 className={typo.ui('label', 'mb-1')}>
+                                      <h5 className="mb-1 text-sm font-medium text-gray-900 dark:text-white">
                                         Ticket Code:
                                       </h5>
-                                      <p className={typo.table('cell', 'font-mono')}>
+                                      <p className="font-mono text-gray-900 dark:text-white">
                                         {item.ticket_code}
                                       </p>
                                     </div>
@@ -1164,11 +1164,11 @@ function SilpanaTable({
                                     <div className="grid grid-cols-2 gap-2">
                                       {onStatusUpdate && (
                                         <div>
-                                          <h5 className={typo.ui('label', 'mb-1')}>
+                                          <h5 className="mb-1 text-sm font-medium text-gray-900 dark:text-white">
                                             Update Status:
                                           </h5>
                                           <select
-                                            className="w-full rounded border border-border/50 bg-background px-2 py-1 text-sm"
+                                            className="w-full rounded-lg border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                             value={item.ticket_status || TicketStatus.SUBMITTED}
                                             onChange={(e) => onStatusUpdate(item.id || "", e.target.value as TicketStatus)}
                                           >
@@ -1183,11 +1183,11 @@ function SilpanaTable({
                                       
                                       {onPriorityUpdate && (
                                         <div>
-                                          <h5 className={typo.ui('label', 'mb-1')}>
+                                          <h5 className="mb-1 text-sm font-medium text-gray-900 dark:text-white">
                                             Update Priority:
                                           </h5>
                                           <select
-                                            className="w-full rounded border border-border/50 bg-background px-2 py-1 text-sm"
+                                            className="w-full rounded-lg border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                             value={item.priority_level || PriorityLevel.MEDIUM}
                                             onChange={(e) => onPriorityUpdate(item.id || "", e.target.value as PriorityLevel)}
                                           >
@@ -1203,19 +1203,19 @@ function SilpanaTable({
                                   )}
                                   
                                   <div>
-                                    <h5 className={typo.ui('label', 'mb-1')}>
+                                    <h5 className="mb-1 text-sm font-medium text-gray-900 dark:text-white">
                                       Full Description:
                                     </h5>
-                                    <p className={typo.table('cell')}>
+                                    <p className="text-gray-900 dark:text-white">
                                       {item.deskripsi_pengaduan || "-"}
                                     </p>
                                   </div>
                                   {item.tindak_lanjut_pengaduan && (
                                     <div>
-                                      <h5 className={typo.ui('label', 'mb-1')}>
+                                      <h5 className="mb-1 text-sm font-medium text-gray-900 dark:text-white">
                                         Follow-up:
                                       </h5>
-                                      <p className={typo.table('cell')}>
+                                      <p className="text-gray-900 dark:text-white">
                                         {item.tindak_lanjut_pengaduan}
                                       </p>
                                     </div>
@@ -1224,19 +1224,19 @@ function SilpanaTable({
                                   {/* Ticket Metadata */}
                                   <div className="grid grid-cols-2 gap-2">
                                     <div>
-                                      <h5 className={typo.ui('label', 'mb-1')}>
+                                      <h5 className="mb-1 text-sm font-medium text-gray-900 dark:text-white">
                                         Created:
                                       </h5>
-                                      <p className={typo.table('cell')}>
+                                      <p className="text-gray-900 dark:text-white">
                                         {formatDateTime(item.created_at || "")}
                                       </p>
                                     </div>
                                     {item.last_updated && (
                                       <div>
-                                        <h5 className={typo.ui('label', 'mb-1')}>
+                                        <h5 className="mb-1 text-sm font-medium text-gray-900 dark:text-white">
                                           Last Updated:
                                         </h5>
-                                        <p className={typo.table('cell')}>
+                                        <p className="text-gray-900 dark:text-white">
                                           {formatDateTime(item.last_updated)}
                                         </p>
                                       </div>
@@ -1260,10 +1260,10 @@ function SilpanaTable({
         {totalPages > 1 && (
           <motion.div
             variants={itemVariants}
-            className="relative z-10 border-t border-border/50 bg-background/60 p-4 backdrop-blur-sm"
+            className="relative z-10 border-t border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50"
           >
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className={typo.ui('description', 'flex items-center gap-2')}>
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                 <span>
                   Showing {(currentPage - 1) * rowsPerPage + 1} to{" "}
                   {Math.min(currentPage * rowsPerPage, totalCount)} of{" "}
@@ -1279,7 +1279,7 @@ function SilpanaTable({
                       size="sm"
                       onClick={() => onPageChange(1)}
                       disabled={currentPage === 1}
-                      className="h-8 w-8 p-0"
+                      className="h-8 w-8 rounded-lg border-gray-300 p-0 hover:bg-gray-100 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700"
                     >
                       <ChevronsLeft className="h-4 w-4" />
                     </Button>
@@ -1296,7 +1296,7 @@ function SilpanaTable({
                       size="sm"
                       onClick={() => onPageChange(currentPage - 1)}
                       disabled={currentPage === 1}
-                      className="h-8 w-8 p-0"
+                      className="h-8 w-8 rounded-lg border-gray-300 p-0 hover:bg-gray-100 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
@@ -1325,7 +1325,12 @@ function SilpanaTable({
                         variant={currentPage === pageNum ? "default" : "outline"}
                         size="sm"
                         onClick={() => onPageChange(pageNum)}
-                        className="h-8 w-8 p-0"
+                        className={cn(
+                          "h-8 w-8 rounded-lg p-0",
+                          currentPage === pageNum
+                            ? "bg-blue-700 text-white hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-700"
+                            : "border-gray-300 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
+                        )}
                       >
                         {pageNum}
                       </Button>
@@ -1340,7 +1345,7 @@ function SilpanaTable({
                       size="sm"
                       onClick={() => onPageChange(currentPage + 1)}
                       disabled={currentPage === totalPages}
-                      className="h-8 w-8 p-0"
+                      className="h-8 w-8 rounded-lg border-gray-300 p-0 hover:bg-gray-100 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>
@@ -1357,7 +1362,7 @@ function SilpanaTable({
                       size="sm"
                       onClick={() => onPageChange(totalPages)}
                       disabled={currentPage === totalPages}
-                      className="h-8 w-8 p-0"
+                      className="h-8 w-8 rounded-lg border-gray-300 p-0 hover:bg-gray-100 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700"
                     >
                       <ChevronsRight className="h-4 w-4" />
                     </Button>
