@@ -28,6 +28,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Home,
   ChevronRight,
@@ -649,7 +650,8 @@ export default function SilpanaPage() {
         initial="hidden"
         animate="visible"
         className={cn(
-          "min-h-screen bg-gradient-to-br from-background via-background to-muted/20",
+          // Flowbite: Clean background instead of gradient
+          "min-h-screen bg-gray-50 dark:bg-gray-900",
           "px-4 py-10 sm:px-6 lg:px-8",
         )}
         onHoverStart={() => setIsHovered(true)}
@@ -676,7 +678,7 @@ export default function SilpanaPage() {
           {/* Enhanced Breadcrumb Navigation */}
           <motion.div
             variants={sectionVariants}
-            className="relative overflow-hidden rounded-xl border border-border/50 bg-background/80 shadow-sm backdrop-blur-sm"
+            className="relative overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
           >
             {/* Background decoration */}
             <div className="absolute inset-0 opacity-30">
@@ -718,7 +720,7 @@ export default function SilpanaPage() {
           {/* Enhanced Page Header with Statistics */}
           <motion.div
             variants={sectionVariants}
-            className="relative overflow-hidden rounded-xl border border-border/50 bg-background/80 shadow-lg backdrop-blur-sm"
+            className="relative overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
           >
             {/* Background decoration */}
             <div className="absolute inset-0 opacity-50">
@@ -788,6 +790,9 @@ export default function SilpanaPage() {
 
                 {/* Enhanced Quick Actions */}
                 <div className="flex items-center gap-3">
+                  {/* Theme Toggle */}
+                  <ThemeToggle className="hover:bg-gray-100 dark:hover:bg-gray-800" />
+
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -859,7 +864,7 @@ export default function SilpanaPage() {
                         duration: shouldAnimate ? 0.4 : 0,
                         ease: "easeOut",
                       }}
-                      className="relative overflow-hidden rounded-xl border border-border/50 bg-background/60 shadow-sm backdrop-blur-sm"
+                      className="relative overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
                     >
                       {/* Background decoration for form */}
                       <div className="absolute inset-0 opacity-30">

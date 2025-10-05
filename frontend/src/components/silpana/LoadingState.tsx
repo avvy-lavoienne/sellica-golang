@@ -1,18 +1,18 @@
 import { motion } from "framer-motion";
-import { typo, textColors } from "@/lib/typography";
 
 export default function LoadingState() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
       <motion.div
-        className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-xl max-w-md w-full text-center"
+        className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-8 text-center shadow-md dark:border-gray-700 dark:bg-gray-800"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="flex justify-center mb-6">
+        {/* Spinner with Flowbite primary color */}
+        <div className="mb-6 flex justify-center">
           <svg
-            className="animate-spin h-12 w-12 text-indigo-500"
+            className="h-12 w-12 animate-spin text-blue-600 dark:text-blue-500"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -32,10 +32,12 @@ export default function LoadingState() {
             ></path>
           </svg>
         </div>
-        <h2 className={typo.heading(3, `${textColors.primary} mb-2`)}>
+        {/* Title with Flowbite text colors */}
+        <h2 className="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
           Memuat Data SILPANA
         </h2>
-        <p className={typo.body('base', textColors.secondary)}>
+        {/* Description with Flowbite secondary text */}
+        <p className="text-base text-gray-600 dark:text-gray-400">
           Mohon tunggu sebentar, sedang mengambil data pengaduan dan memproses informasi terbaru...
         </p>
       </motion.div>
