@@ -677,7 +677,7 @@ export default function SilpanaForm({
         initial="hidden"
         animate="visible"
         className={cn(
-          "relative overflow-hidden rounded-xl border border-border/50 bg-background/80 shadow-lg backdrop-blur-sm",
+          "relative overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800",
           className,
         )}
         onHoverStart={() => setIsHovered(true)}
@@ -685,13 +685,13 @@ export default function SilpanaForm({
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
       >
-        {/* Background decoration */}
-        <div className="absolute inset-0 opacity-50">
+        {/* Background decoration - keeping for visual interest */}
+        <div className="absolute inset-0 opacity-30">
           <div
             className={cn(
               "absolute -right-8 -top-8 h-32 w-32 rounded-full blur-3xl",
               colorSchemes.blue.bgClass,
-              "opacity-30",
+              "opacity-20",
             )}
           />
           <div
@@ -703,10 +703,10 @@ export default function SilpanaForm({
           />
         </div>
 
-        {/* Enhanced Header */}
+        {/* Enhanced Header - Flowbite pattern */}
         <motion.div
           variants={itemVariants}
-          className="relative z-10 border-b border-border/50 bg-background/60 p-6 backdrop-blur-sm"
+          className="relative z-10 border-b border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800/50"
         >
           <div className="flex flex-col gap-4 laptop:flex-row laptop:items-center laptop:justify-between">
             <div className="flex items-center gap-4">
@@ -733,35 +733,35 @@ export default function SilpanaForm({
               </motion.div>
 
               <div className="space-y-2">
-                <h3 className={typo.heading(3, textColors.primary)}>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                   {isEditing ? "Edit Data SILPANA" : "Form Input SILPANA"}
                 </h3>
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className={typo.ui('badge', 'gap-1')}>
+                  <Badge variant="secondary" className="gap-1 border-gray-200 bg-gray-100 text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
                     <Target className="h-3 w-3" />
                     {formValidation.filledFields}/{formValidation.totalFields}{" "}
                     Fields
                   </Badge>
                   {formData.is_anonymous && (
-                    <Badge variant="default" className={typo.ui('badge', 'gap-1 bg-purple-100 text-purple-800 border-purple-200')}>
+                    <Badge variant="default" className="gap-1 border-purple-200 bg-purple-100 text-purple-800 dark:border-purple-800 dark:bg-purple-900/20 dark:text-purple-400">
                       <Shield className="h-3 w-3" />
                       Anonymous
                     </Badge>
                   )}
                   {showProgress && (
-                    <Badge variant="outline" className={typo.ui('badge', 'gap-1')}>
+                    <Badge variant="outline" className="gap-1 border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
                       <TrendingUp className="h-3 w-3" />
                       {Math.round(formProgress)}% Complete
                     </Badge>
                   )}
                   {autoSaveStatus === "saving" && (
-                    <Badge variant="default" className={typo.ui('badge', 'gap-1')}>
+                    <Badge variant="default" className="gap-1 border-blue-200 bg-blue-600 text-white dark:border-blue-800 dark:bg-blue-700">
                       <Loader2 className="h-3 w-3 animate-spin" />
                       Saving...
                     </Badge>
                   )}
                   {autoSaveStatus === "saved" && (
-                    <Badge variant="default" className={typo.ui('badge', 'gap-1')}>
+                    <Badge variant="default" className="gap-1 border-green-200 bg-green-600 text-white dark:border-green-800 dark:bg-green-700">
                       <CheckCircle className="h-3 w-3" />
                       Saved
                     </Badge>
@@ -770,14 +770,14 @@ export default function SilpanaForm({
               </div>
             </div>
 
-            {/* Progress Bar */}
+            {/* Progress Bar - Flowbite colors */}
             {showProgress && (
               <div className="w-full laptop:w-48">
                 <div className="mb-2 flex items-center gap-2">
-                  <span className={typo.ui('helper', textColors.secondary)}>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">
                     {loading ? "Submitting" : "Progress"}
                   </span>
-                  <span className={typo.ui('helper', `${textColors.primary} font-medium`)}>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white">
                     {Math.round(loading ? submissionProgress : formProgress)}%
                   </span>
                 </div>
@@ -785,11 +785,11 @@ export default function SilpanaForm({
                   value={loading ? submissionProgress : formProgress} 
                   className={cn(
                     "h-2 transition-all duration-300",
-                    loading && "bg-blue-100"
+                    loading && "bg-blue-100 dark:bg-blue-900"
                   )}
                 />
                 {loading && (
-                  <div className="mt-1 flex items-center gap-2 text-xs text-blue-600">
+                  <div className="mt-1 flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400">
                     <Loader2 className="h-3 w-3 animate-spin" />
                     <span>Mengirim pengaduan...</span>
                   </div>
@@ -807,18 +807,18 @@ export default function SilpanaForm({
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-lg border border-red-200 bg-red-50 p-4"
+                className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20"
               >
                 <div className="flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                  <AlertCircle className="mt-0.5 h-5 w-5 text-red-600 dark:text-red-400" />
                   <div className="flex-1">
-                    <h4 className="font-medium text-red-800 mb-2">
+                    <h4 className="mb-2 font-medium text-red-800 dark:text-red-400">
                       Harap perbaiki kesalahan berikut:
                     </h4>
-                    <ul className="space-y-1 text-sm text-red-700">
+                    <ul className="space-y-1 text-sm text-red-700 dark:text-red-300">
                       {Object.entries(fieldErrors).map(([field, error]) => (
                         <li key={field} className="flex items-center gap-2">
-                          <div className="h-1 w-1 rounded-full bg-red-500" />
+                          <div className="h-1 w-1 rounded-full bg-red-500 dark:bg-red-400" />
                           {error}
                         </li>
                       ))}
@@ -833,19 +833,19 @@ export default function SilpanaForm({
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-xl border border-border/50 bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/50 p-6 shadow-sm backdrop-blur-sm dark:from-blue-950/20 dark:via-indigo-950/10 dark:to-purple-950/10"
+                className="rounded-lg border border-blue-200 bg-blue-50 p-6 shadow-sm dark:border-blue-800 dark:bg-blue-900/20"
               >
                 {/* Step Counter & Time */}
                 <div className="mb-6 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white dark:bg-blue-700">
                       <span className="text-sm font-bold">{getCurrentStepIndex() + 1}</span>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-foreground">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
                         Langkah {getCurrentStepIndex() + 1} dari {formSteps.length}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
                         Estimasi: {formSteps[getCurrentStepIndex()].estimatedTime}
                       </p>
                     </div>
@@ -976,13 +976,13 @@ export default function SilpanaForm({
                       className="space-y-4"
                     >
                       <div className="mb-4 flex items-center gap-2">
-                        <Shield className="h-5 w-5 text-primary" />
-                        <h4 className={typo.heading(4, textColors.primary)}>
+                        <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        <h4 className="text-base font-semibold text-gray-900 dark:text-white">
                           Opsi Pengajuan
                         </h4>
                       </div>
 
-                      <div className="flex items-start space-x-3 rounded-lg border border-border/50 bg-background/30 p-4">
+                      <div className="flex items-start space-x-3 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
                         <div className="flex items-center space-x-2">
                           <input
                             type="checkbox"
@@ -1002,18 +1002,18 @@ export default function SilpanaForm({
                               }));
                               setTouchedFields((prev) => new Set([...prev, "is_anonymous"]));
                             }}
-                            className="h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-primary/20"
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-700"
                           />
                           <Label 
                             htmlFor="is_anonymous" 
-                            className={typo.ui('label', 'flex items-center gap-2 cursor-pointer')}
+                            className="flex cursor-pointer items-center gap-2 text-sm font-medium text-gray-900 dark:text-white"
                           >
                             <Shield className="h-4 w-4" />
                             Ajukan sebagai Anonim
                           </Label>
                         </div>
                         <div className="flex-1">
-                          <p className={typo.ui('description')}>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
                             Centang opsi ini jika Anda ingin mengajukan pengaduan secara anonim. 
                             Data pribadi seperti NIK dan nomor telepon tidak akan diperlukan.
                           </p>
@@ -1033,8 +1033,8 @@ export default function SilpanaForm({
                       className="space-y-4"
                     >
                       <div className="mb-4 flex items-center gap-2">
-                        <User className="h-5 w-5 text-primary" />
-                        <h4 className={typo.heading(4, textColors.primary)}>
+                        <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        <h4 className="text-base font-semibold text-gray-900 dark:text-white">
                           Informasi Dasar
                         </h4>
                       </div>
@@ -1045,11 +1045,11 @@ export default function SilpanaForm({
                       <div className="space-y-2">
                         <Label
                           htmlFor="nik_pengaduan"
-                          className={typo.ui('label', 'flex items-center gap-2')}
+                          className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white"
                         >
                           <User className="h-4 w-4" />
                           NIK Pengaduan
-                          <span className="text-destructive">*</span>
+                          <span className="text-red-600 dark:text-red-400">*</span>
                         </Label>
                         <div className="relative">
                           <Input
@@ -1060,10 +1060,10 @@ export default function SilpanaForm({
                             onChange={handleInputChange}
                             placeholder="Masukkan NIK (16 digit)"
                             className={cn(
-                              "transition-all duration-200",
-                              "focus:border-primary focus:ring-2 focus:ring-primary/20",
-                              fieldErrors.nik_pengaduan && "border-destructive ring-2 ring-destructive/20",
-                              formData.nik_pengaduan && !fieldErrors.nik_pengaduan && "border-green-500",
+                              "rounded-lg border-gray-300 bg-white text-gray-900 transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white",
+                              "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+                              fieldErrors.nik_pengaduan && "border-red-500 ring-2 ring-red-500/20 dark:border-red-500",
+                              formData.nik_pengaduan && !fieldErrors.nik_pengaduan && "border-green-500 dark:border-green-500",
                             )}
                             required={!formData.is_anonymous}
                             maxLength={16}
@@ -1071,19 +1071,19 @@ export default function SilpanaForm({
                             aria-describedby={fieldErrors.nik_pengaduan ? "nik-error" : "nik-helper"}
                           />
                           {formData.nik_pengaduan && !fieldErrors.nik_pengaduan && (
-                            <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500" />
+                            <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500 dark:text-green-400" />
                           )}
                           {fieldErrors.nik_pengaduan && (
-                            <AlertCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-destructive" />
+                            <AlertCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-red-500 dark:text-red-400" />
                           )}
                         </div>
                         {fieldErrors.nik_pengaduan && (
-                          <p id="nik-error" className={typo.ui('error', 'flex items-center gap-1')} role="alert">
+                          <p id="nik-error" className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400" role="alert">
                             <AlertCircle className="h-3 w-3" />
                             {fieldErrors.nik_pengaduan}
                           </p>
                         )}
-                        <p id="nik-helper" className={typo.ui('helper')}>
+                        <p id="nik-helper" className="text-xs text-gray-600 dark:text-gray-400">
                           Masukkan NIK 16 digit sesuai KTP
                         </p>
                       </div>
@@ -1093,11 +1093,11 @@ export default function SilpanaForm({
                     <div className="space-y-2">
                       <Label
                         htmlFor="nama_pengaduan"
-                        className={typo.ui('label', 'flex items-center gap-2')}
+                        className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white"
                       >
                         <FileText className="h-4 w-4" />
                         Nama Pengaduan
-                        <span className="text-destructive">*</span>
+                        <span className="text-red-600 dark:text-red-400">*</span>
                       </Label>
                       <div className="relative">
                         <Input
@@ -1108,27 +1108,27 @@ export default function SilpanaForm({
                           onChange={handleInputChange}
                           placeholder="Masukkan nama pengaduan"
                           className={cn(
-                            "transition-all duration-200",
-                            "focus:border-primary focus:ring-2 focus:ring-primary/20",
+                            "rounded-lg border-gray-300 bg-white text-gray-900 transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white",
+                            "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
                             touchedFields.has("nama_pengaduan") &&
                               !formData.nama_pengaduan &&
-                              "border-destructive",
-                            formData.nama_pengaduan && "border-green-500",
+                              "border-red-500 dark:border-red-500",
+                            formData.nama_pengaduan && "border-green-500 dark:border-green-500",
                           )}
                           required
                         />
                         {formData.nama_pengaduan && (
-                          <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500" />
+                          <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500 dark:text-green-400" />
                         )}
                       </div>
                       {touchedFields.has("nama_pengaduan") &&
                         !formData.nama_pengaduan && (
-                          <p className={typo.ui('error', 'flex items-center gap-1')}>
+                          <p className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
                             <AlertCircle className="h-3 w-3" />
                             Nama pengaduan wajib diisi
                           </p>
                         )}
-                      <p className={typo.ui('helper')}>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
                         Judul singkat untuk pengaduan Anda
                       </p>
                     </div>
