@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 )
 
 // Service implements the SILPANA ticket management system
@@ -220,32 +221,37 @@ func (s *Service) ValidateTicketAccess(ctx context.Context, code, nik, phone str
 	var args []interface{}
 
 	// Build query based on available verification data
+	// Note: Using actual column names from silpana table schema
 	baseQuery := `
-		SELECT id, ticket_code as code, nama_pelapor as requester_name, nik as requester_nik, no_telp as requester_phone, 
-			   email as requester_email, alamat as requester_address, jenis_pengaduan as document_type, detail_pengaduan as purpose, 
+		SELECT id, ticket_code as code, nama_pengaduan as requester_name, nik_pengaduan as requester_nik, nomor_telepon as requester_phone, 
+			   email, alamat as requester_address, kategori_pengaduan as document_type, deskripsi_pengaduan as purpose, 
 			   ticket_status as status, priority_level as priority, resolution_notes as notes, created_at, updated_at
 		FROM silpana 
 		WHERE ticket_code = $1`
 
 	args = append(args, code)
 
-	// Add verification conditions
+	// Add verification conditions using correct column names
 	if nik != "" && phone != "" {
 		// Both provided - use both for verification
-		query = baseQuery + " AND nik = $2 AND no_telp = $3"
+		query = baseQuery + " AND nik_pengaduan = $2 AND nomor_telepon = $3"
 		args = append(args, nik, phone)
 	} else if nik != "" {
 		// Only NIK provided
-		query = baseQuery + " AND nik = $2"
+		query = baseQuery + " AND nik_pengaduan = $2"
 		args = append(args, nik)
 	} else if phone != "" {
 		// Only phone provided
-		query = baseQuery + " AND no_telp = $2"
+		query = baseQuery + " AND nomor_telepon = $2"
 		args = append(args, phone)
 	} else {
 		// No verification data provided
 		return nil, fmt.Errorf("no verification data provided")
 	}
+
+	// Debug logging
+	logrus.Infof("Ticket lookup query: %s", query)
+	logrus.Infof("Ticket lookup args: %v", args)
 
 	results, err := s.dbService.Query(ctx, query, args...)
 	if err != nil {
@@ -257,19 +263,30 @@ func (s *Service) ValidateTicketAccess(ctx context.Context, code, nik, phone str
 	}
 
 	result := results[0]
+	
+	// Helper function to safely extract string values
+	getStringValue := func(key string) string {
+		if val, ok := result[key]; ok && val != nil {
+			if str, ok := val.(string); ok {
+				return str
+			}
+		}
+		return ""
+	}
+	
 	ticket := &SilpanaTicket{
 		ID:               result["id"].(string),
 		Code:             result["code"].(string),
 		RequesterName:    result["requester_name"].(string),
 		RequesterNIK:     result["requester_nik"].(string),
 		RequesterPhone:   result["requester_phone"].(string),
-		RequesterEmail:   result["requester_email"].(string),
-		RequesterAddress: result["requester_address"].(string),
+		RequesterEmail:   getStringValue("email"), // Email column is nullable
+		RequesterAddress: getStringValue("requester_address"), // Alamat can be nullable
 		DocumentType:     result["document_type"].(string),
 		Purpose:          result["purpose"].(string),
 		Status:           TicketStatus(result["status"].(string)),
 		Priority:         TicketPriority(result["priority"].(string)),
-		Notes:            result["notes"].(string),
+		Notes:            getStringValue("notes"), // Resolution notes can be nullable
 		CreatedAt:        result["created_at"].(time.Time),
 		UpdatedAt:        result["updated_at"].(time.Time),
 	}

@@ -242,14 +242,15 @@ export async function lookupTicket(
 }> {
   try {
     const request: any = {
-      ticket_code: ticketCode,
+      code: ticketCode, // Backend expects "code", not "ticket_code"
     };
 
     // Add verification field based on type
+    // Backend expects "requester_phone" or "requester_nik"
     if (verificationType === 'phone') {
-      request.phone_number = verificationValue;
+      request.requester_phone = verificationValue;
     } else {
-      request.nik = verificationValue;
+      request.requester_nik = verificationValue;
     }
 
     const response = await apiRequest<{
