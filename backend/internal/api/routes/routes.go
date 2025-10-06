@@ -267,11 +267,13 @@ func setupSilpanaRoutes(router *gin.Engine, silpanaService silpana.ServiceInterf
 		// Ticket management endpoints
 		api.POST("/tickets", silpanaHandler.CreateTicket)         // POST /api/v1/silpana/tickets - Create new ticket
 		api.POST("/tickets/lookup", silpanaHandler.LookupTicket)  // POST /api/v1/silpana/tickets/lookup - Lookup ticket by code
+		
+		// Progress tracking endpoints (Phase 4) - Must come before wildcard routes
+		api.GET("/progress/:code", silpanaHandler.GetTicketProgress) // GET /api/v1/silpana/progress/:code - Get ticket progress by code
+		
+		// Wildcard routes must come last
 		api.GET("/tickets/:id", silpanaHandler.GetTicket)         // GET /api/v1/silpana/tickets/:id - Get ticket by ID
 		api.GET("/tickets/:id/history", silpanaHandler.GetTicketHistory) // GET /api/v1/silpana/tickets/:id/history - Get ticket history
-		
-		// Progress tracking endpoints (Phase 4)
-		api.GET("/tickets/:code/progress", silpanaHandler.GetTicketProgress) // GET /api/v1/silpana/tickets/:code/progress - Get ticket progress
 		
 		// Statistics and monitoring
 		api.GET("/stats", silpanaHandler.GetTicketStats)          // GET /api/v1/silpana/stats - Get ticket statistics

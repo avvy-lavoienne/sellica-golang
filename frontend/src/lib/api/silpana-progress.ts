@@ -2,7 +2,7 @@
  * SILPANA Progress Tracking API Client
  * 
  * Handles API calls to fetch ticket progress data from Go backend
- * Endpoint: GET /api/v1/silpana/tickets/:code/progress
+ * Endpoint: GET /api/v1/silpana/progress/:code
  */
 
 import type { ProgressApiResponse, TicketProgressResponse } from '@/types/silpana/progress';
@@ -11,7 +11,7 @@ import type { ProgressApiResponse, TicketProgressResponse } from '@/types/silpan
  * API Configuration
  */
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-const PROGRESS_ENDPOINT = '/api/v1/silpana/tickets';
+const PROGRESS_ENDPOINT = '/api/v1/silpana/progress';
 
 /**
  * Fetch ticket progress by ticket code
@@ -31,7 +31,7 @@ export async function fetchTicketProgress(
   }
 
   try {
-    const url = `${API_BASE_URL}${PROGRESS_ENDPOINT}/${encodeURIComponent(ticketCode)}/progress`;
+    const url = `${API_BASE_URL}${PROGRESS_ENDPOINT}/${encodeURIComponent(ticketCode)}`;
     
     const response = await fetch(url, {
       method: 'GET',
