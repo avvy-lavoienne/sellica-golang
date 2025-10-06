@@ -45,6 +45,8 @@ import {
   User,
   FileText,
   Phone,
+  Mail,
+  MapPin,
   Calendar,
   MessageSquare,
   AlertCircle,
@@ -1180,6 +1182,74 @@ export default function SilpanaForm({
                         </p>
                       </div>
                     )}
+
+                    {/* Email Field - Optional */}
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="email"
+                        className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white"
+                      >
+                        <Mail className="h-4 w-4" />
+                        Email
+                        <span className="text-xs text-gray-500 dark:text-gray-400">(Opsional)</span>
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          value={formData.email || ''}
+                          onChange={handleInputChange}
+                          placeholder="email@contoh.com"
+                          className={cn(
+                            "rounded-lg border-gray-300 bg-white text-gray-900 transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white",
+                            "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+                            formData.email && "border-green-500 dark:border-green-500",
+                          )}
+                          aria-describedby="email-helper"
+                        />
+                        {formData.email && (
+                          <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500 dark:text-green-400" />
+                        )}
+                      </div>
+                      <p id="email-helper" className="text-xs text-gray-600 dark:text-gray-400">
+                        Email untuk notifikasi status pengaduan
+                      </p>
+                    </div>
+
+                    {/* Alamat Field - Optional, Full Width */}
+                    <div className="space-y-2 md:col-span-2">
+                      <Label
+                        htmlFor="alamat"
+                        className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white"
+                      >
+                        <MapPin className="h-4 w-4" />
+                        Alamat Lengkap
+                        <span className="text-xs text-gray-500 dark:text-gray-400">(Opsional)</span>
+                      </Label>
+                      <div className="relative">
+                        <Textarea
+                          id="alamat"
+                          name="alamat"
+                          value={formData.alamat || ''}
+                          onChange={handleInputChange}
+                          placeholder="Masukkan alamat lengkap Anda..."
+                          rows={3}
+                          className={cn(
+                            "resize-none rounded-lg border-gray-300 bg-white text-gray-900 transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white",
+                            "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+                            formData.alamat && "border-green-500 dark:border-green-500",
+                          )}
+                          aria-describedby="alamat-helper"
+                        />
+                        {formData.alamat && (
+                          <CheckCircle className="absolute right-3 top-3 h-4 w-4 text-green-500 dark:text-green-400" />
+                        )}
+                      </div>
+                      <p id="alamat-helper" className="text-xs text-gray-600 dark:text-gray-400">
+                        Alamat tempat tinggal atau lokasi kejadian
+                      </p>
+                    </div>
                   </div>
                     </motion.div>
                   )}

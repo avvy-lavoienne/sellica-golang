@@ -45,6 +45,8 @@ interface CreateTicketRequest {
   alasan_pengaduan: string;
   deskripsi_pengaduan: string;
   nomor_telepon: string;
+  email?: string;
+  alamat?: string;
   tindak_lanjut_pengaduan: string;
   tanggal_pengaduan: string;
   is_anonymous?: boolean;
@@ -189,6 +191,8 @@ export async function submitTicket(ticketData: Partial<EnhancedSilpanaData>): Pr
       alasan_pengaduan: ticketData.alasan_pengaduan || '',
       deskripsi_pengaduan: ticketData.deskripsi_pengaduan || '',
       nomor_telepon: ticketData.nomor_telepon || '',
+      email: ticketData.email,
+      alamat: ticketData.alamat,
       tindak_lanjut_pengaduan: ticketData.tindak_lanjut_pengaduan || '',
       tanggal_pengaduan: ticketData.tanggal_pengaduan || new Date().toISOString(),
       is_anonymous: ticketData.is_anonymous || false,

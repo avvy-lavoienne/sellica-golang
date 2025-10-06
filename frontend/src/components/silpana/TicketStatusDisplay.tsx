@@ -438,6 +438,34 @@ export default function TicketStatusDisplay({
                   </div>
                 )}
 
+                {ticket.email && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">
+                        Email:
+                      </span>
+                    </div>
+                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+                      {ticket.email}
+                    </p>
+                  </div>
+                )}
+
+                {ticket.alamat && (
+                  <div className="space-y-3 md:col-span-2">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">
+                        Alamat:
+                      </span>
+                    </div>
+                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+                      {ticket.alamat}
+                    </p>
+                  </div>
+                )}
+
                 {ticket.assigned_to && (
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
