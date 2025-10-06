@@ -50,8 +50,9 @@ func (s *Service) GetTicketProgress(ctx context.Context, ticketCode string) (*Ti
 // fetchProgressFromDatabase retrieves progress data from the database
 func (s *Service) fetchProgressFromDatabase(ctx context.Context, ticketCode string) (*TicketProgressResponse, error) {
 	// Step 1: Get ticket basic info
+	// Note: Using nik_pengaduan as category since jenis_pengaduan doesn't exist in current schema
 	query := `
-		SELECT id, jenis_pengaduan
+		SELECT id, COALESCE(nik_pengaduan, 'Umum') as category
 		FROM silpana
 		WHERE ticket_code = $1
 	`
@@ -65,7 +66,7 @@ func (s *Service) fetchProgressFromDatabase(ctx context.Context, ticketCode stri
 	}
 
 	ticketID := getString(results[0], "id")
-	category := getString(results[0], "jenis_pengaduan")
+	category := getString(results[0], "category")
 
 	// Step 2: Get progress data
 	progressQuery := `
