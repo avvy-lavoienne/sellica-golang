@@ -270,6 +270,9 @@ func setupSilpanaRoutes(router *gin.Engine, silpanaService silpana.ServiceInterf
 		api.GET("/tickets/:id", silpanaHandler.GetTicket)         // GET /api/v1/silpana/tickets/:id - Get ticket by ID
 		api.GET("/tickets/:id/history", silpanaHandler.GetTicketHistory) // GET /api/v1/silpana/tickets/:id/history - Get ticket history
 		
+		// Progress tracking endpoints (Phase 4)
+		api.GET("/tickets/:code/progress", silpanaHandler.GetTicketProgress) // GET /api/v1/silpana/tickets/:code/progress - Get ticket progress
+		
 		// Statistics and monitoring
 		api.GET("/stats", silpanaHandler.GetTicketStats)          // GET /api/v1/silpana/stats - Get ticket statistics
 		api.GET("/health", silpanaHandler.HealthCheck)            // GET /api/v1/silpana/health - SILPANA health check
