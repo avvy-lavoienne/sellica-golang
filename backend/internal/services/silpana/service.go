@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"github.com/supabase-community/supabase-go"
 )
 
 // Service implements the SILPANA ticket management system
@@ -25,6 +26,7 @@ type DatabaseService interface {
 	Query(ctx context.Context, query string, args ...interface{}) ([]map[string]interface{}, error)
 	Execute(ctx context.Context, query string, args ...interface{}) error
 	HealthCheck(ctx context.Context) error
+	GetClient() *supabase.Client
 }
 
 // CacheService interface for integration with existing cache service

@@ -49,47 +49,65 @@ func (s *Service) GetTicketProgress(ctx context.Context, ticketCode string) (*Ti
 
 // fetchProgressFromDatabase retrieves progress data from the database
 func (s *Service) fetchProgressFromDatabase(ctx context.Context, ticketCode string) (*TicketProgressResponse, error) {
-	// Step 1: Get ticket basic info
-	// Note: Using nik_pengaduan as category since jenis_pengaduan doesn't exist in current schema
-	query := `
-		SELECT id, COALESCE(nik_pengaduan, 'Umum') as category
-		FROM silpana
-		WHERE ticket_code = $1
-	`
-	results, err := s.dbService.Query(ctx, query, ticketCode)
+	// Step 1: Get ticket basic info using Supabase client directly
+	client := s.dbService.GetClient()
+	if client == nil {
+		return nil, fmt.Errorf("database client not available")
+	}
+
+	// Query silpana table for ticket with matching code
+	data, _, err := client.From("silpana").
+		Select("id,nik_pengaduan", "", false).
+		Eq("ticket_code", ticketCode).
+		Execute()
+	
 	if err != nil {
 		logrus.WithError(err).WithField("ticket_code", ticketCode).Error("Failed to fetch ticket basic info")
 		return nil, fmt.Errorf("gagal mengambil informasi tiket: %w", err)
 	}
-	if len(results) == 0 {
+	
+	if len(data) == 0 {
+		logrus.WithField("ticket_code", ticketCode).Warn("Ticket not found in database")
 		return nil, fmt.Errorf("tiket tidak ditemukan")
 	}
 
-	ticketID := getString(results[0], "id")
-	category := getString(results[0], "category")
+	// Parse the ticket data
+	var tickets []map[string]interface{}
+	if err := json.Unmarshal(data, &tickets); err != nil || len(tickets) == 0 {
+		logrus.WithError(err).Error("Failed to parse ticket data")
+		return nil, fmt.Errorf("tiket tidak ditemukan")
+	}
 
-	// Step 2: Get progress data
-	progressQuery := `
-		SELECT 
-			id, ticket_id, current_step, step_order, total_steps,
-			completion_percentage, estimated_completion_date, estimated_hours_remaining,
-			assigned_to, assigned_to_name, assigned_at,
-			status_description, guest_visible_notes,
-			required_documents, uploaded_documents, verified_documents,
-			created_at, updated_at
-		FROM ticket_progress
-		WHERE ticket_id = $1
-	`
-	progressResults, err := s.dbService.Query(ctx, progressQuery, ticketID)
+	ticketID := getString(tickets[0], "id")
+	category := getString(tickets[0], "nik_pengaduan")
+	if category == "" {
+		category = "Umum"
+	}
+
+	// Step 2: Get progress data using Supabase client
+	progressData, _, err := client.From("ticket_progress").
+		Select("*", "", false).
+		Eq("ticket_id", ticketID).
+		Execute()
+	
 	if err != nil {
 		logrus.WithError(err).WithField("ticket_id", ticketID).Error("Failed to fetch ticket progress")
 		return nil, fmt.Errorf("gagal mengambil data progress: %w", err)
 	}
-	if len(progressResults) == 0 {
+	
+	if len(progressData) == 0 {
+		logrus.WithField("ticket_id", ticketID).Warn("Progress record not found")
 		return nil, fmt.Errorf("progress tracking belum tersedia untuk tiket ini")
 	}
 
-	progress := progressResults[0]
+	// Parse progress data
+	var progressRecords []map[string]interface{}
+	if err := json.Unmarshal(progressData, &progressRecords); err != nil || len(progressRecords) == 0 {
+		logrus.WithError(err).Error("Failed to parse progress data")
+		return nil, fmt.Errorf("progress tracking belum tersedia untuk tiket ini")
+	}
+
+	progress := progressRecords[0]
 
 	// Step 3: Get step configurations
 	steps, err := s.fetchSteps(ctx, category)
