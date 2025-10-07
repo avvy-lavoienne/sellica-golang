@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -219,52 +220,60 @@ func (s *Service) GenerateTicketCode(ctx context.Context) (string, error) {
 
 // ValidateTicketAccess validates requester access to a ticket with flexible verification
 func (s *Service) ValidateTicketAccess(ctx context.Context, code, nik, phone string) (*SilpanaTicket, error) {
-	var query string
-	var args []interface{}
+	// Verify at least one verification method is provided
+	if code == "" {
+		return nil, fmt.Errorf("ticket code is required")
+	}
+	if nik == "" && phone == "" {
+		return nil, fmt.Errorf("no verification data provided")
+	}
 
-	// Build query based on available verification data
-	// Note: Using actual column names from silpana table schema
-	baseQuery := `
-		SELECT id, ticket_code as code, nama_pengaduan as requester_name, nik_pengaduan as requester_nik, nomor_telepon as requester_phone, 
-			   email, alamat as requester_address, kategori_pengaduan as document_type, deskripsi_pengaduan as purpose, 
-			   ticket_status as status, priority_level as priority, resolution_notes as notes, created_at, updated_at
-		FROM silpana 
-		WHERE ticket_code = $1`
+	// Get Supabase client
+	client := s.dbService.GetClient()
 
-	args = append(args, code)
+	// Debug logging
+	logrus.Infof("Ticket lookup - code: %s, nik: %s, phone: %s", code, nik, phone)
+
+	// Build query with Supabase client
+	query := client.From("silpana").
+		Select("id,ticket_code,nama_pengaduan,nik_pengaduan,nomor_telepon,email,alamat,kategori_pengaduan,deskripsi_pengaduan,ticket_status,priority_level,resolution_notes,created_at,updated_at", "", false).
+		Eq("ticket_code", code)
 
 	// Add verification conditions using correct column names
 	if nik != "" && phone != "" {
 		// Both provided - use both for verification
-		query = baseQuery + " AND nik_pengaduan = $2 AND nomor_telepon = $3"
-		args = append(args, nik, phone)
+		query = query.Eq("nik_pengaduan", nik).Eq("nomor_telepon", phone)
+		logrus.Infof("Verifying with both NIK and phone")
 	} else if nik != "" {
 		// Only NIK provided
-		query = baseQuery + " AND nik_pengaduan = $2"
-		args = append(args, nik)
+		query = query.Eq("nik_pengaduan", nik)
+		logrus.Infof("Verifying with NIK only")
 	} else if phone != "" {
 		// Only phone provided
-		query = baseQuery + " AND nomor_telepon = $2"
-		args = append(args, phone)
-	} else {
-		// No verification data provided
-		return nil, fmt.Errorf("no verification data provided")
+		query = query.Eq("nomor_telepon", phone)
+		logrus.Infof("Verifying with phone only")
 	}
 
-	// Debug logging
-	logrus.Infof("Ticket lookup query: %s", query)
-	logrus.Infof("Ticket lookup args: %v", args)
-
-	results, err := s.dbService.Query(ctx, query, args...)
+	// Execute query
+	data, _, err := query.Execute()
 	if err != nil {
+		logrus.Errorf("Supabase query error: %v", err)
 		return nil, fmt.Errorf("database query failed: %w", err)
 	}
 
-	if len(results) == 0 {
+	// Parse response
+	var tickets []map[string]interface{}
+	if err := json.Unmarshal(data, &tickets); err != nil {
+		logrus.Errorf("JSON unmarshal error: %v", err)
+		return nil, fmt.Errorf("failed to parse ticket data: %w", err)
+	}
+
+	if len(tickets) == 0 {
+		logrus.Warnf("No ticket found for code: %s with provided verification", code)
 		return nil, fmt.Errorf("ticket not found or access denied")
 	}
 
-	result := results[0]
+	result := tickets[0]
 	
 	// Helper function to safely extract string values
 	getStringValue := func(key string) string {
@@ -275,28 +284,39 @@ func (s *Service) ValidateTicketAccess(ctx context.Context, code, nik, phone str
 		}
 		return ""
 	}
+
+	// Helper function to parse timestamps
+	getTimeValue := func(key string) time.Time {
+		if val, ok := result[key]; ok && val != nil {
+			if str, ok := val.(string); ok {
+				t, err := time.Parse(time.RFC3339, str)
+				if err == nil {
+					return t
+				}
+			}
+		}
+		return time.Time{}
+	}
 	
+	// Map database column names to struct fields
 	ticket := &SilpanaTicket{
-		ID:               result["id"].(string),
-		Code:             result["code"].(string),
-		RequesterName:    result["requester_name"].(string),
-		RequesterNIK:     result["requester_nik"].(string),
-		RequesterPhone:   result["requester_phone"].(string),
-		RequesterEmail:   getStringValue("email"), // Email column is nullable
-		RequesterAddress: getStringValue("requester_address"), // Alamat can be nullable
-		DocumentType:     result["document_type"].(string),
-		Purpose:          result["purpose"].(string),
-		Status:           TicketStatus(result["status"].(string)),
-		Priority:         TicketPriority(result["priority"].(string)),
-		Notes:            getStringValue("notes"), // Resolution notes can be nullable
-		CreatedAt:        result["created_at"].(time.Time),
-		UpdatedAt:        result["updated_at"].(time.Time),
+		ID:               getStringValue("id"),
+		Code:             getStringValue("ticket_code"),
+		RequesterName:    getStringValue("nama_pengaduan"),
+		RequesterNIK:     getStringValue("nik_pengaduan"),
+		RequesterPhone:   getStringValue("nomor_telepon"),
+		RequesterEmail:   getStringValue("email"),
+		RequesterAddress: getStringValue("alamat"),
+		DocumentType:     getStringValue("kategori_pengaduan"),
+		Purpose:          getStringValue("deskripsi_pengaduan"),
+		Status:           TicketStatus(getStringValue("ticket_status")),
+		Priority:         TicketPriority(getStringValue("priority_level")),
+		Notes:            getStringValue("resolution_notes"),
+		CreatedAt:        getTimeValue("created_at"),
+		UpdatedAt:        getTimeValue("updated_at"),
 	}
 
-	if result["completed_at"] != nil {
-		completedAt := result["completed_at"].(time.Time)
-		ticket.CompletedAt = &completedAt
-	}
+	logrus.Infof("Successfully retrieved ticket: %s for requester: %s", ticket.Code, ticket.RequesterName)
 
 	return ticket, nil
 }

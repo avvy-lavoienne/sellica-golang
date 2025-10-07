@@ -258,7 +258,7 @@ export async function lookupTicket(
     }
 
     const response = await apiRequest<{
-      ticket: TicketResponse;
+      ticket: any; // Backend returns different field names
       history?: TicketHistory[];
       message: string;
     }>('/tickets/lookup', {
@@ -266,9 +266,17 @@ export async function lookupTicket(
       body: JSON.stringify(request),
     });
 
+    // Map backend field names to frontend field names
+    const mappedTicket: EnhancedSilpanaData = {
+      ...response.ticket,
+      ticket_code: response.ticket.code || response.ticket.ticket_code,
+      ticket_status: response.ticket.status || response.ticket.ticket_status,
+      priority_level: response.ticket.priority || response.ticket.priority_level,
+    };
+
     return {
       success: true,
-      ticket: response.ticket as EnhancedSilpanaData,
+      ticket: mappedTicket,
       history: response.history,
     };
 

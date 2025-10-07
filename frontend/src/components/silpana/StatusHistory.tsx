@@ -16,6 +16,22 @@ interface StatusHistoryProps {
 }
 
 export function StatusHistory({ history, className = '' }: StatusHistoryProps) {
+  // Handle empty or null history array
+  if (!history || history.length === 0) {
+    return (
+      <div className={`text-center py-8 ${className}`}>
+        <div className="text-gray-400 mb-2">
+          <svg className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <p className="text-sm text-gray-500">
+          Riwayat status akan muncul setelah ada perubahan
+        </p>
+      </div>
+    );
+  }
+
   const formatDate = (dateString: string) => {
     const date = parseProgressDate(dateString);
     if (!date) return dateString;

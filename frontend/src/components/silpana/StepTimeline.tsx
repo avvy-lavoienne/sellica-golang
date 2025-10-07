@@ -23,6 +23,22 @@ export function StepTimeline({
   currentStepName,
   className = '',
 }: StepTimelineProps) {
+  // Handle empty or null steps array
+  if (!steps || steps.length === 0) {
+    return (
+      <div className={`text-center py-8 ${className}`}>
+        <div className="text-gray-400 mb-2">
+          <svg className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        </div>
+        <p className="text-sm text-gray-500">
+          Informasi tahapan proses akan segera tersedia
+        </p>
+      </div>
+    );
+  }
+
   const getStepStatus = (step: StepConfiguration): StepStatus => {
     if (step.step_order < currentStepOrder) return 'completed';
     if (step.step_order === currentStepOrder) {

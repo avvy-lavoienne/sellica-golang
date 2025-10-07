@@ -219,28 +219,28 @@ export function TicketProgressDisplay({
           Tahapan Proses
         </h3>
         <StepTimeline
-          steps={progress.steps}
+          steps={progress.steps || []}
           currentStepOrder={progress.step_order}
           currentStepName={progress.current_step}
         />
       </div>
 
       {/* Document Tracker */}
-      {progress.required_documents.length > 0 && (
+      {progress.required_documents && progress.required_documents.length > 0 && (
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Dokumen Persyaratan
           </h3>
           <DocumentTracker
             requiredDocuments={progress.required_documents}
-            uploadedDocuments={progress.uploaded_documents}
-            verifiedDocuments={progress.verified_documents}
+            uploadedDocuments={progress.uploaded_documents || []}
+            verifiedDocuments={progress.verified_documents || []}
           />
         </div>
       )}
 
       {/* Status History */}
-      {progress.history.length > 0 && (
+      {progress.history && progress.history.length > 0 && (
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Riwayat Status
