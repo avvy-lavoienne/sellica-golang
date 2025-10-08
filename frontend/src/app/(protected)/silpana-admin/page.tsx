@@ -99,7 +99,7 @@ export default function SilpanaDashboardPage() {
           </p>
         </div>
         <Button asChild>
-          <Link href="/silpana/tickets">View All Tickets</Link>
+          <Link href="/silpana-admin/tickets">View All Tickets</Link>
         </Button>
       </div>
 
@@ -111,7 +111,7 @@ export default function SilpanaDashboardPage() {
           icon={Ticket}
           color="blue"
           loading={loading}
-          onClick={() => window.location.href = '/silpana/tickets'}
+          onClick={() => window.location.href = '/silpana-admin/tickets'}
         />
         <StatsCard
           title="Pending Review"
@@ -152,7 +152,7 @@ export default function SilpanaDashboardPage() {
           <div className="flex items-center justify-between">
             <CardTitle>Recent Tickets</CardTitle>
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/silpana/tickets">View All</Link>
+              <Link href="/silpana-admin/tickets">View All</Link>
             </Button>
           </div>
         </CardHeader>
@@ -175,7 +175,7 @@ export default function SilpanaDashboardPage() {
               {recentTickets.map((ticket) => (
                 <Link
                   key={ticket.id}
-                  href={`/silpana/tickets/${ticket.id}`}
+                  href={`/silpana-admin/tickets/${ticket.id}`}
                   className="flex items-center justify-between py-4 hover:bg-gray-50 dark:hover:bg-gray-900 rounded px-2 -mx-2 transition-colors"
                 >
                   <div className="flex-1">
@@ -220,7 +220,7 @@ export default function SilpanaDashboardPage() {
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Button variant="outline" asChild className="h-auto py-4">
-              <Link href="/silpana/tickets?status=submitted">
+              <Link href="/silpana-admin/tickets?status=submitted">
                 <div className="text-center w-full">
                   <Clock className="h-6 w-6 mx-auto mb-2" />
                   <div className="font-medium">Review Pending</div>
@@ -229,7 +229,7 @@ export default function SilpanaDashboardPage() {
               </Link>
             </Button>
             <Button variant="outline" asChild className="h-auto py-4">
-              <Link href="/silpana/tickets?priority=critical,high">
+              <Link href="/silpana-admin/tickets?priority=critical,high">
                 <div className="text-center w-full">
                   <AlertTriangle className="h-6 w-6 mx-auto mb-2" />
                   <div className="font-medium">High Priority</div>
@@ -238,7 +238,7 @@ export default function SilpanaDashboardPage() {
               </Link>
             </Button>
             <Button variant="outline" asChild className="h-auto py-4">
-              <Link href="/silpana/analytics">
+              <Link href="/silpana-admin/analytics">
                 <div className="text-center w-full">
                   <Ticket className="h-6 w-6 mx-auto mb-2" />
                   <div className="font-medium">View Analytics</div>

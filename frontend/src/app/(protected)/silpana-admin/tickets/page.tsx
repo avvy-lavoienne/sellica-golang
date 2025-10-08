@@ -109,11 +109,11 @@ export default function TicketsPage() {
 
   // Action handlers
   const handleViewTicket = (ticketId: string) => {
-    router.push(`/silpana/tickets/${ticketId}`);
+    router.push(`/silpana-admin/tickets/${ticketId}`);
   };
 
   const handleEditTicket = (ticketId: string) => {
-    router.push(`/silpana/tickets/${ticketId}/edit`);
+    router.push(`/silpana-admin/tickets/${ticketId}/edit`);
   };
 
   const handleDeleteTicket = async (ticketId: string) => {

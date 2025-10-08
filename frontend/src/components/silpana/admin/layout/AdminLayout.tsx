@@ -56,34 +56,34 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     {
       label: 'Dashboard',
       icon: <Home className="h-5 w-5" />,
-      href: '/silpana',
+      href: '/silpana-admin',
     },
     {
       label: 'Tickets',
       icon: <Ticket className="h-5 w-5" />,
-      href: '/silpana/tickets',
+      href: '/silpana-admin/tickets',
       badge: 12, // TODO: Make this dynamic from API
     },
     {
       label: 'Analytics',
       icon: <BarChart3 className="h-5 w-5" />,
-      href: '/silpana/analytics',
+      href: '/silpana-admin/analytics',
     },
     {
       label: 'Users',
       icon: <Users className="h-5 w-5" />,
-      href: '/silpana/users',
+      href: '/silpana-admin/users',
       permission: 'admin',
     },
     {
       label: 'Settings',
       icon: <Settings className="h-5 w-5" />,
-      href: '/silpana/settings',
+      href: '/silpana-admin/settings',
     },
     {
       label: 'Audit Log',
       icon: <FileText className="h-5 w-5" />,
-      href: '/silpana/audit',
+      href: '/silpana-admin/audit',
       permission: 'admin',
     },
   ];

@@ -32,7 +32,7 @@ export default async function SilpanaProtectedLayout({
   const { data: { session } } = await supabase.auth.getSession();
   
   if (!session) {
-    redirect('/login?redirect=/silpana');
+    redirect('/login?redirect=/silpana-admin');
   }
 
   // Check user role (optional - can be enabled later for strict admin-only access)

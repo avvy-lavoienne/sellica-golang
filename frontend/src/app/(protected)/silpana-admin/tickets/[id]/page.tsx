@@ -104,7 +104,7 @@ export default function TicketDetailPage({ params }: TicketDetailProps) {
       if (error) throw error;
 
       toast.success("Tiket berhasil dihapus");
-      router.push("/silpana/tickets");
+      router.push("/silpana-admin/tickets");
     } catch (error: any) {
       console.error("Error deleting ticket:", error);
       toast.error("Gagal menghapus tiket");
@@ -165,7 +165,7 @@ export default function TicketDetailPage({ params }: TicketDetailProps) {
         <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
         <h2 className="text-2xl font-bold mb-2">Tiket Tidak Ditemukan</h2>
         <p className="text-muted-foreground mb-4">Tiket yang Anda cari tidak dapat ditemukan.</p>
-        <Button onClick={() => router.push("/silpana/tickets")}>
+        <Button onClick={() => router.push("/silpana-admin/tickets")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Kembali ke Daftar Tiket
         </Button>
@@ -181,7 +181,7 @@ export default function TicketDetailPage({ params }: TicketDetailProps) {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => router.push("/silpana/tickets")}
+            onClick={() => router.push("/silpana-admin/tickets")}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -195,7 +195,7 @@ export default function TicketDetailPage({ params }: TicketDetailProps) {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={() => router.push(`/silpana/tickets/${ticketId}/edit`)}
+            onClick={() => router.push(`/silpana-admin/tickets/${ticketId}/edit`)}
           >
             <Edit className="mr-2 h-4 w-4" />
             Edit
