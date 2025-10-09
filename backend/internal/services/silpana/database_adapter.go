@@ -61,6 +61,11 @@ func (da *DatabaseAdapter) HealthCheck(ctx context.Context) error {
 	return da.service.Ping()
 }
 
+// GetClient returns the Supabase client for direct database operations
+func (da *DatabaseAdapter) GetClient() *supabase.Client {
+	return da.client
+}
+
 // executeQuery handles SELECT queries
 func (da *DatabaseAdapter) executeQuery(ctx context.Context, query string, args ...interface{}) ([]map[string]interface{}, error) {
 	client := da.service.GetPooledClient()

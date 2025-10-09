@@ -196,10 +196,11 @@ export default function TicketStatusDisplay({
   const [isCommunicationsExpanded, setIsCommunicationsExpanded] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const statusConfig = STATUS_CONFIG[ticket.ticket_status];
-  const priorityConfig = PRIORITY_CONFIG[ticket.priority_level];
-  const StatusIcon = statusConfig.icon;
-  const PriorityIcon = priorityConfig.icon;
+  // Safe config lookup with fallbacks
+  const statusConfig = STATUS_CONFIG[ticket.ticket_status] || STATUS_CONFIG.submitted;
+  const priorityConfig = PRIORITY_CONFIG[ticket.priority_level] || PRIORITY_CONFIG.medium;
+  const StatusIcon = statusConfig?.icon || FileText;
+  const PriorityIcon = priorityConfig?.icon || TrendingUp;
 
   const handleRefresh = useCallback(async () => {
     if (!onRefresh) return;
