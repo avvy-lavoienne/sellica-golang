@@ -45,6 +45,8 @@ import {
   Eye,
   Calendar,
   Phone,
+  Mail,
+  MapPin,
   User,
   FileText,
   AlertCircle,
@@ -907,11 +909,32 @@ function SilpanaTable({
 
                           {/* Kontak Column */}
                           <td className="p-4">
-                            <div className="flex items-center gap-2">
-                              <Phone className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                              <span className="text-sm text-gray-600 dark:text-gray-400">
-                                {item.nomor_telepon || "-"}
-                              </span>
+                            <div className="space-y-1.5">
+                              {/* Phone */}
+                              <div className="flex items-center gap-2">
+                                <Phone className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+                                <span className="text-xs text-gray-600 dark:text-gray-400">
+                                  {item.nomor_telepon || "-"}
+                                </span>
+                              </div>
+                              {/* Email */}
+                              {item.email && (
+                                <div className="flex items-center gap-2">
+                                  <Mail className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+                                  <span className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-[150px]">
+                                    {item.email}
+                                  </span>
+                                </div>
+                              )}
+                              {/* Alamat */}
+                              {item.alamat && (
+                                <div className="flex items-start gap-2">
+                                  <MapPin className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400 flex-shrink-0 mt-0.5" />
+                                  <span className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
+                                    {item.alamat}
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           </td>
                           <td className="p-4">
@@ -1125,6 +1148,12 @@ function SilpanaTable({
                                 <Phone className="h-3 w-3" />
                                 {item.nomor_telepon || "-"}
                               </div>
+                              {item.email && (
+                                <div className="flex items-center gap-1">
+                                  <Mail className="h-3 w-3" />
+                                  <span className="truncate max-w-[120px]">{item.email}</span>
+                                </div>
+                              )}
                               <div className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
                                 {formatDateTime(item.last_updated || item.created_at || "")}
@@ -1134,6 +1163,12 @@ function SilpanaTable({
                                 {formatDate(item.tanggal_pengaduan)}
                               </div>
                             </div>
+                            {item.alamat && (
+                              <div className="flex items-start gap-1.5 text-xs text-gray-600 dark:text-gray-400">
+                                <MapPin className="h-3 w-3 flex-shrink-0 mt-0.5" />
+                                <span className="line-clamp-2">{item.alamat}</span>
+                              </div>
+                            )}
                           </div>
 
                           {/* Expanded Details */}

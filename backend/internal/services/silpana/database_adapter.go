@@ -61,6 +61,11 @@ func (da *DatabaseAdapter) HealthCheck(ctx context.Context) error {
 	return da.service.Ping()
 }
 
+// GetClient returns the Supabase client for direct database operations
+func (da *DatabaseAdapter) GetClient() *supabase.Client {
+	return da.client
+}
+
 // executeQuery handles SELECT queries
 func (da *DatabaseAdapter) executeQuery(ctx context.Context, query string, args ...interface{}) ([]map[string]interface{}, error) {
 	client := da.service.GetPooledClient()
@@ -200,21 +205,20 @@ func (da *DatabaseAdapter) handleTicketInsert(client *supabase.Client, args ...i
 
 	// Map args to ticket fields (mapping service fields to database columns)
 	ticketData := map[string]interface{}{
-		"ticket_code":      args[1],                               // code -> ticket_code
-		"nama_pelapor":     args[2],                               // requester_name -> nama_pelapor
-		"nik":              args[3],                               // requester_nik -> nik
-		"no_telp":          args[4],                               // requester_phone -> no_telp
-		"email":            args[5],                               // requester_email -> email
-		"alamat":           args[6],                               // requester_address -> alamat
-		"jenis_pengaduan":  args[7],                               // document_type -> jenis_pengaduan
-		"detail_pengaduan": args[8],                               // purpose -> detail_pengaduan
-		"nama_pengaduan":   fmt.Sprintf("Permintaan %s", args[7]), // Generate nama_pengaduan from document_type
-		"ticket_status":    "submitted",                           // status -> ticket_status
-		"priority_level":   "medium",                              // priority -> priority_level
-		"resolution_notes": args[11],                              // notes -> resolution_notes
-		"created_at":       "now()",
-		"updated_at":       "now()",
-		"last_updated":     "now()",
+		"ticket_code":           args[1],                               // code -> ticket_code
+		"nama_pengaduan":        args[2],                               // requester_name -> nama_pengaduan
+		"nik_pengaduan":         args[3],                               // requester_nik -> nik_pengaduan
+		"nomor_telepon":         args[4],                               // requester_phone -> nomor_telepon
+		"email":                 args[5],                               // requester_email -> email
+		"alamat":                args[6],                               // requester_address -> alamat
+		"kategori_pengaduan":    args[7],                               // document_type -> kategori_pengaduan
+		"deskripsi_pengaduan":   args[8],                               // purpose -> deskripsi_pengaduan
+		"ticket_status":         "submitted",                           // status -> ticket_status
+		"priority_level":        "medium",                              // priority -> priority_level
+		"resolution_notes":      args[11],                              // notes -> resolution_notes
+		"created_at":            "now()",
+		"updated_at":            "now()",
+		"last_updated":          "now()",
 	}
 
 	// Insert into Supabase

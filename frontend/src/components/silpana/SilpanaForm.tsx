@@ -45,6 +45,8 @@ import {
   User,
   FileText,
   Phone,
+  Mail,
+  MapPin,
   Calendar,
   MessageSquare,
   AlertCircle,
@@ -1035,7 +1037,7 @@ export default function SilpanaForm({
                       <div className="mb-4 flex items-center gap-2">
                         <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                         <h4 className="text-base font-semibold text-gray-900 dark:text-white">
-                          Informasi Dasar
+                          Informasi Pribadi
                         </h4>
                       </div>
 
@@ -1133,7 +1135,144 @@ export default function SilpanaForm({
                       </p>
                     </div>
 
-                    {/* Kategori Pengaduan Field */}
+                    {/* Nomor Telepon Field - Moved from complaint-details to personal-info */}
+                    {!formData.is_anonymous && (
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="nomor_telepon"
+                          className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white"
+                        >
+                          <Phone className="h-4 w-4" />
+                          Nomor Telepon
+                          <span className="text-red-600 dark:text-red-400">*</span>
+                        </Label>
+                        <div className="relative">
+                          <Input
+                            id="nomor_telepon"
+                            name="nomor_telepon"
+                            type="tel"
+                            value={formData.nomor_telepon}
+                            onChange={handleInputChange}
+                            placeholder="08xxxxxxxxxx"
+                            className={cn(
+                              "rounded-lg border-gray-300 bg-white text-gray-900 transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white",
+                              "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+                              fieldErrors.nomor_telepon && "border-red-500 ring-2 ring-red-500/20 dark:border-red-500",
+                              formData.nomor_telepon && !fieldErrors.nomor_telepon && "border-green-500 dark:border-green-500",
+                            )}
+                            required={!formData.is_anonymous}
+                            aria-invalid={!!fieldErrors.nomor_telepon}
+                            aria-describedby={fieldErrors.nomor_telepon ? "phone-error" : "phone-helper"}
+                          />
+                          {formData.nomor_telepon && !fieldErrors.nomor_telepon && (
+                            <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500 dark:text-green-400" />
+                          )}
+                          {fieldErrors.nomor_telepon && (
+                            <AlertCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-red-600 dark:text-red-400" />
+                          )}
+                        </div>
+                        {fieldErrors.nomor_telepon && (
+                          <p id="phone-error" className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400" role="alert">
+                            <AlertCircle className="h-3 w-3" />
+                            {fieldErrors.nomor_telepon}
+                          </p>
+                        )}
+                        <p id="phone-helper" className="text-xs text-gray-600 dark:text-gray-400">
+                          Format: 08xxxxxxxxxx (nomor HP Indonesia)
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Email Field - Optional */}
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="email"
+                        className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white"
+                      >
+                        <Mail className="h-4 w-4" />
+                        Email
+                        <span className="text-xs text-gray-500 dark:text-gray-400">(Opsional)</span>
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          value={formData.email || ''}
+                          onChange={handleInputChange}
+                          placeholder="email@contoh.com"
+                          className={cn(
+                            "rounded-lg border-gray-300 bg-white text-gray-900 transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white",
+                            "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+                            formData.email && "border-green-500 dark:border-green-500",
+                          )}
+                          aria-describedby="email-helper"
+                        />
+                        {formData.email && (
+                          <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500 dark:text-green-400" />
+                        )}
+                      </div>
+                      <p id="email-helper" className="text-xs text-gray-600 dark:text-gray-400">
+                        Email untuk notifikasi status pengaduan
+                      </p>
+                    </div>
+
+                    {/* Alamat Field - Optional, Full Width */}
+                    <div className="space-y-2 md:col-span-2">
+                      <Label
+                        htmlFor="alamat"
+                        className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white"
+                      >
+                        <MapPin className="h-4 w-4" />
+                        Alamat Lengkap
+                        <span className="text-xs text-gray-500 dark:text-gray-400">(Opsional)</span>
+                      </Label>
+                      <div className="relative">
+                        <Textarea
+                          id="alamat"
+                          name="alamat"
+                          value={formData.alamat || ''}
+                          onChange={handleInputChange}
+                          placeholder="Masukkan alamat lengkap Anda..."
+                          rows={3}
+                          className={cn(
+                            "resize-none rounded-lg border-gray-300 bg-white text-gray-900 transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white",
+                            "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+                            formData.alamat && "border-green-500 dark:border-green-500",
+                          )}
+                          aria-describedby="alamat-helper"
+                        />
+                        {formData.alamat && (
+                          <CheckCircle className="absolute right-3 top-3 h-4 w-4 text-green-500 dark:text-green-400" />
+                        )}
+                      </div>
+                      <p id="alamat-helper" className="text-xs text-gray-600 dark:text-gray-400">
+                        Alamat tempat tinggal atau lokasi kejadian
+                      </p>
+                    </div>
+                  </div>
+                    </motion.div>
+                  )}
+
+                  {/* Step 3: Complaint Category - NEW SECTION */}
+                  {(!enableMultiStep || currentStep === 'complaint-category') && (
+                    <motion.div
+                      key="complaint-category"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3 }}
+                      className="space-y-4"
+                    >
+                      <div className="mb-4 flex items-center gap-2">
+                        <ListFilter className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        <h4 className="text-base font-semibold text-gray-900 dark:text-white">
+                          Kategori Pengaduan
+                        </h4>
+                      </div>
+
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    {/* Kategori Pengaduan Field - Moved from personal-info */}
                     <div className="space-y-2">
                       <Label
                         htmlFor="kategori_pengaduan"
@@ -1429,106 +1568,55 @@ export default function SilpanaForm({
                   </div>
                 </div>
 
-                {/* Contact Information Section */}
+                {/* Tanggal Pengajuan Section */}
                 <div className="space-y-4">
                   <div className="mb-4 flex items-center gap-2">
-                    <Phone className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Informasi Kontak
+                      Tanggal Pengajuan
                     </h4>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    {/* Nomor Telepon Field - Only show if not anonymous */}
-                    {!formData.is_anonymous && (
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="nomor_telepon"
-                          className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white"
-                        >
-                          <Phone className="h-4 w-4" />
-                          Nomor Telepon
-                          <span className="text-red-600 dark:text-red-400">*</span>
-                        </Label>
-                        <div className="relative">
-                          <Input
-                            id="nomor_telepon"
-                            name="nomor_telepon"
-                            type="tel"
-                            value={formData.nomor_telepon}
-                            onChange={handleInputChange}
-                            placeholder="08xxxxxxxxxx"
-                            className={cn(
-                              "rounded-lg border-gray-300 bg-white text-gray-900 transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white",
-                              "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
-                              fieldErrors.nomor_telepon && "border-red-500 ring-2 ring-red-500/20 dark:border-red-500",
-                              formData.nomor_telepon && !fieldErrors.nomor_telepon && "border-green-500 dark:border-green-500",
-                            )}
-                            required={!formData.is_anonymous}
-                            aria-invalid={!!fieldErrors.nomor_telepon}
-                            aria-describedby={fieldErrors.nomor_telepon ? "phone-error" : "phone-helper"}
-                          />
-                          {formData.nomor_telepon && !fieldErrors.nomor_telepon && (
-                            <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500 dark:text-green-400" />
-                          )}
-                          {fieldErrors.nomor_telepon && (
-                            <AlertCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-red-600 dark:text-red-400" />
-                          )}
-                        </div>
-                        {fieldErrors.nomor_telepon && (
-                          <p id="phone-error" className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400" role="alert">
-                            <AlertCircle className="h-3 w-3" />
-                            {fieldErrors.nomor_telepon}
-                          </p>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="tanggal_pengajuan"
+                      className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white"
+                    >
+                      <Calendar className="h-4 w-4" />
+                      Tanggal Pengajuan
+                      <span className="text-red-600 dark:text-red-400">*</span>
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="tanggal_pengajuan"
+                        name="tanggal_pengaduan"
+                        type="date"
+                        value={formData.tanggal_pengaduan}
+                        onChange={handleInputChange}
+                        className={cn(
+                          "rounded-lg border-gray-300 bg-white text-gray-900 transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white",
+                          "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+                          touchedFields.has("tanggal_pengaduan") &&
+                            !formData.tanggal_pengaduan &&
+                            "border-red-500 dark:border-red-500",
+                          formData.tanggal_pengaduan && "border-green-500 dark:border-green-500",
                         )}
-                        <p id="phone-helper" className="text-xs text-gray-600 dark:text-gray-400">
-                          Format: 08xxxxxxxxxx (nomor HP Indonesia)
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Tanggal Pengajuan Field */}
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="tanggal_pengajuan"
-                        className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white"
-                      >
-                        <Calendar className="h-4 w-4" />
-                        Tanggal Pengajuan
-                        <span className="text-red-600 dark:text-red-400">*</span>
-                      </Label>
-                      <div className="relative">
-                        <Input
-                          id="tanggal_pengajuan"
-                          name="tanggal_pengaduan"
-                          type="date"
-                          value={formData.tanggal_pengaduan}
-                          onChange={handleInputChange}
-                          className={cn(
-                            "rounded-lg border-gray-300 bg-white text-gray-900 transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white",
-                            "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
-                            touchedFields.has("tanggal_pengaduan") &&
-                              !formData.tanggal_pengaduan &&
-                              "border-red-500 dark:border-red-500",
-                            formData.tanggal_pengaduan && "border-green-500 dark:border-green-500",
-                          )}
-                          required
-                        />
-                        {formData.tanggal_pengaduan && (
-                          <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500 dark:text-green-400" />
-                        )}
-                      </div>
-                      {touchedFields.has("tanggal_pengaduan") &&
-                        !formData.tanggal_pengaduan && (
-                          <p className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
-                            <AlertCircle className="h-3 w-3" />
-                            Tanggal pengajuan wajib diisi
-                          </p>
-                        )}
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Tanggal saat Anda mengajukan pengaduan ini
-                      </p>
+                        required
+                      />
+                      {formData.tanggal_pengaduan && (
+                        <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500 dark:text-green-400" />
+                      )}
                     </div>
+                    {touchedFields.has("tanggal_pengaduan") &&
+                      !formData.tanggal_pengaduan && (
+                        <p className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
+                          <AlertCircle className="h-3 w-3" />
+                          Tanggal pengajuan wajib diisi
+                        </p>
+                      )}
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      Tanggal saat Anda mengajukan pengaduan ini
+                    </p>
                   </div>
                 </div>
                     </motion.div>
