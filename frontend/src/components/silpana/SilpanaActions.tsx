@@ -334,7 +334,7 @@ function SilpanaActions({
         initial="hidden"
         animate="visible"
         className={cn(
-          "relative my-6 overflow-hidden rounded-xl border border-border/50 bg-background/80 shadow-lg backdrop-blur-sm",
+          "relative my-6 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800",
           className,
         )}
         onHoverStart={() => setIsHovered(true)}
@@ -342,13 +342,13 @@ function SilpanaActions({
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
       >
-        {/* Background decoration */}
-        <div className="absolute inset-0 opacity-50">
+        {/* Background decoration - keeping for visual interest */}
+        <div className="absolute inset-0 opacity-30">
           <div
             className={cn(
               "absolute -right-8 -top-8 h-32 w-32 rounded-full blur-3xl",
               colorSchemes.primary.bgClass,
-              "opacity-30",
+              "opacity-20",
             )}
           />
           <div
@@ -360,10 +360,10 @@ function SilpanaActions({
           />
         </div>
 
-        {/* Enhanced Header with Statistics */}
+        {/* Enhanced Header with Statistics - Flowbite pattern */}
         <motion.div
           variants={itemVariants}
-          className="relative z-10 border-b border-border/50 bg-background/60 p-6 backdrop-blur-sm"
+          className="relative z-10 border-b border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800/50"
         >
           <div className="flex flex-col gap-4 laptop:flex-row laptop:items-center laptop:justify-between">
             <div className="flex items-center gap-4">
@@ -380,22 +380,22 @@ function SilpanaActions({
               </motion.div>
 
               <div className="space-y-2">
-                <h3 className={typo.heading(3, textColors.primary)}>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Navigasi SILPANA
                 </h3>
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className={typo.ui('badge', 'gap-1')}>
+                  <Badge variant="secondary" className="gap-1 border-gray-200 bg-gray-100 text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
                     <Target className="h-3 w-3" />
                     {totalItems} Total
                   </Badge>
                   {filteredItems !== totalItems && (
-                    <Badge variant="outline" className={typo.ui('badge', 'gap-1')}>
+                    <Badge variant="outline" className="gap-1 border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
                       <Filter className="h-3 w-3" />
                       {filteredItems} Filtered
                     </Badge>
                   )}
                   {actionStats.hasSelection && (
-                    <Badge variant="default" className={typo.ui('badge', 'gap-1')}>
+                    <Badge variant="default" className="gap-1 border-green-200 bg-green-600 text-white dark:border-green-800 dark:bg-green-700">
                       <CheckCircle className="h-3 w-3" />
                       {actionStats.selectedCount} Selected
                     </Badge>
@@ -491,7 +491,7 @@ function SilpanaActions({
           </div>
         </motion.div>
 
-        {/* Enhanced Tab System */}
+        {/* Enhanced Tab System - Flowbite pattern */}
         <motion.div variants={itemVariants} className="relative z-10 p-6">
           <Tabs
             value={
@@ -505,14 +505,15 @@ function SilpanaActions({
             }
             className="w-full"
           >
-            <TabsList className="grid h-12 w-full grid-cols-3 bg-muted/50 backdrop-blur-sm">
+            <TabsList className="grid h-12 w-full grid-cols-3 rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800">
               <TabsTrigger
                 value="form"
                 onClick={onAjukan}
                 className={cn(
-                  "flex items-center gap-2 transition-all duration-200",
-                  "data-[state=active]:bg-background data-[state=active]:shadow-sm",
-                  "hover:bg-background/50",
+                  "flex items-center gap-2 rounded-lg transition-all duration-200",
+                  "data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-blue-400",
+                  "hover:bg-gray-100 dark:hover:bg-gray-700",
+                  "text-gray-600 dark:text-gray-400",
                 )}
               >
                 <PlusCircle className="h-4 w-4" />
@@ -528,9 +529,10 @@ function SilpanaActions({
                 value="table"
                 onClick={onRekapitulasi}
                 className={cn(
-                  "flex items-center gap-2 transition-all duration-200",
-                  "data-[state=active]:bg-background data-[state=active]:shadow-sm",
-                  "hover:bg-background/50",
+                  "flex items-center gap-2 rounded-lg transition-all duration-200",
+                  "data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-blue-400",
+                  "hover:bg-gray-100 dark:hover:bg-gray-700",
+                  "text-gray-600 dark:text-gray-400",
                 )}
               >
                 <ListFilter className="h-4 w-4" />
@@ -546,9 +548,10 @@ function SilpanaActions({
                 value="lookup"
                 onClick={onTicketLookup}
                 className={cn(
-                  "flex items-center gap-2 transition-all duration-200",
-                  "data-[state=active]:bg-background data-[state=active]:shadow-sm",
-                  "hover:bg-background/50",
+                  "flex items-center gap-2 rounded-lg transition-all duration-200",
+                  "data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-blue-400",
+                  "hover:bg-gray-100 dark:hover:bg-gray-700",
+                  "text-gray-600 dark:text-gray-400",
                 )}
               >
                 <Search className="h-4 w-4" />
@@ -571,10 +574,10 @@ function SilpanaActions({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             transition={{ duration: shouldAnimate ? 0.3 : 0 }}
-            className="relative z-10 border-t border-border/50 bg-background/60 p-6 backdrop-blur-sm"
+            className="relative z-10 border-t border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800/50"
           >
             {/* Background decoration */}
-            <div className="absolute inset-0 opacity-30">
+            <div className="absolute inset-0 opacity-20">
               <div
                 className={cn(
                   "absolute -right-4 -top-4 h-16 w-16 rounded-full blur-xl",
@@ -586,18 +589,17 @@ function SilpanaActions({
 
             <div className="relative z-10 space-y-4">
               <div className="flex flex-col gap-4 laptop:flex-row laptop:items-center laptop:justify-between">
-                {/* Enhanced Search */}
+                {/* Enhanced Search - Flowbite input pattern */}
                 <div className="relative w-full laptop:w-96">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500 dark:text-gray-400" />
                   <Input
                     ref={searchInputRef}
                     type="search"
                     placeholder="Cari data SILPANA..."
                     className={cn(
-                      "w-full pl-10 pr-10 transition-all duration-200",
-                      "border-border/50 bg-background/50 backdrop-blur-sm",
-                      "focus:border-primary/50 focus:bg-background focus:shadow-lg focus:shadow-primary/10",
-                      isFocused && "ring-2 ring-primary/20",
+                      "w-full rounded-lg border-gray-300 bg-white pl-10 pr-10 text-gray-900 transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400",
+                      "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:focus:border-blue-500",
+                      isFocused && "ring-2 ring-blue-500/20",
                     )}
                     value={searchQuery}
                     onChange={handleSearchChange}
@@ -625,7 +627,7 @@ function SilpanaActions({
                   )}
                 </div>
 
-                {/* Enhanced Filter Controls */}
+                {/* Enhanced Filter Controls - Flowbite buttons */}
                 <div className="flex items-center gap-3">
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -634,9 +636,9 @@ function SilpanaActions({
                         size="sm"
                         onClick={toggleFilters}
                         className={cn(
-                          "transition-all duration-200",
+                          "rounded-lg border-gray-300 transition-all duration-200 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700",
                           showFilters &&
-                            "border-primary/30 bg-primary/10 text-primary",
+                            "border-blue-500 bg-blue-50 text-blue-700 dark:border-blue-600 dark:bg-blue-900/20 dark:text-blue-400",
                         )}
                       >
                         <Filter className="mr-2 h-4 w-4" />
@@ -644,7 +646,7 @@ function SilpanaActions({
                         {actionStats.filterCount > 0 && (
                           <Badge
                             variant="secondary"
-                            className="ml-2 h-5 w-5 p-0 text-xs"
+                            className="ml-2 h-5 w-5 border-blue-200 bg-blue-100 p-0 text-xs text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
                           >
                             {actionStats.filterCount}
                           </Badge>
@@ -663,7 +665,7 @@ function SilpanaActions({
                           variant="outline"
                           size="sm"
                           onClick={handleResetFilters}
-                          className="transition-all duration-200 hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                          className="rounded-lg border-gray-300 transition-all duration-200 hover:border-red-300 hover:bg-red-50 hover:text-red-600 dark:border-gray-600 dark:hover:border-red-800 dark:hover:bg-red-900/20 dark:hover:text-red-400"
                         >
                           <X className="mr-2 h-4 w-4" />
                           <span className="hidden sm:inline">Reset</span>
@@ -685,14 +687,14 @@ function SilpanaActions({
                     animate={{ opacity: 1, height: "auto", y: 0 }}
                     exit={{ opacity: 0, height: 0, y: -10 }}
                     transition={{ duration: shouldAnimate ? 0.3 : 0 }}
-                    className="overflow-hidden rounded-xl border border-border/50 bg-background/60 p-4 shadow-sm backdrop-blur-sm"
+                    className="overflow-hidden rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800"
                   >
                     <div className="space-y-6">
-                      {/* Date Range Filters */}
+                      {/* Date Range Filters - Flowbite label style */}
                       <div className="space-y-4">
                         <div className="mb-3 flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-primary" />
-                          <Label className="text-sm font-medium">
+                          <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          <Label className="text-sm font-medium text-gray-900 dark:text-white">
                             Date Range Filters
                           </Label>
                         </div>
@@ -702,7 +704,7 @@ function SilpanaActions({
                           <div className="space-y-2">
                             <Label
                               htmlFor="filter-type"
-                              className="text-xs text-muted-foreground"
+                              className="text-xs text-gray-600 dark:text-gray-400"
                             >
                               Filter By
                             </Label>
@@ -719,7 +721,10 @@ function SilpanaActions({
                                 );
                               }}
                             >
-                              <SelectTrigger className="w-[180px] transition-all duration-200 focus:ring-2 focus:ring-primary/20">
+                              <SelectTrigger 
+                                id="filter-type"
+                                className="w-[180px] rounded-lg border-gray-300 bg-white transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-700"
+                              >
                                 <SelectValue placeholder="Filter by" />
                               </SelectTrigger>
                               <SelectContent>
@@ -737,7 +742,7 @@ function SilpanaActions({
                           <LocalizationProvider dateAdapter={AdapterDateFns}>
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                               <div className="space-y-2">
-                                <Label className="text-xs text-muted-foreground">
+                                <Label className="text-xs text-gray-600 dark:text-gray-400">
                                   Start Date
                                 </Label>
                                 <DatePicker
@@ -778,13 +783,13 @@ function SilpanaActions({
                               </div>
 
                               <div className="flex items-center justify-center pt-6">
-                                <span className="text-sm text-muted-foreground">
+                                <span className="text-sm text-gray-600 dark:text-gray-400">
                                   to
                                 </span>
                               </div>
 
                               <div className="space-y-2">
-                                <Label className="text-xs text-muted-foreground">
+                                <Label className="text-xs text-gray-600 dark:text-gray-400">
                                   End Date
                                 </Label>
                                 <DatePicker
@@ -834,7 +839,7 @@ function SilpanaActions({
                                   variant="outline"
                                   size="sm"
                                   onClick={handleResetFilters}
-                                  className="transition-all duration-200 hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                                  className="rounded-lg border-gray-300 transition-all duration-200 hover:border-red-300 hover:bg-red-50 hover:text-red-600 dark:border-gray-600 dark:hover:border-red-800 dark:hover:bg-red-900/20 dark:hover:text-red-400"
                                 >
                                   <X className="mr-2 h-4 w-4" />
                                   Clear

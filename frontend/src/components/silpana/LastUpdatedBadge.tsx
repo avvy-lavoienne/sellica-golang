@@ -29,7 +29,7 @@ export default function LastUpdatedBadge() {
   // Don't render anything during SSR
   if (!currentTime) {
     return (
-      <Badge variant="outline" className="gap-2 px-3 py-1 text-xs">
+      <Badge variant="outline" className="gap-2 border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
         <Clock className="h-3 w-3" />
         <span>Loading...</span>
       </Badge>
@@ -37,7 +37,7 @@ export default function LastUpdatedBadge() {
   }
 
   return (
-    <Badge variant="outline" className="gap-2 px-3 py-1 text-xs">
+    <Badge variant="outline" className="gap-2 border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
       <Clock className="h-3 w-3" />
       <span>Last updated {currentTime}</span>
     </Badge>

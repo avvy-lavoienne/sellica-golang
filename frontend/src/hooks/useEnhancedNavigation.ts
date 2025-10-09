@@ -41,6 +41,7 @@ interface UseEnhancedNavigationOptions {
   enableKeyboardShortcuts?: boolean;
   enableUrlSync?: boolean;
   defaultMode?: SilpanaMode;
+  allowedModes?: SilpanaMode[]; // Filter which modes are available
   onModeChange?: (mode: SilpanaMode, previous: SilpanaMode | null) => void;
 }
 
@@ -49,11 +50,20 @@ export function useEnhancedNavigation(options: UseEnhancedNavigationOptions = {}
     enableKeyboardShortcuts = true,
     enableUrlSync = true,
     defaultMode = SilpanaMode.FORM,
+    allowedModes,
     onModeChange
   } = options;
 
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Filter tabs based on allowedModes if provided
+  const availableTabs = useMemo(() => {
+    if (!allowedModes || allowedModes.length === 0) {
+      return SILPANA_TABS;
+    }
+    return SILPANA_TABS.filter(tab => allowedModes.includes(tab.id));
+  }, [allowedModes]);
 
   // Initialize state from URL or default
   const getInitialMode = useCallback((): SilpanaMode => {
@@ -61,10 +71,14 @@ export function useEnhancedNavigation(options: UseEnhancedNavigationOptions = {}
     
     const urlMode = searchParams?.get('mode') as SilpanaMode;
     if (urlMode && Object.values(SilpanaMode).includes(urlMode)) {
+      // Check if the URL mode is in allowed modes
+      if (allowedModes && allowedModes.length > 0 && !allowedModes.includes(urlMode)) {
+        return defaultMode;
+      }
       return urlMode;
     }
     return defaultMode;
-  }, [searchParams, enableUrlSync, defaultMode]);
+  }, [searchParams, enableUrlSync, defaultMode, allowedModes]);
 
   const [navigationState, setNavigationState] = useState<NavigationState>({
     activeMode: getInitialMode(),
@@ -75,12 +89,12 @@ export function useEnhancedNavigation(options: UseEnhancedNavigationOptions = {}
 
   // Tab configuration with dynamic states
   const tabs = useMemo(() => {
-    return SILPANA_TABS.map(tab => ({
+    return availableTabs.map(tab => ({
       ...tab,
       isActive: tab.id === navigationState.activeMode,
       isDisabled: tab.disabled || false
     }));
-  }, [navigationState.activeMode]);
+  }, [availableTabs, navigationState.activeMode]);
 
   // Enhanced navigation function
   const navigateToMode = useCallback((

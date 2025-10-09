@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { typo, textColors } from "@/lib/typography";
 
 interface EmptyStateProps {
   onAddNew: () => void
@@ -8,15 +7,16 @@ interface EmptyStateProps {
 export default function EmptyState({ onAddNew }: EmptyStateProps) {
   return (
     <motion.div
-      className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-8 text-center"
+      className="rounded-lg border border-gray-200 bg-white p-8 text-center shadow-sm dark:border-gray-700 dark:bg-gray-800"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="w-20 h-20 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+      {/* Icon container with Flowbite colors */}
+      <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/30">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="h-8 w-8 text-indigo-600 dark:text-indigo-400"
+          className="h-8 w-8 text-blue-600 dark:text-blue-400"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -29,19 +29,22 @@ export default function EmptyState({ onAddNew }: EmptyStateProps) {
           />
         </svg>
       </div>
-      <h3 className={typo.heading(4, `${textColors.primary} mb-2`)}>
+      {/* Title with Flowbite text colors */}
+      <h3 className="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
         Belum Ada Data SILPANA
       </h3>
-      <p className={typo.body('base', `${textColors.secondary} mb-6 max-w-md mx-auto`)}>
+      {/* Description with Flowbite secondary text */}
+      <p className="mx-auto mb-6 max-w-md text-base text-gray-600 dark:text-gray-400">
         Belum ada data SILPANA yang tersimpan. Silakan input data baru untuk memulai menggunakan sistem.
       </p>
+      {/* Button with Flowbite primary button styling */}
       <button
         onClick={onAddNew}
-        className={`${typo.ui('button')} inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all duration-200`}
+        className="inline-flex items-center rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white transition-colors duration-200 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5 mr-2"
+          className="mr-2 h-5 w-5"
           viewBox="0 0 20 20"
           fill="currentColor"
         >

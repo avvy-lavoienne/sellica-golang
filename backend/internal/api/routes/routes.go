@@ -1,7 +1,11 @@
 package routes
 
 import (
+	"log"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 
 	"selly-backend/internal/api/handlers"
 	"selly-backend/internal/api/middleware"
@@ -14,19 +18,21 @@ import (
 	"selly-backend/internal/services/monitoring"
 	"selly-backend/internal/services/silpana"
 	"selly-backend/internal/services/training"
+	ws "selly-backend/internal/services/websocket"
 )
 
 // Services struct holds references to all application services
 type Services struct {
-	EventBus   eventbus.EventBusInterface
-	Database   *database.Service
-	Cache      *cache.Service
-	Auth       *auth.Service
-	Chat       *chat.Service
-	Monitoring *monitoring.Service
-	Training   *training.Service
-	Concurrent *concurrent.Service
-	Silpana    silpana.ServiceInterface
+	EventBus           eventbus.EventBusInterface
+	Database           *database.Service
+	Cache              *cache.Service
+	Auth               *auth.Service
+	Chat               *chat.Service
+	Monitoring         *monitoring.Service
+	Training           *training.Service
+	Concurrent         *concurrent.Service
+	Silpana            silpana.ServiceInterface
+	SilpanaBroadcaster *silpana.WebSocketBroadcaster
 }
 
 // SetupRoutes configures all API routes and middleware
@@ -80,7 +86,12 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	setupAuthRoutes(router, services.Auth, services.Database)
 
 	// SILPANA ticketing routes (public)
-	setupSilpanaRoutes(router, services.Silpana)
+	setupSilpanaRoutes(router, services.Silpana, services.SilpanaBroadcaster)
+
+	// WebSocket routes (public)
+	if services.SilpanaBroadcaster != nil {
+		setupWebSocketRoutes(router, services.SilpanaBroadcaster)
+	}
 
 	// Protected routes (require authentication)
 	protected := router.Group("/")
@@ -230,24 +241,25 @@ func setupPerformanceRoutes(router *gin.Engine, handler *handlers.PerformanceHan
 }
 
 // GetServices creates and returns the services struct for dependency injection
-func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service, silpanaService silpana.ServiceInterface) *Services {
+func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service, silpanaService silpana.ServiceInterface, silpanaBroadcaster *silpana.WebSocketBroadcaster) *Services {
 	return &Services{
-		EventBus:   eventBus,
-		Database:   db,
-		Cache:      cache,
-		Auth:       auth,
-		Chat:       chat,
-		Monitoring: monitoring,
-		Training:   training,
-		Concurrent: concurrent,
-		Silpana:    silpanaService,
+		EventBus:           eventBus,
+		Database:           db,
+		Cache:              cache,
+		Auth:               auth,
+		Chat:               chat,
+		Monitoring:         monitoring,
+		Training:           training,
+		Concurrent:         concurrent,
+		Silpana:            silpanaService,
+		SilpanaBroadcaster: silpanaBroadcaster,
 	}
 }
 
 // setupSilpanaRoutes configures SILPANA ticketing endpoints
-func setupSilpanaRoutes(router *gin.Engine, silpanaService silpana.ServiceInterface) {
-	// Create SILPANA handler
-	silpanaHandler := silpana.NewHandler(silpanaService)
+func setupSilpanaRoutes(router *gin.Engine, silpanaService silpana.ServiceInterface, broadcaster *silpana.WebSocketBroadcaster) {
+	// Create SILPANA handler with broadcaster
+	silpanaHandler := silpana.NewHandler(silpanaService, broadcaster)
 
 	// API group for SILPANA endpoints
 	api := router.Group("/api/v1/silpana")
@@ -255,6 +267,11 @@ func setupSilpanaRoutes(router *gin.Engine, silpanaService silpana.ServiceInterf
 		// Ticket management endpoints
 		api.POST("/tickets", silpanaHandler.CreateTicket)         // POST /api/v1/silpana/tickets - Create new ticket
 		api.POST("/tickets/lookup", silpanaHandler.LookupTicket)  // POST /api/v1/silpana/tickets/lookup - Lookup ticket by code
+		
+		// Progress tracking endpoints (Phase 4) - Must come before wildcard routes
+		api.GET("/progress/:code", silpanaHandler.GetTicketProgress) // GET /api/v1/silpana/progress/:code - Get ticket progress by code
+		
+		// Wildcard routes must come last
 		api.GET("/tickets/:id", silpanaHandler.GetTicket)         // GET /api/v1/silpana/tickets/:id - Get ticket by ID
 		api.GET("/tickets/:id/history", silpanaHandler.GetTicketHistory) // GET /api/v1/silpana/tickets/:id/history - Get ticket history
 		
@@ -266,3 +283,74 @@ func setupSilpanaRoutes(router *gin.Engine, silpanaService silpana.ServiceInterf
 		api.GET("/tickets/status/:status", silpanaHandler.GetTicketsByStatus) // GET /api/v1/silpana/tickets/status/:status - Get tickets by status
 	}
 }
+
+// setupWebSocketRoutes configures WebSocket endpoints for real-time updates
+func setupWebSocketRoutes(router *gin.Engine, broadcaster *silpana.WebSocketBroadcaster) {
+	log.Println("🔌 Setting up WebSocket routes...")
+	
+	// Get the hub from broadcaster
+	hub := broadcaster.GetHub()
+	if hub == nil {
+		log.Println("❌ WebSocket hub is nil, skipping WebSocket route setup")
+		return
+	}
+	log.Println("✅ WebSocket hub found, creating handler...")
+
+	// Create WebSocket handler
+	wsHandler := &WebSocketTicketHandler{
+		hub: hub,
+		upgrader: websocket.Upgrader{
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+			CheckOrigin: func(r *http.Request) bool {
+				// Allow all origins for now - should be restricted in production
+				return true
+			},
+		},
+	}
+
+	// WebSocket endpoint for ticket updates
+	router.GET("/ws/tickets", wsHandler.Handle)
+	
+	log.Println("✅ WebSocket route registered at /ws/tickets")
+}
+
+// WebSocketTicketHandler handles WebSocket connections for ticket updates
+type WebSocketTicketHandler struct {
+	hub      *ws.Hub
+	upgrader websocket.Upgrader
+}
+
+// Handle handles WebSocket upgrade and registration
+func (h *WebSocketTicketHandler) Handle(c *gin.Context) {
+	// Extract user information from context (set by auth middleware)
+	userID, exists := c.Get("user_id")
+	if !exists {
+		// Allow anonymous connections for now
+		userID = "anonymous"
+	}
+
+	isAdmin := false
+	if role, exists := c.Get("role"); exists {
+		isAdmin = role == "admin"
+	}
+
+	// Upgrade HTTP connection to WebSocket
+	conn, err := h.upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		log.Printf("Failed to upgrade connection: %v", err)
+		return
+	}
+
+	// Create new client
+	client := ws.NewClient(h.hub, conn, userID.(string), isAdmin)
+
+	// The client will register itself and start pumps
+	go client.WritePump()
+	go client.ReadPump()
+
+	log.Printf("New WebSocket connection established for user: %s (admin: %v)", userID, isAdmin)
+}
+
+
+

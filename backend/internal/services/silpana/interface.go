@@ -21,6 +21,10 @@ type ServiceInterface interface {
 	GetTicketsByStatus(ctx context.Context, status TicketStatus, limit, offset int) ([]*SilpanaTicket, error)
 	GetTicketsByPriority(ctx context.Context, priority TicketPriority, limit, offset int) ([]*SilpanaTicket, error)
 
+	// Ticket Progress Tracking (Phase 4)
+	GetTicketProgress(ctx context.Context, ticketCode string) (*TicketProgressResponse, error)
+	InvalidateProgressCache(ctx context.Context, ticketCode string) error
+
 	// Utility Operations
 	GenerateTicketCode(ctx context.Context) (string, error)
 	ValidateTicketAccess(ctx context.Context, code, nik, phone string) (*SilpanaTicket, error)

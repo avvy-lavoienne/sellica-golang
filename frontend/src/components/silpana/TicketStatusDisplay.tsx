@@ -3,7 +3,6 @@
 import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/conn/utils";
-import { typo, textColors } from "@/lib/typography";
 import type {
   EnhancedSilpanaData,
   TicketStatus,
@@ -197,10 +196,11 @@ export default function TicketStatusDisplay({
   const [isCommunicationsExpanded, setIsCommunicationsExpanded] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const statusConfig = STATUS_CONFIG[ticket.ticket_status];
-  const priorityConfig = PRIORITY_CONFIG[ticket.priority_level];
-  const StatusIcon = statusConfig.icon;
-  const PriorityIcon = priorityConfig.icon;
+  // Safe config lookup with fallbacks
+  const statusConfig = STATUS_CONFIG[ticket.ticket_status] || STATUS_CONFIG.submitted;
+  const priorityConfig = PRIORITY_CONFIG[ticket.priority_level] || PRIORITY_CONFIG.medium;
+  const StatusIcon = statusConfig?.icon || FileText;
+  const PriorityIcon = priorityConfig?.icon || TrendingUp;
 
   const handleRefresh = useCallback(async () => {
     if (!onRefresh) return;
@@ -289,11 +289,11 @@ export default function TicketStatusDisplay({
                   )}
                 </div>
                 
-                <CardTitle className={typo.heading(3, textColors.primary)}>
+                <CardTitle className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">
                   {ticket.nama_pengaduan}
                 </CardTitle>
                 
-                <p className={typo.body('small', textColors.secondary)}>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">
                   {ticket.kategori_pengaduan} → {ticket.sub_kategori_pengaduan}
                 </p>
               </div>
@@ -327,7 +327,7 @@ export default function TicketStatusDisplay({
             <div className="grid gap-6 md:grid-cols-2">
               {/* Current Status */}
               <div className="space-y-4">
-                <h4 className={typo.heading(5, textColors.primary)}>
+                <h4 className="text-base sm:text-lg font-medium text-gray-800 dark:text-gray-100">
                   Status Saat Ini
                 </h4>
                 
@@ -344,7 +344,7 @@ export default function TicketStatusDisplay({
                       <div className={cn("font-semibold", statusConfig.color)}>
                         {statusConfig.label}
                       </div>
-                      <div className={typo.body('small', textColors.secondary)}>
+                      <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">
                         {statusConfig.description}
                       </div>
                     </div>
@@ -352,10 +352,10 @@ export default function TicketStatusDisplay({
                   
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className={typo.body('small', textColors.secondary)}>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">
                         Progress
                       </span>
-                      <span className={typo.body('small', 'font-medium')}>
+                      <span className="text-xs sm:text-sm font-medium">
                         {statusConfig.progress}%
                       </span>
                     </div>
@@ -366,7 +366,7 @@ export default function TicketStatusDisplay({
 
               {/* Priority Level */}
               <div className="space-y-4">
-                <h4 className={typo.heading(5, textColors.primary)}>
+                <h4 className="text-base sm:text-lg font-medium text-gray-800 dark:text-gray-100">
                   Tingkat Prioritas
                 </h4>
                 
@@ -383,7 +383,7 @@ export default function TicketStatusDisplay({
                       <div className={cn("font-semibold", priorityConfig.color)}>
                         {priorityConfig.label}
                       </div>
-                      <div className={typo.body('small', textColors.secondary)}>
+                      <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">
                         Tingkat prioritas penanganan
                       </div>
                     </div>
@@ -396,7 +396,7 @@ export default function TicketStatusDisplay({
 
             {/* Ticket Details */}
             <div className="space-y-4">
-              <h4 className={typo.heading(5, textColors.primary)}>
+              <h4 className="text-base sm:text-lg font-medium text-gray-800 dark:text-gray-100">
                 Detail Pengaduan
               </h4>
               
@@ -404,11 +404,11 @@ export default function TicketStatusDisplay({
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className={typo.body('small', textColors.secondary)}>
+                    <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">
                       Tanggal Pengaduan:
                     </span>
                   </div>
-                  <p className={typo.body('base')}>
+                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
                     {formatDate(ticket.tanggal_pengaduan)}
                   </p>
                 </div>
@@ -416,11 +416,11 @@ export default function TicketStatusDisplay({
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className={typo.body('small', textColors.secondary)}>
+                    <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">
                       Terakhir Diperbarui:
                     </span>
                   </div>
-                  <p className={typo.body('base')}>
+                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
                     {formatDate(ticket.last_updated)}
                   </p>
                 </div>
@@ -429,12 +429,40 @@ export default function TicketStatusDisplay({
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span className={typo.body('small', textColors.secondary)}>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">
                         Nomor Telepon:
                       </span>
                     </div>
-                    <p className={typo.body('base')}>
+                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
                       {ticket.nomor_telepon}
+                    </p>
+                  </div>
+                )}
+
+                {ticket.email && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">
+                        Email:
+                      </span>
+                    </div>
+                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+                      {ticket.email}
+                    </p>
+                  </div>
+                )}
+
+                {ticket.alamat && (
+                  <div className="space-y-3 md:col-span-2">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">
+                        Alamat:
+                      </span>
+                    </div>
+                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+                      {ticket.alamat}
                     </p>
                   </div>
                 )}
@@ -443,11 +471,11 @@ export default function TicketStatusDisplay({
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4 text-muted-foreground" />
-                      <span className={typo.body('small', textColors.secondary)}>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">
                         Ditugaskan ke:
                       </span>
                     </div>
-                    <p className={typo.body('base')}>
+                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
                       {ticket.assigned_to}
                     </p>
                   </div>
@@ -457,11 +485,11 @@ export default function TicketStatusDisplay({
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4 text-muted-foreground" />
-                  <span className={typo.body('small', textColors.secondary)}>
+                  <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">
                     Alasan Pengaduan:
                   </span>
                 </div>
-                <p className={typo.body('base')}>
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
                   {ticket.alasan_pengaduan}
                 </p>
               </div>
@@ -469,12 +497,12 @@ export default function TicketStatusDisplay({
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                  <span className={typo.body('small', textColors.secondary)}>
+                  <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">
                     Deskripsi:
                   </span>
                 </div>
                 <div className="rounded-lg bg-muted/50 p-4">
-                  <p className={typo.body('base')}>
+                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
                     {ticket.deskripsi_pengaduan}
                   </p>
                 </div>
@@ -486,7 +514,7 @@ export default function TicketStatusDisplay({
         {/* Timeline Section */}
         <Card>
           <CardHeader>
-            <CardTitle className={typo.heading(5, textColors.primary)}>
+            <CardTitle className="text-base sm:text-lg font-medium text-gray-800 dark:text-gray-100">
               Timeline Status
             </CardTitle>
           </CardHeader>
@@ -502,7 +530,7 @@ export default function TicketStatusDisplay({
               <CollapsibleTrigger asChild>
                 <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                   <div className="flex items-center justify-between">
-                    <CardTitle className={typo.heading(5, textColors.primary)}>
+                    <CardTitle className="text-base sm:text-lg font-medium text-gray-800 dark:text-gray-100">
                       Riwayat Status ({ticket.ticket_history.length})
                     </CardTitle>
                     {isHistoryExpanded ? (
@@ -548,12 +576,12 @@ export default function TicketStatusDisplay({
                           </div>
                           
                           {history.notes && (
-                            <p className={typo.body('small', textColors.secondary)}>
+                            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">
                               {history.notes}
                             </p>
                           )}
                           
-                          <p className={typo.body('small', 'text-muted-foreground')}>
+                          <p className="text-xs sm:text-sm text-muted-foreground">
                             oleh {history.changed_by}
                           </p>
                         </div>
@@ -573,7 +601,7 @@ export default function TicketStatusDisplay({
               <CollapsibleTrigger asChild>
                 <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                   <div className="flex items-center justify-between">
-                    <CardTitle className={typo.heading(5, textColors.primary)}>
+                    <CardTitle className="text-base sm:text-lg font-medium text-gray-800 dark:text-gray-100">
                       Komunikasi ({ticket.ticket_communications.length})
                     </CardTitle>
                     {isCommunicationsExpanded ? (
@@ -612,13 +640,13 @@ export default function TicketStatusDisplay({
                             >
                               {communication.sender_type === 'admin' ? 'Admin' : 'Pengadu'}
                             </Badge>
-                            <span className={typo.body('small', 'text-muted-foreground')}>
+                            <span className="text-xs sm:text-sm text-muted-foreground">
                               {formatDate(communication.created_at)}
                             </span>
                           </div>
                         </div>
                         
-                        <p className={typo.body('base')}>
+                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
                           {communication.message}
                         </p>
                       </motion.div>

@@ -2,6 +2,7 @@
 
 import type React from "react";
 import { useEffect, useState, useCallback, useMemo, useRef, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/conn/utils";
 import { supabase } from "@/lib/conn/supabaseClient";
@@ -28,6 +29,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Home,
   ChevronRight,
@@ -73,7 +75,11 @@ import LastUpdatedBadge from "@/components/silpana/LastUpdatedBadge";
 import EnhancedNavigation from "@/components/silpana/EnhancedNavigation";
 import { SilpanaMode } from "@/types/silpana/silpana";
 
-export default function SilpanaPage() {
+function SilpanaPageContent() {
+  // URL params and router for mode handling
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
   // Enhanced navigation state with new enum system
   const [activeMode, setActiveMode] = useState<SilpanaMode>(SilpanaMode.LOOKUP); // Default to lookup for user-friendly access
   const [isEditing, setIsEditing] = useState(false);
@@ -183,6 +189,32 @@ export default function SilpanaPage() {
   const debouncedStartDate = useDebounce(startDate, 500);
   const debouncedEndDate = useDebounce(endDate, 500);
   const debouncedFilterBy = useDebounce(filterBy, 500);
+
+  // Handle URL params and redirect to default mode if no param is present
+  useEffect(() => {
+    const mode = searchParams.get('mode');
+    
+    // If no mode param, redirect to lookup mode
+    if (!mode) {
+      router.replace('/silpana?mode=lookup');
+      return;
+    }
+    
+    // Set active mode based on URL param
+    switch (mode) {
+      case 'form':
+        setActiveMode(SilpanaMode.FORM);
+        break;
+      case 'table':
+      case 'rekap':
+        setActiveMode(SilpanaMode.REKAP);
+        break;
+      case 'lookup':
+      default:
+        setActiveMode(SilpanaMode.LOOKUP);
+        break;
+    }
+  }, [searchParams, router]);
 
   const validatePhoneNumber = (phone: string) => {
     return /^(\+62|62|0)[0-9]{9,12}$/.test(phone);
@@ -305,26 +337,6 @@ export default function SilpanaPage() {
     [fetchRekapData],
   );
 
-  useEffect(() => {
-    if (activeMode === SilpanaMode.REKAP) {
-      memoizedFetchRekapData(
-        currentPage,
-        debouncedSearchQuery,
-        debouncedStartDate,
-        debouncedEndDate,
-        debouncedFilterBy,
-      ).then(({ totalCount }) => setTotalCount(totalCount));
-    }
-  }, [
-    currentPage,
-    activeMode,
-    debouncedSearchQuery,
-    debouncedStartDate,
-    debouncedEndDate,
-    debouncedFilterBy,
-    memoizedFetchRekapData,
-  ]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -340,10 +352,13 @@ export default function SilpanaPage() {
       setSubmissionProgress(20);
       const errors: Record<string, string> = {};
 
-      if (!formData.nik_pengaduan.trim()) {
-        errors.nik_pengaduan = "NIK wajib diisi";
-      } else if (!/^\d{16}$/.test(formData.nik_pengaduan.replace(/\s+/g, ''))) {
-        errors.nik_pengaduan = "NIK harus 16 digit angka";
+      // Only validate NIK if not anonymous
+      if (!formData.is_anonymous) {
+        if (!formData.nik_pengaduan.trim()) {
+          errors.nik_pengaduan = "NIK wajib diisi";
+        } else if (!/^\d{16}$/.test(formData.nik_pengaduan.replace(/\s+/g, ''))) {
+          errors.nik_pengaduan = "NIK harus 16 digit angka";
+        }
       }
 
       if (!formData.nama_pengaduan.trim()) {
@@ -370,8 +385,8 @@ export default function SilpanaPage() {
         errors.deskripsi_pengaduan = "Deskripsi minimal 10 karakter";
       }
 
-      // Enhanced phone number validation
-      if (formData.nomor_telepon && !/^(\+62|62|0)\d{8,13}$/.test(formData.nomor_telepon.replace(/\s+/g, ''))) {
+      // Enhanced phone number validation - only if not anonymous
+      if (!formData.is_anonymous && formData.nomor_telepon && !/^(\+62|62|0)\d{8,13}$/.test(formData.nomor_telepon.replace(/\s+/g, ''))) {
         errors.nomor_telepon = "Format nomor telepon tidak valid (contoh: 081234567890)";
       }
 
@@ -390,14 +405,14 @@ export default function SilpanaPage() {
 
       const submissionData = {
         // Map to actual database column names from the schema
-        nik_pengaduan: formData.nik_pengaduan.replace(/\s+/g, ''),
+        nik_pengaduan: formData.is_anonymous ? '' : formData.nik_pengaduan.replace(/\s+/g, ''),
         nama_pengaduan: formData.nama_pengaduan.trim(),
         nama_pelapor: formData.nama_pengaduan.trim(), // This field also exists in DB
         kategori_pengaduan: formData.kategori_pengaduan,
         sub_kategori_pengaduan: formData.sub_kategori_pengaduan || 'Umum',
         alasan_pengaduan: formData.alasan_pengaduan.trim(),
         deskripsi_pengaduan: formData.deskripsi_pengaduan?.trim() || formData.alasan_pengaduan.trim(),
-        nomor_telepon: formData.nomor_telepon.replace(/\s+/g, ''),
+        nomor_telepon: formData.is_anonymous ? '' : formData.nomor_telepon.replace(/\s+/g, ''),
         tindak_lanjut_pengaduan: formData.tindak_lanjut_pengaduan || '',
         tanggal_pengaduan: formData.tanggal_pengaduan,
         is_anonymous: formData.is_anonymous || false,
@@ -531,6 +546,12 @@ export default function SilpanaPage() {
   // Enhanced navigation handlers with new enum system
   const handleModeChange = useCallback((newMode: SilpanaMode) => {
     setActiveMode(newMode);
+    
+    // Update URL param based on mode
+    const modeParam = newMode === SilpanaMode.FORM ? 'form' : 
+                      newMode === SilpanaMode.REKAP ? 'table' : 'lookup';
+    router.push(`/silpana?mode=${modeParam}`);
+    
     // Clear related state when switching modes
     if (newMode !== SilpanaMode.LOOKUP) {
       setFoundTicket(null);
@@ -539,11 +560,7 @@ export default function SilpanaPage() {
       setIsEditing(false);
       setEditData(null);
     }
-  }, []);
-
-  const handleRekapitulasi = useCallback(() => {
-    handleModeChange(SilpanaMode.REKAP);
-  }, [handleModeChange]);
+  }, [router]);
 
   const handleTicketLookup = useCallback(() => {
     handleModeChange(SilpanaMode.LOOKUP);
@@ -670,7 +687,8 @@ export default function SilpanaPage() {
         initial="hidden"
         animate="visible"
         className={cn(
-          "min-h-screen bg-gradient-to-br from-background via-background to-muted/20",
+          // Flowbite: Clean background instead of gradient
+          "min-h-screen bg-gray-50 dark:bg-gray-900",
           "px-4 py-10 sm:px-6 lg:px-8",
         )}
         onHoverStart={() => setIsHovered(true)}
@@ -697,7 +715,7 @@ export default function SilpanaPage() {
           {/* Enhanced Breadcrumb Navigation */}
           <motion.div
             variants={sectionVariants}
-            className="relative overflow-hidden rounded-xl border border-border/50 bg-background/80 shadow-sm backdrop-blur-sm"
+            className="relative overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
           >
             {/* Background decoration */}
             <div className="absolute inset-0 opacity-30">
@@ -739,7 +757,7 @@ export default function SilpanaPage() {
           {/* Enhanced Page Header with Statistics */}
           <motion.div
             variants={sectionVariants}
-            className="relative overflow-hidden rounded-xl border border-border/50 bg-background/80 shadow-lg backdrop-blur-sm"
+            className="relative overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
           >
             {/* Background decoration */}
             <div className="absolute inset-0 opacity-50">
@@ -809,6 +827,9 @@ export default function SilpanaPage() {
 
                 {/* Enhanced Quick Actions */}
                 <div className="flex items-center gap-3">
+                  {/* Theme Toggle */}
+                  <ThemeToggle className="hover:bg-gray-100 dark:hover:bg-gray-800" />
+
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -862,39 +883,17 @@ export default function SilpanaPage() {
                 <EnhancedNavigation
                   onModeChange={handleModeChange}
                   showKeyboardHints={true}
+                  allowedModes={[SilpanaMode.FORM, SilpanaMode.LOOKUP]}
                   className="mb-8"
                 />
               </Suspense>
-
-              {/* Legacy SilpanaActions for filtering - only show when in rekap mode */}
-              {activeMode === SilpanaMode.REKAP && (
-                <SilpanaActions
-                  onAjukan={handleAjukan}
-                  onRekapitulasi={handleRekapitulasi}
-                  onTicketLookup={handleTicketLookup}
-                  activeMode="table"
-                  onDateRangeChange={(start, end, filterField) => {
-                    setStartDate(start);
-                    setEndDate(end);
-                    setFilterBy(filterField);
-                    setCurrentPage(1);
-                  }}
-                  onResetFilters={handleRefresh}
-                  onSearch={handleSearch}
-                  searchQuery={searchQuery}
-                  loading={loading || isTableLoading}
-                  totalItems={pageStats.totalItems}
-                  filteredItems={pageStats.filteredItems}
-                  onRefresh={handleRefresh}
-                />
-              )}
 
               {/* Enhanced Content Section with mode-based rendering */}
               <div className="mt-8 space-y-6">
                 <AnimatePresence mode="wait">
                   {activeMode === SilpanaMode.FORM && (
                     <motion.div
-                      key="form"
+                      key={SilpanaMode.FORM}
                       initial={{ opacity: 0, y: 20, scale: 0.98 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -20, scale: 0.98 }}
@@ -902,7 +901,7 @@ export default function SilpanaPage() {
                         duration: shouldAnimate ? 0.4 : 0,
                         ease: "easeOut",
                       }}
-                      className="relative overflow-hidden rounded-xl border border-border/50 bg-background/60 shadow-sm backdrop-blur-sm"
+                      className="relative overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
                     >
                       {/* Background decoration for form */}
                       <div className="absolute inset-0 opacity-30">
@@ -933,72 +932,9 @@ export default function SilpanaPage() {
                     </motion.div>
                   )}
 
-                  {activeMode === SilpanaMode.REKAP && (
-                    <motion.div
-                      key="table"
-                      initial={{ opacity: 0, y: 20, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -20, scale: 0.98 }}
-                      transition={{
-                        duration: shouldAnimate ? 0.4 : 0,
-                        ease: "easeOut",
-                      }}
-                      className="space-y-4"
-                    >
-                      {isTableLoading ? (
-                        <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          className="relative overflow-hidden rounded-xl border border-border/50 bg-background/60 shadow-sm backdrop-blur-sm"
-                        >
-                          <div className="p-8">
-                            <LoadingState />
-                          </div>
-                        </motion.div>
-                      ) : rekapData.length > 0 ? (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{
-                            duration: shouldAnimate ? 0.3 : 0,
-                            delay: 0.1,
-                          }}
-                        >
-                          <SilpanaTable {...memoizedTableProps} />
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: shouldAnimate ? 0.3 : 0 }}
-                          className="relative overflow-hidden rounded-xl border border-border/50 bg-background/60 shadow-sm backdrop-blur-sm"
-                        >
-                          {/* Background decoration for empty state */}
-                          <div className="absolute inset-0 opacity-30">
-                            <div
-                              className={cn(
-                                "absolute -bottom-6 -left-6 h-24 w-24 rounded-full blur-2xl",
-                                colorSchemes.green.bgClass,
-                                "opacity-40",
-                              )}
-                            />
-                          </div>
-
-                          <div className="relative z-10 p-8">
-                            <EmptyState
-                              onAddNew={() => {
-                                handleModeChange(SilpanaMode.FORM);
-                              }}
-                            />
-                          </div>
-                        </motion.div>
-                      )}
-                    </motion.div>
-                  )}
-
                   {activeMode === SilpanaMode.LOOKUP && (
                     <motion.div
-                      key="lookup"
+                      key={SilpanaMode.LOOKUP}
                       initial={{ opacity: 0, y: 20, scale: 0.98 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -20, scale: 0.98 }}
@@ -1011,46 +947,6 @@ export default function SilpanaPage() {
                         onTicketFound={handleTicketFound}
                         onError={handleLookupError}
                       />
-                    </motion.div>
-                  )}
-
-                  {activeMode === SilpanaMode.ADMIN && (
-                    <motion.div
-                      key="welcome"
-                      initial={{ opacity: 0, y: 20, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -20, scale: 0.98 }}
-                      transition={{
-                        duration: shouldAnimate ? 0.4 : 0,
-                        ease: "easeOut",
-                      }}
-                      className="relative overflow-hidden rounded-xl border border-border/50 bg-background/60 shadow-sm backdrop-blur-sm"
-                    >
-                      {/* Background decoration for welcome state */}
-                      <div className="absolute inset-0 opacity-30">
-                        <div
-                          className={cn(
-                            "absolute -right-8 -top-8 h-32 w-32 rounded-full blur-3xl",
-                            colorSchemes.primary.bgClass,
-                            "opacity-40",
-                          )}
-                        />
-                        <div
-                          className={cn(
-                            "absolute bottom-1/4 left-1/4 h-24 w-24 rounded-full blur-2xl",
-                            colorSchemes.blue.bgClass,
-                            "opacity-30",
-                          )}
-                        />
-                      </div>
-
-                      <div className="relative z-10 p-8">
-                        <EmptyState
-                          onAddNew={() => {
-                            handleModeChange(SilpanaMode.FORM);
-                          }}
-                        />
-                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -1071,5 +967,14 @@ export default function SilpanaPage() {
         }}
       />
     </TooltipProvider>
+  );
+}
+
+// Wrap with Suspense for useSearchParams
+export default function SilpanaPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <SilpanaPageContent />
+    </Suspense>
   );
 }

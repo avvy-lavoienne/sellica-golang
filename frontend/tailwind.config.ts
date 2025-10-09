@@ -7,6 +7,9 @@ const config = {
     "./components/**/*.{js,jsx,ts,tsx,mdx}",
     "./pages/**/*.{js,jsx,ts,tsx,mdx}",
     "*.{js,jsx,ts,tsx,mdx}",
+    // Flowbite React component paths
+    "./node_modules/flowbite-react/lib/**/*.js",
+    "./node_modules/flowbite/**/*.js",
   ],
   darkMode: ["class"],
   // Optimize for production builds
@@ -844,6 +847,7 @@ const config = {
   plugins: [
     require("tailwindcss-animate"),
     require("@tailwindcss/typography"),
+    require("flowbite/plugin"),
     // Performance and functionality plugins would go here
     // Note: Install these packages if needed:
     // npm install @tailwindcss/container-queries @tailwindcss/forms
