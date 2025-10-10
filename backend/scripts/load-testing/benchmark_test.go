@@ -21,6 +21,7 @@ import (
 	"selly-backend/internal/services/database"
 	"selly-backend/internal/services/eventbus"
 	"selly-backend/internal/services/monitoring"
+	"selly-backend/internal/services/silpana"
 	"selly-backend/internal/services/training"
 )
 
@@ -73,6 +74,8 @@ func setupTestServer() *gin.Engine {
 	monitoringService := &monitoring.Service{} // Mock service
 	trainingService := &training.Service{}     // Mock service
 	concurrentService := (*concurrent.Service)(nil) // Mock concurrent service
+	silpanaService := (silpana.ServiceInterface)(nil) // Mock SILPANA service
+	silpanaBroadcaster := (*silpana.WebSocketBroadcaster)(nil) // Mock WebSocket broadcaster
 
 	services := routes.GetServices(
 		unifiedEventBus,
@@ -83,6 +86,8 @@ func setupTestServer() *gin.Engine {
 		monitoringService,
 		trainingService,
 		concurrentService,
+		silpanaService,
+		silpanaBroadcaster,
 	)
 
 	router := gin.New()

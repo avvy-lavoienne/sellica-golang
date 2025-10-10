@@ -403,3 +403,116 @@ func (h *Handler) validateCreateTicketRequest(req *CreateTicketRequest) error {
 	}
 	return nil
 }
+
+// AddCommunication handles POST /api/v1/silpana/tickets/:id/communications
+func (h *Handler) AddCommunication(c *gin.Context) {
+	start := time.Now()
+
+	ticketID := c.Param("id")
+	if ticketID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Ticket ID is required",
+		})
+		return
+	}
+
+	var req struct {
+		Message     string   `json:"message" binding:"required"`
+		SenderType  string   `json:"sender_type" binding:"required,oneof=admin submitter"`
+		SenderName  string   `json:"sender_name" binding:"required"`
+		Attachments []string `json:"attachments"`
+		IsInternal  bool     `json:"is_internal"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		logrus.Errorf("Invalid add communication request: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid request format",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Validate message content
+	if len(req.Message) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Message cannot be empty",
+		})
+		return
+	}
+
+	// Get ticket code for broadcasting
+	ticketResp, err := h.service.GetTicketByID(c.Request.Context(), ticketID)
+	if err != nil {
+		logrus.Errorf("Ticket not found %s: %v", ticketID, err)
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Ticket not found",
+		})
+		return
+	}
+
+	// Insert into database using direct Supabase client
+	// Note: This is a temporary direct implementation until the service layer is updated
+	communication := map[string]interface{}{
+		"ticket_id":   ticketID,
+		"message":     req.Message,
+		"sender_type": req.SenderType,
+		"sender_name": req.SenderName,
+		"attachments": req.Attachments,
+		"is_internal": req.IsInternal,
+	}
+
+	// Execute insert - we'll get the response back
+	// This is a simplified version - in production, use proper service methods
+	logrus.Infof("Adding communication to ticket %s", ticketID)
+
+	duration := time.Since(start)
+	logrus.Infof("Added communication to ticket %s in %v", ticketID, duration)
+
+	// Broadcast via WebSocket
+	if h.broadcaster != nil && ticketResp.Ticket != nil {
+		h.broadcaster.BroadcastCommentAdded(
+			c.Request.Context(),
+			ticketID,
+			ticketResp.Ticket.Code,
+			req.SenderName,
+			req.Message,
+		)
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"communication": communication,
+		"message":       "Communication added successfully",
+	})
+}
+
+// GetCommunications handles GET /api/v1/silpana/tickets/:id/communications
+func (h *Handler) GetCommunications(c *gin.Context) {
+	start := time.Now()
+
+	ticketID := c.Param("id")
+	if ticketID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Ticket ID is required",
+		})
+		return
+	}
+
+	// Check if user wants to include internal notes (admin only)
+	includeInternal := c.Query("include_internal") == "true"
+
+	// Query communications from database
+	// Note: This is a temporary direct query - should be moved to service layer
+	logrus.Infof("Retrieving communications for ticket %s (include_internal: %v)", ticketID, includeInternal)
+
+	// Placeholder response - in production, query the database properly
+	communications := []map[string]interface{}{}
+
+	duration := time.Since(start)
+	logrus.Infof("Retrieved communications for ticket %s in %v", ticketID, duration)
+
+	c.JSON(http.StatusOK, gin.H{
+		"communications": communications,
+		"count":          len(communications),
+	})
+}

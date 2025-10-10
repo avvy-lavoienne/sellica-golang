@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "react-toastify";
+import AdminResponseForm from "@/components/silpana/admin/AdminResponseForm";
 import {
   ArrowLeft,
   Edit,
@@ -29,6 +30,19 @@ import { id } from "date-fns/locale";
 // Simple separator component
 const Separator = () => <div className="border-t border-border" />;
 
+// Communication type
+interface TicketCommunication {
+  id: string;
+  ticket_id: string;
+  message: string;
+  sender_type: "admin" | "user";
+  sender_name: string;
+  is_internal: boolean;
+  attachments?: string[];
+  created_at: string;
+  updated_at: string;
+}
+
 interface TicketDetailProps {
   params: Promise<{ id: string }>;
 }
@@ -38,6 +52,7 @@ export default function TicketDetailPage({ params }: TicketDetailProps) {
   const [ticket, setTicket] = useState<SilpanaData | null>(null);
   const [loading, setLoading] = useState(true);
   const [ticketId, setTicketId] = useState<string>("");
+  const [communications, setCommunications] = useState<TicketCommunication[]>([]);
 
   useEffect(() => {
     params.then((resolvedParams) => {
@@ -48,6 +63,7 @@ export default function TicketDetailPage({ params }: TicketDetailProps) {
   useEffect(() => {
     if (!ticketId) return;
     fetchTicket();
+    fetchCommunications();
   }, [ticketId]);
 
   const fetchTicket = async () => {
@@ -66,9 +82,28 @@ export default function TicketDetailPage({ params }: TicketDetailProps) {
       setTicket(data);
     } catch (error: any) {
       console.error("Error fetching ticket:", error);
-      toast.error("Gagal memuat detail tiket");
+      toast.error("Gagal mengambil detail tiket");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCommunications = async () => {
+    if (!ticketId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("ticket_communication")
+        .select("*")
+        .eq("ticket_id", ticketId)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+
+      setCommunications(data || []);
+    } catch (error: any) {
+      console.error("Error fetching communications:", error);
+      // Don't show toast error for communications, they're optional
     }
   };
 
@@ -345,6 +380,70 @@ export default function TicketDetailPage({ params }: TicketDetailProps) {
               )}
             </CardContent>
           </Card>
+
+          {/* Admin Response Form */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Tanggapan Admin</CardTitle>
+              <CardDescription>
+                Berikan tanggapan atau catatan internal untuk tiket ini
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AdminResponseForm
+                ticketId={ticket.id!}
+                ticketCode={ticket.ticket_code!}
+                onResponseSent={() => {
+                  fetchTicket();
+                  fetchCommunications();
+                }}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Communications History */}
+          {communications.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Riwayat Komunikasi</CardTitle>
+                <CardDescription>
+                  {communications.length} pesan
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {communications.map((comm) => (
+                    <div 
+                      key={comm.id}
+                      className={`p-4 rounded-lg border ${
+                        comm.sender_type === "admin" 
+                          ? "bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800" 
+                          : "bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-700"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Badge variant={comm.sender_type === "admin" ? "default" : "secondary"}>
+                            {comm.sender_type === "admin" ? "Admin" : "User"}
+                          </Badge>
+                          {comm.is_internal && (
+                            <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900 dark:text-yellow-200">
+                              Internal
+                            </Badge>
+                          )}
+                          <span className="text-sm font-medium">{comm.sender_name}</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {format(new Date(comm.created_at), "dd MMM yyyy HH:mm", { locale: id })}
+                        </span>
+                      </div>
+                      <p className="whitespace-pre-wrap text-sm">{comm.message}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Sidebar */}
