@@ -10,7 +10,7 @@ interface UserProfile {
   name: string;
   email: string;
   role: 'admin' | 'user';
-  avatar?: string;
+  avatar_url?: string;
 }
 
 export function useAuth() {
@@ -61,7 +61,7 @@ export function useAuth() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, name, email, role, avatar')
+        .select('id, name, email, role, avatar_url')
         .eq('id', authUser.id)
         .single();
 
