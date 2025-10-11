@@ -36,6 +36,7 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { TablePagination } from "./TablePagination";
 import { BulkActionToolbar } from "./BulkActionToolbar";
+import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
 
 interface TicketTableProps {
   tickets: SilpanaData[];
@@ -79,16 +80,18 @@ export function TicketTable({
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [bulkLoading, setBulkLoading] = useState(false);
 
-  // Bulk action handlers
+  // Modal states
+  const [approveDialogOpen, setApproveDialogOpen] = useState(false);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // Bulk action handlers - now use modals instead of window.confirm
   const handleApproveAll = async () => {
     if (selectedTickets.length === 0) return;
-    
-    if (!window.confirm(
-      `Setujui ${selectedTickets.length} tiket yang dipilih?\n\nTindakan ini akan mengubah status tiket menjadi "Diproses".`
-    )) {
-      return;
-    }
+    setApproveDialogOpen(true);
+  };
 
+  const handleApproveConfirm = async () => {
     setBulkLoading(true);
     try {
       // Update each ticket status to "in_progress"
@@ -98,6 +101,7 @@ export function TicketTable({
       
       // Clear selection after success
       onSelectAll(false);
+      setApproveDialogOpen(false);
     } catch (error) {
       console.error("Failed to approve tickets:", error);
       alert("Gagal menyetujui tiket. Silakan coba lagi.");
@@ -108,13 +112,10 @@ export function TicketTable({
 
   const handleRejectAll = async () => {
     if (selectedTickets.length === 0) return;
-    
-    if (!window.confirm(
-      `Tolak ${selectedTickets.length} tiket yang dipilih?\n\nTindakan ini akan mengubah status tiket menjadi "Ditolak" dan tidak dapat dibatalkan.`
-    )) {
-      return;
-    }
+    setRejectDialogOpen(true);
+  };
 
+  const handleRejectConfirm = async () => {
     setBulkLoading(true);
     try {
       // Update each ticket status to "rejected"
@@ -124,6 +125,7 @@ export function TicketTable({
       
       // Clear selection after success
       onSelectAll(false);
+      setRejectDialogOpen(false);
     } catch (error) {
       console.error("Failed to reject tickets:", error);
       alert("Gagal menolak tiket. Silakan coba lagi.");
@@ -134,20 +136,10 @@ export function TicketTable({
 
   const handleDeleteAll = async () => {
     if (selectedTickets.length === 0) return;
-    
-    if (!window.confirm(
-      `PERINGATAN: Hapus ${selectedTickets.length} tiket yang dipilih?\n\nTindakan ini PERMANEN dan tidak dapat dibatalkan!\n\nKlik OK untuk melanjutkan.`
-    )) {
-      return;
-    }
+    setDeleteDialogOpen(true);
+  };
 
-    // Double confirmation for bulk delete
-    if (!window.confirm(
-      `Konfirmasi sekali lagi: Anda yakin ingin menghapus ${selectedTickets.length} tiket?`
-    )) {
-      return;
-    }
-
+  const handleDeleteConfirm = async () => {
     setBulkLoading(true);
     try {
       // Delete each ticket
@@ -157,6 +149,7 @@ export function TicketTable({
       
       // Clear selection after success
       onSelectAll(false);
+      setDeleteDialogOpen(false);
     } catch (error) {
       console.error("Failed to delete tickets:", error);
       alert("Gagal menghapus tiket. Silakan coba lagi.");
@@ -536,6 +529,41 @@ export function TicketTable({
         />
       )}
       </div>
+
+      {/* Confirmation Dialogs */}
+      <ConfirmationDialog
+        isOpen={approveDialogOpen}
+        onClose={() => setApproveDialogOpen(false)}
+        onConfirm={handleApproveConfirm}
+        title="Setujui Tiket"
+        message={`Setujui ${selectedTickets.length} tiket yang dipilih? Tindakan ini akan mengubah status tiket menjadi "Diproses".`}
+        variant="info"
+        confirmText="Setujui"
+        loading={bulkLoading}
+      />
+
+      <ConfirmationDialog
+        isOpen={rejectDialogOpen}
+        onClose={() => setRejectDialogOpen(false)}
+        onConfirm={handleRejectConfirm}
+        title="Tolak Tiket"
+        message={`Tolak ${selectedTickets.length} tiket yang dipilih? Tindakan ini akan mengubah status tiket menjadi "Ditolak" dan tidak dapat dibatalkan.`}
+        variant="warning"
+        confirmText="Tolak"
+        loading={bulkLoading}
+      />
+
+      <ConfirmationDialog
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Hapus Tiket"
+        message={`PERINGATAN: Hapus ${selectedTickets.length} tiket yang dipilih? Tindakan ini PERMANEN dan tidak dapat dibatalkan!`}
+        variant="danger"
+        confirmText="Hapus"
+        loading={bulkLoading}
+        requireDoubleConfirm={true}
+      />
     </div>
   );
 }
