@@ -43,6 +43,8 @@ type SilpanaTicket struct {
 	CreatedAt        time.Time              `json:"created_at" db:"created_at"`
 	UpdatedAt        time.Time              `json:"updated_at" db:"updated_at"`
 	CompletedAt      *time.Time             `json:"completed_at,omitempty" db:"completed_at"`
+	// Relations - not stored in DB, populated separately
+	Communications   []*Communication       `json:"ticket_communications,omitempty" db:"-"`
 }
 
 // TicketHistory represents a historical change to a ticket
@@ -98,4 +100,33 @@ type TicketStatsResponse struct {
 	PriorityCounts  map[string]int64 `json:"priority_counts"`
 	AverageWaitTime float64          `json:"average_wait_time_hours"`
 	CompletionRate  float64          `json:"completion_rate"`
+}
+
+// Communication represents a message in the ticket communication thread
+type Communication struct {
+	ID          string    `json:"id" db:"id"`
+	TicketID    string    `json:"ticket_id" db:"ticket_id"`
+	Message     string    `json:"message" db:"message"`
+	SenderType  string    `json:"sender_type" db:"sender_type"`
+	SenderName  string    `json:"sender_name" db:"sender_name"`
+	Attachments []string  `json:"attachments" db:"attachments"`
+	IsInternal  bool      `json:"is_internal" db:"is_internal"`
+	CreatedAt   time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at" db:"updated_at"`
+}
+
+// AddCommunicationRequest represents the request payload for adding a communication
+type AddCommunicationRequest struct {
+	Message     string   `json:"message" binding:"required"`
+	SenderType  string   `json:"sender_type" binding:"required,oneof=admin submitter"`
+	SenderName  string   `json:"sender_name" binding:"required"`
+	Attachments []string `json:"attachments"`
+	IsInternal  bool     `json:"is_internal"`
+}
+
+// CommunicationResponse represents the response for a communication operation
+type CommunicationResponse struct {
+	Communication *Communication `json:"communication"`
+	TicketCode    string         `json:"ticket_code"`
+	Message       string         `json:"message"`
 }

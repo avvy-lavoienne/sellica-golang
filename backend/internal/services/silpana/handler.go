@@ -416,13 +416,7 @@ func (h *Handler) AddCommunication(c *gin.Context) {
 		return
 	}
 
-	var req struct {
-		Message     string   `json:"message" binding:"required"`
-		SenderType  string   `json:"sender_type" binding:"required,oneof=admin submitter"`
-		SenderName  string   `json:"sender_name" binding:"required"`
-		Attachments []string `json:"attachments"`
-		IsInternal  bool     `json:"is_internal"`
-	}
+	var req AddCommunicationRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		logrus.Errorf("Invalid add communication request: %v", err)
@@ -441,48 +435,42 @@ func (h *Handler) AddCommunication(c *gin.Context) {
 		return
 	}
 
-	// Get ticket code for broadcasting
-	ticketResp, err := h.service.GetTicketByID(c.Request.Context(), ticketID)
+	// Simple approach: Add communication directly (service method handles ticket verification)
+	commResp, err := h.service.AddCommunication(c.Request.Context(), ticketID, &req)
 	if err != nil {
-		logrus.Errorf("Ticket not found %s: %v", ticketID, err)
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "Ticket not found",
+		logrus.Errorf("Failed to add communication: %v", err)
+		// Check if error is ticket not found
+		if fmt.Sprintf("%v", err) == "ticket not found" || fmt.Sprintf("%v", err) == "ticket not found: ticket not found" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Ticket not found",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to add communication",
+			"details": fmt.Sprintf("%v", err),
 		})
 		return
 	}
-
-	// Insert into database using direct Supabase client
-	// Note: This is a temporary direct implementation until the service layer is updated
-	communication := map[string]interface{}{
-		"ticket_id":   ticketID,
-		"message":     req.Message,
-		"sender_type": req.SenderType,
-		"sender_name": req.SenderName,
-		"attachments": req.Attachments,
-		"is_internal": req.IsInternal,
-	}
-
-	// Execute insert - we'll get the response back
-	// This is a simplified version - in production, use proper service methods
-	logrus.Infof("Adding communication to ticket %s", ticketID)
 
 	duration := time.Since(start)
 	logrus.Infof("Added communication to ticket %s in %v", ticketID, duration)
 
 	// Broadcast via WebSocket
-	if h.broadcaster != nil && ticketResp.Ticket != nil {
+	if h.broadcaster != nil {
 		h.broadcaster.BroadcastCommentAdded(
 			c.Request.Context(),
 			ticketID,
-			ticketResp.Ticket.Code,
+			commResp.TicketCode,
 			req.SenderName,
 			req.Message,
 		)
+		logrus.Infof("Broadcasted communication to ticket %s", commResp.TicketCode)
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"communication": communication,
-		"message":       "Communication added successfully",
+		"communication": commResp.Communication,
+		"message":       commResp.Message,
 	})
 }
 
@@ -501,15 +489,19 @@ func (h *Handler) GetCommunications(c *gin.Context) {
 	// Check if user wants to include internal notes (admin only)
 	includeInternal := c.Query("include_internal") == "true"
 
-	// Query communications from database
-	// Note: This is a temporary direct query - should be moved to service layer
-	logrus.Infof("Retrieving communications for ticket %s (include_internal: %v)", ticketID, includeInternal)
-
-	// Placeholder response - in production, query the database properly
-	communications := []map[string]interface{}{}
+	// Query communications from service
+	communications, err := h.service.GetCommunications(c.Request.Context(), ticketID, includeInternal)
+	if err != nil {
+		logrus.Errorf("Failed to get communications for ticket %s: %v", ticketID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to retrieve communications",
+			"details": err.Error(),
+		})
+		return
+	}
 
 	duration := time.Since(start)
-	logrus.Infof("Retrieved communications for ticket %s in %v", ticketID, duration)
+	logrus.Infof("Retrieved %d communications for ticket %s in %v", len(communications), ticketID, duration)
 
 	c.JSON(http.StatusOK, gin.H{
 		"communications": communications,

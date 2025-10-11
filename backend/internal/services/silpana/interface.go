@@ -25,6 +25,10 @@ type ServiceInterface interface {
 	GetTicketProgress(ctx context.Context, ticketCode string) (*TicketProgressResponse, error)
 	InvalidateProgressCache(ctx context.Context, ticketCode string) error
 
+	// Communication Management (Phase 5)
+	AddCommunication(ctx context.Context, ticketID string, req *AddCommunicationRequest) (*CommunicationResponse, error)
+	GetCommunications(ctx context.Context, ticketID string, includeInternal bool) ([]*Communication, error)
+
 	// Utility Operations
 	GenerateTicketCode(ctx context.Context) (string, error)
 	ValidateTicketAccess(ctx context.Context, code, nik, phone string) (*SilpanaTicket, error)

@@ -166,6 +166,10 @@ func (s *Service) LookupTicket(ctx context.Context, req *TicketLookupRequest) (*
 				// Get ticket history
 				history, _ := s.GetTicketHistory(ctx, ticket.ID)
 
+				// Get public communications (exclude internal notes)
+				communications, _ := s.GetCommunications(ctx, ticket.ID, false)
+				ticket.Communications = communications
+
 				return &TicketResponse{
 					Ticket:  ticket,
 					History: history,
@@ -190,6 +194,10 @@ func (s *Service) LookupTicket(ctx context.Context, req *TicketLookupRequest) (*
 
 	// Get ticket history
 	history, _ := s.GetTicketHistory(ctx, ticket.ID)
+
+	// Get public communications (exclude internal notes)
+	communications, _ := s.GetCommunications(ctx, ticket.ID, false)
+	ticket.Communications = communications
 
 	s.monitoringService.IncrementCounter("silpana_lookup_cache_misses", map[string]string{})
 

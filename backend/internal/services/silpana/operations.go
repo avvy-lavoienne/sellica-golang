@@ -18,10 +18,10 @@ func (s *Service) GetTicketByID(ctx context.Context, ticketID string) (*TicketRe
 	}()
 
 	query := `
-		SELECT id, code, requester_name, requester_nik, requester_phone, 
-			   requester_email, requester_address, document_type, purpose, 
-			   status, priority, notes, metadata, created_at, updated_at, completed_at
-		FROM silpana_tickets 
+		SELECT id, ticket_code, nama_pengaduan, nik_pengaduan, no_hp_pengaduan, 
+			   email_pengaduan, alamat_pengaduan, jenis_pengaduan, deskripsi_pengaduan, 
+			   ticket_status, priority, tindak_lanjut_pengaduan, created_at, updated_at
+		FROM silpana 
 		WHERE id = $1`
 
 	results, err := s.dbService.Query(ctx, query, ticketID)
