@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { ChevronRight, Home } from "lucide-react";
+import { ChevronRightIcon, HomeIcon } from "@heroicons/react/24/outline";
 
 export interface BreadcrumbItem {
   /**
@@ -110,7 +110,7 @@ export function Breadcrumb({
     ];
   }, [items, maxItems]);
 
-  const defaultSeparator = <ChevronRight className="h-4 w-4" />;
+  const defaultSeparator = <ChevronRightIcon className="h-4 w-4" />;
   const separatorElement = separator || defaultSeparator;
 
   return (
@@ -128,7 +128,7 @@ export function Breadcrumb({
                 className="flex items-center text-gray-600 hover:text-primary-600 transition-colors dark:text-gray-400 dark:hover:text-primary-400"
                 aria-label="Home"
               >
-                <Home className="h-4 w-4" />
+                <HomeIcon className="h-4 w-4" />
               </Link>
             </li>
             {displayItems.length > 0 && (
