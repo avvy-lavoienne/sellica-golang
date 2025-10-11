@@ -546,3 +546,169 @@ func (h *Handler) GetCommunications(c *gin.Context) {
 		"count":          len(communications),
 	})
 }
+
+// BulkApproveTickets handles POST /api/v1/silpana/tickets/bulk-approve
+func (h *Handler) BulkApproveTickets(c *gin.Context) {
+	start := time.Now()
+
+	var req struct {
+		TicketIDs []string `json:"ticket_ids" binding:"required"`
+		ChangedBy string   `json:"changed_by" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		logrus.Errorf("Invalid bulk approve request: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid request format",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	if len(req.TicketIDs) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "No ticket IDs provided",
+		})
+		return
+	}
+
+	logrus.Infof("Bulk approving %d tickets by %s", len(req.TicketIDs), req.ChangedBy)
+
+	result, err := h.service.BulkApproveTickets(c.Request.Context(), req.TicketIDs, req.ChangedBy)
+	if err != nil {
+		logrus.Errorf("Failed to bulk approve tickets: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to approve tickets",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	duration := time.Since(start)
+	logrus.Infof("Bulk approve complete: %d succeeded, %d failed in %v", 
+		result.SuccessCount, result.FailedCount, duration)
+
+	statusCode := http.StatusOK
+	if result.FailedCount > 0 {
+		statusCode = http.StatusMultiStatus
+	}
+
+	c.JSON(statusCode, gin.H{
+		"message":       fmt.Sprintf("Berhasil menyetujui %d dari %d tiket", result.SuccessCount, len(req.TicketIDs)),
+		"success_count": result.SuccessCount,
+		"failed_count":  result.FailedCount,
+		"failed_ids":    result.FailedIDs,
+		"errors":        result.Errors,
+	})
+}
+
+// BulkRejectTickets handles POST /api/v1/silpana/tickets/bulk-reject
+func (h *Handler) BulkRejectTickets(c *gin.Context) {
+	start := time.Now()
+
+	var req struct {
+		TicketIDs []string `json:"ticket_ids" binding:"required"`
+		ChangedBy string   `json:"changed_by" binding:"required"`
+		Reason    string   `json:"reason"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		logrus.Errorf("Invalid bulk reject request: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid request format",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	if len(req.TicketIDs) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "No ticket IDs provided",
+		})
+		return
+	}
+
+	logrus.Infof("Bulk rejecting %d tickets by %s", len(req.TicketIDs), req.ChangedBy)
+
+	result, err := h.service.BulkRejectTickets(c.Request.Context(), req.TicketIDs, req.ChangedBy, req.Reason)
+	if err != nil {
+		logrus.Errorf("Failed to bulk reject tickets: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to reject tickets",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	duration := time.Since(start)
+	logrus.Infof("Bulk reject complete: %d succeeded, %d failed in %v", 
+		result.SuccessCount, result.FailedCount, duration)
+
+	statusCode := http.StatusOK
+	if result.FailedCount > 0 {
+		statusCode = http.StatusMultiStatus
+	}
+
+	c.JSON(statusCode, gin.H{
+		"message":       fmt.Sprintf("Berhasil menolak %d dari %d tiket", result.SuccessCount, len(req.TicketIDs)),
+		"success_count": result.SuccessCount,
+		"failed_count":  result.FailedCount,
+		"failed_ids":    result.FailedIDs,
+		"errors":        result.Errors,
+	})
+}
+
+// BulkDeleteTickets handles DELETE /api/v1/silpana/tickets/bulk-delete
+func (h *Handler) BulkDeleteTickets(c *gin.Context) {
+	start := time.Now()
+
+	var req struct {
+		TicketIDs []string `json:"ticket_ids" binding:"required"`
+		DeletedBy string   `json:"deleted_by" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		logrus.Errorf("Invalid bulk delete request: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid request format",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	if len(req.TicketIDs) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "No ticket IDs provided",
+		})
+		return
+	}
+
+	logrus.Infof("Bulk deleting %d tickets by %s", len(req.TicketIDs), req.DeletedBy)
+
+	result, err := h.service.BulkDeleteTickets(c.Request.Context(), req.TicketIDs, req.DeletedBy)
+	if err != nil {
+		logrus.Errorf("Failed to bulk delete tickets: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to delete tickets",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	duration := time.Since(start)
+	logrus.Infof("Bulk delete complete: %d succeeded, %d failed in %v", 
+		result.SuccessCount, result.FailedCount, duration)
+
+	statusCode := http.StatusOK
+	if result.FailedCount > 0 {
+		statusCode = http.StatusMultiStatus
+	}
+
+	c.JSON(statusCode, gin.H{
+		"message":       fmt.Sprintf("Berhasil menghapus %d dari %d tiket", result.SuccessCount, len(req.TicketIDs)),
+		"success_count": result.SuccessCount,
+		"failed_count":  result.FailedCount,
+		"failed_ids":    result.FailedIDs,
+		"errors":        result.Errors,
+	})
+}

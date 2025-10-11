@@ -266,7 +266,13 @@ func setupSilpanaRoutes(router *gin.Engine, silpanaService silpana.ServiceInterf
 	{
 		// Ticket management endpoints
 		api.POST("/tickets", silpanaHandler.CreateTicket)         // POST /api/v1/silpana/tickets - Create new ticket
+		api.GET("/tickets", silpanaHandler.GetAllTickets)         // GET /api/v1/silpana/tickets - Get all tickets with pagination
 		api.POST("/tickets/lookup", silpanaHandler.LookupTicket)  // POST /api/v1/silpana/tickets/lookup - Lookup ticket by code
+		
+		// Bulk operation endpoints (NEW - Phase 4 Week 3)
+		api.POST("/tickets/bulk-approve", silpanaHandler.BulkApproveTickets)   // POST /api/v1/silpana/tickets/bulk-approve - Approve multiple tickets
+		api.POST("/tickets/bulk-reject", silpanaHandler.BulkRejectTickets)     // POST /api/v1/silpana/tickets/bulk-reject - Reject multiple tickets
+		api.DELETE("/tickets/bulk-delete", silpanaHandler.BulkDeleteTickets)   // DELETE /api/v1/silpana/tickets/bulk-delete - Delete multiple tickets
 		
 		// Progress tracking endpoints (Phase 4) - Must come before wildcard routes
 		api.GET("/progress/:code", silpanaHandler.GetTicketProgress) // GET /api/v1/silpana/progress/:code - Get ticket progress by code

@@ -18,8 +18,14 @@ type ServiceInterface interface {
 
 	// Ticket Analytics
 	GetTicketStats(ctx context.Context) (*TicketStatsResponse, error)
+	GetAllTickets(ctx context.Context, page, pageSize int) (*PaginatedTicketsResponse, error)
 	GetTicketsByStatus(ctx context.Context, status TicketStatus, limit, offset int) ([]*SilpanaTicket, error)
 	GetTicketsByPriority(ctx context.Context, priority TicketPriority, limit, offset int) ([]*SilpanaTicket, error)
+
+	// Bulk Operations (Phase 4 - Week 3)
+	BulkApproveTickets(ctx context.Context, ticketIDs []string, changedBy string) (*BulkOperationResponse, error)
+	BulkRejectTickets(ctx context.Context, ticketIDs []string, changedBy string, reason string) (*BulkOperationResponse, error)
+	BulkDeleteTickets(ctx context.Context, ticketIDs []string, deletedBy string) (*BulkOperationResponse, error)
 
 	// Ticket Progress Tracking (Phase 4)
 	GetTicketProgress(ctx context.Context, ticketCode string) (*TicketProgressResponse, error)
