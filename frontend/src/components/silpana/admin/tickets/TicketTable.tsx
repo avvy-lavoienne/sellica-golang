@@ -34,6 +34,7 @@ import {
 import { SilpanaData } from "@/types/silpana/silpana";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
+import { TablePagination } from "./TablePagination";
 
 interface TicketTableProps {
   tickets: SilpanaData[];
@@ -45,6 +46,12 @@ interface TicketTableProps {
   onEditTicket: (ticketId: string) => void;
   onDeleteTicket: (ticketId: string) => void;
   onUpdateStatus: (ticketId: string, status: string) => void;
+  // Pagination props
+  currentPage?: number;
+  totalItems?: number;
+  pageSize?: number;
+  onPageChange?: (page: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
 }
 
 type SortField = "ticket_code" | "created_at" | "ticket_status" | "priority_level";
@@ -60,6 +67,12 @@ export function TicketTable({
   onEditTicket,
   onDeleteTicket,
   onUpdateStatus,
+  // Pagination props with defaults
+  currentPage = 1,
+  totalItems = 0,
+  pageSize = 20,
+  onPageChange = () => {},
+  onPageSizeChange = () => {},
 }: TicketTableProps) {
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
@@ -350,6 +363,18 @@ export function TicketTable({
           )})}
         </TableBody>
       </Table>
+
+      {/* Pagination Controls */}
+      {totalItems > 0 && (
+        <TablePagination
+          currentPage={currentPage}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={onPageChange}
+          onPageSizeChange={onPageSizeChange}
+          loading={loading}
+        />
+      )}
     </div>
   );
 }
