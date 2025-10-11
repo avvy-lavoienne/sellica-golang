@@ -1,6 +1,6 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { PlusIcon, ChartBarIcon } from '@heroicons/react/24/outline';
 
 interface SalahRekamActionsProps {
   onAjukan: () => void
@@ -10,54 +10,34 @@ interface SalahRekamActionsProps {
 
 export default function SalahRekamActions({ onAjukan, onRekapitulasi, activeMode }: SalahRekamActionsProps) {
   return (
-    <div className="flex flex-col sm:flex-row justify-center space-x-0 sm:space-x-4 space-y-3 sm:space-y-0 mb-6">
-      <motion.button
+    <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 mb-6">
+      {/* Ajukan Data Button - Primary theme when active */}
+      <button
+        type="button"
         onClick={onAjukan}
-        className={`px-6 py-3 rounded-lg flex items-center justify-center transition-colors duration-200 ${
+        className={`inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 focus:ring-4 focus:outline-none ${
           activeMode === "form"
-            ? "bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
-            : "bg-white text-indigo-600 border border-indigo-300 hover:bg-indigo-50 dark:bg-gray-700 dark:text-indigo-400 dark:border-indigo-700 dark:hover:bg-gray-600"
+            ? "text-white bg-primary-600 hover:bg-primary-700 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+            : "text-primary-700 bg-white border border-primary-300 hover:bg-primary-50 focus:ring-primary-200 dark:bg-gray-700 dark:text-primary-400 dark:border-primary-600 dark:hover:bg-gray-600 dark:focus:ring-primary-900"
         }`}
-        whileHover={{ scale: 1.03 }}
-        whileTap={{ scale: 0.97 }}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5 mr-2"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-        </svg>
+        <PlusIcon className="h-5 w-5 mr-2" aria-hidden="true" />
         Ajukan Data
-      </motion.button>
-      <motion.button
+      </button>
+
+      {/* Rekapitulasi Button - Green theme when active */}
+      <button
+        type="button"
         onClick={onRekapitulasi}
-        className={`px-6 py-3 rounded-lg flex items-center justify-center transition-colors duration-200 ${
+        className={`inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 focus:ring-4 focus:outline-none ${
           activeMode === "table"
-            ? "bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
-            : "bg-white text-emerald-600 border border-emerald-300 hover:bg-emerald-50 dark:bg-gray-700 dark:text-emerald-400 dark:border-emerald-700 dark:hover:bg-gray-600"
+            ? "text-white bg-green-600 hover:bg-green-700 focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+            : "text-green-700 bg-white border border-green-300 hover:bg-green-50 focus:ring-green-200 dark:bg-gray-700 dark:text-green-400 dark:border-green-600 dark:hover:bg-gray-600 dark:focus:ring-green-900"
         }`}
-        whileHover={{ scale: 1.03 }}
-        whileTap={{ scale: 0.97 }}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5 mr-2"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
+        <ChartBarIcon className="h-5 w-5 mr-2" aria-hidden="true" />
         Rekapitulasi
-      </motion.button>
+      </button>
     </div>
   )
 }
