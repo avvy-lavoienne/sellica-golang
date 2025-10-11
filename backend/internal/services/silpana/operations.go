@@ -355,3 +355,98 @@ func (s *Service) GetTicketsByPriority(ctx context.Context, priority TicketPrior
 
 	return tickets, nil
 }
+
+
+// PaginatedTicketsResponse represents paginated tickets with metadata
+type PaginatedTicketsResponse struct {
+	Tickets    []*SilpanaTicket `json:"tickets"`
+	TotalCount int              `json:"total_count"`
+	Page       int              `json:"page"`
+	PageSize   int              `json:"page_size"`
+	TotalPages int              `json:"total_pages"`
+}
+
+// GetAllTickets retrieves all tickets with pagination support
+func (s *Service) GetAllTickets(ctx context.Context, page, pageSize int) (*PaginatedTicketsResponse, error) {
+	start := time.Now()
+	defer func() {
+		s.monitoringService.RecordDuration("silpana_get_all_tickets_duration", time.Since(start), map[string]string{
+			"operation": "get_all_tickets",
+		})
+	}()
+
+	// Validate pagination parameters
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 || pageSize > 100 {
+		pageSize = 20 // Default page size
+	}
+
+	// Calculate offset
+	offset := (page - 1) * pageSize
+
+	// Get total count (for calculating total pages)
+	countQuery := `SELECT COUNT(*) as count FROM silpana`
+	countResults, err := s.dbService.Query(ctx, countQuery)
+	if err != nil {
+		s.monitoringService.IncrementCounter("silpana_get_all_tickets_errors", map[string]string{"error": "count_query"})
+		return nil, fmt.Errorf("failed to count tickets: %w", err)
+	}
+
+	totalCount := 0
+	if len(countResults) > 0 {
+		if count, ok := countResults[0]["count"].(int64); ok {
+			totalCount = int(count)
+		}
+	}
+
+	// Get paginated tickets
+	query := `SELECT id, ticket_code, nama_pengaduan, nik_pengaduan, no_hp_pengaduan, 
+		email_pengaduan, alamat_pengaduan, jenis_pengaduan, deskripsi_pengaduan, 
+		ticket_status, priority_level, tindak_lanjut_pengaduan, created_at, updated_at 
+		FROM silpana 
+		ORDER BY created_at DESC 
+		LIMIT $1 OFFSET $2`
+
+	results, err := s.dbService.Query(ctx, query, pageSize, offset)
+	if err != nil {
+		s.monitoringService.IncrementCounter("silpana_get_all_tickets_errors", map[string]string{"error": "data_query"})
+		return nil, fmt.Errorf("failed to get tickets: %w", err)
+	}
+
+	tickets := make([]*SilpanaTicket, len(results))
+	for i, result := range results {
+		ticket := &SilpanaTicket{
+			ID:               getString(result, "id"),
+			Code:             getString(result, "ticket_code"),
+			RequesterName:    getString(result, "nama_pengaduan"),
+			RequesterNIK:     getString(result, "nik_pengaduan"),
+			RequesterPhone:   getString(result, "no_hp_pengaduan"),
+			RequesterEmail:   getString(result, "email_pengaduan"),
+			RequesterAddress: getString(result, "alamat_pengaduan"),
+			DocumentType:     getString(result, "jenis_pengaduan"),
+			Purpose:          getString(result, "deskripsi_pengaduan"),
+			Status:           TicketStatus(getString(result, "ticket_status")),
+			Priority:         TicketPriority(getString(result, "priority_level")),
+			Notes:            getString(result, "tindak_lanjut_pengaduan"),
+			CreatedAt:        getTime(result, "created_at"),
+			UpdatedAt:        getTime(result, "updated_at"),
+		}
+		tickets[i] = ticket
+	}
+
+	// Calculate total pages
+	totalPages := (totalCount + pageSize - 1) / pageSize
+	if totalPages == 0 {
+		totalPages = 1
+	}
+
+	return &PaginatedTicketsResponse{
+		Tickets:    tickets,
+		TotalCount: totalCount,
+		Page:       page,
+		PageSize:   pageSize,
+		TotalPages: totalPages,
+	}, nil
+}

@@ -263,6 +263,44 @@ func (h *Handler) GetTicketStats(c *gin.Context) {
 	c.JSON(http.StatusOK, stats)
 }
 
+// GetAllTickets handles GET /api/v1/silpana/tickets with pagination
+func (h *Handler) GetAllTickets(c *gin.Context) {
+	start := time.Now()
+
+	// Parse pagination parameters
+	page := 1        // default
+	pageSize := 20   // default
+
+	if pageStr := c.Query("page"); pageStr != "" {
+		if parsedPage, err := strconv.Atoi(pageStr); err == nil && parsedPage > 0 {
+			page = parsedPage
+		}
+	}
+
+	if pageSizeStr := c.Query("page_size"); pageSizeStr != "" {
+		if parsedPageSize, err := strconv.Atoi(pageSizeStr); err == nil && parsedPageSize > 0 {
+			pageSize = parsedPageSize
+		}
+	}
+
+	// Get paginated tickets
+	response, err := h.service.GetAllTickets(c.Request.Context(), page, pageSize)
+	if err != nil {
+		logrus.Errorf("Failed to get all tickets: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to get tickets",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	duration := time.Since(start)
+	logrus.Infof("Retrieved %d tickets (page %d/%d) in %v", 
+		len(response.Tickets), response.Page, response.TotalPages, duration)
+
+	c.JSON(http.StatusOK, response)
+}
+
 // GetTicketsByStatus handles GET /api/v1/silpana/tickets/status/:status
 func (h *Handler) GetTicketsByStatus(c *gin.Context) {
 	start := time.Now()
