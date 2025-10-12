@@ -39,6 +39,30 @@ export default function SalahRekamForm({
   const [activeSection, setActiveSection] = useState<string>("salahRekam")
   const [errors, setErrors] = useState<Partial<Record<keyof SalahRekamFormValues, string>>>({})
 
+  // Keyboard navigation for tabs
+  const handleTabKeyDown = (e: React.KeyboardEvent, currentIndex: number) => {
+    const sectionIds = ["salahRekam", "biometric", "foto", "petugas", "tanggal"]
+    let newIndex = currentIndex
+
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      e.preventDefault()
+      newIndex = currentIndex < sectionIds.length - 1 ? currentIndex + 1 : 0
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      e.preventDefault()
+      newIndex = currentIndex > 0 ? currentIndex - 1 : sectionIds.length - 1
+    } else if (e.key === "Home") {
+      e.preventDefault()
+      newIndex = 0
+    } else if (e.key === "End") {
+      e.preventDefault()
+      newIndex = sectionIds.length - 1
+    }
+
+    if (newIndex !== currentIndex) {
+      setActiveSection(sectionIds[newIndex])
+    }
+  }
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     if (
@@ -99,16 +123,34 @@ export default function SalahRekamForm({
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+      {/* Screen Reader Announcements */}
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
+        {Object.keys(errors).length > 0 && (
+          <span>
+            Terdapat {Object.keys(errors).length} kesalahan pada form. Harap periksa kembali.
+          </span>
+        )}
+      </div>
+
+      {/* Skip Navigation Link */}
+      <a
+        href="#form-submit"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg focus:shadow-lg"
+      >
+        Langsung ke tombol submit
+      </a>
+
       {/* Flowbite Tabs Navigation */}
       <div className="border-b border-gray-200 dark:border-gray-700">
-        <ul className="flex flex-wrap -mb-px text-sm font-medium text-center" role="tablist">
-          {sections.map((section) => {
+        <ul className="flex flex-wrap -mb-px text-sm font-medium text-center" role="tablist" aria-label="Seksi formulir">
+          {sections.map((section, index) => {
             const IconComponent = section.icon
             return (
               <li key={section.id} className="mr-2" role="presentation">
                 <button
                   onClick={() => setActiveSection(section.id)}
-                  className={`inline-flex items-center justify-center p-4 border-b-2 rounded-t-lg group ${
+                  onKeyDown={(e) => handleTabKeyDown(e, index)}
+                  className={`inline-flex items-center justify-center p-4 border-b-2 rounded-t-lg group transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 ${
                     activeSection === section.id
                       ? "text-primary-600 border-primary-600 dark:text-primary-500 dark:border-primary-500 active"
                       : "border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300"
@@ -117,8 +159,9 @@ export default function SalahRekamForm({
                   role="tab"
                   aria-selected={activeSection === section.id}
                   aria-controls={`${section.id}-content`}
+                  tabIndex={activeSection === section.id ? 0 : -1}
                 >
-                  <IconComponent className="w-5 h-5 mr-2" />
+                  <IconComponent className="w-5 h-5 mr-2" aria-hidden="true" />
                   {section.title}
                 </button>
               </li>
@@ -360,11 +403,12 @@ export default function SalahRekamForm({
             )}
 
           {/* Form Actions */}
-          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <div id="form-submit" className="flex justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-700">
             <button
               type="button"
               onClick={onCancel}
               className="px-6 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800 transition-transform hover:scale-102 active:scale-98"
+              aria-label="Batalkan formulir"
             >
               Batal
             </button>
@@ -376,6 +420,8 @@ export default function SalahRekamForm({
                   ? "bg-primary-400 cursor-not-allowed"
                   : "bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-gray-800 hover:scale-102 active:scale-98"
               }`}
+              aria-label={isEditing ? "Perbarui data salah rekam" : "Ajukan data salah rekam"}
+              aria-busy={loading}
             >
               {loading ? (
                 <div className="flex items-center">
@@ -384,6 +430,7 @@ export default function SalahRekamForm({
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <circle
                       className="opacity-25"
@@ -399,7 +446,8 @@ export default function SalahRekamForm({
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Menyimpan...
+                  <span>Menyimpan...</span>
+```
                 </div>
               ) : isEditing ? (
                 "Perbarui Data"
