@@ -9,7 +9,6 @@ import React, {
 } from "react";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/conn/utils";
 import type { SalahRekamData } from "@/types/data-rekam/salah-rekam";
 import TableSkeleton from "@/components/dashboard/data-rekam/salah-rekam/TableSkeleton";
@@ -19,34 +18,34 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { id as idLocale } from "date-fns/locale";
 import { useDebounce } from "@/hooks/use-debounce";
 import {
-  Search,
-  RefreshCw,
-  ChevronDown,
-  ChevronUp,
-  Edit3,
-  Trash2,
-  Eye,
-  EyeOff,
-  Calendar,
-  Filter,
-  Download,
-  MoreHorizontal,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
-  Save,
-  X,
-  ChevronLeft,
-  ChevronRight,
-  Users,
-  User,
-  FileText,
-  TrendingUp,
-  BarChart3,
-  Camera,
-  Fingerprint,
-  UserX,
-} from "lucide-react";
+  MagnifyingGlassIcon,
+  ArrowPathIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  PencilIcon,
+  TrashIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  CalendarIcon,
+  FunnelIcon,
+  ArrowDownTrayIcon,
+  EllipsisHorizontalIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  ExclamationCircleIcon,
+  CheckIcon,
+  XMarkIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  UsersIcon,
+  UserIcon,
+  DocumentTextIcon,
+  ArrowTrendingUpIcon,
+  ChartBarIcon,
+  CameraIcon,
+  FingerPrintIcon,
+  UserMinusIcon,
+} from "@heroicons/react/24/outline";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -88,7 +87,7 @@ interface SalahRekamTableProps {
   currentPage: number;
   /** Page change handler */
   onPageChange: (page: number) => void;
-  /** Search handler */
+  /** MagnifyingGlassIcon handler */
   onSearch: (query: string, statusFilter?: string) => void;
   /** Refresh handler (full refresh with reset) */
   onRefresh: () => void;
@@ -98,7 +97,7 @@ interface SalahRekamTableProps {
   onEdit: (data: SalahRekamData) => void;
   /** Delete handler */
   onDelete: (id: string) => void;
-  /** User role for permissions */
+  /** UserIcon role for permissions */
   userRole: string;
   /** Loading state */
   loading: boolean;
@@ -424,7 +423,7 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
 
   return (
     <TooltipProvider>
-      <motion.div
+      <div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -432,14 +431,14 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
         {...accessibilityProps}
       >
         {/* Enhanced Filters Section */}
-        <motion.div variants={itemVariants} className="space-y-4">
+        <div variants={itemVariants} className="space-y-4">
           <Card className="border-border/50 bg-background/80 shadow-lg backdrop-blur-sm">
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <Filter className="h-5 w-5 text-primary" />
+                  <FunnelIcon className="h-5 w-5 text-primary" />
                   <CardTitle className="text-lg font-semibold">
-                    Filter & Pencarian
+                    FunnelIcon & Pencarian
                   </CardTitle>
                 </div>
                 <Badge variant="secondary" className="text-xs">
@@ -448,9 +447,9 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Search Input */}
+              {/* MagnifyingGlassIcon Input */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   type="text"
                   value={searchQuery}
@@ -469,12 +468,12 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                     aria-label="Hapus pencarian"
                     disabled={loading}
                   >
-                    <X className="h-3 w-3" />
+                    <XMarkIcon className="h-3 w-3" />
                   </Button>
                 )}
               </div>
 
-              {/* Date Filters and Status Filter */}
+              {/* Date Filters and Status FunnelIcon */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <LocalizationProvider
                   dateAdapter={AdapterDateFns}
@@ -557,7 +556,7 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                 </LocalizationProvider>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Status Filter</Label>
+                  <Label className="text-sm font-medium">Status FunnelIcon</Label>
                   <FormControl size="small" className="w-full">
                     <Select
                       value={statusFilter}
@@ -591,9 +590,9 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                     size="sm"
                   >
                     {loading ? (
-                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      <ArrowPathIcon className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
-                      <RefreshCw className="mr-2 h-4 w-4" />
+                      <ArrowPathIcon className="mr-2 h-4 w-4" />
                     )}
                     Refresh
                   </Button>
@@ -601,15 +600,15 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
         {/* Enhanced Table Section */}
-        <motion.div variants={itemVariants} className="space-y-4">
+        <div variants={itemVariants} className="space-y-4">
           <Card className="border-border/50 bg-background/80 shadow-lg backdrop-blur-sm">
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <BarChart3 className="h-5 w-5 text-primary" />
+                  <ChartBarIcon className="h-5 w-5 text-primary" />
                   <CardTitle className="text-lg font-semibold">
                     Data Salah Rekam
                   </CardTitle>
@@ -677,7 +676,7 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                     <tbody className="divide-y divide-border bg-background">
                       <AnimatePresence mode="wait">
                         {rekapData.length === 0 ? (
-                          <motion.tr
+                          <tr
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
@@ -687,7 +686,7 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                               className="px-4 py-12 text-center text-muted-foreground"
                             >
                               <div className="flex flex-col items-center space-y-3">
-                                <FileText className="h-12 w-12 text-muted-foreground/50" />
+                                <DocumentTextIcon className="h-12 w-12 text-muted-foreground/50" />
                                 <p className="text-sm font-medium">
                                   Tidak ada data yang ditemukan
                                 </p>
@@ -696,7 +695,7 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                                 </p>
                               </div>
                             </td>
-                          </motion.tr>
+                          </tr>
                         ) : (
                           rekapData.map((item, index) => {
                             const rowNumber = (currentPage - 1) * 5 + index + 1;
@@ -704,7 +703,7 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
 
                             return (
                               <React.Fragment key={item.id}>
-                                <motion.tr
+                                <tr
                                   variants={rowVariants}
                                   initial="hidden"
                                   animate="visible"
@@ -720,14 +719,14 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                                   </td>
                                   <td className="whitespace-nowrap px-4 py-4 text-sm text-foreground">
                                     <div className="flex items-center space-x-2">
-                                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                                      <CalendarIcon className="h-4 w-4 text-muted-foreground" />
                                       <span>{formatDate(item.created_at)}</span>
                                     </div>
                                   </td>
                                   <td className="px-4 py-4 text-sm text-foreground">
                                     <div className="space-y-1">
                                       <div className="flex items-center space-x-2">
-                                        <UserX className="h-4 w-4 text-muted-foreground" />
+                                        <UserMinusIcon className="h-4 w-4 text-muted-foreground" />
                                         <span className="font-medium">
                                           {item.nama_salah_rekam || "-"}
                                         </span>
@@ -740,7 +739,7 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                                   <td className="px-4 py-4 text-sm text-foreground">
                                     <div className="space-y-1">
                                       <div className="flex items-center space-x-2">
-                                        <Fingerprint className="h-4 w-4 text-muted-foreground" />
+                                        <FingerPrintIcon className="h-4 w-4 text-muted-foreground" />
                                         <span className="font-medium">
                                           {item.nama_pemilik_biometric || "-"}
                                         </span>
@@ -753,7 +752,7 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                                   <td className="px-4 py-4 text-sm text-foreground">
                                     <div className="space-y-1">
                                       <div className="flex items-center space-x-2">
-                                        <Camera className="h-4 w-4 text-muted-foreground" />
+                                        <CameraIcon className="h-4 w-4 text-muted-foreground" />
                                         <span className="font-medium">
                                           {item.nama_pemilik_foto || "-"}
                                         </span>
@@ -778,9 +777,9 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                                       )}
                                     >
                                       {item.is_ready_to_record ? (
-                                        <CheckCircle2 className="h-3 w-3" />
+                                        <CheckCircleIcon className="h-3 w-3" />
                                       ) : (
-                                        <Clock className="h-3 w-3" />
+                                        <ClockIcon className="h-3 w-3" />
                                       )}
                                       <span>
                                         {item.is_ready_to_record
@@ -809,9 +808,9 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                                             }
                                           >
                                             {isExpanded ? (
-                                              <ChevronUp className="h-4 w-4" />
+                                              <ChevronUpIcon className="h-4 w-4" />
                                             ) : (
-                                              <ChevronDown className="h-4 w-4" />
+                                              <ChevronDownIcon className="h-4 w-4" />
                                             )}
                                           </Button>
                                         </TooltipTrigger>
@@ -832,7 +831,7 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                                             className="h-8 w-8 p-0 text-blue-600 transition-all duration-200 hover:bg-blue-50 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-300"
                                             aria-label="Edit data"
                                           >
-                                            <Edit3 className="h-4 w-4" />
+                                            <PencilIcon className="h-4 w-4" />
                                           </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>
@@ -852,7 +851,7 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                                             className="h-8 w-8 p-0 text-red-600 transition-all duration-200 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300"
                                             aria-label="Hapus data"
                                           >
-                                            <Trash2 className="h-4 w-4" />
+                                            <TrashIcon className="h-4 w-4" />
                                           </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>
@@ -861,12 +860,12 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                                       </Tooltip>
                                     </div>
                                   </td>
-                                </motion.tr>
+                                </tr>
 
                                 {/* Enhanced Expanded Row */}
                                 <AnimatePresence>
                                   {isExpanded && (
-                                    <motion.tr
+                                    <tr
                                       initial={{ opacity: 0, height: 0 }}
                                       animate={{ opacity: 1, height: "auto" }}
                                       exit={{ opacity: 0, height: 0 }}
@@ -882,7 +881,7 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                                           {/* Data Salah Rekam */}
                                           <div className="space-y-3">
                                             <div className="flex items-center space-x-2">
-                                              <UserX className="h-4 w-4 text-primary" />
+                                              <UserMinusIcon className="h-4 w-4 text-primary" />
                                               <h4 className="text-sm font-semibold text-foreground">
                                                 Data Salah Rekam
                                               </h4>
@@ -910,7 +909,7 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                                           {/* Data Pemilik Biometric */}
                                           <div className="space-y-3">
                                             <div className="flex items-center space-x-2">
-                                              <Fingerprint className="h-4 w-4 text-primary" />
+                                              <FingerPrintIcon className="h-4 w-4 text-primary" />
                                               <h4 className="text-sm font-semibold text-foreground">
                                                 Data Pemilik Biometric
                                               </h4>
@@ -940,7 +939,7 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                                           {/* Data Pemilik Foto */}
                                           <div className="space-y-3">
                                             <div className="flex items-center space-x-2">
-                                              <Camera className="h-4 w-4 text-primary" />
+                                              <CameraIcon className="h-4 w-4 text-primary" />
                                               <h4 className="text-sm font-semibold text-foreground">
                                                 Data Pemilik Foto
                                               </h4>
@@ -972,7 +971,7 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                                           {/* Detail Petugas */}
                                           <div className="space-y-3">
                                             <div className="flex items-center space-x-2">
-                                              <Users className="h-4 w-4 text-primary" />
+                                              <UsersIcon className="h-4 w-4 text-primary" />
                                               <h4 className="text-sm font-semibold text-foreground">
                                                 Detail Petugas
                                               </h4>
@@ -1018,7 +1017,7 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                                           {/* Detail Tanggal */}
                                           <div className="space-y-3">
                                             <div className="flex items-center space-x-2">
-                                              <FileText className="h-4 w-4 text-primary" />
+                                              <DocumentTextIcon className="h-4 w-4 text-primary" />
                                               <h4 className="text-sm font-semibold text-foreground">
                                                 Detail Tanggal
                                               </h4>
@@ -1074,9 +1073,9 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                                                       aria-label="Simpan tanggal"
                                                     >
                                                       {saving[item.id] ? (
-                                                        <RefreshCw className="h-3 w-3 animate-spin" />
+                                                        <ArrowPathIcon className="h-3 w-3 animate-spin" />
                                                       ) : (
-                                                        <Save className="h-3 w-3" />
+                                                        <CheckIcon className="h-3 w-3" />
                                                       )}
                                                     </Button>
                                                   </div>
@@ -1142,7 +1141,7 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                                           </div>
                                         )}
                                       </td>
-                                    </motion.tr>
+                                    </tr>
                                   )}
                                 </AnimatePresence>
                               </React.Fragment>
@@ -1156,11 +1155,11 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
         {/* Enhanced Pagination */}
         {Math.ceil(totalCount / 5) > 0 && (
-          <motion.div variants={itemVariants} className="flex justify-center">
+          <div variants={itemVariants} className="flex justify-center">
             <Card className="border-border/50 bg-background/80 shadow-lg backdrop-blur-sm">
               <CardContent className="p-4">
                 <nav
@@ -1175,7 +1174,7 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                     className="transition-all duration-200"
                     aria-label="Previous page"
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeftIcon className="h-4 w-4" />
                   </Button>
 
                   {Array.from(
@@ -1243,14 +1242,14 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                     className="transition-all duration-200"
                     aria-label="Next page"
                   >
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRightIcon className="h-4 w-4" />
                   </Button>
                 </nav>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         )}
-      </motion.div>
+      </div>
     </TooltipProvider>
   );
 };
