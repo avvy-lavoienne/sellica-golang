@@ -1,43 +1,115 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { cn } from "@/lib/conn/utils";
 import type { SalahRekamData } from "@/types/data-rekam/salah-rekam";
 import TableSkeleton from "@/components/dashboard/data-rekam/salah-rekam/TableSkeleton";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { id as idLocale } from "date-fns/locale";
 import { useDebounce } from "@/hooks/use-debounce";
 import {
-  MagnifyingGlassIcon,
-  ArrowPathIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  PencilIcon,
-  TrashIcon,
-  CalendarIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  XMarkIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  DocumentTextIcon,
-  CameraIcon,
-  FingerPrintIcon,
-  UserMinusIcon,
-} from "@heroicons/react/24/outline";
+  Search,
+  RefreshCw,
+  ChevronDown,
+  ChevronUp,
+  Edit3,
+  Trash2,
+  Eye,
+  EyeOff,
+  Calendar,
+  Filter,
+  Download,
+  MoreHorizontal,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  Save,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Users,
+  User,
+  FileText,
+  TrendingUp,
+  BarChart3,
+  Camera,
+  Fingerprint,
+  UserX,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select as UISelect,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import InputLabel from "@mui/material/InputLabel";
+import FormControl from "@mui/material/FormControl";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 
+// Enhanced interface with enterprise-grade features
 interface SalahRekamTableProps {
+  /** Table data array */
   rekapData: SalahRekamData[];
+  /** Total count of records */
   totalCount: number;
+  /** Current page number */
   currentPage: number;
+  /** Page change handler */
   onPageChange: (page: number) => void;
+  /** Search handler */
   onSearch: (query: string, statusFilter?: string) => void;
+  /** Refresh handler (full refresh with reset) */
   onRefresh: () => void;
+  /** Data refresh handler (preserves pagination/filters) */
   onDataRefresh?: () => void;
+  /** Edit handler */
   onEdit: (data: SalahRekamData) => void;
+  /** Delete handler */
   onDelete: (id: string) => void;
+  /** User role for permissions */
   userRole: string;
+  /** Loading state */
   loading: boolean;
+  /** Custom className for styling */
   className?: string;
+  /** Animation delay for staggered animations */
+  delay?: number;
+  /** Disable animations for accessibility */
+  disableAnimations?: boolean;
+  /** Custom aria-label for accessibility */
+  "aria-label"?: string;
 }
 
 const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
@@ -52,80 +124,134 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
   onDelete,
   userRole,
   loading,
-  className = "",
+  className,
+  delay = 0,
+  disableAnimations = false,
+  "aria-label": ariaLabel,
 }) => {
-  // State management
+  // Enhanced state management
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [editedDates, setEditedDates] = useState<{ [key: string]: string }>({});
   const [saving, setSaving] = useState<{ [key: string]: boolean }>({});
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: "asc" | "desc";
+  } | null>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
 
-  // Debounced values
-  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  // Theme and accessibility
+  const prefersReducedMotion = useReducedMotion();
+  const shouldAnimate = !disableAnimations && !prefersReducedMotion;
+
+  // Enhanced color system consistent with other components
+  const colorSchemes = useMemo(
+    () => ({
+      primary: {
+        bg: "bg-primary/5",
+        text: "text-primary",
+        accent: "text-primary",
+        bgClass: "bg-primary/5",
+        borderClass: "border-primary/20",
+        glowClass: "shadow-primary/20",
+      },
+      indigo: {
+        bg: "bg-indigo-50 dark:bg-indigo-900/20",
+        text: "text-indigo-700 dark:text-indigo-300",
+        accent: "text-indigo-600 dark:text-indigo-400",
+        bgClass: "bg-indigo-50 dark:bg-indigo-900/20",
+        borderClass: "border-indigo-200 dark:border-indigo-800",
+        glowClass: "shadow-indigo-500/20",
+      },
+    }),
+    [],
+  );
+
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const debouncedStartDate = useDebounce(startDate, 300);
   const debouncedEndDate = useDebounce(endDate, 300);
 
-  // Permission check
-  const canEdit = ["admin", "superuser"].includes(userRole);
-
-  // Search effect
   useEffect(() => {
-    if (searchQuery === "" && !startDate && !endDate) {
+    if (searchQuery === "" && (!startDate || !endDate)) {
       onSearch("", statusFilter);
       return;
     }
-    onSearch(debouncedSearchQuery, statusFilter);
-  }, [debouncedSearchQuery, statusFilter]);
 
-  // Date filter effect
-  useEffect(() => {
+    const timeout = setTimeout(() => {
+      onSearch(debouncedSearchQuery, statusFilter);
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [
+    debouncedSearchQuery,
+    statusFilter,
+    onSearch,
+    endDate,
+    searchQuery,
+    startDate,
+  ]);
+
+  const handleDateFilter = useCallback(() => {
     if (debouncedStartDate && debouncedEndDate) {
       try {
-        const formattedStart = new Date(debouncedStartDate);
-        formattedStart.setUTCHours(0, 0, 0, 0);
+        if (
+          !(
+            debouncedStartDate instanceof Date &&
+            !isNaN(debouncedStartDate.getTime())
+          ) ||
+          !(
+            debouncedEndDate instanceof Date &&
+            !isNaN(debouncedEndDate.getTime())
+          )
+        ) {
+          return;
+        }
 
-        const formattedEnd = new Date(debouncedEndDate);
-        formattedEnd.setUTCHours(23, 59, 59, 999);
+        const formattedStartDate = new Date(debouncedStartDate);
+        formattedStartDate.setUTCHours(0, 0, 0, 0);
 
-        const query = `created_at >= '${formattedStart.toISOString()}' AND created_at <= '${formattedEnd.toISOString()}'`;
-        onSearch(query, statusFilter);
+        const formattedEndDate = new Date(debouncedEndDate);
+        formattedEndDate.setUTCHours(23, 59, 59, 999);
+
+        const startYear = formattedStartDate.getUTCFullYear();
+        const endYear = formattedEndDate.getUTCFullYear();
+
+        if (
+          startYear < 1000 ||
+          startYear > 9999 ||
+          endYear < 1000 ||
+          endYear > 9999
+        ) {
+          return;
+        }
+
+        const startISO = formattedStartDate.toISOString();
+        const endISO = formattedEndDate.toISOString();
+
+        onSearch(
+          `created_at >= '${startISO}' AND created_at <= '${endISO}'`,
+          statusFilter,
+        );
       } catch (error) {
         onSearch("", statusFilter);
       }
-    } else if (!startDate && !endDate) {
-      onSearch(searchQuery, statusFilter);
+    } else {
+      onSearch("", statusFilter);
     }
-  }, [debouncedStartDate, debouncedEndDate]);
+  }, [debouncedStartDate, debouncedEndDate, statusFilter, onSearch]);
 
-  // Format date helper
-  const formatDate = useCallback((dateString: string): string => {
-    try {
-      const date = new Date(dateString);
-      return new Intl.DateTimeFormat("id-ID", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      }).format(date);
-    } catch {
-      return "-";
-    }
-  }, []);
+  useEffect(() => {
+    handleDateFilter();
+  }, [debouncedStartDate, debouncedEndDate, handleDateFilter]);
 
-  // Clear filters
-  const handleClearFilters = () => {
-    setSearchQuery("");
-    setStartDate("");
-    setEndDate("");
-    setStatusFilter("all");
-    onSearch("", "all");
-  };
+  const rowsPerPage = 5;
+  const totalPages = Math.ceil(totalCount / rowsPerPage);
 
-  // Status toggle
-  const handleToggleStatus = async (id: string, currentStatus: boolean) => {
-    if (!canEdit) {
+  const handleToggleChange = async (id: string, currentStatus: boolean) => {
+    if (!["admin", "superuser"].includes(userRole)) {
       toast.error("Hanya admin atau superuser yang dapat mengubah status.");
       return;
     }
@@ -137,18 +263,29 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
         .update({ is_ready_to_record: newStatus })
         .eq("id", id);
 
-      if (error) throw new Error(error.message);
+      if (error) {
+        throw new Error(`Gagal mengubah status: ${error.message}`);
+      }
 
       toast.success("Status berhasil diubah!");
-      onDataRefresh?.() || onRefresh();
+      // Use onDataRefresh to preserve pagination/filters, fallback to onRefresh
+      if (onDataRefresh) {
+        onDataRefresh();
+      } else {
+        onRefresh();
+      }
     } catch (error: any) {
-      toast.error(`Gagal mengubah status: ${error.message}`);
+      console.error("Error updating status:", error);
+      toast.error(error.message || "Gagal mengubah status. Silakan coba lagi.");
     }
   };
 
-  // Save date
+  const handleDateChange = (id: string, value: string) => {
+    setEditedDates((prev) => ({ ...prev, [id]: value }));
+  };
+
   const handleSaveDate = async (id: string) => {
-    if (!canEdit) {
+    if (!["admin", "superuser"].includes(userRole)) {
       toast.error("Hanya admin atau superuser yang dapat mengubah tanggal.");
       return;
     }
@@ -159,7 +296,7 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
       return;
     }
 
-    setSaving({ ...saving, [id]: true });
+    setSaving((prev) => ({ ...prev, [id]: true }));
 
     try {
       const { error } = await supabase
@@ -167,409 +304,954 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
         .update({ estimasi_tanggal_perekaman: newDate })
         .eq("id", id);
 
-      if (error) throw new Error(error.message);
+      if (error) throw new Error(`Gagal menyimpan tanggal: ${error.message}`);
 
-      toast.success("Tanggal berhasil diubah!");
-      onDataRefresh?.() || onRefresh();
-      setEditedDates({ ...editedDates, [id]: "" });
+      toast.success("Tanggal berhasil disimpan!");
+      // Use onDataRefresh to preserve pagination/filters, fallback to onRefresh
+      if (onDataRefresh) {
+        onDataRefresh();
+      } else {
+        onRefresh();
+      }
+      setEditedDates((prev) => {
+        const newDates = { ...prev };
+        delete newDates[id];
+        return newDates;
+      });
     } catch (error: any) {
-      toast.error(`Gagal menyimpan tanggal: ${error.message}`);
+      console.error("Error saving date:", error);
+      toast.error(
+        error.message || "Gagal menyimpan tanggal. Silakan coba lagi.",
+      );
     } finally {
-      setSaving({ ...saving, [id]: false });
+      setSaving((prev) => ({ ...prev, [id]: false }));
     }
   };
 
-  // Pagination
-  const rowsPerPage = 5;
-  const totalPages = Math.ceil(totalCount / rowsPerPage);
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return "-";
+    const date = new Date(dateStr);
+    return date.toString() !== "Invalid Date"
+      ? date.toLocaleDateString("id-ID", {
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        })
+      : "Tanggal tidak valid";
+  };
+
+  const handleEdit = (data: SalahRekamData) => {
+    if (userRole !== "admin") {
+      toast.error("Hanya admin yang dapat mengedit data.");
+      return;
+    }
+    onEdit(data);
+  };
+
+  const handleDelete = (id: string) => {
+    if (userRole !== "admin") {
+      toast.error("Hanya admin yang dapat menghapus data.");
+      return;
+    }
+    onDelete(id);
+  };
+
+  // Animation variants for enterprise-grade micro-interactions
+  const containerVariants = {
+    hidden: {
+      opacity: 0,
+      y: 16,
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: shouldAnimate ? 0.4 : 0,
+        ease: "easeOut" as const,
+        delay: delay,
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: {
+      opacity: 0,
+      y: 8,
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: shouldAnimate ? 0.3 : 0,
+        ease: "easeOut" as const,
+      },
+    },
+  };
+
+  const rowVariants = {
+    hidden: {
+      opacity: 0,
+      x: -20,
+    },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: shouldAnimate ? 0.3 : 0,
+        ease: "easeOut" as const,
+      },
+    },
+    hover: {
+      scale: 1.01,
+      transition: {
+        duration: 0.2,
+        ease: "easeInOut" as const,
+      },
+    },
+  };
+
+  // Accessibility attributes
+  const accessibilityProps = {
+    role: "table",
+    "aria-label": ariaLabel || "Tabel data salah rekam",
+    "aria-describedby": "table-description",
+  };
 
   if (loading) {
     return <TableSkeleton />;
   }
 
   return (
-    <div className={`space-y-4 ${className}`}>
-      {/* Filters Card */}
-      <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-        <div className="p-4">
-          <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-            Filter & Pencarian
-          </h3>
-
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {/* Search Input */}
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
-                Pencarian
-              </label>
-              <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+    <TooltipProvider>
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className={cn("space-y-6", className)}
+        {...accessibilityProps}
+      >
+        {/* Enhanced Filters Section */}
+        <motion.div variants={itemVariants} className="space-y-4">
+          <Card className="border-border/50 bg-background/80 shadow-lg backdrop-blur-sm">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Filter className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-lg font-semibold">
+                    Filter & Pencarian
+                  </CardTitle>
                 </div>
-                <input
+                <Badge variant="secondary" className="text-xs">
+                  {totalCount} total records
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Search Input */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 pl-10 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
-                  placeholder="Cari nama atau NIK..."
+                  placeholder="Cari data (NIK, Nama, dll.)..."
+                  className="pl-10 transition-all duration-200"
+                  aria-label="Cari data di tabel"
+                  disabled={loading}
                 />
                 {searchQuery && (
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setSearchQuery("")}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3"
+                    className="absolute right-2 top-1/2 h-6 w-6 -translate-y-1/2 p-0"
+                    aria-label="Hapus pencarian"
+                    disabled={loading}
                   >
-                    <XMarkIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                  </button>
+                    <X className="h-3 w-3" />
+                  </Button>
                 )}
               </div>
-            </div>
 
-            {/* Start Date */}
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
-                Tanggal Mulai
-              </label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
+              {/* Date Filters and Status Filter */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <LocalizationProvider
+                  dateAdapter={AdapterDateFns}
+                  adapterLocale={idLocale}
+                >
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Tanggal Mulai</Label>
+                    <DatePicker
+                      value={startDate}
+                      onChange={(newValue) => setStartDate(newValue)}
+                      disabled={loading}
+                      slotProps={{
+                        textField: {
+                          className: cn(
+                            "w-full rounded-xl border transition-all duration-200",
+                            // Light mode styles
+                            "border-gray-200 bg-white text-gray-900",
+                            "focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20",
+                            // Dark mode styles
+                            "dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100",
+                            "dark:focus-within:border-primary/50 dark:focus-within:ring-primary/20",
+                            // Disabled state
+                            loading && "opacity-50 cursor-not-allowed",
+                          ),
+                          size: "small",
+                          sx: {
+                            "& .MuiOutlinedInput-root": {
+                              backgroundColor: "transparent",
+                              "& fieldset": { borderColor: "transparent" },
+                              "&:hover fieldset": {
+                                borderColor: "transparent",
+                              },
+                              "&.Mui-focused fieldset": {
+                                borderColor: "transparent",
+                              },
+                            },
+                          },
+                        },
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Tanggal Selesai
+                    </Label>
+                    <DatePicker
+                      value={endDate}
+                      onChange={(newValue) => setEndDate(newValue)}
+                      disabled={loading}
+                      slotProps={{
+                        textField: {
+                          className: cn(
+                            "w-full rounded-xl border transition-all duration-200",
+                            // Light mode styles
+                            "border-gray-200 bg-white text-gray-900",
+                            "focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20",
+                            // Dark mode styles
+                            "dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100",
+                            "dark:focus-within:border-primary/50 dark:focus-within:ring-primary/20",
+                            // Disabled state
+                            loading && "opacity-50 cursor-not-allowed",
+                          ),
+                          size: "small",
+                          sx: {
+                            "& .MuiOutlinedInput-root": {
+                              backgroundColor: "transparent",
+                              "& fieldset": { borderColor: "transparent" },
+                              "&:hover fieldset": {
+                                borderColor: "transparent",
+                              },
+                              "&.Mui-focused fieldset": {
+                                borderColor: "transparent",
+                              },
+                            },
+                          },
+                        },
+                      }}
+                    />
+                  </div>
+                </LocalizationProvider>
 
-            {/* End Date */}
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
-                Tanggal Akhir
-              </label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Status Filter</Label>
+                  <FormControl size="small" className="w-full">
+                    <Select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      disabled={loading}
+                      className="w-full rounded-xl border border-gray-200 dark:border-gray-700"
+                      sx={{
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "transparent",
+                        },
+                        "&:hover .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "transparent",
+                        },
+                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "transparent",
+                        },
+                      }}
+                    >
+                      <MenuItem value="all">Semua Status</MenuItem>
+                      <MenuItem value="completed">Selesai</MenuItem>
+                      <MenuItem value="pending">Belum Selesai</MenuItem>
+                    </Select>
+                  </FormControl>
+                </div>
 
-            {/* Status Filter */}
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
-                Status
-              </label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-              >
-                <option value="all">Semua</option>
-                <option value="ready">Selesai</option>
-                <option value="not_ready">Belum Selesai</option>
-              </select>
-            </div>
-          </div>
+                <div className="flex items-end">
+                  <Button
+                    onClick={onRefresh}
+                    disabled={loading}
+                    className="w-full transition-all duration-200"
+                    size="sm"
+                  >
+                    {loading ? (
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                    )}
+                    Refresh
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-          {/* Clear Filters */}
-          <div className="mt-4">
-            <button
-              onClick={handleClearFilters}
-              className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-center text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
-            >
-              <ArrowPathIcon className="mr-2 h-4 w-4" />
-              Hapus Filter
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Table Card */}
-      <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-        <div className="p-4">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Data Salah Rekam
-            </h3>
-            <div className="flex items-center space-x-2">
-              <span className="rounded bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-800 dark:bg-primary-900 dark:text-primary-300">
-                Halaman {currentPage}
-              </span>
-              <span className="rounded bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                {rekapData.length} dari {totalCount}
-              </span>
-            </div>
-          </div>
-
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-500 dark:text-gray-400">
-              <thead className="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
-                <tr>
-                  <th className="px-4 py-3">No</th>
-                  <th className="px-4 py-3">Tanggal</th>
-                  <th className="px-4 py-3">Salah Rekam</th>
-                  <th className="px-4 py-3">Pemilik Biometric</th>
-                  <th className="px-4 py-3">Pemilik Foto</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rekapData.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-12 text-center">
-                      <div className="flex flex-col items-center space-y-3">
-                        <DocumentTextIcon className="h-12 w-12 text-gray-400" />
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">
-                          Tidak ada data yang ditemukan
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          Silakan coba filter atau pencarian yang berbeda
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  rekapData.map((item, index) => {
-                    const rowNumber = (currentPage - 1) * rowsPerPage + index + 1;
-                    const isExpanded = expandedRow === item.id;
-
-                    return (
-                      <React.Fragment key={item.id}>
-                        <tr className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
-                            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-xs font-semibold text-primary-800 dark:bg-primary-900 dark:text-primary-300">
-                              {rowNumber}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center space-x-2">
-                              <CalendarIcon className="h-4 w-4 text-gray-400" />
-                              <span>{formatDate(item.created_at)}</span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="space-y-1">
-                              <div className="flex items-center space-x-2">
-                                <UserMinusIcon className="h-4 w-4 text-gray-400" />
-                                <span className="font-medium text-gray-900 dark:text-white">
-                                  {item.nama_salah_rekam || "-"}
-                                </span>
-                              </div>
-                              <div className="pl-6 text-xs text-gray-500">
-                                NIK: {item.nik_salah_rekam || "-"}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="space-y-1">
-                              <div className="flex items-center space-x-2">
-                                <FingerPrintIcon className="h-4 w-4 text-gray-400" />
-                                <span className="font-medium text-gray-900 dark:text-white">
-                                  {item.nama_pemilik_biometric || "-"}
-                                </span>
-                              </div>
-                              <div className="pl-6 text-xs text-gray-500">
-                                NIK: {item.nik_pemilik_biometric || "-"}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="space-y-1">
-                              <div className="flex items-center space-x-2">
-                                <CameraIcon className="h-4 w-4 text-gray-400" />
-                                <span className="font-medium text-gray-900 dark:text-white">
-                                  {item.nama_pemilik_foto || "-"}
-                                </span>
-                              </div>
-                              <div className="pl-6 text-xs text-gray-500">
-                                NIK: {item.nik_pemilik_foto || "-"}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <span
-                              className={`inline-flex items-center rounded px-2.5 py-0.5 text-xs font-medium ${
-                                item.is_ready_to_record
-                                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                                  : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
-                              }`}
+        {/* Enhanced Table Section */}
+        <motion.div variants={itemVariants} className="space-y-4">
+          <Card className="border-border/50 bg-background/80 shadow-lg backdrop-blur-sm">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <BarChart3 className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-lg font-semibold">
+                    Data Salah Rekam
+                  </CardTitle>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="outline" className="text-xs">
+                    Halaman {currentPage}
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    {rekapData.length} dari {totalCount}
+                  </Badge>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-hidden rounded-lg border border-border/50">
+                <div className="overflow-x-auto" ref={tableRef}>
+                  <table className="min-w-full divide-y divide-border">
+                    <thead className="bg-muted/30">
+                      <tr>
+                        <th
+                          scope="col"
+                          className="px-4 py-3.5 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                        >
+                          No
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-4 py-3.5 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                        >
+                          Tanggal Pengajuan
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-4 py-3.5 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                        >
+                          NIK / Nama Salah Rekam
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-4 py-3.5 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                        >
+                          NIK / Nama Pemilik Biometric
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-4 py-3.5 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                        >
+                          NIK / Nama Pemilik Foto
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-4 py-3.5 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                        >
+                          Status
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-4 py-3.5 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                        >
+                          Aksi
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border bg-background">
+                      <AnimatePresence mode="wait">
+                        {rekapData.length === 0 ? (
+                          <motion.tr
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                          >
+                            <td
+                              colSpan={7}
+                              className="px-4 py-12 text-center text-muted-foreground"
                             >
-                              {item.is_ready_to_record ? (
-                                <CheckCircleIcon className="mr-1 h-3 w-3" />
-                              ) : (
-                                <ClockIcon className="mr-1 h-3 w-3" />
-                              )}
-                              {item.is_ready_to_record ? "Selesai" : "Belum Selesai"}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex justify-end space-x-1">
-                              <button
-                                onClick={() => setExpandedRow(isExpanded ? null : item.id)}
-                                className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                                title={isExpanded ? "Tutup Detail" : "Lihat Detail"}
-                              >
-                                {isExpanded ? (
-                                  <ChevronUpIcon className="h-5 w-5" />
-                                ) : (
-                                  <ChevronDownIcon className="h-5 w-5" />
-                                )}
-                              </button>
-                              {canEdit && (
-                                <>
-                                  <button
-                                    onClick={() => onEdit(item)}
-                                    className="rounded-lg p-2 text-primary-600 hover:bg-primary-100 dark:text-primary-400 dark:hover:bg-gray-700"
-                                    title="Edit Data"
-                                  >
-                                    <PencilIcon className="h-5 w-5" />
-                                  </button>
-                                  <button
-                                    onClick={() => onDelete(item.id)}
-                                    className="rounded-lg p-2 text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-gray-700"
-                                    title="Hapus Data"
-                                  >
-                                    <TrashIcon className="h-5 w-5" />
-                                  </button>
-                                </>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-
-                        {/* Expanded Row */}
-                        {isExpanded && (
-                          <tr className="border-b bg-gray-50 dark:border-gray-700 dark:bg-gray-700">
-                            <td colSpan={7} className="px-4 py-4">
-                              <div className="grid gap-4 md:grid-cols-2">
-                                {/* Petugas Rekam */}
-                                <div>
-                                  <h4 className="mb-2 text-sm font-semibold text-gray-900 dark:text-white">
-                                    Petugas Rekam
-                                  </h4>
-                                  <div className="space-y-1 text-sm">
-                                    <p className="text-gray-700 dark:text-gray-300">
-                                      <span className="font-medium">Nama:</span> {item.nama_petugas_rekam || "-"}
-                                    </p>
-                                    <p className="text-gray-700 dark:text-gray-300">
-                                      <span className="font-medium">NIK:</span> {item.nik_petugas_rekam || "-"}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                {/* Pengaju */}
-                                <div>
-                                  <h4 className="mb-2 text-sm font-semibold text-gray-900 dark:text-white">
-                                    Pengaju
-                                  </h4>
-                                  <div className="space-y-1 text-sm">
-                                    <p className="text-gray-700 dark:text-gray-300">
-                                      <span className="font-medium">Nama:</span> {item.nama_pengaju || "-"}
-                                    </p>
-                                    <p className="text-gray-700 dark:text-gray-300">
-                                      <span className="font-medium">NIK:</span> {item.nik_pengaju || "-"}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                {/* Estimasi Tanggal */}
-                                <div>
-                                  <h4 className="mb-2 text-sm font-semibold text-gray-900 dark:text-white">
-                                    Estimasi Tanggal Perekaman
-                                  </h4>
-                                  {canEdit ? (
-                                    <div className="flex items-center space-x-2">
-                                      <input
-                                        type="date"
-                                        value={editedDates[item.id] || item.estimasi_tanggal_perekaman || ""}
-                                        onChange={(e) => setEditedDates({ ...editedDates, [item.id]: e.target.value })}
-                                        className="block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                      />
-                                      <button
-                                        onClick={() => handleSaveDate(item.id)}
-                                        disabled={saving[item.id] || !editedDates[item.id]}
-                                        className="inline-flex items-center rounded-lg bg-primary-700 px-3 py-2 text-center text-sm font-medium text-white hover:bg-primary-800 focus:outline-none focus:ring-4 focus:ring-primary-300 disabled:opacity-50 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
-                                      >
-                                        {saving[item.id] ? "..." : "Simpan"}
-                                      </button>
-                                    </div>
-                                  ) : (
-                                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                                      {item.estimasi_tanggal_perekaman ? formatDate(item.estimasi_tanggal_perekaman) : "-"}
-                                    </p>
-                                  )}
-                                </div>
-
-                                {/* Tanggal Perekaman */}
-                                <div>
-                                  <h4 className="mb-2 text-sm font-semibold text-gray-900 dark:text-white">
-                                    Tanggal Perekaman
-                                  </h4>
-                                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                                    {item.tanggal_perekaman ? formatDate(item.tanggal_perekaman) : "-"}
-                                  </p>
-                                </div>
-
-                                {/* Status Toggle */}
-                                {canEdit && (
-                                  <div>
-                                    <h4 className="mb-2 text-sm font-semibold text-gray-900 dark:text-white">
-                                      Status Siap Rekam
-                                    </h4>
-                                    <label className="relative inline-flex cursor-pointer items-center">
-                                      <input
-                                        type="checkbox"
-                                        className="peer sr-only"
-                                        checked={item.is_ready_to_record}
-                                        onChange={() => handleToggleStatus(item.id, item.is_ready_to_record)}
-                                      />
-                                      <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:peer-focus:ring-blue-800"></div>
-                                      <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-                                        {item.is_ready_to_record ? "Selesai" : "Belum Selesai"}
-                                      </span>
-                                    </label>
-                                  </div>
-                                )}
+                              <div className="flex flex-col items-center space-y-3">
+                                <FileText className="h-12 w-12 text-muted-foreground/50" />
+                                <p className="text-sm font-medium">
+                                  Tidak ada data yang ditemukan
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  Coba ubah filter atau kata kunci pencarian
+                                </p>
                               </div>
                             </td>
-                          </tr>
-                        )}
-                      </React.Fragment>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+                          </motion.tr>
+                        ) : (
+                          rekapData.map((item, index) => {
+                            const rowNumber = (currentPage - 1) * 5 + index + 1;
+                            const isExpanded = expandedRow === item.id;
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="mt-4 flex items-center justify-between border-t border-gray-200 pt-4 dark:border-gray-700">
-              <div className="text-sm text-gray-700 dark:text-gray-400">
-                Halaman <span className="font-semibold text-gray-900 dark:text-white">{currentPage}</span> dari{" "}
-                <span className="font-semibold text-gray-900 dark:text-white">{totalPages}</span>
+                            return (
+                              <React.Fragment key={item.id}>
+                                <motion.tr
+                                  variants={rowVariants}
+                                  initial="hidden"
+                                  animate="visible"
+                                  whileHover="hover"
+                                  className="group transition-all duration-200 hover:bg-muted/30"
+                                >
+                                  <td className="whitespace-nowrap px-4 py-4 text-sm font-medium text-foreground">
+                                    <div className="flex items-center space-x-2">
+                                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                                        {rowNumber}
+                                      </span>
+                                    </div>
+                                  </td>
+                                  <td className="whitespace-nowrap px-4 py-4 text-sm text-foreground">
+                                    <div className="flex items-center space-x-2">
+                                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                                      <span>{formatDate(item.created_at)}</span>
+                                    </div>
+                                  </td>
+                                  <td className="px-4 py-4 text-sm text-foreground">
+                                    <div className="space-y-1">
+                                      <div className="flex items-center space-x-2">
+                                        <UserX className="h-4 w-4 text-muted-foreground" />
+                                        <span className="font-medium">
+                                          {item.nama_salah_rekam || "-"}
+                                        </span>
+                                      </div>
+                                      <div className="pl-6 text-xs text-muted-foreground">
+                                        NIK: {item.nik_salah_rekam || "-"}
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="px-4 py-4 text-sm text-foreground">
+                                    <div className="space-y-1">
+                                      <div className="flex items-center space-x-2">
+                                        <Fingerprint className="h-4 w-4 text-muted-foreground" />
+                                        <span className="font-medium">
+                                          {item.nama_pemilik_biometric || "-"}
+                                        </span>
+                                      </div>
+                                      <div className="pl-6 text-xs text-muted-foreground">
+                                        NIK: {item.nik_pemilik_biometric || "-"}
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="px-4 py-4 text-sm text-foreground">
+                                    <div className="space-y-1">
+                                      <div className="flex items-center space-x-2">
+                                        <Camera className="h-4 w-4 text-muted-foreground" />
+                                        <span className="font-medium">
+                                          {item.nama_pemilik_foto || "-"}
+                                        </span>
+                                      </div>
+                                      <div className="pl-6 text-xs text-muted-foreground">
+                                        NIK: {item.nik_pemilik_foto || "-"}
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="whitespace-nowrap px-4 py-4 text-sm">
+                                    <Badge
+                                      variant={
+                                        item.is_ready_to_record
+                                          ? "default"
+                                          : "secondary"
+                                      }
+                                      className={cn(
+                                        "inline-flex items-center space-x-1 transition-all duration-200",
+                                        item.is_ready_to_record
+                                          ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                                          : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+                                      )}
+                                    >
+                                      {item.is_ready_to_record ? (
+                                        <CheckCircle2 className="h-3 w-3" />
+                                      ) : (
+                                        <Clock className="h-3 w-3" />
+                                      )}
+                                      <span>
+                                        {item.is_ready_to_record
+                                          ? "Selesai"
+                                          : "Belum Selesai"}
+                                      </span>
+                                    </Badge>
+                                  </td>
+                                  <td className="whitespace-nowrap px-4 py-4 text-right text-sm">
+                                    <div className="flex justify-end space-x-1">
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                              setExpandedRow(
+                                                isExpanded ? null : item.id,
+                                              )
+                                            }
+                                            className="h-8 w-8 p-0 transition-all duration-200"
+                                            aria-label={
+                                              isExpanded
+                                                ? "Sembunyikan detail"
+                                                : "Lihat detail"
+                                            }
+                                          >
+                                            {isExpanded ? (
+                                              <ChevronUp className="h-4 w-4" />
+                                            ) : (
+                                              <ChevronDown className="h-4 w-4" />
+                                            )}
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          {isExpanded
+                                            ? "Sembunyikan detail"
+                                            : "Lihat detail"}
+                                        </TooltipContent>
+                                      </Tooltip>
+
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleEdit(item)}
+                                            disabled={userRole !== "admin"}
+                                            className="h-8 w-8 p-0 text-blue-600 transition-all duration-200 hover:bg-blue-50 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-300"
+                                            aria-label="Edit data"
+                                          >
+                                            <Edit3 className="h-4 w-4" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          Edit data
+                                        </TooltipContent>
+                                      </Tooltip>
+
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                              handleDelete(item.id)
+                                            }
+                                            disabled={userRole !== "admin"}
+                                            className="h-8 w-8 p-0 text-red-600 transition-all duration-200 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300"
+                                            aria-label="Hapus data"
+                                          >
+                                            <Trash2 className="h-4 w-4" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          Hapus data
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </div>
+                                  </td>
+                                </motion.tr>
+
+                                {/* Enhanced Expanded Row */}
+                                <AnimatePresence>
+                                  {isExpanded && (
+                                    <motion.tr
+                                      initial={{ opacity: 0, height: 0 }}
+                                      animate={{ opacity: 1, height: "auto" }}
+                                      exit={{ opacity: 0, height: 0 }}
+                                      transition={{
+                                        duration: shouldAnimate ? 0.3 : 0,
+                                      }}
+                                    >
+                                      <td
+                                        colSpan={7}
+                                        className="border-t border-border/50 bg-muted/20 px-4 py-6"
+                                      >
+                                        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                                          {/* Data Salah Rekam */}
+                                          <div className="space-y-3">
+                                            <div className="flex items-center space-x-2">
+                                              <UserX className="h-4 w-4 text-primary" />
+                                              <h4 className="text-sm font-semibold text-foreground">
+                                                Data Salah Rekam
+                                              </h4>
+                                            </div>
+                                            <div className="space-y-2 pl-6">
+                                              <div className="flex justify-between">
+                                                <span className="text-xs font-medium text-muted-foreground">
+                                                  NIK:
+                                                </span>
+                                                <span className="text-xs text-foreground">
+                                                  {item.nik_salah_rekam || "-"}
+                                                </span>
+                                              </div>
+                                              <div className="flex justify-between">
+                                                <span className="text-xs font-medium text-muted-foreground">
+                                                  Nama:
+                                                </span>
+                                                <span className="text-xs text-foreground">
+                                                  {item.nama_salah_rekam || "-"}
+                                                </span>
+                                              </div>
+                                            </div>
+                                          </div>
+
+                                          {/* Data Pemilik Biometric */}
+                                          <div className="space-y-3">
+                                            <div className="flex items-center space-x-2">
+                                              <Fingerprint className="h-4 w-4 text-primary" />
+                                              <h4 className="text-sm font-semibold text-foreground">
+                                                Data Pemilik Biometric
+                                              </h4>
+                                            </div>
+                                            <div className="space-y-2 pl-6">
+                                              <div className="flex justify-between">
+                                                <span className="text-xs font-medium text-muted-foreground">
+                                                  NIK:
+                                                </span>
+                                                <span className="text-xs text-foreground">
+                                                  {item.nik_pemilik_biometric ||
+                                                    "-"}
+                                                </span>
+                                              </div>
+                                              <div className="flex justify-between">
+                                                <span className="text-xs font-medium text-muted-foreground">
+                                                  Nama:
+                                                </span>
+                                                <span className="text-xs text-foreground">
+                                                  {item.nama_pemilik_biometric ||
+                                                    "-"}
+                                                </span>
+                                              </div>
+                                            </div>
+                                          </div>
+
+                                          {/* Data Pemilik Foto */}
+                                          <div className="space-y-3">
+                                            <div className="flex items-center space-x-2">
+                                              <Camera className="h-4 w-4 text-primary" />
+                                              <h4 className="text-sm font-semibold text-foreground">
+                                                Data Pemilik Foto
+                                              </h4>
+                                            </div>
+                                            <div className="space-y-2 pl-6">
+                                              <div className="flex justify-between">
+                                                <span className="text-xs font-medium text-muted-foreground">
+                                                  NIK:
+                                                </span>
+                                                <span className="text-xs text-foreground">
+                                                  {item.nik_pemilik_foto || "-"}
+                                                </span>
+                                              </div>
+                                              <div className="flex justify-between">
+                                                <span className="text-xs font-medium text-muted-foreground">
+                                                  Nama:
+                                                </span>
+                                                <span className="text-xs text-foreground">
+                                                  {item.nama_pemilik_foto ||
+                                                    "-"}
+                                                </span>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        {/* Additional Details */}
+                                        <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+                                          {/* Detail Petugas */}
+                                          <div className="space-y-3">
+                                            <div className="flex items-center space-x-2">
+                                              <Users className="h-4 w-4 text-primary" />
+                                              <h4 className="text-sm font-semibold text-foreground">
+                                                Detail Petugas
+                                              </h4>
+                                            </div>
+                                            <div className="space-y-2 pl-6">
+                                              <div className="flex justify-between">
+                                                <span className="text-xs font-medium text-muted-foreground">
+                                                  NIK Petugas Rekam:
+                                                </span>
+                                                <span className="text-xs text-foreground">
+                                                  {item.nik_petugas_rekam ||
+                                                    "-"}
+                                                </span>
+                                              </div>
+                                              <div className="flex justify-between">
+                                                <span className="text-xs font-medium text-muted-foreground">
+                                                  Nama Petugas Rekam:
+                                                </span>
+                                                <span className="text-xs text-foreground">
+                                                  {item.nama_petugas_rekam ||
+                                                    "-"}
+                                                </span>
+                                              </div>
+                                              <div className="flex justify-between">
+                                                <span className="text-xs font-medium text-muted-foreground">
+                                                  NIK Pengaju:
+                                                </span>
+                                                <span className="text-xs text-foreground">
+                                                  {item.nik_pengaju || "-"}
+                                                </span>
+                                              </div>
+                                              <div className="flex justify-between">
+                                                <span className="text-xs font-medium text-muted-foreground">
+                                                  Nama Pengaju:
+                                                </span>
+                                                <span className="text-xs text-foreground">
+                                                  {item.nama_pengaju || "-"}
+                                                </span>
+                                              </div>
+                                            </div>
+                                          </div>
+
+                                          {/* Detail Tanggal */}
+                                          <div className="space-y-3">
+                                            <div className="flex items-center space-x-2">
+                                              <FileText className="h-4 w-4 text-primary" />
+                                              <h4 className="text-sm font-semibold text-foreground">
+                                                Detail Tanggal
+                                              </h4>
+                                            </div>
+                                            <div className="space-y-2 pl-6">
+                                              <div className="flex justify-between">
+                                                <span className="text-xs font-medium text-muted-foreground">
+                                                  Tanggal Perekaman:
+                                                </span>
+                                                <span className="text-xs text-foreground">
+                                                  {formatDate(
+                                                    item.tanggal_perekaman,
+                                                  )}
+                                                </span>
+                                              </div>
+
+                                              {/* Estimasi Tanggal Perekaman */}
+                                              <div className="space-y-2">
+                                                <span className="text-xs font-medium text-muted-foreground">
+                                                  Estimasi Perekaman:
+                                                </span>
+                                                {[
+                                                  "admin",
+                                                  "superuser",
+                                                ].includes(userRole) ? (
+                                                  <div className="flex items-center space-x-2">
+                                                    <Input
+                                                      type="date"
+                                                      value={
+                                                        editedDates[item.id] ||
+                                                        item.estimasi_tanggal_perekaman ||
+                                                        ""
+                                                      }
+                                                      onChange={(e) =>
+                                                        handleDateChange(
+                                                          item.id,
+                                                          e.target.value,
+                                                        )
+                                                      }
+                                                      className="h-8 text-xs"
+                                                      disabled={saving[item.id]}
+                                                    />
+                                                    <Button
+                                                      size="sm"
+                                                      onClick={() =>
+                                                        handleSaveDate(item.id)
+                                                      }
+                                                      disabled={
+                                                        saving[item.id] ||
+                                                        !editedDates[item.id]
+                                                      }
+                                                      className="h-8 w-8 p-0"
+                                                      aria-label="Simpan tanggal"
+                                                    >
+                                                      {saving[item.id] ? (
+                                                        <RefreshCw className="h-3 w-3 animate-spin" />
+                                                      ) : (
+                                                        <Save className="h-3 w-3" />
+                                                      )}
+                                                    </Button>
+                                                  </div>
+                                                ) : (
+                                                  <span className="text-xs text-foreground">
+                                                    {formatDate(
+                                                      item.estimasi_tanggal_perekaman ||
+                                                        undefined,
+                                                    )}
+                                                  </span>
+                                                )}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        {/* Status Toggle for Admin */}
+                                        {["admin", "superuser"].includes(
+                                          userRole,
+                                        ) && (
+                                          <div className="mt-6 flex items-center justify-between border-t border-border/50 pt-4">
+                                            <div className="flex items-center space-x-2">
+                                              <span className="text-sm font-medium text-muted-foreground">
+                                                Status Perekaman:
+                                              </span>
+                                              <Badge
+                                                variant={
+                                                  item.is_ready_to_record
+                                                    ? "default"
+                                                    : "secondary"
+                                                }
+                                                className={cn(
+                                                  "transition-all duration-200",
+                                                  item.is_ready_to_record
+                                                    ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                                                    : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+                                                )}
+                                              >
+                                                {item.is_ready_to_record
+                                                  ? "Selesai"
+                                                  : "Belum Selesai"}
+                                              </Badge>
+                                            </div>
+                                            <Button
+                                              variant={
+                                                item.is_ready_to_record
+                                                  ? "outline"
+                                                  : "default"
+                                              }
+                                              size="sm"
+                                              onClick={() =>
+                                                handleToggleChange(
+                                                  item.id,
+                                                  item.is_ready_to_record,
+                                                )
+                                              }
+                                              className="transition-all duration-200"
+                                            >
+                                              {item.is_ready_to_record
+                                                ? "Tandai Belum Selesai"
+                                                : "Tandai Selesai"}
+                                            </Button>
+                                          </div>
+                                        )}
+                                      </td>
+                                    </motion.tr>
+                                  )}
+                                </AnimatePresence>
+                              </React.Fragment>
+                            );
+                          })
+                        )}
+                      </AnimatePresence>
+                    </tbody>
+                  </table>
+                </div>
               </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => onPageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Enhanced Pagination */}
+        {Math.ceil(totalCount / 5) > 0 && (
+          <motion.div variants={itemVariants} className="flex justify-center">
+            <Card className="border-border/50 bg-background/80 shadow-lg backdrop-blur-sm">
+              <CardContent className="p-4">
+                <nav
+                  className="flex items-center space-x-2"
+                  aria-label="Pagination"
                 >
-                  <ChevronLeftIcon className="h-5 w-5" />
-                  Sebelumnya
-                </button>
-                <button
-                  onClick={() => onPageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                >
-                  Selanjutnya
-                  <ChevronRightIcon className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="transition-all duration-200"
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+
+                  {Array.from(
+                    { length: Math.ceil(totalCount / 5) },
+                    (_, i) => i + 1,
+                  ).map((page) => {
+                    const totalPages = Math.ceil(totalCount / 5);
+                    const shouldShow =
+                      page === 1 ||
+                      page === totalPages ||
+                      (page >= currentPage - 1 && page <= currentPage + 1) ||
+                      (currentPage === 1 && page <= 3) ||
+                      (currentPage === totalPages && page >= totalPages - 2);
+
+                    if (!shouldShow && page === currentPage - 2) {
+                      return (
+                        <span
+                          key="ellipsis-prev"
+                          className="px-2 py-1 text-muted-foreground"
+                          aria-hidden="true"
+                        >
+                          ...
+                        </span>
+                      );
+                    }
+
+                    if (!shouldShow && page === currentPage + 2) {
+                      return (
+                        <span
+                          key="ellipsis-next"
+                          className="px-2 py-1 text-muted-foreground"
+                          aria-hidden="true"
+                        >
+                          ...
+                        </span>
+                      );
+                    }
+
+                    if (!shouldShow) return null;
+
+                    return (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => onPageChange(page)}
+                        className="transition-all duration-200"
+                        aria-label={`Page ${page}`}
+                        aria-current={currentPage === page ? "page" : undefined}
+                      >
+                        {page}
+                      </Button>
+                    );
+                  })}
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      onPageChange(
+                        Math.min(Math.ceil(totalCount / 5), currentPage + 1),
+                      )
+                    }
+                    disabled={currentPage === Math.ceil(totalCount / 5)}
+                    className="transition-all duration-200"
+                    aria-label="Next page"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </nav>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </motion.div>
+    </TooltipProvider>
   );
 };
 
