@@ -13,6 +13,7 @@ import {
 import type { SalahRekamData, SalahRekamFormData } from "@/types/data-rekam/salah-rekam"
 import { validateField, type SalahRekamFormValues } from "@/lib/validations/salah-rekam"
 import FlowbiteInput from "@/components/ui/FlowbiteInput"
+import FlowbiteDatePicker from "@/components/ui/FlowbiteDatePicker"
 
 interface SalahRekamFormProps {
   formData: SalahRekamFormData
@@ -159,6 +160,7 @@ export default function SalahRekamForm({
                   type="text"
                   required
                   error={errors.nama_salah_rekam}
+                  helperText="Masukkan nama lengkap sesuai KTP"
                   placeholder="Masukkan nama lengkap"
                 />
               </div>
@@ -184,7 +186,7 @@ export default function SalahRekamForm({
                     required
                     maxLength={16}
                     error={errors.nik_pemilik_biometric}
-                    helperText="Masukkan 16 digit NIK"
+                    helperText="NIK pemilik data biometrik (16 digit)"
                     placeholder="Masukkan 16 angka"
                   />
                   <FlowbiteInput
@@ -195,6 +197,7 @@ export default function SalahRekamForm({
                     type="text"
                     required
                     error={errors.nama_pemilik_biometric}
+                    helperText="Nama pemilik data biometrik sesuai KTP"
                     placeholder="Masukkan nama lengkap"
                   />
                 </div>
@@ -220,7 +223,7 @@ export default function SalahRekamForm({
                     required
                     maxLength={16}
                     error={errors.nik_pemilik_foto}
-                    helperText="Masukkan 16 digit NIK"
+                    helperText="NIK pemilik foto (16 digit)"
                     placeholder="Masukkan 16 angka"
                   />
                   <FlowbiteInput
@@ -230,7 +233,8 @@ export default function SalahRekamForm({
                     onChange={handleInputChange}
                     type="text"
                     required
-                    error={errors.nama_pemilik_foto}
+                    error={errors.nik_pemilik_foto}
+                    helperText="Nama pemilik foto sesuai KTP"
                     placeholder="Masukkan nama lengkap"
                   />
                 </div>
@@ -259,7 +263,7 @@ export default function SalahRekamForm({
                         required
                         maxLength={16}
                         error={errors.nik_petugas_rekam}
-                        helperText="Masukkan 16 digit NIK"
+                        helperText="NIK petugas yang melakukan perekaman (16 digit)"
                         placeholder="Masukkan 16 angka"
                       />
                       <FlowbiteInput
@@ -270,6 +274,7 @@ export default function SalahRekamForm({
                         type="text"
                         required
                         error={errors.nama_petugas_rekam}
+                        helperText="Nama lengkap petugas yang melakukan perekaman"
                         placeholder="Masukkan nama lengkap"
                       />
                     </div>
@@ -285,6 +290,7 @@ export default function SalahRekamForm({
                         onChange={handleInputChange}
                         type="text"
                         readonly
+                        helperText="NIK pengaju diambil dari data pengguna saat ini"
                       />
                       <FlowbiteInput
                         label="Nama Pengaju"
@@ -293,6 +299,7 @@ export default function SalahRekamForm({
                         onChange={handleInputChange}
                         type="text"
                         readonly
+                        helperText="Nama pengaju diambil dari data pengguna saat ini"
                       />
                     </div>
                   </div>
@@ -310,23 +317,23 @@ export default function SalahRekamForm({
                   Detail Perekaman
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FlowbiteInput
+                  <FlowbiteDatePicker
                     label="Tanggal Perekaman"
                     name="tanggal_perekaman"
                     value={formData.tanggal_perekaman || ""}
                     onChange={handleInputChange}
-                    type="date"
                     required
                     error={errors.tanggal_perekaman}
+                    helperText="Pilih tanggal perekaman data"
                   />
-                  <FlowbiteInput
+                  <FlowbiteDatePicker
                     label="Estimasi Tanggal Perekaman Ulang"
                     name="estimasi_tanggal_perekaman"
                     value={formData.estimasi_tanggal_perekaman || ""}
                     onChange={handleInputChange}
-                    type="date"
                     disabled={!["admin", "superuser"].includes(userRole)}
                     error={errors.estimasi_tanggal_perekaman}
+                    helperText={["admin", "superuser"].includes(userRole) ? "Opsional - estimasi tanggal perekaman ulang" : "Hanya dapat diisi oleh admin"}
                   />
                 </div>
 
