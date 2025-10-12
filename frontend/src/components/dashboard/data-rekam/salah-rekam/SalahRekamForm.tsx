@@ -11,6 +11,8 @@ import {
   CalendarIcon,
 } from "@heroicons/react/24/outline"
 import type { SalahRekamData, SalahRekamFormData } from "@/types/data-rekam/salah-rekam"
+import { validateField, type SalahRekamFormValues } from "@/lib/validations/salah-rekam"
+import FlowbiteInput from "@/components/ui/FlowbiteInput"
 
 interface SalahRekamFormProps {
   formData: SalahRekamFormData
@@ -34,6 +36,7 @@ export default function SalahRekamForm({
   userRole,
 }: SalahRekamFormProps) {
   const [activeSection, setActiveSection] = useState<string>("salahRekam")
+  const [errors, setErrors] = useState<Partial<Record<keyof SalahRekamFormValues, string>>>({})
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -47,6 +50,22 @@ export default function SalahRekamForm({
       return // Only allow digits for NIK fields
     }
     setFormData((prev) => ({ ...prev, [name]: value }))
+
+    // Validate field on change
+    const result = validateField(name as keyof SalahRekamFormValues, value)
+    if (!result.success) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: result.error.issues[0]?.message || "Invalid input",
+      }))
+    } else {
+      // Clear error if validation passes
+      setErrors((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors[name as keyof SalahRekamFormValues]
+        return newErrors
+      })
+    }
   }
 
   const sections = [
@@ -120,42 +139,29 @@ export default function SalahRekamForm({
                 Data Salah Rekam
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      NIK Salah Rekam <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        name="nik_salah_rekam"
-                        value={formData.nik_salah_rekam || ""}
-                        onChange={handleInputChange}
-                        maxLength={16}
-                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                        placeholder="Masukkan 16 angka"
-                        required
-                      />
-                      {formData.nik_salah_rekam && formData.nik_salah_rekam.length < 16 && (
-                        <div className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                          NIK harus 16 digit ({16 - formData.nik_salah_rekam.length} digit lagi)
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Nama Salah Rekam <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="nama_salah_rekam"
-                      value={formData.nama_salah_rekam || ""}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                      required
-                    />
-                  </div>
-                </div>
+                <FlowbiteInput
+                  label="NIK Salah Rekam"
+                  name="nik_salah_rekam"
+                  value={formData.nik_salah_rekam || ""}
+                  onChange={handleInputChange}
+                  type="text"
+                  required
+                  maxLength={16}
+                  error={errors.nik_salah_rekam}
+                  helperText="Masukkan 16 digit NIK"
+                  placeholder="Masukkan 16 angka"
+                />
+                <FlowbiteInput
+                  label="Nama Salah Rekam"
+                  name="nama_salah_rekam"
+                  value={formData.nama_salah_rekam || ""}
+                  onChange={handleInputChange}
+                  type="text"
+                  required
+                  error={errors.nama_salah_rekam}
+                  placeholder="Masukkan nama lengkap"
+                />
+              </div>
               </div>
             )}
 
@@ -169,41 +175,28 @@ export default function SalahRekamForm({
                   Pemilik Biometric
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      NIK Pemilik Biometric <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        name="nik_pemilik_biometric"
-                        value={formData.nik_pemilik_biometric || ""}
-                        onChange={handleInputChange}
-                        maxLength={16}
-                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                        placeholder="Masukkan 16 angka"
-                        required
-                      />
-                      {formData.nik_pemilik_biometric && formData.nik_pemilik_biometric.length < 16 && (
-                        <div className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                          NIK harus 16 digit ({16 - formData.nik_pemilik_biometric.length} digit lagi)
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Nama Pemilik Biometric <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="nama_pemilik_biometric"
-                      value={formData.nama_pemilik_biometric || ""}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                      required
-                    />
-                  </div>
+                  <FlowbiteInput
+                    label="NIK Pemilik Biometric"
+                    name="nik_pemilik_biometric"
+                    value={formData.nik_pemilik_biometric || ""}
+                    onChange={handleInputChange}
+                    type="text"
+                    required
+                    maxLength={16}
+                    error={errors.nik_pemilik_biometric}
+                    helperText="Masukkan 16 digit NIK"
+                    placeholder="Masukkan 16 angka"
+                  />
+                  <FlowbiteInput
+                    label="Nama Pemilik Biometric"
+                    name="nama_pemilik_biometric"
+                    value={formData.nama_pemilik_biometric || ""}
+                    onChange={handleInputChange}
+                    type="text"
+                    required
+                    error={errors.nama_pemilik_biometric}
+                    placeholder="Masukkan nama lengkap"
+                  />
                 </div>
               </div>
             )}
@@ -218,41 +211,28 @@ export default function SalahRekamForm({
                   Pemilik Foto
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      NIK Pemilik Foto <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        name="nik_pemilik_foto"
-                        value={formData.nik_pemilik_foto || ""}
-                        onChange={handleInputChange}
-                        maxLength={16}
-                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                        placeholder="Masukkan 16 angka"
-                        required
-                      />
-                      {formData.nik_pemilik_foto && formData.nik_pemilik_foto.length < 16 && (
-                        <div className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                          NIK harus 16 digit ({16 - formData.nik_pemilik_foto.length} digit lagi)
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Nama Pemilik Foto <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="nama_pemilik_foto"
-                      value={formData.nama_pemilik_foto || ""}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                      required
-                    />
-                  </div>
+                  <FlowbiteInput
+                    label="NIK Pemilik Foto"
+                    name="nik_pemilik_foto"
+                    value={formData.nik_pemilik_foto || ""}
+                    onChange={handleInputChange}
+                    type="text"
+                    required
+                    maxLength={16}
+                    error={errors.nik_pemilik_foto}
+                    helperText="Masukkan 16 digit NIK"
+                    placeholder="Masukkan 16 angka"
+                  />
+                  <FlowbiteInput
+                    label="Nama Pemilik Foto"
+                    name="nama_pemilik_foto"
+                    value={formData.nama_pemilik_foto || ""}
+                    onChange={handleInputChange}
+                    type="text"
+                    required
+                    error={errors.nama_pemilik_foto}
+                    placeholder="Masukkan nama lengkap"
+                  />
                 </div>
               </div>
             )}
@@ -270,71 +250,50 @@ export default function SalahRekamForm({
                   <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                     <h3 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Petugas Rekam</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          NIK Petugas Rekam <span className="text-red-500">*</span>
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            name="nik_petugas_rekam"
-                            value={formData.nik_petugas_rekam || ""}
-                            onChange={handleInputChange}
-                            maxLength={16}
-                            className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                            placeholder="Masukkan 16 angka"
-                            required
-                          />
-                          {formData.nik_petugas_rekam && formData.nik_petugas_rekam.length < 16 && (
-                            <div className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                              NIK harus 16 digit ({16 - formData.nik_petugas_rekam.length} digit lagi)
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Nama Petugas Rekam <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          name="nama_petugas_rekam"
-                          value={formData.nama_petugas_rekam || ""}
-                          onChange={handleInputChange}
-                          className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                          required
-                        />
-                      </div>
+                      <FlowbiteInput
+                        label="NIK Petugas Rekam"
+                        name="nik_petugas_rekam"
+                        value={formData.nik_petugas_rekam || ""}
+                        onChange={handleInputChange}
+                        type="text"
+                        required
+                        maxLength={16}
+                        error={errors.nik_petugas_rekam}
+                        helperText="Masukkan 16 digit NIK"
+                        placeholder="Masukkan 16 angka"
+                      />
+                      <FlowbiteInput
+                        label="Nama Petugas Rekam"
+                        name="nama_petugas_rekam"
+                        value={formData.nama_petugas_rekam || ""}
+                        onChange={handleInputChange}
+                        type="text"
+                        required
+                        error={errors.nama_petugas_rekam}
+                        placeholder="Masukkan nama lengkap"
+                      />
                     </div>
                   </div>
 
                   <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                     <h3 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Pengaju</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          NIK Pengaju
-                        </label>
-                        <input
-                          type="text"
-                          name="nik_pengaju"
-                          value={formData.nik_pengaju || ""}
-                          className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400"
-                          readOnly
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Nama Pengaju
-                        </label>
-                        <input
-                          type="text"
-                          name="nama_pengaju"
-                          value={formData.nama_pengaju || ""}
-                          className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400"
-                          readOnly
-                        />
-                      </div>
+                      <FlowbiteInput
+                        label="NIK Pengaju"
+                        name="nik_pengaju"
+                        value={formData.nik_pengaju || ""}
+                        onChange={handleInputChange}
+                        type="text"
+                        readonly
+                      />
+                      <FlowbiteInput
+                        label="Nama Pengaju"
+                        name="nama_pengaju"
+                        value={formData.nama_pengaju || ""}
+                        onChange={handleInputChange}
+                        type="text"
+                        readonly
+                      />
                     </div>
                   </div>
                 </div>
@@ -351,36 +310,24 @@ export default function SalahRekamForm({
                   Detail Perekaman
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Tanggal Perekaman <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      name="tanggal_perekaman"
-                      value={formData.tanggal_perekaman || ""}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Estimasi Tanggal Perekaman Ulang
-                    </label>
-                    <input
-                      type="date"
-                      name="estimasi_tanggal_perekaman"
-                      value={formData.estimasi_tanggal_perekaman || ""}
-                      onChange={handleInputChange}
-                      className={
-                        ["admin", "superuser"].includes(userRole)
-                          ? "w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                          : "w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400"
-                      }
-                      disabled={!["admin", "superuser"].includes(userRole)}
-                    />
-                  </div>
+                  <FlowbiteInput
+                    label="Tanggal Perekaman"
+                    name="tanggal_perekaman"
+                    value={formData.tanggal_perekaman || ""}
+                    onChange={handleInputChange}
+                    type="date"
+                    required
+                    error={errors.tanggal_perekaman}
+                  />
+                  <FlowbiteInput
+                    label="Estimasi Tanggal Perekaman Ulang"
+                    name="estimasi_tanggal_perekaman"
+                    value={formData.estimasi_tanggal_perekaman || ""}
+                    onChange={handleInputChange}
+                    type="date"
+                    disabled={!["admin", "superuser"].includes(userRole)}
+                    error={errors.estimasi_tanggal_perekaman}
+                  />
                 </div>
 
                 {["admin", "superuser"].includes(userRole) && (

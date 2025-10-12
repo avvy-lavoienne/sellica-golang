@@ -20,6 +20,7 @@ import EmptyState from "@/components/dashboard/data-rekam/salah-rekam/EmptyState
 import LoadingState from "@/components/dashboard/data-rekam/salah-rekam/LoadingState";
 import Link from "next/link";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { salahRekamFormSchema } from "@/lib/validations/salah-rekam";
 
 interface User {
   id: string;
@@ -196,6 +197,14 @@ export default function SalahRekamPage() {
     e.preventDefault();
     if (!user) {
       toast.error("Pengguna tidak ditemukan. Silakan login kembali.");
+      return;
+    }
+
+    // Validate form data before submission
+    const validation = salahRekamFormSchema.safeParse(formData);
+    if (!validation.success) {
+      const firstError = validation.error.issues[0];
+      toast.error(firstError.message || "Harap periksa kembali data yang Anda masukkan");
       return;
     }
 
