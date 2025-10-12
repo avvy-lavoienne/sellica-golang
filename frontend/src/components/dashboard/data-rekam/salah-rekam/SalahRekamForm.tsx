@@ -142,7 +142,7 @@ export default function SalahRekamForm({
 
       {/* Flowbite Tabs Navigation */}
       <div className="border-b border-gray-200 dark:border-gray-700">
-        <ul className="flex flex-wrap -mb-px text-sm font-medium text-center" role="tablist" aria-label="Seksi formulir">
+        <ul className="flex flex-wrap text-sm font-medium text-center" role="tablist" aria-label="Seksi formulir">
           {sections.map((section, index) => {
             const IconComponent = section.icon
             return (
@@ -150,9 +150,9 @@ export default function SalahRekamForm({
                 <button
                   onClick={() => setActiveSection(section.id)}
                   onKeyDown={(e) => handleTabKeyDown(e, index)}
-                  className={`inline-flex items-center justify-center p-4 border-b-2 rounded-t-lg group transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 ${
+                  className={`inline-flex items-center justify-center p-4 border-t-2 border-l-2 border-r-2 rounded-t-lg group transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 ${
                     activeSection === section.id
-                      ? "text-primary-600 border-primary-600 dark:text-primary-500 dark:border-primary-500 active"
+                      ? "text-primary-600 border-primary-600 bg-white dark:bg-gray-800 dark:text-primary-500 dark:border-primary-500 -mb-px"
                       : "border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300"
                   }`}
                   type="button"
