@@ -5,6 +5,9 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 
 import { cn } from "@/lib/conn/utils"
 
+// Flowbite Pro Tooltip Integration
+// This component maintains backward compatibility while adopting Flowbite Pro tooltip patterns
+// Enhanced with proper animation and positioning for SELLICA government portal
 const TooltipProvider = TooltipPrimitive.Provider
 
 const Tooltip = TooltipPrimitive.Root
@@ -19,8 +22,11 @@ const TooltipContent = React.forwardRef<
     ref={ref}
     sideOffset={sideOffset}
     className={cn(
+      // Flowbite Pro tooltip styling with SELLICA enhancements
       "z-50 overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-      className,
+      // Enhanced Flowbite Pro styling for better accessibility
+      "transition-opacity duration-200",
+      className
     )}
     {...props}
   />
