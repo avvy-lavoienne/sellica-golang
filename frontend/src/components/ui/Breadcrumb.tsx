@@ -4,6 +4,10 @@ import React from "react";
 import Link from "next/link";
 import { ChevronRightIcon, HomeIcon } from "@heroicons/react/24/outline";
 
+// Flowbite Pro Breadcrumb Integration
+// This component maintains backward compatibility while adopting Flowbite Pro breadcrumb patterns
+// Enhanced with proper styling and accessibility for SELLICA government portal navigation
+
 export interface BreadcrumbItem {
   /**
    * Display label for the breadcrumb item
@@ -62,7 +66,7 @@ export interface BreadcrumbProps {
 
 /**
  * Breadcrumb - Navigation component showing current page hierarchy
- * 
+ *
  * Features:
  * - Dynamic route generation from items array
  * - Home icon for root navigation
@@ -72,7 +76,7 @@ export interface BreadcrumbProps {
  * - Dark mode support
  * - Accessible ARIA labels
  * - Link prefetching for performance
- * 
+ *
  * @example
  * ```tsx
  * <Breadcrumb
