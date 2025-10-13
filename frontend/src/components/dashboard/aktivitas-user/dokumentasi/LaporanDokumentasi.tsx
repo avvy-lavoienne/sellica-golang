@@ -9,16 +9,6 @@ import React, {
 } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/conn/utils";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
@@ -318,16 +308,16 @@ export default function LaporanDokumentasi({
                     Laporan Dokumentasi
                   </h2>
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="gap-1 text-xs">
-                      <Target className="h-3 w-3" />
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                      <Target className="w-3 h-3 mr-1" />
                       {filteredAndSortedData.length} item
-                    </Badge>
+                    </span>
                     {filteredAndSortedData.length !==
                       dokumentasiList.length && (
-                      <Badge variant="outline" className="gap-1 text-xs">
-                        <Filter className="h-3 w-3" />
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300">
+                        <Filter className="w-3 h-3 mr-1" />
                         Difilter
-                      </Badge>
+                      </span>
                     )}
                   </div>
                 </div>
@@ -339,52 +329,64 @@ export default function LaporanDokumentasi({
               {enableFiltering && (
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <input
-                    type="text"
-                    placeholder="Cari dokumentasi..."
-                    value={filterText}
-                    onChange={(e) => setFilterText(e.target.value)}
-                    className="h-9 w-48 rounded-lg border border-border/50 bg-background/50 pl-10 pr-4 text-sm transition-all duration-200 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                      <Search className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Cari dokumentasi..."
+                      value={filterText}
+                      onChange={(e) => setFilterText(e.target.value)}
+                      className="block w-48 pl-10 pr-4 py-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    />
+                    {filterText && (
+                      <button
+                        onClick={() => setFilterText("")}
+                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        title="Hapus pencarian"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
 
               {enableSorting && (
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                    }
-                    className="h-9 px-3"
-                  >
-                    {sortOrder === "asc" ? (
-                      <SortAsc className="h-4 w-4" />
-                    ) : (
-                      <SortDesc className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
+                <button
+                  onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                  className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+                >
+                  {sortOrder === "asc" ? (
+                    <SortAsc className="w-4 h-4" />
+                  ) : (
+                    <SortDesc className="w-4 h-4" />
+                  )}
+                </button>
               )}
 
               <div className="flex items-center gap-1">
-                <Button
-                  variant={viewMode === "grid" ? "default" : "outline"}
-                  size="sm"
+                <button
                   onClick={() => setViewMode("grid")}
-                  className="h-9 px-3"
+                  className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    viewMode === "grid"
+                      ? "text-white bg-blue-700 border border-blue-700"
+                      : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+                  }`}
                 >
-                  <Grid3X3 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === "list" ? "default" : "outline"}
-                  size="sm"
+                  <Grid3X3 className="w-4 h-4" />
+                </button>
+                <button
                   onClick={() => setViewMode("list")}
-                  className="h-9 px-3"
+                  className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    viewMode === "list"
+                      ? "text-white bg-blue-700 border border-blue-700"
+                      : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+                  }`}
                 >
-                  <List className="h-4 w-4" />
-                </Button>
+                  <List className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>
@@ -426,8 +428,8 @@ export default function LaporanDokumentasi({
                   />
                 </div>
 
-                <Card className="relative z-10 h-full border-0 bg-transparent shadow-none">
-                  <CardContent className="p-0">
+                <div className="relative z-10 h-full border-0 bg-transparent shadow-none">
+                  <div className="p-0">
                     {doc.foto && (
                       <div className="relative aspect-video w-full">
                         <Image
@@ -444,14 +446,13 @@ export default function LaporanDokumentasi({
                         >
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-8 w-8 bg-background/90 backdrop-blur-sm transition-all duration-200 hover:border-primary/30 hover:bg-primary/10"
+                              <button
+                                className="inline-flex items-center p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded-lg dark:text-blue-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-300"
                                 onClick={() => handleZoom(imageUrl, doc.judul)}
+                                title="Perbesar gambar"
                               >
-                                <ZoomIn className="h-4 w-4 text-primary" />
-                              </Button>
+                                <ZoomIn className="h-4 w-4" />
+                              </button>
                             </TooltipTrigger>
                             <TooltipContent side="left">
                               <p>Perbesar gambar</p>
@@ -490,28 +491,27 @@ export default function LaporanDokumentasi({
                         )}
                       </div>
                     </div>
-                  </CardContent>
+                  </div>
 
                   {/* Enhanced footer */}
-                  <CardFooter className="border-t border-border/50 bg-muted/30 p-3">
+                  <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-3">
                     <div className="flex w-full items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs">
-                          <CheckCircle className="mr-1 h-3 w-3" />
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                          <CheckCircle className="w-3 h-3 mr-1" />
                           Aktif
-                        </Badge>
+                        </span>
                       </div>
 
                       <div className="flex items-center gap-2">
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-8 px-3 transition-all duration-200 hover:bg-primary/10"
+                            <button
+                              className="inline-flex items-center p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                              title="Lihat detail"
                             >
                               <Eye className="h-4 w-4" />
-                            </Button>
+                            </button>
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>Lihat detail</p>
@@ -520,14 +520,13 @@ export default function LaporanDokumentasi({
 
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button
-                              variant="destructive"
-                              size="sm"
+                            <button
                               onClick={() => handleDelete(doc.id, doc.judul)}
-                              className="h-8 px-3 transition-all duration-200"
+                              className="inline-flex items-center p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300"
+                              title="Hapus dokumentasi"
                             >
                               <Trash2 className="h-4 w-4" />
-                            </Button>
+                            </button>
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>Hapus dokumentasi</p>
@@ -535,8 +534,8 @@ export default function LaporanDokumentasi({
                         </Tooltip>
                       </div>
                     </div>
-                  </CardFooter>
-                </Card>
+                  </div>
+                </div>
               </motion.div>
             );
           })}
@@ -595,22 +594,18 @@ export default function LaporanDokumentasi({
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <motion.button
-                        className="rounded-lg border border-border/50 bg-background/50 p-2 text-muted-foreground transition-all duration-200 hover:bg-background hover:text-foreground"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                      <button
+                        className="inline-flex items-center p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg dark:hover:bg-gray-700 dark:hover:text-gray-300"
                         aria-label="Download gambar"
                       >
                         <Download className="h-4 w-4" />
-                      </motion.button>
-                      <motion.button
-                        className="rounded-lg border border-border/50 bg-background/50 p-2 text-muted-foreground transition-all duration-200 hover:bg-background hover:text-foreground"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                      </button>
+                      <button
+                        className="inline-flex items-center p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg dark:hover:bg-gray-700 dark:hover:text-gray-300"
                         aria-label="Bagikan gambar"
                       >
                         <Share2 className="h-4 w-4" />
-                      </motion.button>
+                      </button>
                     </div>
                   </div>
                 </div>
