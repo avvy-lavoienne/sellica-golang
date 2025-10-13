@@ -442,8 +442,8 @@ export default function SalahRekamPage() {
 
   if (!user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 px-4 py-12 dark:from-gray-900 dark:to-gray-800 sm:px-6 lg:px-8">
-        <div className="w-full max-w-md rounded-xl bg-white p-8 text-center shadow-xl dark:bg-gray-800 animate-in fade-in duration-300">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md rounded-lg bg-white p-8 text-center shadow dark:bg-gray-800">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
             <ExclamationTriangleIcon
               className="h-8 w-8 text-red-600 dark:text-red-400"
@@ -457,7 +457,7 @@ export default function SalahRekamPage() {
             Sesi Anda telah berakhir atau Anda belum login. Silakan login
             kembali untuk melanjutkan.
           </p>
-          <Link href="/" className="hover:text-primary-dark text-primary">
+          <Link href="/" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
             Kembali ke Dashboard
           </Link>
         </div>
@@ -466,9 +466,9 @@ export default function SalahRekamPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 px-4 py-10 dark:from-gray-900 dark:to-gray-800 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 px-4 py-10 dark:bg-gray-900 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <div className="overflow-hidden rounded-xl bg-white shadow-lg dark:bg-gray-800">
+        <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
           <div className="p-6 sm:p-8">
             <SalahRekamHeader />
             <SalahRekamActions
