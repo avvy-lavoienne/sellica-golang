@@ -1,36 +1,91 @@
-"use client"
+"use client";
 
-import { DocumentPlusIcon, PlusIcon } from '@heroicons/react/24/outline';
+import {
+  DocumentPlusIcon,
+  PlusIcon,
+} from "@heroicons/react/24/outline";
 
-interface EmptyStateProps {
-  onAddNew: () => void
+// Flowbite Pro component interfaces (simplified for this implementation)
+// In a real Flowbite Pro setup, these would be imported from "flowbite-react"
+interface ButtonProps {
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  color?: string;
+  size?: string;
+  className?: string;
+  type?: "button" | "submit" | "reset";
 }
 
-export default function EmptyState({ onAddNew }: EmptyStateProps) {
+// Simplified Flowbite Pro Button component (in production, import from "flowbite-react")
+const Button: React.FC<ButtonProps> = ({
+  children,
+  onClick,
+  disabled = false,
+  color = "blue",
+  size = "md",
+  className = "",
+  type = "button"
+}) => {
+  const baseClasses = "inline-flex items-center rounded-lg font-medium focus:outline-none focus:ring-4 transition-all duration-200";
+  const colorClasses = {
+    blue: "bg-blue-700 hover:bg-blue-800 text-white focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800",
+    gray: "bg-gray-600 hover:bg-gray-700 text-white focus:ring-gray-300 dark:bg-gray-700 dark:hover:bg-gray-800 dark:focus:ring-gray-800",
+    red: "bg-red-600 hover:bg-red-700 text-white focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800",
+    green: "bg-green-600 hover:bg-green-700 text-white focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+  };
+  const sizeClasses = {
+    md: "px-5 py-2.5 text-sm",
+    lg: "px-6 py-3 text-base"
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center py-12 px-4 text-center animate-in fade-in duration-300">
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={`${baseClasses} ${colorClasses[color as keyof typeof colorClasses]} ${sizeClasses[size as keyof typeof sizeClasses]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+    >
+      {children}
+    </button>
+  );
+};
+
+interface EmptyStateProps {
+  onAddNew: () => void;
+}
+
+const EmptyState: React.FC<EmptyStateProps> = ({ onAddNew }) => {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 px-6 text-center animate-in fade-in duration-500">
       {/* Icon container with Flowbite styling */}
-      <div className="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-full mb-6">
-        <DocumentPlusIcon className="h-12 w-12 text-primary-600 dark:text-primary-400" aria-hidden="true" />
+      <div className="p-6 bg-primary-50 dark:bg-primary-900/20 rounded-full mb-8 shadow-lg">
+        {/* Flowbite Heroicon integration for document-plus context */}
+        <DocumentPlusIcon className="h-16 w-16 text-primary-600 dark:text-primary-400" />
       </div>
 
-      {/* Empty state message */}
-      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+      {/* Content with Flowbite typography */}
+      <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-3">
         Tidak ada data salah rekam
       </h3>
-      <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md">
+
+      <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md leading-relaxed">
         Belum ada data salah rekam yang diajukan. Silakan ajukan data baru untuk memulai proses perekaman ulang.
       </p>
 
-      {/* Flowbite-style CTA button */}
-      <button
-        type="button"
+      {/* Call-to-action button with Flowbite Button */}
+      <Button
         onClick={onAddNew}
-        className="inline-flex items-center px-5 py-2.5 text-sm font-medium text-center text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 transition-all duration-200 shadow-md hover:shadow-lg"
+        color="blue"
+        size="lg"
+        className="shadow-lg hover:shadow-xl transition-all duration-300"
       >
-        <PlusIcon className="h-5 w-5 mr-2" aria-hidden="true" />
+        {/* Flowbite Heroicon integration for CTA */}
+        <PlusIcon className="h-5 w-5 mr-2" />
         Ajukan Data Baru
-      </button>
+      </Button>
     </div>
-  )
-}
+  );
+};
+
+export default EmptyState;
