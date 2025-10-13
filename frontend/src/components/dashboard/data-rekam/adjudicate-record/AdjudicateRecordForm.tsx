@@ -1,24 +1,175 @@
-"use client"
+"use client";
 
-import type React from "react"
+import React, { useState, useEffect, useCallback } from "react";
+import type { AdjudicateRecordData, AdjudicateRecordFormData } from "@/types/data-rekam/adjudicate-record";
+import { useDebounce } from "@/hooks/use-debounce";
+import {
+  ShieldCheckIcon,
+  UserIcon,
+  DocumentTextIcon,
+  CheckCircleIcon,
+  XMarkIcon,
+  ArrowPathIcon,
+} from "@heroicons/react/24/outline";
 
-import { useState, useEffect, useCallback } from "react"
-import { motion } from "framer-motion"
-import type { AdjudicateRecordData, AdjudicateRecordFormData } from "@/types/data-rekam/adjudicate-record"
-import { useDebounce } from '@/hooks/use-debounce';
-
-interface AdjudicateRecordFormProps {
-  formData: AdjudicateRecordFormData
-  setFormData: React.Dispatch<React.SetStateAction<AdjudicateRecordFormData>>
-  onSubmit: (e: React.FormEvent) => Promise<void>
-  onCancel: () => void
-  loading: boolean
-  isEditing: boolean
-  editData: AdjudicateRecordData | null
-  userRole: string
+// Flowbite Pro component interfaces (simplified for this implementation)
+// In a real Flowbite Pro setup, these would be imported from "flowbite-react"
+interface CardProps {
+  children: React.ReactNode;
+  className?: string;
 }
 
-export default function AdjudicateRecordForm({
+interface ButtonProps {
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  color?: string;
+  size?: string;
+  className?: string;
+  type?: "button" | "submit" | "reset";
+}
+
+interface TextInputProps {
+  id?: string;
+  name?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string;
+  icon?: React.ComponentType<any>;
+  className?: string;
+  disabled?: boolean;
+  maxLength?: number;
+  required?: boolean;
+  type?: string;
+}
+
+interface LabelProps {
+  children?: React.ReactNode;
+  htmlFor?: string;
+  className?: string;
+  value?: string;
+}
+
+interface SelectProps {
+  id?: string;
+  name?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  children: React.ReactNode;
+  className?: string;
+  disabled?: boolean;
+  required?: boolean;
+}
+
+// Simplified Flowbite Pro components (in production, import from "flowbite-react")
+const Card: React.FC<CardProps> = ({ children, className = "" }) => (
+  <div className={`bg-white rounded-lg border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700 ${className}`}>
+    {children}
+  </div>
+);
+
+const Button: React.FC<ButtonProps> = ({
+  children,
+  onClick,
+  disabled = false,
+  color = "blue",
+  size = "md",
+  className = "",
+  type = "button"
+}) => {
+  const baseClasses = "inline-flex items-center rounded-lg font-medium focus:outline-none focus:ring-4 transition-all duration-200";
+  const colorClasses = {
+    blue: "bg-blue-700 hover:bg-blue-800 text-white focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800",
+    gray: "bg-gray-600 hover:bg-gray-700 text-white focus:ring-gray-300 dark:bg-gray-700 dark:hover:bg-gray-800 dark:focus:ring-gray-800",
+    red: "bg-red-600 hover:bg-red-700 text-white focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800",
+    green: "bg-green-600 hover:bg-green-700 text-white focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+  };
+  const sizeClasses = {
+    xs: "px-3 py-2 text-xs",
+    sm: "px-5 py-2.5 text-sm",
+    md: "px-5 py-2.5 text-sm",
+    lg: "px-5 py-3 text-base"
+  };
+
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={`${baseClasses} ${colorClasses[color as keyof typeof colorClasses]} ${sizeClasses[size as keyof typeof sizeClasses]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+    >
+      {children}
+    </button>
+  );
+};
+
+const TextInput: React.FC<TextInputProps> = ({
+  value,
+  onChange,
+  placeholder = "",
+  icon: Icon,
+  className = "",
+  disabled = false,
+  maxLength,
+  required = false,
+  type = "text"
+}) => (
+  <div className={`relative ${className}`}>
+    {Icon && (
+      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+        <Icon className="h-5 w-5 text-gray-400" />
+      </div>
+    )}
+    <input
+      type={type}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      disabled={disabled}
+      maxLength={maxLength}
+      required={required}
+      className={`block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 pl-10 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500 ${disabled ? 'opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-600' : ''}`}
+    />
+  </div>
+);
+
+const Label: React.FC<LabelProps> = ({ children, htmlFor, className = "", value }) => (
+  <label htmlFor={htmlFor} className={`mb-2 block text-sm font-medium text-gray-900 dark:text-white ${className}`}>
+    {value || children}
+  </label>
+);
+
+const Select: React.FC<SelectProps> = ({
+  value,
+  onChange,
+  children,
+  className = "",
+  disabled = false,
+  required = false
+}) => (
+  <select
+    value={value}
+    onChange={onChange}
+    disabled={disabled}
+    required={required}
+    className={`block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500 ${disabled ? 'opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-600' : ''} ${className}`}
+  >
+    {children}
+  </select>
+);
+
+interface AdjudicateRecordFormProps {
+  formData: AdjudicateRecordFormData;
+  setFormData: React.Dispatch<React.SetStateAction<AdjudicateRecordFormData>>;
+  onSubmit: (e: React.FormEvent) => Promise<void>;
+  onCancel: () => void;
+  loading: boolean;
+  isEditing: boolean;
+  editData: AdjudicateRecordData | null;
+  userRole: string;
+}
+
+const AdjudicateRecordForm: React.FC<AdjudicateRecordFormProps> = ({
   formData,
   setFormData,
   onSubmit,
@@ -27,16 +178,19 @@ export default function AdjudicateRecordForm({
   isEditing,
   editData,
   userRole,
-}: AdjudicateRecordFormProps) {
-  const [activeSection, setActiveSection] = useState<string>("adjudicate")
+}) => {
+  // Core state for form navigation and validation
+  const [activeSection, setActiveSection] = useState<string>("adjudicate");
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Debounced search for potential future use
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  // Form input change handler with validation
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
-    // Restrict users from editing certain fields
+    // Permission-based field restrictions
     if (
       userRole === "user" &&
       ["estimasi_tanggal_perekaman", "is_ready_to_record"].includes(name)
@@ -44,259 +198,230 @@ export default function AdjudicateRecordForm({
       return;
     }
 
+    // NIK validation - only digits allowed
     if (name === "nik_adjudicate" && value && !/^\d*$/.test(value)) {
-      return; // Only allow digits for NIK fields
+      return;
     }
 
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  }, [userRole, setFormData]);
 
+  // Form sections with Flowbite-compatible navigation
   const sections = [
     {
       id: "adjudicate",
       title: "Data Adjudicate",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-          />
-        </svg>
-      ),
+      icon: ShieldCheckIcon, // Flowbite Heroicon integration
+      description: "Informasi adjudicate yang akan direkam"
     },
     {
       id: "pengaju",
       title: "Data Pengaju",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-          />
-        </svg>
-      ),
+      icon: UserIcon, // Flowbite Heroicon integration
+      description: "Informasi pengaju permohonan"
     },
     {
       id: "detail",
       title: "Detail Pengajuan",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-          />
-        </svg>
-      ),
+      icon: DocumentTextIcon, // Flowbite Heroicon integration
+      description: "Detail permohonan dan status"
     },
-  ]
+  ];
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-      <div className="flex flex-col md:flex-row">
-        {/* Sidebar Navigation */}
-        <div className="w-full md:w-64 bg-gray-50 dark:bg-gray-900 p-4">
-          <div className="space-y-1">
-            {sections.map((section) => (
-              <button
-                key={section.id}
-                onClick={() => setActiveSection(section.id)}
-                className={`w-full flex items-center px-4 py-3 rounded-lg text-left transition-colors duration-200 ${
-                  activeSection === section.id
-                    ? "bg-primary-light/20 text-primary dark:bg-primary-dark/30 dark:text-primary-light"
-                    : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-                }`}
-              >
-                <span className="mr-3">{section.icon}</span>
-                <span className="font-medium">{section.title}</span>
-                {activeSection === section.id && (
-                  <span className="ml-auto">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path
-                        fillRule="evenodd"
-                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </span>
-                )}
-              </button>
-            ))}
+    <Card className="w-full overflow-hidden">
+      <div className="flex flex-col md:flex-row min-h-[600px]">
+        {/* Sidebar Navigation - Flowbite-style navigation */}
+        <div className="w-full md:w-80 bg-gray-50 dark:bg-gray-900 p-6 border-r border-gray-200 dark:border-gray-700">
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Formulir Adjudicate Record
+            </h3>
+            {sections.map((section) => {
+              const IconComponent = section.icon;
+              const isActive = activeSection === section.id;
+
+              return (
+                <button
+                  key={section.id}
+                  onClick={() => setActiveSection(section.id)}
+                  className={`w-full flex items-start p-4 rounded-lg text-left transition-all duration-200 ${
+                    isActive
+                      ? "bg-blue-50 border border-blue-200 dark:bg-blue-900/30 dark:border-blue-700"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-800 border border-transparent"
+                  }`}
+                >
+                  <div className={`p-2 rounded-lg mr-3 ${isActive ? 'bg-blue-100 dark:bg-blue-800' : 'bg-gray-200 dark:bg-gray-700'}`}>
+                    <IconComponent className={`h-5 w-5 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}`} />
+                  </div>
+                  <div className="flex-1">
+                    <div className={`font-medium ${isActive ? 'text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-gray-100'}`}>
+                      {section.title}
+                    </div>
+                    <div className={`text-sm mt-1 ${isActive ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'}`}>
+                      {section.description}
+                    </div>
+                  </div>
+                  {isActive && (
+                    <div className="ml-2">
+                      <CheckCircleIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Form Content */}
+        {/* Form Content Area */}
         <div className="flex-1 p-6">
           <form onSubmit={onSubmit} className="space-y-6">
             {/* Data Adjudicate Section */}
             {activeSection === "adjudicate" && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
-                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 flex items-center">
-                  <span className="bg-primary-light/20 dark:bg-primary-dark/30 p-1.5 rounded-md mr-2">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-primary dark:text-primary-light"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                      />
-                    </svg>
-                  </span>
-                  Data Adjudicate
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      NIK Adjudicate <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        name="nik_adjudicate"
-                        value={formData.nik_adjudicate ?? ""}
-                        onChange={handleInputChange}
-                        maxLength={16}
-                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
-                        placeholder="Masukkan 16 angka"
-                        required
-                      />
-                      {formData.nik_adjudicate && formData.nik_adjudicate.length < 16 && (
-                        <div className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                          NIK harus 16 digit ({16 - formData.nik_adjudicate.length} digit lagi)
-                        </div>
-                      )}
-                    </div>
+              <div className="space-y-6 animate-in fade-in duration-300">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <ShieldCheckIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Nama Adjudicate <span className="text-red-500">*</span>
-                    </label>
-                    <input
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      Data Adjudicate
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Informasi lengkap adjudicate yang akan direkam
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* NIK Adjudicate - Flowbite TextInput with validation */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="nik_adjudicate" value="NIK Adjudicate" />
+                      <span className="text-red-500 text-sm">*</span>
+                    </div>
+                    <TextInput
+                      id="nik_adjudicate"
+                      name="nik_adjudicate"
                       type="text"
+                      value={formData.nik_adjudicate ?? ""}
+                      onChange={handleInputChange}
+                      maxLength={16}
+                      placeholder="Masukkan 16 digit NIK"
+                      required
+                      className="w-full"
+                    />
+                    {formData.nik_adjudicate && formData.nik_adjudicate.length < 16 && (
+                      <div className="text-sm text-amber-600 dark:text-amber-400 flex items-center space-x-1">
+                        <span>NIK harus 16 digit</span>
+                        <span className="font-medium">
+                          ({16 - formData.nik_adjudicate.length} digit lagi)
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Nama Adjudicate - Flowbite TextInput */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="nama_adjudicate" value="Nama Adjudicate" />
+                      <span className="text-red-500 text-sm">*</span>
+                    </div>
+                    <TextInput
+                      id="nama_adjudicate"
                       name="nama_adjudicate"
+                      type="text"
                       value={formData.nama_adjudicate ?? ""}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
+                      placeholder="Masukkan nama lengkap"
                       required
+                      className="w-full"
                     />
                   </div>
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {/* Data Pengaju Section */}
             {activeSection === "pengaju" && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
-                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 flex items-center">
-                  <span className="bg-primary-light/20 dark:bg-primary-dark/30 p-1.5 rounded-md mr-2">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-primary dark:text-primary-light"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
-                  </span>
-                  Data Pengaju
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      NIK Pengaju
-                    </label>
-                    <input
-                      type="text"
-                      name="nik_pengaju"
-                      value={formData.nik_pengaju ?? ""}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400"
-                      readOnly
-                    />
+              <div className="space-y-6 animate-in fade-in duration-300">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <UserIcon className="h-6 w-6 text-green-600 dark:text-green-400" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Nama Pengaju
-                    </label>
-                    <input
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      Data Pengaju
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Informasi pengaju permohonan (readonly)
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* NIK Pengaju - Readonly Flowbite TextInput */}
+                  <div className="space-y-2">
+                    <Label htmlFor="nik_pengaju" value="NIK Pengaju" />
+                    <TextInput
+                      id="nik_pengaju"
+                      name="nik_pengaju"
                       type="text"
+                      value={formData.nik_pengaju ?? ""}
+                      onChange={() => {}} // No-op for readonly
+                      disabled
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Nama Pengaju - Readonly Flowbite TextInput */}
+                  <div className="space-y-2">
+                    <Label htmlFor="nama_pengaju" value="Nama Pengaju" />
+                    <TextInput
+                      id="nama_pengaju"
                       name="nama_pengaju"
+                      type="text"
                       value={formData.nama_pengaju ?? ""}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400"
-                      readOnly
+                      onChange={() => {}} // No-op for readonly
+                      disabled
+                      className="w-full"
                     />
                   </div>
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {/* Detail Pengajuan Section */}
             {activeSection === "detail" && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
-                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 flex items-center">
-                  <span className="bg-primary-light/20 dark:bg-primary-dark/30 p-1.5 rounded-md mr-2">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-primary dark:text-primary-light"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </span>
-                  Detail Pengajuan
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-6 animate-in fade-in duration-300">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                    <DocumentTextIcon className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                  </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Jenis Eksepsi <span className="text-red-500">*</span>
-                    </label>
-                    <select
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      Detail Pengajuan
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Detail permohonan dan status perekaman
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Jenis Eksepsi - Flowbite Select */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="jenis_eksepsi" value="Jenis Eksepsi" />
+                      <span className="text-red-500 text-sm">*</span>
+                    </div>
+                    <Select
+                      id="jenis_eksepsi"
                       name="jenis_eksepsi"
                       value={formData.jenis_eksepsi ?? ""}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
                       required
+                      className="w-full"
                     >
                       <option value="" disabled>
                         Pilih Jenis Eksepsi
@@ -304,43 +429,51 @@ export default function AdjudicateRecordForm({
                       <option value="eksepsi sidik jari">Eksepsi Sidik Jari</option>
                       <option value="eksepsi iris mata">Eksepsi Iris Mata</option>
                       <option value="eksepsi total">Eksepsi Total</option>
-                    </select>
+                    </Select>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Tanggal Pengajuan <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="date"
+
+                  {/* Tanggal Pengajuan - Flowbite date input */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="tanggal_pengajuan" value="Tanggal Pengajuan" />
+                      <span className="text-red-500 text-sm">*</span>
+                    </div>
+                    <TextInput
+                      id="tanggal_pengajuan"
                       name="tanggal_pengajuan"
+                      type="date"
                       value={formData.tanggal_pengajuan ?? ""}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
                       required
+                      className="w-full"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Estimasi Tanggal Perekaman
-                    </label>
-                    <input
-                      type="date"
+
+                  {/* Estimasi Tanggal Perekaman - Permission-based */}
+                  <div className="space-y-2">
+                    <Label htmlFor="estimasi_tanggal_perekaman" value="Estimasi Tanggal Perekaman" />
+                    <TextInput
+                      id="estimasi_tanggal_perekaman"
                       name="estimasi_tanggal_perekaman"
+                      type="date"
                       value={formData.estimasi_tanggal_perekaman || ""}
                       onChange={handleInputChange}
-                      className={
-                        ["admin", "superuser"].includes(userRole)
-                          ? "w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
-                          : "w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400"
-                      }
                       disabled={!["admin", "superuser"].includes(userRole)}
+                      className="w-full"
                     />
+                    {!["admin", "superuser"].includes(userRole) && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Hanya admin yang dapat mengubah estimasi tanggal
+                      </p>
+                    )}
                   </div>
                 </div>
 
+                {/* Status Checkbox - Admin only */}
                 {["admin", "superuser"].includes(userRole) && (
-                  <div className="mt-4">
-                    <label className="flex items-center">
+                  <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <Label value="Status Perekaman" />
+                    <label className="flex items-center space-x-3 cursor-pointer">
                       <input
                         type="checkbox"
                         name="is_ready_to_record"
@@ -351,71 +484,63 @@ export default function AdjudicateRecordForm({
                             is_ready_to_record: e.target.checked,
                           }))
                         }
-                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                       />
-                      <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Selesai</span>
+                      <span className="text-sm text-gray-900 dark:text-white font-medium">
+                        Tandai sebagai siap direkam
+                      </span>
                     </label>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      Centang jika data adjudicate sudah lengkap dan siap untuk proses perekaman
+                    </p>
                   </div>
                 )}
-              </motion.div>
+              </div>
             )}
 
-            {/* Form Actions */}
-            <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <motion.button
+            {/* Form Actions - Flowbite Button components */}
+            <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <Button
                 type="button"
                 onClick={onCancel}
-                className="px-6 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                color="gray"
+                size="md"
+                className="w-full sm:w-auto"
               >
+                <XMarkIcon className="h-4 w-4 mr-2" />
                 Batal
-              </motion.button>
-              <motion.button
+              </Button>
+
+              <Button
                 type="submit"
                 disabled={loading}
-                className={`px-6 py-2.5 rounded-lg text-white ${
-                  loading
-                    ? "bg-primary/70 cursor-not-allowed"
-                    : "bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-offset-gray-800"
-                }`}
-                whileHover={loading ? {} : { scale: 1.02 }}
-                whileTap={loading ? {} : { scale: 0.98 }}
+                color="blue"
+                size="md"
+                className="w-full sm:w-auto"
               >
                 {loading ? (
-                  <div className="flex items-center">
-                    <svg
-                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
+                  <>
+                    <ArrowPathIcon className="h-4 w-4 mr-2 animate-spin" />
                     Menyimpan...
-                  </div>
+                  </>
                 ) : isEditing ? (
-                  "Perbarui Data"
+                  <>
+                    <CheckCircleIcon className="h-4 w-4 mr-2" />
+                    Perbarui Data
+                  </>
                 ) : (
-                  "Ajukan Data"
+                  <>
+                    <DocumentTextIcon className="h-4 w-4 mr-2" />
+                    Ajukan Data
+                  </>
                 )}
-              </motion.button>
+              </Button>
             </div>
           </form>
         </div>
       </div>
-    </div>
-  )
-}
+    </Card>
+  );
+};
+
+export default AdjudicateRecordForm;
