@@ -15,6 +15,11 @@ interface BreadcrumbProps {
   className?: string;
 }
 
+interface CardProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
 // Simplified Flowbite Pro Breadcrumb component (in production, import from "flowbite-react")
 const Breadcrumb: React.FC<BreadcrumbProps> = ({ items, className = "" }) => (
   <nav className={`flex ${className}`} aria-label="Breadcrumb">
@@ -41,6 +46,13 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ items, className = "" }) => (
   </nav>
 );
 
+// Simplified Flowbite Pro Card component (in production, import from "flowbite-react")
+const Card: React.FC<CardProps> = ({ children, className = "" }) => (
+  <div className={`bg-white rounded-lg border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700 ${className}`}>
+    {children}
+  </div>
+);
+
 const SalahRekamHeader: React.FC = () => {
   return (
     <div className="mb-8">
@@ -54,22 +66,34 @@ const SalahRekamHeader: React.FC = () => {
         className="mb-4"
       />
 
-      {/* Page header with Flowbite Card styling */}
-      <div className="flex items-start gap-4">
-        {/* Icon container with Flowbite styling */}
-        <div className="p-4 bg-primary-100 dark:bg-primary-900/30 rounded-lg shadow-lg">
-          {/* Flowbite Heroicon integration for document/data context */}
-          <DocumentTextIcon className="h-8 w-8 text-primary-600 dark:text-primary-400" />
-        </div>
+      <div className="text-center">
+        <div className="inline-block animate-in fade-in slide-in-from-bottom-4 duration-700">
+          {/* Hero Section with Flowbite Card styling */}
+          <Card className="p-8 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 border-0 shadow-xl">
+            <div className="flex items-center justify-center mb-6">
+              {/* Flowbite Heroicon integration for header icon */}
+              <div className="p-4 bg-blue-100 dark:bg-blue-900/30 rounded-full shadow-lg">
+                <DocumentTextIcon className="h-12 w-12 text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
 
-        {/* Title and description with Flowbite typography */}
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">
-            Data Salah Rekam
-          </h1>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 sm:text-base">
-            Kelola data salah rekam KTP untuk memastikan keakuratan data kependudukan
-          </p>
+            {/* Main heading with Flowbite typography */}
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Data Salah Rekam
+            </h1>
+
+            {/* Description with Flowbite text styling */}
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
+              Kelola data salah rekam KTP untuk memastikan keakuratan data kependudukan
+            </p>
+
+            {/* Decorative elements with Flowbite styling */}
+            <div className="mt-6 flex justify-center space-x-2">
+              <div className="h-1 w-12 bg-blue-500 rounded-full"></div>
+              <div className="h-1 w-8 bg-blue-400 rounded-full"></div>
+              <div className="h-1 w-4 bg-blue-300 rounded-full"></div>
+            </div>
+          </Card>
         </div>
       </div>
     </div>
