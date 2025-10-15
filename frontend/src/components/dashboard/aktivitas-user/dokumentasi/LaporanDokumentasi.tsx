@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useCallback } from "react";
 import { Button, TextInput, Badge, Modal, Card } from "flowbite-react";
-import { HiEye, HiTrash, HiSearch, HiSortAscending, HiSortDescending, HiDownload, HiShare } from "react-icons/hi";
+import { HiEye, HiTrash, HiSearch, HiSortAscending, HiSortDescending, HiDownload, HiShare, HiX } from "react-icons/hi";
 import Image from "next/image";
 import { supabase } from "@/lib/conn/supabaseClient";
 import type { Dokumentasi } from "@/app/(protected)/aktivitas-user/dokumentasi/page";
@@ -13,8 +13,6 @@ interface LaporanDokumentasiProps {
   dokumentasiList: Dokumentasi[];
   /** Delete handler function */
   onDelete: (id: string) => void;
-  /** Custom className */
-  className?: string;
   /** Enable filtering */
   enableFiltering?: boolean;
   /** Enable sorting */
@@ -24,22 +22,42 @@ interface LaporanDokumentasiProps {
 export default function LaporanDokumentasi({
   dokumentasiList,
   onDelete,
-  className,
   enableFiltering = true,
   enableSorting = true,
 }: LaporanDokumentasiProps) {
   // State management
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedDoc, setSelectedDoc] = useState<Dokumentasi | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [filterText, setFilterText] = useState("");
 
   const getImageUrl = (fileName: string | null): string => {
-    if (!fileName) return "/placeholder.svg";
-    const { data } = supabase.storage
-      .from("dokumentasi-foto")
-      .getPublicUrl(fileName);
-    return data.publicUrl || "/placeholder.svg";
+    if (!fileName) {
+      console.warn("No file name provided for image");
+      return "/placeholder.svg";
+    }
+
+    try {
+      const { data, error } = supabase.storage
+        .from("dokumentasi-foto")
+        .getPublicUrl(fileName);
+
+      if (error) {
+        console.error("Supabase storage error:", error);
+        return "/placeholder.svg";
+      }
+
+      if (!data.publicUrl) {
+        console.warn("No public URL returned from Supabase for file:", fileName);
+        return "/placeholder.svg";
+      }
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error("Unexpected error getting image URL:", error);
+      return "/placeholder.svg";
+    }
   };
 
   // Enhanced date formatting with better error handling
@@ -88,14 +106,16 @@ export default function LaporanDokumentasi({
   }, [dokumentasiList, filterText, sortOrder]);
 
   // Enhanced lightbox functionality
-  const handleZoom = useCallback((imageUrl: string) => {
+  const handleZoom = useCallback((imageUrl: string, doc: Dokumentasi) => {
     setSelectedImage(imageUrl);
+    setSelectedDoc(doc);
     setLightboxOpen(true);
   }, []);
 
   const closeLightbox = useCallback(() => {
     setLightboxOpen(false);
     setSelectedImage(null);
+    setSelectedDoc(null);
   }, []);
 
   // Enhanced delete handler with confirmation
@@ -111,6 +131,34 @@ export default function LaporanDokumentasi({
     },
     [onDelete],
   );
+
+  // Download image handler
+  const handleDownload = useCallback(async () => {
+    if (!selectedImage || !selectedDoc) return;
+
+    try {
+      const response = await fetch(selectedImage);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${selectedDoc.judul.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading image:', error);
+      alert('Gagal mengunduh gambar. Silakan coba lagi.');
+    }
+  }, [selectedImage, selectedDoc]);
+
+  // Share placeholder handler
+  const handleShare = useCallback(() => {
+    if (!selectedDoc) return;
+    console.log('Share functionality placeholder - Document:', selectedDoc.judul);
+    alert('Fitur berbagi akan segera hadir!');
+  }, [selectedDoc]);
 
   return (
     <div className="space-y-6">
@@ -170,13 +218,14 @@ export default function LaporanDokumentasi({
                     src={imageUrl}
                     alt={doc.judul}
                     fill
-                    className="object-cover rounded-t-lg"
+                    className="object-contain rounded-t-lg"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    loading="lazy"
                   />
                   <Button
                     size="sm"
                     className="absolute top-2 right-2"
-                    onClick={() => handleZoom(imageUrl)}
+                    onClick={() => handleZoom(imageUrl, doc)}
                   >
                     <HiEye className="h-4 w-4" />
                   </Button>
@@ -218,27 +267,68 @@ export default function LaporanDokumentasi({
       </div>
 
       {/* Lightbox Modal */}
-      <Modal show={lightboxOpen} onClose={closeLightbox} size="4xl">
+      <Modal show={lightboxOpen} onClose={closeLightbox} size="4xl" dismissible>
         <div className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Preview Dokumentasi</h3>
-          {selectedImage && (
+          {/* Modal Header with Close Button */}
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Preview Dokumentasi
+            </h3>
+            <Button
+              color="blue"
+              size="md"
+              onClick={closeLightbox}
+              className="ml-4"
+            >
+              <HiX className="h-5 w-5 mr-2" />
+              Tutup
+            </Button>
+          </div>
+          {selectedImage && selectedDoc && (
             <div className="space-y-4">
               <div className="relative aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-lg">
                 <Image
                   src={selectedImage}
-                  alt="Preview dokumentasi"
+                  alt={`Preview ${selectedDoc.judul}`}
                   fill
                   className="object-contain"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
                   priority
                 />
               </div>
-              <div className="flex justify-end gap-2">
-                <Button color="gray" size="sm">
+
+              {/* Document Context */}
+              <div className="space-y-3">
+                <div>
+                  <h4 className="text-xl font-bold text-gray-900 dark:text-white">
+                    {selectedDoc.judul}
+                  </h4>
+                  <p className="text-gray-700 dark:text-gray-300 mt-2">
+                    {selectedDoc.keterangan}
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                  <div className="space-y-1">
+                    <p>
+                      <span className="font-medium">Tanggal:</span> {formatDate(selectedDoc.tanggal)}
+                    </p>
+                    {selectedDoc.profiles && (
+                      <p>
+                        <span className="font-medium">Oleh:</span> {selectedDoc.profiles.name}
+                      </p>
+                    )}
+                  </div>
+                  <Badge color="green" size="sm">Aktif</Badge>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <Button color="blue" size="sm" onClick={handleDownload}>
                   <HiDownload className="h-4 w-4 mr-2" />
                   Download
                 </Button>
-                <Button color="gray" size="sm">
+                <Button color="blue" size="sm" onClick={handleShare}>
                   <HiShare className="h-4 w-4 mr-2" />
                   Share
                 </Button>

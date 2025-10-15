@@ -37,6 +37,8 @@ interface InputDokumentasiProps {
   enableDragDrop?: boolean;
   /** Maximum file size in MB */
   maxFileSize?: number;
+  /** Loading state */
+  loading?: boolean;
 }
 
 export default function InputDokumentasi({
@@ -44,6 +46,7 @@ export default function InputDokumentasi({
   className,
   enableDragDrop = true,
   maxFileSize = 5,
+  loading = false,
 }: InputDokumentasiProps) {
   // Initialize with current datetime in WIB
   const getCurrentDateTimeLocal = () => {
@@ -67,7 +70,7 @@ export default function InputDokumentasi({
   const [foto, setFoto] = useState<File | null>(null);
   const [judul, setJudul] = useState("");
   const [keterangan, setKeterangan] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loadingState, setLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
@@ -681,8 +684,8 @@ export default function InputDokumentasi({
 
           {/* Submit Button */}
           <div className="flex justify-end pt-4">
-            <Button type="submit" disabled={loading} size="lg" className="min-w-[200px]">
-              {loading ? (
+            <Button type="submit" disabled={loadingState} size="lg" className="min-w-[200px]">
+              {loadingState ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                   Menyimpan...

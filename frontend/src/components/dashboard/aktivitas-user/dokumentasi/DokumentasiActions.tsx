@@ -30,6 +30,12 @@ interface DokumentasiActionsProps {
   className?: string;
   /** Total items count */
   totalItems?: number;
+  /** Filtered items count */
+  filteredItems?: number;
+  /** Loading state */
+  loading?: boolean;
+  /** Error state */
+  error?: boolean;
   /** Export handler */
   onExport?: () => void;
 }
@@ -43,6 +49,9 @@ export default function DokumentasiActions({
   isRefreshing,
   className,
   totalItems = 0,
+  filteredItems,
+  loading = false,
+  error = false,
   onExport,
 }: DokumentasiActionsProps) {
   const [searchTerm, setSearchTerm] = useState("");
