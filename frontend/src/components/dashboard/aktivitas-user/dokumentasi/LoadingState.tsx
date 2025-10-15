@@ -1,31 +1,35 @@
-import { Skeleton } from "@/components/ui/skeleton"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
+"use client"
+
+import { Card } from "flowbite-react"
 
 export default function LoadingState() {
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
-        <Skeleton className="h-9 w-[180px]" />
+        <div className="h-10 w-[180px] animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700" />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
           <Card key={i} className="overflow-hidden">
-            <CardContent className="p-0">
-              <Skeleton className="h-48 w-full" />
-              <div className="p-4 space-y-3">
-                <Skeleton className="h-5 w-24" />
-                <Skeleton className="h-6 w-full" />
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-3/4" />
-                </div>
+            {/* Image skeleton */}
+            <div className="h-48 w-full animate-pulse bg-gray-200 dark:bg-gray-700" />
+
+            {/* Content skeleton */}
+            <div className="space-y-3 p-4">
+              <div className="h-5 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+              <div className="h-6 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+              <div className="space-y-2">
+                <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
               </div>
-            </CardContent>
-            <CardFooter className="border-t bg-muted/50 p-2 flex justify-end">
-              <Skeleton className="h-9 w-24" />
-            </CardFooter>
+            </div>
+
+            {/* Footer skeleton */}
+            <div className="flex justify-end border-t bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+              <div className="h-9 w-24 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700" />
+            </div>
           </Card>
         ))}
       </div>

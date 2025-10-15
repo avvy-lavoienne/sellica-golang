@@ -2,8 +2,9 @@ import React from 'react';
 import { redirect } from 'next/navigation';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import type { Metadata } from 'next';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'SILPANA Admin Panel - SELLICA',
   description: 'Admin panel untuk mengelola sistem SILPANA',
 };
@@ -48,4 +49,3 @@ export default async function SilpanaProtectedLayout({
   // Use the main SELLICA layout instead of AdminLayout
   return <div className="container mx-auto py-6">{children}</div>;
 }
-

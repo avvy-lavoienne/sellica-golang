@@ -1,43 +1,31 @@
 "use client";
 
-import type React from "react";
-import { useState, useCallback, useMemo, useRef, type FormEvent } from "react";
-import { motion, useReducedMotion } from "framer-motion";
-import { cn } from "@/lib/conn/utils";
+import React, { useState, useCallback, useMemo, useRef, type FormEvent } from "react";
+import { Button, TextInput, Textarea, Card, Label, Badge } from "flowbite-react";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
 import imageCompression from "browser-image-compression";
 import type { Dokumentasi } from "@/app/(protected)/aktivitas-user/dokumentasi/page";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  Loader2,
-  Upload,
-  X,
-  Calendar,
   FileText,
-  Clock,
-  Image as ImageIcon,
+  Sparkles,
   CheckCircle,
   AlertCircle,
-  Info,
-  Sparkles,
-  Target,
+  Clock,
+  Calendar,
+  ImageIcon,
   Camera,
-  Download,
-  RotateCw,
+  Upload,
+  X,
+  Info,
+  Loader2
 } from "lucide-react";
-import Image from "next/image";
+
+// Utility function for className merging
+function cn(...classes: (string | boolean | undefined)[]) {
+  return classes.filter(Boolean).join(" ");
+}
 
 // Enhanced interface with enterprise-grade features
 interface InputDokumentasiProps {
@@ -45,14 +33,6 @@ interface InputDokumentasiProps {
   onAddDokumentasi: (dokumentasi: Dokumentasi) => void;
   /** Custom className */
   className?: string;
-  /** Animation delay */
-  delay?: number;
-  /** Disable animations for accessibility */
-  disableAnimations?: boolean;
-  /** Loading state */
-  loading?: boolean;
-  /** Error state */
-  error?: boolean;
   /** Enable drag and drop */
   enableDragDrop?: boolean;
   /** Maximum file size in MB */
@@ -62,10 +42,6 @@ interface InputDokumentasiProps {
 export default function InputDokumentasi({
   onAddDokumentasi,
   className,
-  delay = 0.5,
-  disableAnimations = false,
-  loading: externalLoading = false,
-  error = false,
   enableDragDrop = true,
   maxFileSize = 5,
 }: InputDokumentasiProps) {
@@ -84,7 +60,7 @@ export default function InputDokumentasi({
     };
   };
 
-  // Enhanced state management for enterprise UX
+  // Enhanced state management
   const initialDateTime = getCurrentDateTimeLocal();
   const [tanggalDate, setTanggalDate] = useState(initialDateTime.date);
   const [tanggalTime, setTanggalTime] = useState(initialDateTime.time);
@@ -96,51 +72,12 @@ export default function InputDokumentasi({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<
-    Record<string, string>
-  >({});
-  const [isHovered, setIsHovered] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [formTouched, setFormTouched] = useState(false);
 
   // Refs for enhanced functionality
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
-
-  // Theme and accessibility
-  const prefersReducedMotion = useReducedMotion();
-  const shouldAnimate = !disableAnimations && !prefersReducedMotion;
-
-  // Enhanced color system for glass-morphism effects
-  const colorSchemes = useMemo(
-    () => ({
-      primary: {
-        bg: "bg-primary/5",
-        text: "text-primary",
-        accent: "text-primary",
-        bgClass: "bg-primary/5",
-        borderClass: "border-primary/20",
-        glowClass: "shadow-primary/20",
-      },
-      green: {
-        bg: "bg-green-50 dark:bg-green-900/20",
-        text: "text-green-700 dark:text-green-300",
-        accent: "text-green-600 dark:text-green-400",
-        bgClass: "bg-green-50 dark:bg-green-900/20",
-        borderClass: "border-green-200 dark:border-green-800",
-        glowClass: "shadow-green-500/20",
-      },
-      blue: {
-        bg: "bg-blue-50 dark:bg-blue-900/20",
-        text: "text-blue-700 dark:text-blue-300",
-        accent: "text-blue-600 dark:text-blue-400",
-        bgClass: "bg-blue-50 dark:bg-blue-900/20",
-        borderClass: "border-blue-200 dark:border-blue-800",
-        glowClass: "shadow-blue-500/20",
-      },
-    }),
-    [],
-  );
 
   // Enhanced validation logic
   const validateForm = useCallback(() => {
@@ -225,8 +162,7 @@ export default function InputDokumentasi({
     };
 
     try {
-      const compressedFile = await imageCompression(file, options);
-      return compressedFile;
+      return await imageCompression(file, options);
     } catch (error) {
       throw error;
     }
@@ -243,12 +179,7 @@ export default function InputDokumentasi({
         return `Ukuran file maksimal ${maxFileSize}MB`;
       }
 
-      const allowedTypes = [
-        "image/jpeg",
-        "image/png",
-        "image/gif",
-        "image/webp",
-      ];
+      const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
       if (!allowedTypes.includes(file.type)) {
         return "Format file tidak didukung. Gunakan JPG, PNG, GIF, atau WebP";
       }
@@ -278,7 +209,6 @@ export default function InputDokumentasi({
         const objectUrl = URL.createObjectURL(file);
         setPreviewUrl(objectUrl);
 
-        // Clear any previous file validation errors
         setValidationErrors((prev) => {
           const newErrors = { ...prev };
           delete newErrors.foto;
@@ -339,7 +269,6 @@ export default function InputDokumentasi({
         const objectUrl = URL.createObjectURL(file);
         setPreviewUrl(objectUrl);
 
-        // Clear any previous file validation errors
         setValidationErrors((prev) => {
           const newErrors = { ...prev };
           delete newErrors.foto;
@@ -362,14 +291,12 @@ export default function InputDokumentasi({
     setFoto(null);
     setPreviewUrl(null);
 
-    // Clear file validation errors
     setValidationErrors((prev) => {
       const newErrors = { ...prev };
       delete newErrors.foto;
       return newErrors;
     });
 
-    // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -396,7 +323,6 @@ export default function InputDokumentasi({
       e.preventDefault();
       setFormTouched(true);
 
-      // Validate form before submission
       if (!validateForm()) {
         toast.error("Mohon perbaiki kesalahan pada form");
         return;
@@ -405,16 +331,16 @@ export default function InputDokumentasi({
       setLoading(true);
 
       try {
-        // Combine date and time with explicit WIB timezone (+07:00)
         const tanggal = `${tanggalDate}T${tanggalTime}+07:00`;
 
-        // Get current user
         const {
           data: { user },
           error: userError,
         } = await supabase.auth.getUser();
-        if (userError) throw userError;
-        if (!user) throw new Error("Pengguna tidak ditemukan");
+
+        if (userError || !user) {
+          throw new Error("Pengguna tidak ditemukan");
+        }
 
         let fotoUrl = null;
         if (foto) {
@@ -426,7 +352,10 @@ export default function InputDokumentasi({
             .from("dokumentasi-foto")
             .upload(fileName, compressedImage);
 
-          if (uploadError) throw uploadError;
+          if (uploadError) {
+            throw uploadError;
+          }
+
           fotoUrl = fileName;
 
           setUploadProgress(100);
@@ -436,7 +365,6 @@ export default function InputDokumentasi({
           }, 500);
         }
 
-        // Insert into database
         const { data, error } = await supabase
           .from("dokumentasi")
           .insert([
@@ -451,7 +379,9 @@ export default function InputDokumentasi({
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          throw error;
+        }
 
         toast.success("Dokumentasi berhasil ditambahkan");
         onAddDokumentasi(data);
@@ -474,555 +404,285 @@ export default function InputDokumentasi({
         setIsUploading(false);
       }
     },
-    [
-      validateForm,
-      tanggalDate,
-      tanggalTime,
-      foto,
-      judul,
-      keterangan,
-      onAddDokumentasi,
-      simulateUploadProgress,
-      compressImage,
-    ],
+    [validateForm, tanggalDate, tanggalTime, foto, judul, keterangan, onAddDokumentasi, simulateUploadProgress, compressImage],
   );
 
-  // Animation variants for enterprise-grade micro-interactions
-  const containerVariants = {
-    hidden: {
-      opacity: 0,
-      y: 20,
-      scale: 0.98,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        duration: shouldAnimate ? 0.6 : 0,
-        ease: "easeOut" as const,
-        delay: delay,
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 12 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: shouldAnimate ? 0.4 : 0,
-        ease: "easeOut" as const,
-      },
-    },
-  };
-
   return (
-    <TooltipProvider>
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className={cn("space-y-6", className)}
-        onHoverStart={() => setIsHovered(true)}
-        onHoverEnd={() => setIsHovered(false)}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-      >
+    <div className={cn("space-y-6", className)}>
+      {/* Simple Header */}
+      <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/20">
+          <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Tambah Dokumentasi Baru
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Form Input</p>
+        </div>
+      </div>
+
+      {/* Form Card */}
+      <Card className="border-gray-200 dark:border-gray-700">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Enhanced Header Card */}
-          <motion.div
-            variants={itemVariants}
-            className="relative overflow-hidden rounded-xl border border-border/50 bg-background/80 p-6 shadow-lg backdrop-blur-sm"
-          >
-            {/* Background decoration */}
-            <div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-              <div
-                className={cn(
-                  "absolute -right-8 -top-8 h-24 w-24 rounded-full blur-2xl",
-                  colorSchemes.blue.bgClass,
-                  "opacity-20",
-                )}
-              />
+          {/* Date & Time and Title Fields */}
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Date & Time Field */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="tanggal" className="text-sm font-medium">
+                  Tanggal & Waktu
+                </Label>
+                <span className="flex items-center gap-1 text-xs text-gray-500">
+                  <Clock className="h-3 w-3" />
+                  WIB
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <TextInput
+                  id="tanggal-date"
+                  type="date"
+                  required
+                  value={tanggalDate}
+                  onChange={(e) => {
+                    setTanggalDate(e.target.value);
+                    setFormTouched(true);
+                  }}
+                  color={validationErrors.tanggal ? "failure" : "gray"}
+                />
+                <TextInput
+                  id="tanggal-time"
+                  type="time"
+                  step="1"
+                  required
+                  value={tanggalTime}
+                  onChange={(e) => {
+                    setTanggalTime(e.target.value);
+                    setFormTouched(true);
+                  }}
+                  color={validationErrors.waktu ? "failure" : "gray"}
+                />
+              </div>
+
+              {(validationErrors.tanggal || validationErrors.waktu) && (
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  {validationErrors.tanggal || validationErrors.waktu}
+                </p>
+              )}
             </div>
 
-            <div className="relative z-10 flex items-center gap-4">
-              <motion.div
-                className={cn(
-                  "flex h-14 w-14 items-center justify-center rounded-2xl border transition-all duration-200",
-                  colorSchemes.blue.bgClass,
-                  colorSchemes.blue.borderClass,
-                  "group-hover:scale-105 group-hover:shadow-md",
-                )}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <FileText className={cn("h-7 w-7", colorSchemes.blue.accent)} />
-              </motion.div>
+            {/* Title Field */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="judul" className="text-sm font-medium">
+                  Judul Dokumentasi
+                </Label>
+                <span className="text-xs text-gray-500">{judul.length}/100</span>
+              </div>
 
-              <div className="space-y-1">
-                <h3 className="text-xl font-bold text-foreground laptop:text-2xl">
-                  Tambah Dokumentasi Baru
-                </h3>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="gap-1 text-xs">
-                    <Sparkles className="h-3 w-3" />
-                    Form Input
-                  </Badge>
-                  {formTouched &&
-                    Object.keys(validationErrors).length === 0 && (
-                      <Badge
-                        variant="outline"
-                        className="gap-1 text-xs text-green-600"
-                      >
-                        <CheckCircle className="h-3 w-3" />
-                        Valid
-                      </Badge>
-                    )}
-                  {Object.keys(validationErrors).length > 0 && (
-                    <Badge variant="destructive" className="gap-1 text-xs">
-                      <AlertCircle className="h-3 w-3" />
-                      {Object.keys(validationErrors).length} Error
-                    </Badge>
+              <TextInput
+                id="judul"
+                type="text"
+                required
+                value={judul}
+                onChange={(e) => {
+                  setJudul(e.target.value);
+                  validateField("judul", e.target.value);
+                  setFormTouched(true);
+                }}
+                placeholder="Masukkan judul dokumentasi"
+                color={validationErrors.judul ? "failure" : "gray"}
+              />
+
+              {validationErrors.judul && (
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  {validationErrors.judul}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Description Field */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="keterangan" className="text-sm font-medium">
+                Keterangan Dokumentasi
+              </Label>
+              <span className="text-xs text-gray-500">{keterangan.length}/500</span>
+            </div>
+
+            <Textarea
+              id="keterangan"
+              required
+              value={keterangan}
+              onChange={(e) => {
+                setKeterangan(e.target.value);
+                validateField("keterangan", e.target.value);
+                setFormTouched(true);
+              }}
+              rows={4}
+              placeholder="Masukkan keterangan detail dokumentasi..."
+              color={validationErrors.keterangan ? "failure" : "gray"}
+            />
+
+            {validationErrors.keterangan && (
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {validationErrors.keterangan}
+              </p>
+            )}
+          </div>
+
+          {/* File Upload Section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="foto" className="text-sm font-medium">
+                Foto Dokumentasi
+              </Label>
+              <span className="flex items-center gap-1 text-xs text-gray-500">
+                <ImageIcon className="h-3 w-3" />
+                Opsional
+              </span>
+            </div>
+
+            {/* Drag & Drop Zone */}
+            <div
+              ref={dropZoneRef}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={cn(
+                "relative rounded-lg border-2 border-dashed p-6 text-center transition-colors",
+                isDragOver
+                  ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                  : "border-gray-300 bg-gray-50 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700",
+                validationErrors.foto && "border-red-500",
+              )}
+            >
+              <div className="flex flex-col items-center gap-4">
+                <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                  <Camera className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {enableDragDrop
+                      ? "Drag & drop foto atau klik untuk memilih"
+                      : "Klik untuk memilih foto"}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Format: JPG, PNG, GIF, WebP • Maksimal {maxFileSize}MB
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Button
+                    type="button"
+                    outline
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    {foto ? "Ganti Foto" : "Pilih Foto"}
+                  </Button>
+
+                  {foto && (
+                    <Button
+                      type="button"
+                      outline
+                      color="failure"
+                      size="sm"
+                      onClick={clearImage}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
                   )}
                 </div>
-              </div>
-            </div>
-          </motion.div>
 
-          {/* Enhanced Form Card */}
-          <motion.div
-            variants={itemVariants}
-            className="relative overflow-hidden rounded-xl border border-border/50 bg-background/80 shadow-lg backdrop-blur-sm"
-          >
-            {/* Background decoration */}
-            <div className="absolute inset-0 opacity-50">
-              <div
-                className={cn(
-                  "absolute left-1/4 top-1/4 h-32 w-32 rounded-full blur-3xl",
-                  colorSchemes.green.bgClass,
-                  "opacity-20",
-                )}
-              />
-              <div
-                className={cn(
-                  "absolute bottom-1/4 right-1/4 h-24 w-24 rounded-full blur-2xl",
-                  colorSchemes.blue.bgClass,
-                  "opacity-15",
-                )}
-              />
-            </div>
+                <input
+                  ref={fileInputRef}
+                  id="foto"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
 
-            <div className="relative z-10 space-y-6 p-6">
-              {/* Enhanced Date & Time and Title Fields */}
-              <div className="grid gap-6 md:grid-cols-2 laptop:gap-8">
-                {/* Enhanced Date & Time Field */}
-                <motion.div variants={itemVariants} className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Label
-                      htmlFor="tanggal"
-                      className="text-sm font-semibold text-foreground"
-                    >
-                      Tanggal & Waktu
-                    </Label>
-                    <Badge variant="outline" className="text-xs">
-                      <Clock className="mr-1 h-3 w-3" />
-                      WIB
-                    </Badge>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="group relative">
-                      <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
-                      <Input
-                        id="tanggal-date"
-                        type="date"
-                        required
-                        value={tanggalDate}
-                        onChange={(e) => {
-                          setTanggalDate(e.target.value);
-                          setFormTouched(true);
-                        }}
-                        className={cn(
-                          "pl-10 transition-all duration-200",
-                          "border-border/50 bg-background/50 backdrop-blur-sm",
-                          "focus:border-primary/50 focus:bg-background focus:shadow-lg focus:shadow-primary/10",
-                          "hover:border-primary/30 hover:bg-background/80",
-                          validationErrors.tanggal &&
-                            "border-destructive/50 focus:border-destructive/50",
-                        )}
-                        style={{ colorScheme: "normal" }}
-                      />
-                    </div>
-
-                    <div className="group relative">
-                      <Clock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
-                      <Input
-                        id="tanggal-time"
-                        type="time"
-                        step="1"
-                        required
-                        value={tanggalTime}
-                        onChange={(e) => {
-                          setTanggalTime(e.target.value);
-                          setFormTouched(true);
-                        }}
-                        className={cn(
-                          "pl-10 transition-all duration-200",
-                          "border-border/50 bg-background/50 backdrop-blur-sm",
-                          "focus:border-primary/50 focus:bg-background focus:shadow-lg focus:shadow-primary/10",
-                          "hover:border-primary/30 hover:bg-background/80",
-                          validationErrors.waktu &&
-                            "border-destructive/50 focus:border-destructive/50",
-                        )}
-                        style={{ colorScheme: "normal" }}
-                      />
-                    </div>
-                  </div>
-
-                  {(validationErrors.tanggal || validationErrors.waktu) && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center gap-2 text-sm text-destructive"
-                    >
-                      <AlertCircle className="h-4 w-4" />
-                      <span>
-                        {validationErrors.tanggal || validationErrors.waktu}
-                      </span>
-                    </motion.div>
-                  )}
-                </motion.div>
-
-                {/* Enhanced Title Field */}
-                <motion.div variants={itemVariants} className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label
-                      htmlFor="judul"
-                      className="text-sm font-semibold text-foreground"
-                    >
-                      Judul Dokumentasi
-                    </Label>
-                    <span className="text-xs text-muted-foreground">
-                      {judul.length}/100
+                {foto && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span className="max-w-[200px] truncate">{foto.name}</span>
+                    <span className="text-xs">
+                      ({(foto.size / 1024 / 1024).toFixed(2)}MB)
                     </span>
                   </div>
-
-                  <div className="group relative">
-                    <Input
-                      id="judul"
-                      type="text"
-                      required
-                      value={judul}
-                      onChange={(e) => {
-                        setJudul(e.target.value);
-                        validateField("judul", e.target.value);
-                        setFormTouched(true);
-                      }}
-                      placeholder="Masukkan judul dokumentasi"
-                      className={cn(
-                        "transition-all duration-200",
-                        "border-border/50 bg-background/50 backdrop-blur-sm",
-                        "focus:border-primary/50 focus:bg-background focus:shadow-lg focus:shadow-primary/10",
-                        "hover:border-primary/30 hover:bg-background/80",
-                        validationErrors.judul &&
-                          "border-destructive/50 focus:border-destructive/50",
-                      )}
-                    />
-                  </div>
-
-                  {validationErrors.judul && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center gap-2 text-sm text-destructive"
-                    >
-                      <AlertCircle className="h-4 w-4" />
-                      <span>{validationErrors.judul}</span>
-                    </motion.div>
-                  )}
-                </motion.div>
+                )}
               </div>
+            </div>
 
-              {/* Enhanced Description Field */}
-              <motion.div variants={itemVariants} className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label
-                    htmlFor="keterangan"
-                    className="text-sm font-semibold text-foreground"
+            {validationErrors.foto && (
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {validationErrors.foto}
+              </p>
+            )}
+
+            {/* Image Preview */}
+            {previewUrl && (
+              <Card className="overflow-hidden">
+                <div className="relative aspect-video w-full">
+                  <Image
+                    src={previewUrl}
+                    alt="Preview dokumentasi"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  />
+                  <button
+                    type="button"
+                    onClick={clearImage}
+                    className="absolute right-2 top-2 rounded-full bg-red-500 p-1.5 text-white shadow-lg transition-all hover:bg-red-600"
                   >
-                    Keterangan Dokumentasi
-                  </Label>
-                  <span className="text-xs text-muted-foreground">
-                    {keterangan.length}/500
-                  </span>
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
+              </Card>
+            )}
 
-                <div className="group relative">
-                  <Textarea
-                    id="keterangan"
-                    required
-                    value={keterangan}
-                    onChange={(e) => {
-                      setKeterangan(e.target.value);
-                      validateField("keterangan", e.target.value);
-                      setFormTouched(true);
-                    }}
-                    rows={4}
-                    placeholder="Masukkan keterangan detail dokumentasi..."
-                    className={cn(
-                      "min-h-[120px] resize-none transition-all duration-200",
-                      "border-border/50 bg-background/50 backdrop-blur-sm",
-                      "focus:border-primary/50 focus:bg-background focus:shadow-lg focus:shadow-primary/10",
-                      "hover:border-primary/30 hover:bg-background/80",
-                      validationErrors.keterangan &&
-                        "border-destructive/50 focus:border-destructive/50",
-                    )}
+            {/* Upload Progress */}
+            {isUploading && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Mengunggah...</span>
+                  <span className="font-medium">{uploadProgress}%</span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-gray-200">
+                  <div
+                    className="h-full bg-blue-600 transition-all duration-300"
+                    style={{ width: `${uploadProgress}%` }}
                   />
                 </div>
+              </div>
+            )}
+          </div>
 
-                {validationErrors.keterangan && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-2 text-sm text-destructive"
-                  >
-                    <AlertCircle className="h-4 w-4" />
-                    <span>{validationErrors.keterangan}</span>
-                  </motion.div>
-                )}
-              </motion.div>
-
-              {/* Enhanced File Upload Section */}
-              <motion.div variants={itemVariants} className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label
-                    htmlFor="foto"
-                    className="text-sm font-semibold text-foreground"
-                  >
-                    Foto Dokumentasi
-                  </Label>
-                  <Badge variant="outline" className="text-xs">
-                    <ImageIcon className="mr-1 h-3 w-3" />
-                    Opsional
-                  </Badge>
-                </div>
-
-                {/* Enhanced Drag & Drop Zone */}
-                <div
-                  ref={dropZoneRef}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  className={cn(
-                    "relative overflow-hidden rounded-xl border-2 border-dashed transition-all duration-300",
-                    "bg-background/30 p-6 backdrop-blur-sm",
-                    isDragOver
-                      ? "border-primary/50 bg-primary/5"
-                      : "border-border/50 hover:border-primary/30 hover:bg-background/50",
-                    validationErrors.foto && "border-destructive/50",
-                  )}
-                >
-                  {/* Background decoration for drag zone */}
-                  <div className="absolute inset-0 opacity-30">
-                    <div
-                      className={cn(
-                        "absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full blur-xl",
-                        colorSchemes.blue.bgClass,
-                        "opacity-40",
-                      )}
-                    />
-                  </div>
-
-                  <div className="relative z-10 flex flex-col items-center gap-4">
-                    <motion.div
-                      className={cn(
-                        "flex h-16 w-16 items-center justify-center rounded-2xl border transition-all duration-200",
-                        colorSchemes.blue.bgClass,
-                        colorSchemes.blue.borderClass,
-                      )}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Camera
-                        className={cn("h-8 w-8", colorSchemes.blue.accent)}
-                      />
-                    </motion.div>
-
-                    <div className="space-y-2 text-center">
-                      <p className="text-sm font-medium text-foreground">
-                        {enableDragDrop
-                          ? "Drag & drop foto atau klik untuk memilih"
-                          : "Klik untuk memilih foto"}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Format: JPG, PNG, GIF, WebP • Maksimal {maxFileSize}MB
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="transition-all duration-200 hover:border-primary/30 hover:bg-primary/10"
-                      >
-                        <Upload className="mr-2 h-4 w-4" />
-                        {foto ? "Ganti Foto" : "Pilih Foto"}
-                      </Button>
-
-                      {foto && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          onClick={clearImage}
-                          className="transition-all duration-200 hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-
-                    <Input
-                      ref={fileInputRef}
-                      id="foto"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-
-                    {foto && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span className="max-w-[200px] truncate">
-                          {foto.name}
-                        </span>
-                        <span className="text-xs">
-                          ({(foto.size / 1024 / 1024).toFixed(2)}MB)
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {validationErrors.foto && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-2 text-sm text-destructive"
-                  >
-                    <AlertCircle className="h-4 w-4" />
-                    <span>{validationErrors.foto}</span>
-                  </motion.div>
-                )}
-
-                {/* Enhanced Image Preview */}
-                {previewUrl && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="relative"
-                  >
-                    <Card className="overflow-hidden border border-border/50 bg-background/50 backdrop-blur-sm">
-                      <div className="relative aspect-video w-full">
-                        <Image
-                          src={previewUrl || "/placeholder.svg"}
-                          alt="Preview dokumentasi"
-                          fill
-                          className="object-cover transition-transform duration-300 hover:scale-105"
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        />
-
-                        {/* Enhanced overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 transition-opacity duration-300 hover:opacity-100" />
-
-                        <motion.div
-                          className="absolute right-2 top-2"
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                        >
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="icon"
-                            className="h-8 w-8 rounded-full bg-destructive/90 backdrop-blur-sm transition-all duration-200 hover:bg-destructive"
-                            onClick={clearImage}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </motion.div>
-                      </div>
-                    </Card>
-                  </motion.div>
-                )}
-
-                {/* Enhanced Upload Progress */}
-                {isUploading && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="space-y-2"
-                  >
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        Mengunggah...
-                      </span>
-                      <span className="font-medium">{uploadProgress}%</span>
-                    </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-muted">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${uploadProgress}%` }}
-                        className="h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-300"
-                      />
-                    </div>
-                  </motion.div>
-                )}
-              </motion.div>
-
-              {/* Enhanced Info Message */}
-              {!foto && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                  className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/30"
-                >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-800">
-                    <Info className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                      Foto Opsional
-                    </p>
-                    <p className="text-xs text-amber-700 dark:text-amber-300">
-                      Foto tidak wajib, namun sangat disarankan untuk
-                      dokumentasi yang lebih baik.
-                    </p>
-                  </div>
-                </motion.div>
-              )}
+          {/* Info Message */}
+          {!foto && (
+            <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/30">
+              <Info className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                  Foto Opsional
+                </p>
+                <p className="text-xs text-amber-700 dark:text-amber-300">
+                  Foto tidak wajib, namun sangat disarankan untuk dokumentasi yang lebih baik.
+                </p>
+              </div>
             </div>
-          </motion.div>
+          )}
 
-          {/* Enhanced Submit Section */}
-          <motion.div variants={itemVariants} className="flex justify-end pt-6">
-            <Button
-              type="submit"
-              disabled={loading || externalLoading}
-              className={cn(
-                "px-8 py-3 transition-all duration-200",
-                "bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20",
-                "disabled:cursor-not-allowed disabled:opacity-50",
-              )}
-              size="lg"
-            >
-              {loading || externalLoading ? (
+          {/* Submit Button */}
+          <div className="flex justify-end pt-4">
+            <Button type="submit" disabled={loading} size="lg" className="min-w-[200px]">
+              {loading ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                   Menyimpan...
@@ -1034,9 +694,9 @@ export default function InputDokumentasi({
                 </>
               )}
             </Button>
-          </motion.div>
+          </div>
         </form>
-      </motion.div>
-    </TooltipProvider>
+      </Card>
+    </div>
   );
 }
