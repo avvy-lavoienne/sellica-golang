@@ -39,14 +39,9 @@ export default function LaporanDokumentasi({
     }
 
     try {
-      const { data, error } = supabase.storage
+      const { data } = supabase.storage
         .from("dokumentasi-foto")
         .getPublicUrl(fileName);
-
-      if (error) {
-        console.error("Supabase storage error:", error);
-        return "/placeholder.svg";
-      }
 
       if (!data.publicUrl) {
         console.warn("No public URL returned from Supabase for file:", fileName);
