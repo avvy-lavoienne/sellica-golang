@@ -1,28 +1,111 @@
-"use client"
+"use client";
 
-import { FileText } from "lucide-react"
+import React from "react";
+import { Badge, Tooltip } from "flowbite-react";
+import { FileText, Info, Sparkles, Target, TrendingUp } from "lucide-react";
 
-export default function DokumentasiHeader() {
+// Utility function for className merging
+function cn(...classes: (string | boolean | undefined)[]) {
+  return classes.filter(Boolean).join(" ");
+}
+
+interface DokumentasiHeaderProps {
+  /** Custom className */
+  className?: string;
+  /** Show enhanced statistics */
+  showStats?: boolean;
+  /** Total items count */
+  totalItems?: number;
+  /** Show tips */
+  showTips?: boolean;
+}
+
+export default function DokumentasiHeader({
+  className,
+  showStats = false,
+  totalItems = 0,
+  showTips = true,
+}: DokumentasiHeaderProps) {
   return (
-    <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-      <div className="flex items-center gap-3">
-        <div className="rounded-lg bg-blue-50 p-3 dark:bg-blue-900/20">
-          <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+    <div className={cn("space-y-4", className)}>
+      {/* Main Header Section */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        {/* Left Section: Title & Description */}
+        <div className="flex items-start gap-4">
+          {/* Icon with Gradient Background */}
+          <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30 transition-all hover:shadow-xl hover:shadow-blue-500/40 dark:from-blue-600 dark:to-blue-700">
+            <FileText className="h-7 w-7 text-white" />
+            <div className="absolute -right-1 -top-1">
+              <Sparkles className="h-4 w-4 text-yellow-400" />
+            </div>
+          </div>
+
+          {/* Title and Subtitle */}
+          <div className="flex-1 space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white md:text-3xl">
+                Dokumentasi Harian
+              </h1>
+              <Badge color="info" size="sm" className="h-fit">
+                <Target className="mr-1 h-3 w-3" />
+                Aktivitas User
+              </Badge>
+            </div>
+
+            <p className="max-w-2xl text-sm leading-relaxed text-gray-600 dark:text-gray-400 md:text-base">
+              Kelola dan dokumentasikan aktivitas harian Anda dengan mudah. Tambahkan foto,
+              judul, dan keterangan untuk setiap dokumentasi.
+            </p>
+
+            {/* Statistics Display (Optional) */}
+            {showStats && totalItems > 0 && (
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <Badge color="success" size="sm" className="gap-1.5">
+                  <TrendingUp className="h-3 w-3" />
+                  <span className="font-medium">{totalItems} Total Dokumentasi</span>
+                </Badge>
+              </div>
+            )}
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Dokumentasi Harian
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Kelola dan lihat dokumentasi aktivitas harian
-          </p>
-        </div>
+
+        {/* Right Section: Tips & Information */}
+        {showTips && (
+          <div className="flex shrink-0 items-start">
+            <Tooltip
+              content={
+                <div className="max-w-xs space-y-2 p-2">
+                  <p className="font-semibold">Tips Dokumentasi:</p>
+                  <ul className="list-inside list-disc space-y-1 text-sm">
+                    <li>Gunakan foto berkualitas baik</li>
+                    <li>Tulis judul yang deskriptif</li>
+                    <li>Tambahkan keterangan lengkap</li>
+                    <li>Dokumentasi rutin untuk tracking yang lebih baik</li>
+                  </ul>
+                </div>
+              }
+              style="light"
+            >
+              <div className="group cursor-help rounded-lg border border-blue-200 bg-blue-50 p-3 transition-all hover:border-blue-300 hover:bg-blue-100 hover:shadow-md dark:border-blue-800 dark:bg-blue-900/20 dark:hover:border-blue-700 dark:hover:bg-blue-900/30">
+                <div className="flex items-center gap-2">
+                  <Info className="h-5 w-5 text-blue-600 transition-transform group-hover:scale-110 dark:text-blue-400" />
+                  <div className="hidden sm:block">
+                    <p className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                      Tips & Panduan
+                    </p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                      Hover untuk detail
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Tooltip>
+          </div>
+        )}
       </div>
-      <div className="mt-2 md:mt-0">
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          <span className="font-medium">Tip:</span> Tambahkan dokumentasi harian untuk melacak aktivitas Anda
-        </div>
-      </div>
+
+      {/* Divider */}
+      <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent dark:via-gray-700" />
     </div>
-  )
+  );
 }
