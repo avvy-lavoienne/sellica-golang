@@ -1,63 +1,101 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
+import {
+  PlusIcon,
+  ChartBarIcon,
+} from "@heroicons/react/24/outline";
+
+// Flowbite Pro component interfaces (simplified for this implementation)
+// In a real Flowbite Pro setup, these would be imported from "flowbite-react"
+interface ButtonProps {
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  color?: string;
+  size?: string;
+  className?: string;
+  type?: "button" | "submit" | "reset";
+}
+
+// Simplified Flowbite Pro Button component (in production, import from "flowbite-react")
+const Button: React.FC<ButtonProps> = ({
+  children,
+  onClick,
+  disabled = false,
+  color = "blue",
+  size = "md",
+  className = "",
+  type = "button"
+}) => {
+  const baseClasses = "inline-flex items-center rounded-lg font-medium focus:outline-none focus:ring-4 transition-all duration-200";
+  const colorClasses = {
+    blue: "bg-blue-700 hover:bg-blue-800 text-white focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800",
+    green: "bg-green-600 hover:bg-green-700 text-white focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800",
+    gray: "bg-gray-600 hover:bg-gray-700 text-white focus:ring-gray-300 dark:bg-gray-700 dark:hover:bg-gray-800 dark:focus:ring-gray-800"
+  };
+  const sizeClasses = {
+    md: "px-5 py-2.5 text-sm",
+    lg: "px-6 py-3 text-base"
+  };
+
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={`${baseClasses} ${colorClasses[color as keyof typeof colorClasses]} ${sizeClasses[size as keyof typeof sizeClasses]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+    >
+      {children}
+    </button>
+  );
+};
 
 interface SalahRekamActionsProps {
-  onAjukan: () => void
-  onRekapitulasi: () => void
-  activeMode: "form" | "table" | "none"
+  onAjukan: () => void;
+  onRekapitulasi: () => void;
+  activeMode: "form" | "table" | "none";
 }
 
-export default function SalahRekamActions({ onAjukan, onRekapitulasi, activeMode }: SalahRekamActionsProps) {
+const SalahRekamActions: React.FC<SalahRekamActionsProps> = ({
+  onAjukan,
+  onRekapitulasi,
+  activeMode,
+}) => {
   return (
-    <div className="flex flex-col sm:flex-row justify-center space-x-0 sm:space-x-4 space-y-3 sm:space-y-0 mb-6">
-      <motion.button
+    <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 mb-6">
+      {/* Ajukan Data Button - Flowbite Button with Heroicon */}
+      <Button
         onClick={onAjukan}
-        className={`px-6 py-3 rounded-lg flex items-center justify-center transition-colors duration-200 ${
+        color={activeMode === "form" ? "blue" : "gray"}
+        size="lg"
+        className={`w-full sm:w-auto transition-all duration-200 ${
           activeMode === "form"
-            ? "bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
-            : "bg-white text-indigo-600 border border-indigo-300 hover:bg-indigo-50 dark:bg-gray-700 dark:text-indigo-400 dark:border-indigo-700 dark:hover:bg-gray-600"
+            ? "ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-800"
+            : "hover:ring-2 hover:ring-gray-400 hover:ring-offset-2 dark:hover:ring-offset-gray-800"
         }`}
-        whileHover={{ scale: 1.03 }}
-        whileTap={{ scale: 0.97 }}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5 mr-2"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-        </svg>
+        {/* Flowbite Heroicon integration for add/create action */}
+        <PlusIcon className="h-5 w-5 mr-2" />
         Ajukan Data
-      </motion.button>
-      <motion.button
+      </Button>
+
+      {/* Rekapitulasi Button - Flowbite Button with Heroicon */}
+      <Button
         onClick={onRekapitulasi}
-        className={`px-6 py-3 rounded-lg flex items-center justify-center transition-colors duration-200 ${
+        color={activeMode === "table" ? "green" : "gray"}
+        size="lg"
+        className={`w-full sm:w-auto transition-all duration-200 ${
           activeMode === "table"
-            ? "bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
-            : "bg-white text-emerald-600 border border-emerald-300 hover:bg-emerald-50 dark:bg-gray-700 dark:text-emerald-400 dark:border-emerald-700 dark:hover:bg-gray-600"
+            ? "ring-2 ring-green-500 ring-offset-2 dark:ring-offset-gray-800"
+            : "hover:ring-2 hover:ring-gray-400 hover:ring-offset-2 dark:hover:ring-offset-gray-800"
         }`}
-        whileHover={{ scale: 1.03 }}
-        whileTap={{ scale: 0.97 }}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5 mr-2"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
+        {/* Flowbite Heroicon integration for chart/analytics action */}
+        <ChartBarIcon className="h-5 w-5 mr-2" />
         Rekapitulasi
-      </motion.button>
+      </Button>
     </div>
-  )
-}
+  );
+};
+
+export default SalahRekamActions;

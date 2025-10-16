@@ -23,6 +23,13 @@ import {
   MoonIcon,
   Cog6ToothIcon,
   ClipboardDocumentListIcon,
+  MegaphoneIcon,
+  TicketIcon,
+  EyeIcon,
+  ChartPieIcon,
+  FolderIcon,
+  BellAlertIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/solid"
 import Image from "next/image"
 import { supabase } from "@/lib/conn/supabaseClient"
@@ -160,7 +167,78 @@ const categories: Category[] = [
       },
     ],
   },
+  {
+    name: "Sistem Layanan Pengaduan (SILPANA)",
+    icon: MegaphoneIcon,
+    description: "Public complaint management system",
+    subCategories: [
+      {
+        name: "Guest Interface",
+        href: "/silpana",
+        icon: TicketIcon,
+        description: "Public complaint submission interface"
+      },
+      {
+        name: "View All Complaints",
+        href: "/silpana/complaints",
+        icon: EyeIcon,
+        description: "View and manage all submitted complaints"
+      },
+    ],
+  },
 ]
+
+// SILPANA Admin category - only visible to admin users
+const silpanaAdminCategory: Category = {
+  name: "SILPANA Admin",
+  icon: ShieldCheckIcon,
+  description: "SILPANA administrative dashboard",
+  subCategories: [
+    {
+      name: "Admin Dashboard",
+      href: "/silpana-admin",
+      icon: ChartPieIcon,
+      description: "Overview of tickets and statistics"
+    },
+    {
+      name: "Ticket Management",
+      href: "/silpana-admin/tickets",
+      icon: TicketIcon,
+      badge: "pending", // Will be replaced with actual count
+      description: "Manage all submitted tickets"
+    },
+    {
+      name: "Analytics & Reports",
+      href: "/silpana-admin/analytics",
+      icon: ChartBarIcon,
+      description: "View analytics and generate reports"
+    },
+    {
+      name: "User Management",
+      href: "/silpana-admin/users",
+      icon: UsersIcon,
+      description: "Manage system users and permissions"
+    },
+    {
+      name: "Complaints Archive",
+      href: "/silpana-admin/complaints",
+      icon: FolderIcon,
+      description: "Access archived complaints"
+    },
+    {
+      name: "Audit Logs",
+      href: "/silpana-admin/audit",
+      icon: ClipboardDocumentListIcon,
+      description: "View system audit logs and activity"
+    },
+    {
+      name: "System Settings",
+      href: "/silpana-admin/settings",
+      icon: Cog6ToothIcon,
+      description: "Configure SILPANA system settings"
+    },
+  ],
+}
 
 // Enhanced animation variants with better performance
 const sidebarVariants = {
@@ -517,6 +595,18 @@ export default function EnhancedSidebar({
     [userRole],
   );
 
+  // Filter categories to include SILPANA Admin only for admin users
+  const filteredCategories = useMemo(() => {
+    const baseCategories = [...categories];
+    
+    // Add SILPANA Admin category for admin users
+    if (userRole === "admin") {
+      baseCategories.push(silpanaAdminCategory);
+    }
+    
+    return baseCategories;
+  }, [userRole]);
+
   const isMobile = useMemo(() => {
     if (typeof window === "undefined") return false;
     return window.innerWidth < 768;
@@ -596,7 +686,7 @@ export default function EnhancedSidebar({
 
   // Auto-expand categories based on current path
   useEffect(() => {
-    const matchingCategories = categories
+    const matchingCategories = filteredCategories
       .filter((category) =>
         category.subCategories.some((sub) => pathname === sub.href),
       )
@@ -608,7 +698,7 @@ export default function EnhancedSidebar({
         return unique;
       });
     }
-  }, [pathname]);
+  }, [pathname, filteredCategories]);
 
   // Mounted state for hydration safety
   useEffect(() => {
@@ -781,14 +871,35 @@ export default function EnhancedSidebar({
               role="menu"
               aria-label="Category navigation"
             >
-              {categories.map((category) => (
-                <motion.li
-                  key={category.name}
-                  variants={itemVariants}
-                  className="group"
-                  role="menuitem"
-                  aria-haspopup="true"
-                >
+              {filteredCategories.map((category, index) => (
+                <div key={category.name}>
+                  {/* Add divider before SILPANA Admin section */}
+                  {category.name === "SILPANA Admin" && !isSidebarCollapsed && (
+                    <motion.div
+                      initial={{ opacity: 0, scaleX: 0 }}
+                      animate={{ opacity: 1, scaleX: 1 }}
+                      transition={{ duration: 0.3, delay: 0.2 }}
+                      className="mb-4 mt-4"
+                    >
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-primary/30"></div>
+                        </div>
+                        <div className="relative flex justify-center">
+                          <span className="bg-background px-3 text-xs font-semibold uppercase tracking-wider text-primary">
+                            Admin Section
+                          </span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                  
+                  <motion.li
+                    variants={itemVariants}
+                    className="group"
+                    role="menuitem"
+                    aria-haspopup="true"
+                  >
                   <button
                     onClick={() => toggleCategory(category.name)}
                     onKeyDown={(e) => handleKeyDown(e, category.name)}
@@ -953,6 +1064,7 @@ export default function EnhancedSidebar({
                       )}
                   </AnimatePresence>
                 </motion.li>
+              </div>
               ))}
             </ul>
           </motion.div>

@@ -18,6 +18,10 @@ import {
   ChevronDown,
   Loader2,
   AlertCircle,
+  Search,
+  Ticket,
+  Clock,
+  TrendingUp,
 } from "lucide-react";
 import { useOnClickOutside } from "@/hooks/use-click-outside";
 import { supabase } from "@/lib/conn/supabaseClient";
@@ -25,6 +29,7 @@ import { toast } from "react-toastify";
 import { cn } from "@/lib/conn/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import SilpanaGuestAccess from "@/components/silpana/SilpanaGuestAccess";
 // Separator component will be created inline if needed
 import {
   Tooltip,
@@ -56,6 +61,16 @@ interface Notification {
   };
 }
 
+interface SearchResult {
+  id: string;
+  type: "ticket" | "page" | "user";
+  title: string;
+  subtitle?: string;
+  href: string;
+  icon?: React.ReactNode;
+  badge?: string;
+}
+
 interface TopNavProps {
   user: User | null;
   setUser?: (user: User | null) => void;
@@ -81,10 +96,17 @@ export default function TopNav({
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
+  
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Refs for click outside detection
   const userMenuRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   // Enhanced click outside handlers with better accessibility
   useOnClickOutside(
@@ -98,6 +120,13 @@ export default function TopNav({
     notificationsRef as React.RefObject<HTMLElement>,
     useCallback(() => {
       setIsNotificationsOpen(false);
+    }, []),
+  );
+
+  useOnClickOutside(
+    searchRef as React.RefObject<HTMLElement>,
+    useCallback(() => {
+      setIsSearchOpen(false);
     }, []),
   );
 
@@ -146,6 +175,113 @@ export default function TopNav({
 
     fetchNotifications();
   }, []);
+
+  // Enhanced search with debouncing and SILPANA ticket search
+  useEffect(() => {
+    const searchTickets = async () => {
+      if (searchQuery.trim().length < 2) {
+        setSearchResults([]);
+        setIsSearching(false);
+        return;
+      }
+
+      setIsSearching(true);
+
+      try {
+        // Debounce search by 300ms
+        const timeoutId = setTimeout(async () => {
+          const results: SearchResult[] = [];
+
+          // Search SILPANA tickets
+          if (user?.role === "admin") {
+            try {
+              const { data: tickets, error } = await supabase
+                .from("silpana")
+                .select("id, ticket_code, nama_pengaduan, status, priority_level, created_at")
+                .or(`ticket_code.ilike.%${searchQuery}%,nama_pengaduan.ilike.%${searchQuery}%`)
+                .order("created_at", { ascending: false })
+                .limit(5);
+
+              if (tickets && !error) {
+                tickets.forEach((ticket) => {
+                  results.push({
+                    id: ticket.id,
+                    type: "ticket",
+                    title: ticket.ticket_code,
+                    subtitle: ticket.nama_pengaduan,
+                    href: `/silpana-admin/tickets/${ticket.id}`,
+                    icon: <Ticket className="h-4 w-4" />,
+                    badge: ticket.status,
+                  });
+                });
+              }
+            } catch (error) {
+              console.error("Error searching tickets:", error);
+            }
+          }
+
+          // Add common page shortcuts
+          const pages = [
+            { title: "Dashboard", href: "/dashboard", keywords: ["dashboard", "home", "utama"] },
+            { title: "SILPANA Tickets", href: "/silpana-admin/tickets", keywords: ["ticket", "silpana", "pengaduan"] },
+            { title: "Analytics", href: "/silpana-admin/analytics", keywords: ["analytics", "report", "laporan"] },
+            { title: "Profile", href: "/profile", keywords: ["profile", "profil", "account"] },
+            { title: "Settings", href: "/silpana-admin/settings", keywords: ["settings", "pengaturan", "config"] },
+          ];
+
+          pages.forEach((page) => {
+            if (
+              page.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              page.keywords.some((keyword) =>
+                keyword.toLowerCase().includes(searchQuery.toLowerCase())
+              )
+            ) {
+              results.push({
+                id: `page-${page.href}`,
+                type: "page",
+                title: page.title,
+                href: page.href,
+                icon: <TrendingUp className="h-4 w-4" />,
+              });
+            }
+          });
+
+          setSearchResults(results.slice(0, 8)); // Limit to 8 results
+          setIsSearching(false);
+        }, 300);
+
+        return () => clearTimeout(timeoutId);
+      } catch (error) {
+        console.error("Search error:", error);
+        setIsSearching(false);
+      }
+    };
+
+    searchTickets();
+  }, [searchQuery, user?.role]);
+
+  // Keyboard shortcuts for search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Escape to close search
+      if (e.key === "Escape" && isSearchOpen) {
+        setIsSearchOpen(false);
+        setSearchQuery("");
+      }
+      
+      // Cmd/Ctrl + K to focus search
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        const searchInput = document.querySelector('input[aria-label="Search"]') as HTMLInputElement;
+        if (searchInput) {
+          searchInput.focus();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isSearchOpen]);
 
   // If you have a user context or global state to update, add it to the handleLogout function
 
@@ -311,9 +447,127 @@ export default function TopNav({
                   {isMobileSidebarOpen ? "Close menu" : "Open menu"}
                 </TooltipContent>
               </Tooltip>
+
+              {/* Enhanced Search Bar with Autocomplete */}
+              <div className="relative ml-2 hidden md:block" ref={searchRef}>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Search tickets, pages..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setIsSearchOpen(true);
+                    }}
+                    onFocus={() => setIsSearchOpen(true)}
+                    className={cn(
+                      "h-10 w-64 rounded-lg border bg-background pl-10 pr-4 text-sm",
+                      "transition-all duration-200",
+                      "focus:w-80 focus:outline-none focus:ring-2 focus:ring-primary/50",
+                      "placeholder:text-muted-foreground",
+                      "laptop:w-72 laptop:focus:w-96"
+                    )}
+                    aria-label="Search"
+                    aria-expanded={isSearchOpen && searchQuery.length >= 2}
+                  />
+                  {isSearching && (
+                    <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+                  )}
+                </div>
+
+                {/* Search Results Dropdown */}
+                <AnimatePresence>
+                  {isSearchOpen && searchQuery.length >= 2 && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                      className="absolute left-0 right-0 mt-2 rounded-lg border bg-card shadow-xl ring-1 ring-black/5 dark:ring-white/10"
+                    >
+                      <div className="max-h-96 overflow-y-auto p-2">
+                        {searchResults.length > 0 ? (
+                          <div className="space-y-1">
+                            {searchResults.map((result) => (
+                              <motion.button
+                                key={result.id}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                onClick={() => {
+                                  router.push(result.href);
+                                  setIsSearchOpen(false);
+                                  setSearchQuery("");
+                                }}
+                                className={cn(
+                                  "flex w-full items-center gap-3 rounded-md px-3 py-2 text-left",
+                                  "transition-colors hover:bg-muted/50",
+                                  "group"
+                                )}
+                              >
+                                <div className={cn(
+                                  "flex h-8 w-8 items-center justify-center rounded-md",
+                                  result.type === "ticket" && "bg-primary/10 text-primary",
+                                  result.type === "page" && "bg-blue-500/10 text-blue-500",
+                                  result.type === "user" && "bg-green-500/10 text-green-500"
+                                )}>
+                                  {result.icon}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <p className="text-sm font-medium text-foreground truncate">
+                                      {result.title}
+                                    </p>
+                                    {result.badge && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        {result.badge}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  {result.subtitle && (
+                                    <p className="text-xs text-muted-foreground truncate">
+                                      {result.subtitle}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+                                  Enter →
+                                </div>
+                              </motion.button>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center py-8 text-center">
+                            <Search className="mb-2 h-8 w-8 text-muted-foreground/50" />
+                            <p className="text-sm text-muted-foreground">
+                              {isSearching ? "Searching..." : "No results found"}
+                            </p>
+                            <p className="mt-1 text-xs text-muted-foreground/70">
+                              Try a different search term
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Quick Actions Footer */}
+                      {searchResults.length > 0 && (
+                        <div className="border-t p-2">
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>Press Enter to navigate</span>
+                            <span>Esc to close</span>
+                          </div>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
 
             <div className="flex items-center gap-2 laptop:gap-4">
+              {/* SILPANA Guest Access */}
+              <SilpanaGuestAccess showInNavbar={true} />
+
               {/* Enhanced Theme toggle */}
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -501,18 +755,37 @@ export default function TopNav({
                       </div>
                       {/* Enhanced Footer */}
                       {notifications.length > 0 && (
-                        <div className="border-t p-3">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-full justify-center text-xs"
-                            onClick={() => {
-                              router.push("/notifications");
-                              setIsNotificationsOpen(false);
-                            }}
-                          >
-                            Lihat semua notifikasi
-                          </Button>
+                        <div className="border-t p-2">
+                          <div className="flex items-center gap-2">
+                            {notifications.some((n) => !n.read) && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="flex-1 justify-center text-xs"
+                                onClick={() => {
+                                  // Mark all as read
+                                  setNotifications((prev) =>
+                                    prev.map((n) => ({ ...n, read: true }))
+                                  );
+                                  toast.success("All notifications marked as read");
+                                }}
+                              >
+                                <Bell className="mr-1.5 h-3 w-3" />
+                                Mark all read
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="flex-1 justify-center text-xs"
+                              onClick={() => {
+                                router.push("/notifications");
+                                setIsNotificationsOpen(false);
+                              }}
+                            >
+                              View all
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </motion.div>

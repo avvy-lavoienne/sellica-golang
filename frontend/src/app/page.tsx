@@ -47,6 +47,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import SilpanaGuestAccess from "@/components/silpana/SilpanaGuestAccess";
 
 // Enhanced data with better messaging and value propositions
 const featuresData = [
@@ -342,6 +343,31 @@ export default function Home() {
             alt: "SELLICA Dashboard Interface",
           }}
         />
+
+        {/* SILPANA Public Service Section */}
+        <Section
+          id="silpana"
+          variant="muted"
+          containerSize="xl"
+          padding="xl"
+        >
+          <div className="mb-16 space-y-4 text-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
+              <Users className="h-4 w-4" />
+              Layanan Publik
+            </div>
+            <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+              Sistem Layanan Pengaduan
+              <span className="block text-primary">SILPANA</span>
+            </h2>
+            <p className="mx-auto max-w-3xl text-lg text-muted-foreground">
+              Platform digital untuk menyampaikan keluhan, saran, dan masukan kepada pemerintah 
+              dengan mudah, aman, dan responsif.
+            </p>
+          </div>
+
+          <SilpanaGuestAccess />
+        </Section>
 
         {/* Stats Section - Temporarily Hidden */}
         {/*

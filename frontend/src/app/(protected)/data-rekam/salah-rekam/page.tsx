@@ -10,7 +10,6 @@ import SalahRekamHeader from "@/components/dashboard/data-rekam/salah-rekam/Sala
 import SalahRekamActions from "@/components/dashboard/data-rekam/salah-rekam/SalahRekamActions";
 import SalahRekamForm from "@/components/dashboard/data-rekam/salah-rekam/SalahRekamForm";
 import SalahRekamTable from "@/components/dashboard/data-rekam/salah-rekam/SalahRekamTable";
-import { motion, AnimatePresence } from "framer-motion";
 import { ToastContainer } from "react-toastify";
 import type {
   SalahRekamData,
@@ -19,6 +18,8 @@ import type {
 import EmptyState from "@/components/dashboard/data-rekam/salah-rekam/EmptyState";
 import LoadingState from "@/components/dashboard/data-rekam/salah-rekam/LoadingState";
 import Link from "next/link";
+import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { salahRekamFormSchema } from "@/lib/validations/salah-rekam";
 
 interface User {
   id: string;
@@ -195,6 +196,14 @@ export default function SalahRekamPage() {
     e.preventDefault();
     if (!user) {
       toast.error("Pengguna tidak ditemukan. Silakan login kembali.");
+      return;
+    }
+
+    // Validate form data before submission
+    const validation = salahRekamFormSchema.safeParse(formData);
+    if (!validation.success) {
+      const firstError = validation.error.issues[0];
+      toast.error(firstError.message || "Harap periksa kembali data yang Anda masukkan");
       return;
     }
 
@@ -433,28 +442,13 @@ export default function SalahRekamPage() {
 
   if (!user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 px-4 py-12 dark:from-gray-900 dark:to-gray-800 sm:px-6 lg:px-8">
-        <motion.div
-          className="w-full max-w-md rounded-xl bg-white p-8 text-center shadow-xl dark:bg-gray-800"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md rounded-lg bg-white p-8 text-center shadow dark:bg-gray-800">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
+            <ExclamationTriangleIcon
               className="h-8 w-8 text-red-600 dark:text-red-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
+              aria-hidden="true"
+            />
           </div>
           <h2 className="mb-2 text-xl font-bold text-gray-900 dark:text-white">
             Sesi Tidak Ditemukan
@@ -463,18 +457,18 @@ export default function SalahRekamPage() {
             Sesi Anda telah berakhir atau Anda belum login. Silakan login
             kembali untuk melanjutkan.
           </p>
-          <Link href="/" className="hover:text-primary-dark text-primary">
+          <Link href="/" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
             Kembali ke Dashboard
           </Link>
-        </motion.div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 px-4 py-10 dark:from-gray-900 dark:to-gray-800 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 px-4 py-10 dark:bg-gray-900 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <div className="overflow-hidden rounded-xl bg-white shadow-lg dark:bg-gray-800">
+        <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
           <div className="p-6 sm:p-8">
             <SalahRekamHeader />
             <SalahRekamActions
@@ -504,78 +498,58 @@ export default function SalahRekamPage() {
             />
 
             <div className="mt-8">
-              <AnimatePresence mode="wait">
-                {showForm && (
-                  <motion.div
-                    key="form"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <SalahRekamForm
-                      formData={formData}
-                      setFormData={setFormData}
-                      onSubmit={handleSubmit}
-                      onCancel={handleCancel}
-                      loading={loading}
-                      isEditing={isEditing}
-                      editData={editData}
+              {showForm && (
+                <div className="animate-in fade-in duration-200">
+                  <SalahRekamForm
+                    formData={formData}
+                    setFormData={setFormData}
+                    onSubmit={handleSubmit}
+                    onCancel={handleCancel}
+                    loading={loading}
+                    isEditing={isEditing}
+                    editData={editData}
+                    userRole={userRole}
+                  />
+                </div>
+              )}
+
+              {showRekap && (
+                <div className="animate-in fade-in duration-200">
+                  {rekapData.length > 0 || isTableLoading ? (
+                    <SalahRekamTable
+                      rekapData={rekapData}
+                      totalCount={totalCount}
+                      currentPage={currentPage}
+                      onPageChange={handlePageChange}
+                      onSearch={handleSearch}
+                      onRefresh={handleRefresh}
+                      onDataRefresh={handleDataRefresh}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
                       userRole={userRole}
+                      loading={isTableLoading}
                     />
-                  </motion.div>
-                )}
-
-                {showRekap && (
-                  <motion.div
-                    key="table"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {rekapData.length > 0 || isTableLoading ? (
-                      <SalahRekamTable
-                        rekapData={rekapData}
-                        totalCount={totalCount}
-                        currentPage={currentPage}
-                        onPageChange={handlePageChange}
-                        onSearch={handleSearch}
-                        onRefresh={handleRefresh}
-                        onDataRefresh={handleDataRefresh}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                        userRole={userRole}
-                        loading={isTableLoading}
-                      />
-                    ) : (
-                      <EmptyState
-                        onAddNew={() => {
-                          setShowForm(true);
-                          setShowRekap(false);
-                        }}
-                      />
-                    )}
-                  </motion.div>
-                )}
-
-                {!showForm && !showRekap && (
-                  <motion.div
-                    key="welcome"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                  >
+                  ) : (
                     <EmptyState
                       onAddNew={() => {
                         setShowForm(true);
                         setShowRekap(false);
                       }}
                     />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  )}
+                </div>
+              )}
+
+              {!showForm && !showRekap && (
+                <div className="animate-in fade-in duration-200">
+                  <EmptyState
+                    onAddNew={() => {
+                      setShowForm(true);
+                      setShowRekap(false);
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

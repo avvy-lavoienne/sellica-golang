@@ -4,8 +4,8 @@ import type React from "react";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/conn/supabaseClient";
-import { toast } from "react-toastify";
-import { ToastContainer } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
+import { ThemeToggle } from '@/components/ui/theme';
 import "react-toastify/dist/ReactToastify.css";
 import type {
   AktivitasSiakData,
@@ -658,11 +658,6 @@ export default function AktivitasSiakPage() {
               }}
               loading={loading}
               isEditing={isEditing}
-              editData={
-                editId
-                  ? aktivitasSiakData.find((item) => item.id === editId) || null
-                  : null
-              }
               userRole={userRole}
             />
           </div>

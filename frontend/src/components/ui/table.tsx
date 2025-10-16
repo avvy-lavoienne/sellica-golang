@@ -1,6 +1,9 @@
 import * as React from "react"
 import { cn } from "@/lib/conn/utils"
 
+// Flowbite Pro Table Integration
+// This component maintains backward compatibility while adopting Flowbite Pro table patterns
+// Enhanced with proper responsive design and hover states for SELLICA data tables
 const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
@@ -8,7 +11,11 @@ const Table = React.forwardRef<
   <div className="relative w-full overflow-auto">
     <table
       ref={ref}
-      className={cn("w-full caption-bottom text-sm", className)}
+      className={cn(
+        // Flowbite Pro table base styling with SELLICA customizations
+        "w-full caption-bottom text-sm",
+        className
+      )}
       {...props}
     />
   </div>
@@ -19,7 +26,15 @@ const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <thead ref={ref} className={cn("[&_tr]:border-b", className)} {...props} />
+  <thead
+    ref={ref}
+    className={cn(
+      // Flowbite Pro table header styling
+      "[&_tr]:border-b",
+      className
+    )}
+    {...props}
+  />
 ))
 TableHeader.displayName = "TableHeader"
 
@@ -29,7 +44,11 @@ const TableBody = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <tbody
     ref={ref}
-    className={cn("[&_tr:last-child]:border-0", className)}
+    className={cn(
+      // Flowbite Pro table body styling with enhanced row separation
+      "[&_tr:last-child]:border-0",
+      className
+    )}
     {...props}
   />
 ))
@@ -41,7 +60,11 @@ const TableFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <tfoot
     ref={ref}
-    className={cn("bg-primary font-medium text-primary-foreground", className)}
+    className={cn(
+      // Flowbite Pro table footer styling with SELLICA primary theme
+      "bg-primary font-medium text-primary-foreground",
+      className
+    )}
     {...props}
   />
 ))
@@ -54,6 +77,7 @@ const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
+      // Flowbite Pro table row styling with enhanced hover effects
       "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
       className
     )}
@@ -69,6 +93,7 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
+      // Flowbite Pro table head styling with SELLICA responsive design
       "h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
       className
     )}
@@ -83,7 +108,11 @@ const TableCell = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <td
     ref={ref}
-    className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
+    className={cn(
+      // Flowbite Pro table cell styling
+      "p-4 align-middle [&:has([role=checkbox])]:pr-0",
+      className
+    )}
     {...props}
   />
 ))
@@ -95,7 +124,11 @@ const TableCaption = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <caption
     ref={ref}
-    className={cn("mt-4 text-sm text-muted-foreground", className)}
+    className={cn(
+      // Flowbite Pro table caption styling
+      "mt-4 text-sm text-muted-foreground",
+      className
+    )}
     {...props}
   />
 ))

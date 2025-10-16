@@ -1,34 +1,23 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type {
-  AktivitasSiakData,
   AktivitasSiakFormData,
-} from "@/types/aktivitas-user/aktivitas-siak";
+} from '@/types/aktivitas-user/aktivitas-siak';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+  FormInput
+} from '@/components/ui/form-components';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+} from '@/components/ui/tooltip';
 import {
-  Loader2,
   Calendar,
   Database,
   Users,
@@ -43,12 +32,15 @@ import {
   TrendingUp,
   BarChart3,
   Clock,
-  Zap,
   Shield,
   HelpCircle,
-} from "lucide-react";
-import { cn } from "@/lib/conn/utils";
-import { toast } from "react-toastify";
+  Loader2,
+} from 'lucide-react';
+import { cn } from '@/lib/conn/utils';
+import { toast } from 'react-toastify';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 interface AktivitasSiakFormProps {
   formData: AktivitasSiakFormData;
@@ -57,7 +49,6 @@ interface AktivitasSiakFormProps {
   onCancel: () => void;
   loading: boolean;
   isEditing: boolean;
-  editData: AktivitasSiakData | null;
   userRole: string;
 }
 
@@ -68,7 +59,6 @@ export default function AktivitasSiakForm({
   onCancel,
   loading,
   isEditing,
-  editData,
   userRole,
 }: AktivitasSiakFormProps) {
   const [error, setError] = useState<string | null>(null);
@@ -485,20 +475,6 @@ export default function AktivitasSiakForm({
                         return (
                           <div key={field.name} className="space-y-2">
                             <div className="flex items-center gap-2">
-                              <Label
-                                htmlFor={field.name}
-                                className={cn(
-                                  "text-sm font-medium",
-                                  hasError && "text-destructive",
-                                )}
-                              >
-                                {field.label}
-                                {isRequired && (
-                                  <span className="ml-1 text-destructive">
-                                    *
-                                  </span>
-                                )}
-                              </Label>
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <HelpCircle className="h-3 w-3 text-muted-foreground" />
@@ -513,14 +489,20 @@ export default function AktivitasSiakForm({
 
                             <div className="relative">
                               <FieldIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                              <Input
-                                id={field.name}
+                              <FormInput
+                                label={field.label + (isRequired ? ' *' : '')}
                                 name={field.name}
-                                type={field.type}
+                                type={field.type as "text" | "email" | "number" | "tel" | "url"}
                                 value={fieldValue}
-                                onChange={handleInputChange}
+                                onChange={(value) => {
+                                  const fakeEvent = {
+                                    target: { name: field.name, value }
+                                  } as React.ChangeEvent<HTMLInputElement>;
+                                  handleInputChange(fakeEvent);
+                                }}
                                 placeholder={field.placeholder}
                                 required={isRequired}
+                                error={hasError}
                                 className={cn(
                                   "pl-10 transition-all duration-200",
                                   hasError &&
@@ -608,15 +590,15 @@ export default function AktivitasSiakForm({
                       <div className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2">
                         <Calendar className="h-4 w-4 text-gray-600 dark:text-gray-200" />
                       </div>
-                      <Input
+                      <input
                         id="bulan_rekapitulasi"
                         name="bulan_rekapitulasi"
-                        type="month"
+                        type={"month" as any}
                         value={formData.bulan_rekapitulasi || ""}
                         onChange={handleDateChange}
                         required
                         className={cn(
-                          "pl-10 transition-all duration-200",
+                          "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pl-10 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200",
                           "[&::-webkit-calendar-picker-indicator]:cursor-pointer",
                           "[&::-webkit-calendar-picker-indicator]:dark:invert",
                           "[&::-webkit-calendar-picker-indicator]:dark:brightness-0",

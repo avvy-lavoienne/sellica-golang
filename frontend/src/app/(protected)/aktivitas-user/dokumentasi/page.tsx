@@ -544,7 +544,7 @@ export default function DokumentasiPage() {
         animate="visible"
         className={cn(
           "min-h-screen bg-gradient-to-br from-background via-background to-muted/20",
-          "container mx-auto space-y-6 p-4 md:p-6 laptop:p-8",
+          "container mx-auto space-y-8 p-6 md:p-8 lg:p-12",
         )}
         onHoverStart={() => setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
@@ -566,34 +566,34 @@ export default function DokumentasiPage() {
         {/* Enhanced Page Header with Statistics */}
         <motion.div
           variants={sectionVariants}
-          className="relative overflow-hidden rounded-xl border border-border/50 bg-background/80 shadow-lg backdrop-blur-sm"
+          className="relative overflow-hidden rounded-2xl border border-border/50 bg-background/80 shadow-lg backdrop-blur-sm"
         >
-          {/* Background decoration */}
-          <div className="absolute inset-0 opacity-30">
+          {/* Background decoration - simplified */}
+          <div className="absolute inset-0 opacity-20">
             <div
               className={cn(
-                "absolute -right-8 -top-8 h-32 w-32 rounded-full blur-3xl",
+                "absolute -right-12 -top-12 h-40 w-40 rounded-full blur-3xl",
                 colorSchemes.primary.bgClass,
-                "opacity-40",
+                "opacity-30",
               )}
             />
             <div
               className={cn(
-                "absolute bottom-1/4 left-1/4 h-24 w-24 rounded-full blur-2xl",
+                "absolute bottom-1/4 left-1/4 h-32 w-32 rounded-full blur-2xl",
                 colorSchemes.blue.bgClass,
-                "opacity-30",
+                "opacity-20",
               )}
             />
           </div>
 
-          <div className="relative z-10 p-6">
-            <div className="flex flex-col gap-6 laptop:flex-row laptop:items-center laptop:justify-between">
-              <div className="space-y-4">
+          <div className="relative z-10 p-8 md:p-10">
+            <div className="flex flex-col gap-8 laptop:flex-row laptop:items-center laptop:justify-between">
+              <div className="space-y-6">
                 <DokumentasiHeader />
 
                 {/* Enhanced Statistics */}
-                <div className="flex flex-wrap items-center gap-3">
-                  <Badge variant="secondary" className="gap-2 px-3 py-1">
+                <div className="flex flex-wrap items-center gap-4">
+                  <Badge variant="secondary" className="gap-2 px-4 py-2">
                     <Target className="h-4 w-4" />
                     <span className="font-medium">
                       {pageStats.totalItems} Total
@@ -601,7 +601,7 @@ export default function DokumentasiPage() {
                   </Badge>
 
                   {pageStats.filteredItems !== pageStats.totalItems && (
-                    <Badge variant="outline" className="gap-2 px-3 py-1">
+                    <Badge variant="outline" className="gap-2 px-4 py-2">
                       <Filter className="h-4 w-4" />
                       <span className="font-medium">
                         {pageStats.filteredItems} Filtered
@@ -609,22 +609,22 @@ export default function DokumentasiPage() {
                     </Badge>
                   )}
 
-                  <Badge variant="outline" className="gap-2 px-3 py-1 text-xs">
-                    <Clock className="h-3 w-3" />
+                  <Badge variant="outline" className="gap-2 px-4 py-2 text-sm">
+                    <Clock className="h-4 w-4" />
                     <span>
                       Updated {pageStats.lastUpdated.toLocaleTimeString()}
                     </span>
                   </Badge>
 
                   {activeTab === "input" && (
-                    <Badge variant="default" className="gap-2 px-3 py-1">
+                    <Badge variant="default" className="gap-2 px-4 py-2">
                       <Sparkles className="h-4 w-4" />
                       <span>Input Mode</span>
                     </Badge>
                   )}
 
                   {activeTab === "laporan" && (
-                    <Badge variant="default" className="gap-2 px-3 py-1">
+                    <Badge variant="default" className="gap-2 px-4 py-2">
                       <TrendingUp className="h-4 w-4" />
                       <span>Report Mode</span>
                     </Badge>
@@ -633,22 +633,22 @@ export default function DokumentasiPage() {
               </div>
 
               {/* Enhanced Quick Actions */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       variant="outline"
-                      size="sm"
+                      size="lg"
                       onClick={() =>
                         fetchDokumentasi("", null, null, "tanggal")
                       }
                       disabled={refreshing}
-                      className="transition-all duration-200 hover:border-primary/30 hover:bg-primary/10"
+                      className="transition-all duration-200 hover:border-primary/30 hover:bg-primary/10 px-6 py-3"
                     >
                       <RefreshCw
-                        className={cn("h-4 w-4", refreshing && "animate-spin")}
+                        className={cn("h-5 w-5", refreshing && "animate-spin")}
                       />
-                      <span className="ml-2 hidden sm:inline">
+                      <span className="ml-3 hidden sm:inline">
                         {refreshing ? "Refreshing..." : "Refresh All"}
                       </span>
                     </Button>
@@ -663,12 +663,12 @@ export default function DokumentasiPage() {
                     <TooltipTrigger asChild>
                       <Button
                         variant="destructive"
-                        size="sm"
+                        size="lg"
                         onClick={() => setError(null)}
-                        className="transition-all duration-200"
+                        className="transition-all duration-200 px-6 py-3"
                       >
-                        <AlertCircle className="h-4 w-4" />
-                        <span className="ml-2 hidden sm:inline">
+                        <AlertCircle className="h-5 w-5" />
+                        <span className="ml-3 hidden sm:inline">
                           Clear Error
                         </span>
                       </Button>
