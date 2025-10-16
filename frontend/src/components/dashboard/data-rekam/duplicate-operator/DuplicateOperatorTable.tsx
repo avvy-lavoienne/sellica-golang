@@ -436,27 +436,27 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
             <CardContent className="space-y-4">
               {/* Search Input */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Search className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Cari data (NIK, Nama, dll.)..."
-                  className="pl-10 transition-all duration-200"
+                  className="block w-full pl-10 pr-10 py-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:ring-blue-500 dark:focus:border-blue-500"
                   aria-label="Cari data di tabel"
                   disabled={loading}
                 />
                 {searchQuery && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
+                  <button
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-2 top-1/2 h-6 w-6 -translate-y-1/2 p-0"
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                     aria-label="Hapus pencarian"
                     disabled={loading}
                   >
-                    <X className="h-3 w-3" />
-                  </Button>
+                    <X className="h-5 w-5" />
+                  </button>
                 )}
               </div>
 
@@ -543,46 +543,42 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
                 </LocalizationProvider>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Status Filter</Label>
-                  <FormControl size="small" className="w-full">
-                    <Select
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                      disabled={loading}
-                      className="w-full rounded-xl border border-gray-200 dark:border-gray-700"
-                      sx={{
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "transparent",
-                        },
-                        "&:hover .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "transparent",
-                        },
-                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "transparent",
-                        },
-                      }}
-                    >
-                      <MenuItem value="all">Semua Status</MenuItem>
-                      <MenuItem value="completed">Selesai</MenuItem>
-                      <MenuItem value="pending">Belum Selesai</MenuItem>
-                    </Select>
-                  </FormControl>
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                    Status Filter
+                  </label>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    disabled={loading}
+                    className="block w-full px-3 py-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="all">Semua Status</option>
+                    <option value="completed">Selesai</option>
+                    <option value="pending">Belum Selesai</option>
+                  </select>
                 </div>
 
-                <div className="flex items-end">
-                  <Button
+                <div className="flex items-end space-x-2">
+                  <button
+                    onClick={() => {}}
+                    disabled={loading}
+                    className="flex-1 inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Reset
+                  </button>
+                  <button
                     onClick={onRefresh}
                     disabled={loading}
-                    className="w-full transition-all duration-200"
-                    size="sm"
+                    className="flex-1 inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium text-white bg-blue-700 border border-transparent rounded-lg hover:bg-blue-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? (
-                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
                     ) : (
-                      <RefreshCw className="mr-2 h-4 w-4" />
+                      <RefreshCw className="w-4 h-4 mr-2" />
                     )}
                     Refresh
-                  </Button>
+                  </button>
                 </div>
               </div>
             </CardContent>
@@ -613,71 +609,40 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
             <CardContent className="p-0">
               <div className="overflow-hidden rounded-lg border border-border/50">
                 <div className="overflow-x-auto" ref={tableRef}>
-                  <table className="min-w-full divide-y divide-border">
-                    <thead className="bg-muted/30">
+                  <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                    <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                       <tr>
-                        <th
-                          scope="col"
-                          className="px-4 py-3.5 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                        >
-                          No
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-4 py-3.5 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                        >
-                          Tanggal Pengajuan
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-4 py-3.5 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                        >
-                          NIK / Nama Duplikat
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-4 py-3.5 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                        >
-                          NIK / Nama Operator
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-4 py-3.5 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                        >
-                          Status
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-4 py-3.5 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                        >
-                          Aksi
-                        </th>
+                        <th scope="col" className="px-6 py-3">No</th>
+                        <th scope="col" className="px-6 py-3">Tanggal Pengajuan</th>
+                        <th scope="col" className="px-6 py-3">NIK / Nama Duplikat</th>
+                        <th scope="col" className="px-6 py-3">NIK / Nama Operator</th>
+                        <th scope="col" className="px-6 py-3">Status</th>
+                        <th scope="col" className="px-6 py-3 text-right">Aksi</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border bg-background">
-                      <AnimatePresence mode="wait">
-                        {rekapData.length === 0 ? (
-                          <motion.tr
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                          >
-                            <td
-                              colSpan={6}
-                              className="px-4 py-12 text-center text-muted-foreground"
-                            >
-                              <div className="flex flex-col items-center space-y-3">
-                                <FileText className="h-12 w-12 text-muted-foreground/50" />
-                                <p className="text-sm font-medium">
-                                  Tidak ada data yang ditemukan
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  Coba ubah filter atau kata kunci pencarian
-                                </p>
-                              </div>
-                            </td>
-                          </motion.tr>
-                        ) : (
+                    <tbody>
+                      {rekapData.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="px-6 py-12 text-center">
+                            <div className="flex flex-col items-center space-y-3">
+                              <FileText className="h-12 w-12 text-gray-400 dark:text-gray-500" />
+                              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                                Tidak ada data yang ditemukan
+                              </h3>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                Coba ubah filter atau kata kunci pencarian
+                              </p>
+                              <button
+                                onClick={() => {}}
+                                className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-700 border border-transparent rounded-lg hover:bg-blue-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              >
+                                <RefreshCw className="w-4 h-4 mr-2" />
+                                Reset Filters
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
                           rekapData.map((item, index) => {
                             const rowNumber = (currentPage - 1) * 5 + index + 1;
                             const isExpanded = expandedRow === item.id;
@@ -691,376 +656,227 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
                                   whileHover="hover"
                                   className="group transition-all duration-200 hover:bg-muted/30"
                                 >
-                                  <td className="whitespace-nowrap px-4 py-4 text-sm font-medium text-foreground">
-                                    <div className="flex items-center space-x-2">
-                                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                                        {rowNumber}
-                                      </span>
-                                    </div>
-                                  </td>
-                                  <td className="whitespace-nowrap px-4 py-4 text-sm text-foreground">
-                                    <div className="flex items-center space-x-2">
-                                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                                      <span>
-                                        {formatDate(item.tanggal_pengajuan)}
-                                      </span>
-                                    </div>
-                                  </td>
-                                  <td className="px-4 py-4 text-sm text-foreground">
-                                    <div className="space-y-1">
-                                      <div className="flex items-center space-x-2">
-                                        <User className="h-4 w-4 text-muted-foreground" />
-                                        <span className="font-medium">
-                                          {item.nama_duplicate || "-"}
-                                        </span>
-                                      </div>
-                                      <div className="pl-6 text-xs text-muted-foreground">
-                                        NIK: {item.nik_duplicate || "-"}
-                                      </div>
-                                    </div>
-                                  </td>
-                                  <td className="px-4 py-4 text-sm text-foreground">
-                                    <div className="space-y-1">
-                                      <div className="flex items-center space-x-2">
-                                        <Users className="h-4 w-4 text-muted-foreground" />
-                                        <span className="font-medium">
-                                          {item.nama_operator || "-"}
-                                        </span>
-                                      </div>
-                                      <div className="pl-6 text-xs text-muted-foreground">
-                                        NIK: {item.nik_operator || "-"}
-                                      </div>
-                                    </div>
-                                  </td>
-                                  <td className="whitespace-nowrap px-4 py-4 text-sm">
-                                    <Badge
-                                      variant={
-                                        item.is_ready_to_record
-                                          ? "default"
-                                          : "secondary"
-                                      }
-                                      className={cn(
-                                        "inline-flex items-center space-x-1 transition-all duration-200",
-                                        item.is_ready_to_record
-                                          ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                                          : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
-                                      )}
-                                    >
-                                      {item.is_ready_to_record ? (
-                                        <CheckCircle2 className="h-3 w-3" />
-                                      ) : (
-                                        <Clock className="h-3 w-3" />
-                                      )}
-                                      <span>
-                                        {item.is_ready_to_record
-                                          ? "Selesai"
-                                          : "Belum Selesai"}
-                                      </span>
-                                    </Badge>
-                                  </td>
-                                  <td className="whitespace-nowrap px-4 py-4 text-right text-sm">
-                                    <div className="flex justify-end space-x-1">
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() =>
-                                              setExpandedRow(
-                                                isExpanded ? null : item.id,
-                                              )
-                                            }
-                                            className="h-8 w-8 p-0 transition-all duration-200"
-                                            aria-label={
-                                              isExpanded
-                                                ? "Sembunyikan detail"
-                                                : "Lihat detail"
-                                            }
-                                          >
-                                            {isExpanded ? (
-                                              <ChevronUp className="h-4 w-4" />
-                                            ) : (
-                                              <ChevronDown className="h-4 w-4" />
-                                            )}
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          {isExpanded
-                                            ? "Sembunyikan detail"
-                                            : "Lihat detail"}
-                                        </TooltipContent>
-                                      </Tooltip>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                          <div className="flex items-center">
+                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-xs font-semibold text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                              {rowNumber}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                          <div className="flex items-center space-x-2">
+                            <Calendar className="h-4 w-4 text-gray-400" />
+                            <span>{formatDate(item.tanggal_pengajuan)}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                          <div className="space-y-1">
+                            <div className="flex items-center space-x-2">
+                              <User className="h-4 w-4 text-gray-400" />
+                              <span className="font-medium">{item.nama_duplicate || "-"}</span>
+                            </div>
+                            <div className="pl-6 text-xs text-gray-500 dark:text-gray-400">
+                              NIK: {item.nik_duplicate || "-"}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                          <div className="space-y-1">
+                            <div className="flex items-center space-x-2">
+                              <Users className="h-4 w-4 text-gray-400" />
+                              <span className="font-medium">{item.nama_operator || "-"}</span>
+                            </div>
+                            <div className="pl-6 text-xs text-gray-500 dark:text-gray-400">
+                              NIK: {item.nik_operator || "-"}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            item.is_ready_to_record
+                              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                              : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                          }`}>
+                            {item.is_ready_to_record ? (
+                              <CheckCircle2 className="w-3 h-3 mr-1" />
+                            ) : (
+                              <Clock className="w-3 h-3 mr-1" />
+                            )}
+                            {item.is_ready_to_record ? "Selesai" : "Belum Selesai"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex justify-end space-x-1">
+                            <button
+                              onClick={() => setExpandedRow(isExpanded ? null : item.id)}
+                              className="inline-flex items-center p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                              title={isExpanded ? "Sembunyikan detail" : "Lihat detail"}
+                            >
+                              {isExpanded ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
+                            </button>
 
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => onEdit(item)}
-                                            className="h-8 w-8 p-0 text-blue-600 transition-all duration-200 hover:bg-blue-50 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-300"
-                                            aria-label="Edit data"
-                                          >
-                                            <Edit3 className="h-4 w-4" />
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          Edit data
-                                        </TooltipContent>
-                                      </Tooltip>
+                            <button
+                              onClick={() => onEdit(item)}
+                              disabled={userRole !== "admin"}
+                              className="inline-flex items-center p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded-lg dark:text-blue-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Edit data"
+                            >
+                              <Edit3 className="h-4 w-4" />
+                            </button>
 
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => onDelete(item.id)}
-                                            className="h-8 w-8 p-0 text-red-600 transition-all duration-200 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300"
-                                            aria-label="Hapus data"
-                                          >
-                                            <Trash2 className="h-4 w-4" />
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          Hapus data
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </div>
-                                  </td>
+                            <button
+                              onClick={() => onDelete(item.id)}
+                              disabled={userRole !== "admin"}
+                              className="inline-flex items-center p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Hapus data"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
                                 </motion.tr>
 
-                                {/* Enhanced Expanded Row */}
-                                <AnimatePresence>
-                                  {isExpanded && (
-                                    <motion.tr
-                                      initial={{ opacity: 0, height: 0 }}
-                                      animate={{ opacity: 1, height: "auto" }}
-                                      exit={{ opacity: 0, height: 0 }}
-                                      transition={{
-                                        duration: shouldAnimate ? 0.3 : 0,
-                                      }}
-                                    >
-                                      <td
-                                        colSpan={6}
-                                        className="border-t border-border/50 bg-muted/20 px-4 py-6"
-                                      >
-                                        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                                          {/* Data Duplikat */}
-                                          <div className="space-y-3">
-                                            <div className="flex items-center space-x-2">
-                                              <User className="h-4 w-4 text-primary" />
-                                              <h4 className="text-sm font-semibold text-foreground">
-                                                Data Duplikat
-                                              </h4>
-                                            </div>
-                                            <div className="space-y-2 pl-6">
-                                              <div className="flex justify-between">
-                                                <span className="text-xs font-medium text-muted-foreground">
-                                                  NIK:
-                                                </span>
-                                                <span className="text-xs text-foreground">
-                                                  {item.nik_duplicate || "-"}
-                                                </span>
-                                              </div>
-                                              <div className="flex justify-between">
-                                                <span className="text-xs font-medium text-muted-foreground">
-                                                  Nama:
-                                                </span>
-                                                <span className="text-xs text-foreground">
-                                                  {item.nama_duplicate || "-"}
-                                                </span>
-                                              </div>
-                                            </div>
+                              {/* Expanded Row */}
+                              {isExpanded && (
+                                <tr className="border-b border-gray-200 dark:border-gray-700">
+                                  <td colSpan={6} className="px-6 py-6 bg-gray-50 dark:bg-gray-700/50">
+                                    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                                      {/* Data Duplikat */}
+                                      <div className="space-y-3">
+                                        <div className="flex items-center space-x-2">
+                                          <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                          <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                                            Data Duplikat
+                                          </h4>
+                                        </div>
+                                        <div className="space-y-2 pl-6">
+                                          <div className="flex justify-between">
+                                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">NIK:</span>
+                                            <span className="text-xs text-gray-900 dark:text-white">{item.nik_duplicate || "-"}</span>
                                           </div>
-
-                                          {/* Data Operator */}
-                                          <div className="space-y-3">
-                                            <div className="flex items-center space-x-2">
-                                              <Users className="h-4 w-4 text-primary" />
-                                              <h4 className="text-sm font-semibold text-foreground">
-                                                Data Operator
-                                              </h4>
-                                            </div>
-                                            <div className="space-y-2 pl-6">
-                                              <div className="flex justify-between">
-                                                <span className="text-xs font-medium text-muted-foreground">
-                                                  NIK:
-                                                </span>
-                                                <span className="text-xs text-foreground">
-                                                  {item.nik_operator || "-"}
-                                                </span>
-                                              </div>
-                                              <div className="flex justify-between">
-                                                <span className="text-xs font-medium text-muted-foreground">
-                                                  Nama:
-                                                </span>
-                                                <span className="text-xs text-foreground">
-                                                  {item.nama_operator || "-"}
-                                                </span>
-                                              </div>
-                                            </div>
-                                          </div>
-
-                                          {/* Detail Pengajuan */}
-                                          <div className="space-y-3">
-                                            <div className="flex items-center space-x-2">
-                                              <FileText className="h-4 w-4 text-primary" />
-                                              <h4 className="text-sm font-semibold text-foreground">
-                                                Detail Pengajuan
-                                              </h4>
-                                            </div>
-                                            <div className="space-y-2 pl-6">
-                                              <div className="flex justify-between">
-                                                <span className="text-xs font-medium text-muted-foreground">
-                                                  NIK Pengaju:
-                                                </span>
-                                                <span className="text-xs text-foreground">
-                                                  {item.nik_pengaju || "-"}
-                                                </span>
-                                              </div>
-                                              <div className="flex justify-between">
-                                                <span className="text-xs font-medium text-muted-foreground">
-                                                  Nama Pengaju:
-                                                </span>
-                                                <span className="text-xs text-foreground">
-                                                  {item.nama_pengaju || "-"}
-                                                </span>
-                                              </div>
-                                              <div className="flex justify-between">
-                                                <span className="text-xs font-medium text-muted-foreground">
-                                                  Tanggal Perekaman:
-                                                </span>
-                                                <span className="text-xs text-foreground">
-                                                  {formatDate(
-                                                    item.tanggal_perekaman,
-                                                  )}
-                                                </span>
-                                              </div>
-                                              <div className="flex justify-between">
-                                                <span className="text-xs font-medium text-muted-foreground">
-                                                  Tanggal Pengajuan:
-                                                </span>
-                                                <span className="text-xs text-foreground">
-                                                  {formatDate(
-                                                    item.tanggal_pengajuan,
-                                                  )}
-                                                </span>
-                                              </div>
-
-                                              {/* Estimasi Tanggal Perekaman */}
-                                              <div className="space-y-2">
-                                                <span className="text-xs font-medium text-muted-foreground">
-                                                  Estimasi Perekaman:
-                                                </span>
-                                                {[
-                                                  "admin",
-                                                  "superuser",
-                                                ].includes(userRole) ? (
-                                                  <div className="flex items-center space-x-2">
-                                                    <Input
-                                                      type="date"
-                                                      value={
-                                                        editedDates[item.id] ||
-                                                        item.estimasi_tanggal_perekaman ||
-                                                        ""
-                                                      }
-                                                      onChange={(e) =>
-                                                        handleDateChange(
-                                                          item.id,
-                                                          e.target.value,
-                                                        )
-                                                      }
-                                                      className="h-8 text-xs"
-                                                      disabled={saving[item.id]}
-                                                    />
-                                                    <Button
-                                                      size="sm"
-                                                      onClick={() =>
-                                                        handleSaveDate(item.id)
-                                                      }
-                                                      disabled={
-                                                        saving[item.id] ||
-                                                        !editedDates[item.id]
-                                                      }
-                                                      className="h-8 w-8 p-0"
-                                                      aria-label="Simpan tanggal"
-                                                    >
-                                                      {saving[item.id] ? (
-                                                        <RefreshCw className="h-3 w-3 animate-spin" />
-                                                      ) : (
-                                                        <Save className="h-3 w-3" />
-                                                      )}
-                                                    </Button>
-                                                  </div>
-                                                ) : (
-                                                  <span className="text-xs text-foreground">
-                                                    {formatDate(
-                                                      item.estimasi_tanggal_perekaman ||
-                                                        undefined,
-                                                    )}
-                                                  </span>
-                                                )}
-                                              </div>
-                                            </div>
+                                          <div className="flex justify-between">
+                                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Nama:</span>
+                                            <span className="text-xs text-gray-900 dark:text-white">{item.nama_duplicate || "-"}</span>
                                           </div>
                                         </div>
-
-                                        {/* Status Toggle for Admin */}
-                                        {["admin", "superuser"].includes(
-                                          userRole,
-                                        ) && (
-                                          <div className="mt-6 flex items-center justify-between border-t border-border/50 pt-4">
-                                            <div className="flex items-center space-x-2">
-                                              <span className="text-sm font-medium text-muted-foreground">
-                                                Status Perekaman:
-                                              </span>
-                                              <Badge
-                                                variant={
-                                                  item.is_ready_to_record
-                                                    ? "default"
-                                                    : "secondary"
-                                                }
-                                                className={cn(
-                                                  "transition-all duration-200",
-                                                  item.is_ready_to_record
-                                                    ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                                                    : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
-                                                )}
-                                              >
-                                                {item.is_ready_to_record
-                                                  ? "Selesai"
-                                                  : "Belum Selesai"}
-                                              </Badge>
-                                            </div>
-                                            <Button
-                                              variant={
-                                                item.is_ready_to_record
-                                                  ? "outline"
-                                                  : "default"
-                                              }
-                                              size="sm"
-                                              onClick={() =>
-                                                handleToggleChange(
-                                                  item.id,
-                                                  item.is_ready_to_record,
-                                                )
-                                              }
-                                              className="transition-all duration-200"
-                                            >
-                                              {item.is_ready_to_record
-                                                ? "Tandai Belum Selesai"
-                                                : "Tandai Selesai"}
-                                            </Button>
+                                      </div>
+       
+                                      {/* Data Operator */}
+                                      <div className="space-y-3">
+                                        <div className="flex items-center space-x-2">
+                                          <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                          <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                                            Data Operator
+                                          </h4>
+                                        </div>
+                                        <div className="space-y-2 pl-6">
+                                          <div className="flex justify-between">
+                                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">NIK:</span>
+                                            <span className="text-xs text-gray-900 dark:text-white">{item.nik_operator || "-"}</span>
                                           </div>
-                                        )}
-                                      </td>
-                                    </motion.tr>
-                                  )}
-                                </AnimatePresence>
+                                          <div className="flex justify-between">
+                                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Nama:</span>
+                                            <span className="text-xs text-gray-900 dark:text-white">{item.nama_operator || "-"}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+       
+                                      {/* Detail Pengajuan */}
+                                      <div className="space-y-3">
+                                        <div className="flex items-center space-x-2">
+                                          <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                          <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                                            Detail Pengajuan
+                                          </h4>
+                                        </div>
+                                        <div className="space-y-2 pl-6">
+                                          <div className="flex justify-between">
+                                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">NIK Pengaju:</span>
+                                            <span className="text-xs text-gray-900 dark:text-white">{item.nik_pengaju || "-"}</span>
+                                          </div>
+                                          <div className="flex justify-between">
+                                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Nama Pengaju:</span>
+                                            <span className="text-xs text-gray-900 dark:text-white">{item.nama_pengaju || "-"}</span>
+                                          </div>
+                                          <div className="flex justify-between">
+                                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Tanggal Perekaman:</span>
+                                            <span className="text-xs text-gray-900 dark:text-white">{formatDate(item.tanggal_perekaman)}</span>
+                                          </div>
+                                          <div className="flex justify-between">
+                                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Tanggal Pengajuan:</span>
+                                            <span className="text-xs text-gray-900 dark:text-white">{formatDate(item.tanggal_pengajuan)}</span>
+                                          </div>
+       
+                                          {/* Estimasi Tanggal Perekaman */}
+                                          <div className="space-y-2">
+                                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Estimasi Perekaman:</span>
+                                            {["admin", "superuser"].includes(userRole) ? (
+                                              <div className="flex items-center space-x-2">
+                                                <input
+                                                  type="date"
+                                                  value={editedDates[item.id] || item.estimasi_tanggal_perekaman || ""}
+                                                  onChange={(e) => handleDateChange(item.id, e.target.value)}
+                                                  className="h-8 text-xs px-2 py-1 border border-gray-300 rounded dark:bg-gray-600 dark:border-gray-500 dark:text-white"
+                                                  disabled={saving[item.id]}
+                                                />
+                                                <button
+                                                  onClick={() => handleSaveDate(item.id)}
+                                                  disabled={saving[item.id] || !editedDates[item.id]}
+                                                  className="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-blue-700 border border-transparent rounded hover:bg-blue-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+                                                >
+                                                  {saving[item.id] ? (
+                                                    <RefreshCw className="w-3 h-3 animate-spin" />
+                                                  ) : (
+                                                    <Save className="w-3 h-3" />
+                                                  )}
+                                                </button>
+                                              </div>
+                                            ) : (
+                                              <span className="text-xs text-gray-900 dark:text-white">
+                                                {formatDate(item.estimasi_tanggal_perekaman || undefined)}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+       
+                                    {/* Status Toggle for Admin */}
+                                    {["admin", "superuser"].includes(userRole) && (
+                                      <div className="mt-6 flex items-center justify-between border-t border-gray-200 dark:border-gray-600 pt-4">
+                                        <div className="flex items-center space-x-2">
+                                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Status Perekaman:</span>
+                                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                            item.is_ready_to_record
+                                              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                                              : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                                          }`}>
+                                            {item.is_ready_to_record ? "Selesai" : "Belum Selesai"}
+                                          </span>
+                                        </div>
+                                        <button
+                                          onClick={() => handleToggleChange(item.id, item.is_ready_to_record)}
+                                          className={`inline-flex items-center px-4 py-2 text-sm font-medium border border-transparent rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                                            item.is_ready_to_record
+                                              ? "text-gray-700 bg-white border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+                                              : "text-white bg-blue-700 hover:bg-blue-800"
+                                          }`}
+                                        >
+                                          {item.is_ready_to_record ? "Tandai Belum Selesai" : "Tandai Selesai"}
+                                        </button>
+                                      </div>
+                                    )}
+                                  </td>
+                                </tr>
+                              )}
                               </React.Fragment>
                             );
                           })
                         )}
-                      </AnimatePresence>
                     </tbody>
                   </table>
                 </div>
@@ -1071,95 +887,66 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
 
         {/* Enhanced Pagination */}
         {Math.ceil(totalCount / 5) > 0 && (
-          <motion.div variants={itemVariants} className="flex justify-center">
-            <Card className="border-border/50 bg-background/80 shadow-lg backdrop-blur-sm">
-              <CardContent className="p-4">
-                <nav
-                  className="flex items-center space-x-2"
-                  aria-label="Pagination"
-                >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                    className="transition-all duration-200"
-                    aria-label="Previous page"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
+          <div className="flex justify-center">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="px-6 py-4">
+                <nav className="flex items-center justify-between" aria-label="Pagination">
+                  <div className="text-sm text-gray-700 dark:text-gray-400">
+                    Halaman <span className="font-semibold text-gray-900 dark:text-white">{currentPage}</span> dari{" "}
+                    <span className="font-semibold text-gray-900 dark:text-white">{Math.ceil(totalCount / 5)}</span>
+                  </div>
 
-                  {Array.from(
-                    { length: Math.ceil(totalCount / 5) },
-                    (_, i) => i + 1,
-                  ).map((page) => {
-                    const totalPages = Math.ceil(totalCount / 5);
-                    const shouldShow =
-                      page === 1 ||
-                      page === totalPages ||
-                      (page >= currentPage - 1 && page <= currentPage + 1) ||
-                      (currentPage === 1 && page <= 3) ||
-                      (currentPage === totalPages && page >= totalPages - 2);
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                      className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
 
-                    if (!shouldShow && page === currentPage - 2) {
+                    {Array.from({ length: Math.ceil(totalCount / 5) }, (_, i) => i + 1).map((page) => {
+                      const totalPages = Math.ceil(totalCount / 5);
+                      const shouldShow = page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1) || (currentPage === 1 && page <= 3) || (currentPage === totalPages && page >= totalPages - 2);
+
+                      if (!shouldShow && page === currentPage - 2) {
+                        return <span key="ellipsis-prev" className="px-2 py-1 text-gray-400" aria-hidden="true">...</span>;
+                      }
+
+                      if (!shouldShow && page === currentPage + 2) {
+                        return <span key="ellipsis-next" className="px-2 py-1 text-gray-400" aria-hidden="true">...</span>;
+                      }
+
+                      if (!shouldShow) return null;
+
                       return (
-                        <span
-                          key="ellipsis-prev"
-                          className="px-2 py-1 text-muted-foreground"
-                          aria-hidden="true"
+                        <button
+                          key={page}
+                          onClick={() => onPageChange(page)}
+                          className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
+                            currentPage === page
+                              ? "text-white bg-blue-700 border border-blue-700"
+                              : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                          }`}
+                          aria-current={currentPage === page ? "page" : undefined}
                         >
-                          ...
-                        </span>
+                          {page}
+                        </button>
                       );
-                    }
+                    })}
 
-                    if (!shouldShow && page === currentPage + 2) {
-                      return (
-                        <span
-                          key="ellipsis-next"
-                          className="px-2 py-1 text-muted-foreground"
-                          aria-hidden="true"
-                        >
-                          ...
-                        </span>
-                      );
-                    }
-
-                    if (!shouldShow) return null;
-
-                    return (
-                      <Button
-                        key={page}
-                        variant={currentPage === page ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => onPageChange(page)}
-                        className="transition-all duration-200"
-                        aria-label={`Page ${page}`}
-                        aria-current={currentPage === page ? "page" : undefined}
-                      >
-                        {page}
-                      </Button>
-                    );
-                  })}
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      onPageChange(
-                        Math.min(Math.ceil(totalCount / 5), currentPage + 1),
-                      )
-                    }
-                    disabled={currentPage === Math.ceil(totalCount / 5)}
-                    className="transition-all duration-200"
-                    aria-label="Next page"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
+                    <button
+                      onClick={() => onPageChange(Math.min(Math.ceil(totalCount / 5), currentPage + 1))}
+                      disabled={currentPage === Math.ceil(totalCount / 5)}
+                      className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </div>
                 </nav>
-              </CardContent>
-            </Card>
-          </motion.div>
+              </div>
+            </div>
+          </div>
         )}
       </motion.div>
     </TooltipProvider>

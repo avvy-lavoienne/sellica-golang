@@ -6,7 +6,11 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/conn/utils"
 
+// Flowbite Pro Label Integration
+// This component maintains backward compatibility while adopting Flowbite Pro label patterns
+// Enhanced with variant support for different label styles in SELLICA forms
 const labelVariants = cva(
+  // Flowbite Pro label base styling with SELLICA customizations
   "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
 )
 

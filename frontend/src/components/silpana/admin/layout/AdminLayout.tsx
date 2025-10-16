@@ -220,7 +220,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center space-x-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user?.avatar} />
+                    <AvatarImage src={user?.avatar_url} />
                     <AvatarFallback>
                       {user?.name?.charAt(0) || 'A'}
                     </AvatarFallback>

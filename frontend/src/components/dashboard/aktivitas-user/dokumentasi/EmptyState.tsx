@@ -1,35 +1,30 @@
 "use client"
 
-import { motion } from "framer-motion"
-import { FileText } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { FileText, Plus } from "lucide-react"
+import { Button, Card } from "flowbite-react"
 
 interface EmptyStateProps {
   title: string
   description: string
   actionLabel: string
   onAction: () => void
+  icon?: React.ReactNode
 }
 
-export default function EmptyState({ title, description, actionLabel, onAction }: EmptyStateProps) {
+export default function EmptyState({ title, description, actionLabel, onAction, icon }: EmptyStateProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
-      className="flex flex-col items-center justify-center rounded-lg border bg-gradient-to-b from-background to-background/80 p-12 text-center shadow-lg"
-    >
-      <div className="bg-primary/10 p-4 rounded-full mb-6">
-        <FileText className="h-12 w-12 text-primary" />
+    <Card className="w-full">
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/20">
+          {icon || <FileText className="h-10 w-10 text-blue-600 dark:text-blue-400" />}
+        </div>
+        <h3 className="mb-2 text-xl font-semibold text-gray-900 dark:text-white">{title}</h3>
+        <p className="mb-6 max-w-md text-sm text-gray-500 dark:text-gray-400">{description}</p>
+        <Button onClick={onAction} color="blue" size="md">
+          <Plus className="mr-2 h-4 w-4" />
+          {actionLabel}
+        </Button>
       </div>
-      <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">{title}</h3>
-      <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md">{description}</p>
-      <Button
-        onClick={onAction}
-        className="px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-lg flex items-center shadow-md hover:shadow-lg transition-all duration-200"
-      >
-        {actionLabel}
-      </Button>
-    </motion.div>
+    </Card>
   )
 }

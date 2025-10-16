@@ -2,10 +2,10 @@ import React from 'react';
 import { redirect } from 'next/navigation';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import AdminLayout from '@/components/silpana/admin/layout/AdminLayout';
+import type { Metadata } from 'next';
 
-export const metadata = {
-  title: 'SILPANA Admin Panel',
+export const metadata: Metadata = {
+  title: 'SILPANA Admin Panel - SELLICA',
   description: 'Admin panel untuk mengelola sistem SILPANA',
 };
 
@@ -43,8 +43,9 @@ export default async function SilpanaProtectedLayout({
   //   .single();
   //
   // if (profile?.role !== 'admin') {
-  //   redirect('/unauthorized');
+  //   .redirect('/unauthorized');
   // }
 
-  return <AdminLayout>{children}</AdminLayout>;
+  // Use the main SELLICA layout instead of AdminLayout
+  return <div className="container mx-auto py-6">{children}</div>;
 }

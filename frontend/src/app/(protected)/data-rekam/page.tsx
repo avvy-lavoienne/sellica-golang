@@ -13,7 +13,6 @@ import {
   ArrowTrendingUpIcon,
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/conn/utils";
 import StatCard from "@/components/dashboard/data-rekam/StatCard";
 import DataRekamHeader from "@/components/dashboard/data-rekam/DataRekamHeader";
@@ -21,10 +20,6 @@ import ProgressRing from "@/components/dashboard/data-rekam/ProgressRing";
 import Link from "next/link";
 import { ChartSection } from "@/components/dashboard/ChartSection";
 import { ChartData, ChartDataResponse } from "@/types/dashboard";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { id as idLocale } from "date-fns/locale";
 import Papa from "papaparse";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -686,25 +681,12 @@ export default function DataRekam() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <motion.div
-          className="flex flex-col items-center space-y-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <motion.div
-            className="h-12 w-12 rounded-full border-4 border-b-gray-200 border-l-gray-200 border-r-indigo-600 border-t-indigo-600"
-            animate={{ rotate: 360 }}
-            transition={{
-              duration: 1.5,
-              repeat: Number.POSITIVE_INFINITY,
-              ease: "linear",
-            }}
-          />
+        <div className="flex flex-col items-center space-y-4">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-b-gray-200 border-l-gray-200 border-r-indigo-600 border-t-indigo-600"></div>
           <p className="font-medium text-gray-600 dark:text-gray-300">
             Loading dashboard data...
           </p>
-        </motion.div>
+        </div>
       </div>
     );
   }
@@ -712,12 +694,7 @@ export default function DataRekam() {
   if (!currentUser) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <motion.div
-          className="w-full max-w-md rounded-lg bg-white p-8 text-center shadow-lg dark:bg-gray-800"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+        <div className="w-full max-w-md rounded-lg bg-white p-8 text-center shadow-lg dark:bg-gray-800">
           <ExclamationTriangleIcon className="mx-auto mb-4 h-16 w-16 text-red-500" />
           <h2 className="mb-2 text-xl font-bold text-gray-900 dark:text-white">
             Session Expired
@@ -733,7 +710,7 @@ export default function DataRekam() {
             Go to Login
             <ChevronRightIcon className="ml-2 h-5 w-5" />
           </Link>
-        </motion.div>
+        </div>
       </div>
     );
   }
@@ -773,12 +750,7 @@ export default function DataRekam() {
           />
 
           {/* Enhanced Filters Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-            className="mb-8"
-          >
+          <div className="mb-8">
             <Card className="border-border/50 bg-background/80 shadow-lg backdrop-blur-sm">
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
@@ -795,215 +767,40 @@ export default function DataRekam() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
-                  <LocalizationProvider
-                    dateAdapter={AdapterDateFns}
-                    adapterLocale={idLocale}
-                  >
-                    <div className="flex-1 space-y-2">
-                      <DatePicker
-                        label="Tanggal Mulai"
-                        value={tempStartDate}
-                        onChange={(newValue) => {
-                          console.log("Temp Start Date Changed:", newValue);
-                          setTempStartDate(newValue);
-                        }}
-                        format="dd/MM/yyyy"
-                        disabled={loading}
-                        slotProps={{
-                          textField: {
-                            className: cn(
-                              "w-full rounded-xl border transition-all duration-200",
-                              // Light mode styles
-                              "border-gray-200 bg-white text-gray-900",
-                              "focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20",
-                              // Dark mode styles
-                              "dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100",
-                              "dark:focus-within:border-primary/50 dark:focus-within:ring-primary/20",
-                              // Disabled state
-                              loading && "opacity-50 cursor-not-allowed",
-                            ),
-                            InputLabelProps: {
-                              className: cn(
-                                "text-gray-600 dark:text-gray-300",
-                                "transition-colors duration-200",
-                              ),
-                            },
-                            InputProps: {
-                              className: cn(
-                                "text-gray-900 dark:text-gray-100",
-                                "transition-colors duration-200",
-                              ),
-                              placeholder: "dd/MM/yyyy",
-                            },
-                            sx: {
-                              // MUI specific dark mode styles
-                              "& .MuiOutlinedInput-root": {
-                                backgroundColor: "transparent",
-                                "& fieldset": {
-                                  borderColor: "transparent",
-                                },
-                                "&:hover fieldset": {
-                                  borderColor: "transparent",
-                                },
-                                "&.Mui-focused fieldset": {
-                                  borderColor: "transparent",
-                                },
-                              },
-                              "& .MuiInputLabel-root": {
-                                color: "inherit",
-                                "&.Mui-focused": {
-                                  color: "inherit",
-                                },
-                              },
-                              "& .MuiInputBase-input": {
-                                color: "inherit",
-                                "&::placeholder": {
-                                  color: "inherit",
-                                  opacity: 0.6,
-                                },
-                              },
-                            },
-                          },
-                          popper: {
-                            sx: {
-                              // Dark mode styles for the date picker popup
-                              "& .MuiPaper-root": {
-                                backgroundColor: "var(--background)",
-                                color: "var(--foreground)",
-                                border: "1px solid var(--border)",
-                                boxShadow:
-                                  "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-                              },
-                              "& .MuiPickersDay-root": {
-                                color: "var(--foreground)",
-                                "&:hover": {
-                                  backgroundColor: "var(--muted)",
-                                },
-                                "&.Mui-selected": {
-                                  backgroundColor: "var(--primary)",
-                                  color: "var(--primary-foreground)",
-                                  "&:hover": {
-                                    backgroundColor: "var(--primary)",
-                                  },
-                                },
-                              },
-                              "& .MuiPickersCalendarHeader-root": {
-                                color: "var(--foreground)",
-                              },
-                              "& .MuiPickersArrowSwitcher-button": {
-                                color: "var(--foreground)",
-                              },
-                              "& .MuiDayCalendar-weekDayLabel": {
-                                color: "var(--muted-foreground)",
-                              },
-                            },
-                          },
-                        }}
-                      />
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      <DatePicker
-                        label="Tanggal Selesai"
-                        value={tempEndDate}
-                        onChange={(newValue) => {
-                          console.log("Temp End Date Changed:", newValue);
-                          setTempEndDate(newValue);
-                        }}
-                        format="dd/MM/yyyy"
-                        disabled={loading}
-                        slotProps={{
-                          textField: {
-                            className: cn(
-                              "w-full rounded-xl border transition-all duration-200",
-                              // Light mode styles
-                              "border-gray-200 bg-white text-gray-900",
-                              "focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20",
-                              // Dark mode styles
-                              "dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100",
-                              "dark:focus-within:border-primary/50 dark:focus-within:ring-primary/20",
-                              // Disabled state
-                              loading && "opacity-50 cursor-not-allowed",
-                            ),
-                            InputLabelProps: {
-                              className: cn(
-                                "text-gray-600 dark:text-gray-300",
-                                "transition-colors duration-200",
-                              ),
-                            },
-                            InputProps: {
-                              className: cn(
-                                "text-gray-900 dark:text-gray-100",
-                                "transition-colors duration-200",
-                              ),
-                              placeholder: "dd/MM/yyyy",
-                            },
-                            sx: {
-                              // MUI specific dark mode styles
-                              "& .MuiOutlinedInput-root": {
-                                backgroundColor: "transparent",
-                                "& fieldset": {
-                                  borderColor: "transparent",
-                                },
-                                "&:hover fieldset": {
-                                  borderColor: "transparent",
-                                },
-                                "&.Mui-focused fieldset": {
-                                  borderColor: "transparent",
-                                },
-                              },
-                              "& .MuiInputLabel-root": {
-                                color: "inherit",
-                                "&.Mui-focused": {
-                                  color: "inherit",
-                                },
-                              },
-                              "& .MuiInputBase-input": {
-                                color: "inherit",
-                                "&::placeholder": {
-                                  color: "inherit",
-                                  opacity: 0.6,
-                                },
-                              },
-                            },
-                          },
-                          popper: {
-                            sx: {
-                              // Dark mode styles for the date picker popup
-                              "& .MuiPaper-root": {
-                                backgroundColor: "var(--background)",
-                                color: "var(--foreground)",
-                                border: "1px solid var(--border)",
-                                boxShadow:
-                                  "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-                              },
-                              "& .MuiPickersDay-root": {
-                                color: "var(--foreground)",
-                                "&:hover": {
-                                  backgroundColor: "var(--muted)",
-                                },
-                                "&.Mui-selected": {
-                                  backgroundColor: "var(--primary)",
-                                  color: "var(--primary-foreground)",
-                                  "&:hover": {
-                                    backgroundColor: "var(--primary)",
-                                  },
-                                },
-                              },
-                              "& .MuiPickersCalendarHeader-root": {
-                                color: "var(--foreground)",
-                              },
-                              "& .MuiPickersArrowSwitcher-button": {
-                                color: "var(--foreground)",
-                              },
-                              "& .MuiDayCalendar-weekDayLabel": {
-                                color: "var(--muted-foreground)",
-                              },
-                            },
-                          },
-                        }}
-                      />
-                    </div>
-                  </LocalizationProvider>
+                  <div className="flex-1 space-y-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
+                      Tanggal Mulai
+                    </label>
+                    <input
+                      type="date"
+                      value={tempStartDate ? tempStartDate.toISOString().split('T')[0] : ''}
+                      onChange={(e) => {
+                        const newValue = e.target.value ? new Date(e.target.value) : null;
+                        console.log("Temp Start Date Changed:", newValue);
+                        setTempStartDate(newValue);
+                      }}
+                      disabled={loading}
+                      className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary-500 dark:focus:ring-primary-500"
+                      placeholder="dd/MM/yyyy"
+                    />
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
+                      Tanggal Selesai
+                    </label>
+                    <input
+                      type="date"
+                      value={tempEndDate ? tempEndDate.toISOString().split('T')[0] : ''}
+                      onChange={(e) => {
+                        const newValue = e.target.value ? new Date(e.target.value) : null;
+                        console.log("Temp End Date Changed:", newValue);
+                        setTempEndDate(newValue);
+                      }}
+                      disabled={loading}
+                      className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary-500 dark:focus:ring-primary-500"
+                      placeholder="dd/MM/yyyy"
+                    />
+                  </div>
 
                   {/* Filter Actions */}
                   <div className="flex gap-2">
@@ -1037,17 +834,12 @@ export default function DataRekam() {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
 
           {/* Enhanced Dashboard Content */}
           <div ref={dashboardRef} className="space-y-8">
             {/* Stats Grid with Loading States */}
-            <motion.section
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.3 }}
-              className="space-y-4"
-            >
+            <section className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-semibold text-foreground">
@@ -1152,15 +944,10 @@ export default function DataRekam() {
                   }
                 />
               </div>
-            </motion.section>
+            </section>
 
             {/* Enhanced Progress Overview */}
-            <motion.section
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.4 }}
-              className="space-y-4"
-            >
+            <section className="space-y-4">
               <Card className="border-border/50 bg-background/80 shadow-lg backdrop-blur-sm">
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between">
@@ -1290,15 +1077,10 @@ export default function DataRekam() {
                   </div>
                 </CardContent>
               </Card>
-            </motion.section>
+            </section>
 
             {/* Enhanced Charts Section */}
-            <motion.section
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.5 }}
-              className="space-y-4"
-            >
+            <section className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-semibold text-foreground">
@@ -1335,7 +1117,7 @@ export default function DataRekam() {
                   />
                 </CardContent>
               </Card>
-            </motion.section>
+            </section>
           </div>
         </div>
         <ToastContainer position="top-right" autoClose={3000} />

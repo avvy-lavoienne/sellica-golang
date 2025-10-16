@@ -1,4 +1,5 @@
 import { TrainingDataManager } from '@/components/admin/TrainingDataManager';
+import type { Metadata } from 'next';
 
 export default function TrainingDataPage() {
   return (
@@ -8,7 +9,7 @@ export default function TrainingDataPage() {
   );
 }
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'SELLY Training Data Manager',
   description: 'Manage SELLY training data and unanswered queries',
 };

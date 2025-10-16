@@ -1,56 +1,47 @@
-"use client"
-
-import { motion } from "framer-motion"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+"use client";
 
 export default function TableSkeleton() {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="w-full overflow-auto rounded-md border shadow-sm"
-    >
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">
-              <Skeleton className="h-4 w-full" />
-            </TableHead>
-            <TableHead>
-              <Skeleton className="h-4 w-full" />
-            </TableHead>
-            <TableHead>
-              <Skeleton className="h-4 w-full" />
-            </TableHead>
-            <TableHead className="text-right">
-              <Skeleton className="h-4 w-full" />
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+    <div className="w-full overflow-auto rounded-lg border border-gray-200 shadow-sm dark:border-gray-700">
+      <table className="w-full text-left text-sm text-gray-500 dark:text-gray-400">
+        <thead className="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
+          <tr>
+            <th scope="col" className="w-[100px] px-6 py-3">
+              <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-600" />
+            </th>
+            <th scope="col" className="px-6 py-3">
+              <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-600" />
+            </th>
+            <th scope="col" className="px-6 py-3">
+              <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-600" />
+            </th>
+            <th scope="col" className="px-6 py-3 text-right">
+              <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-600" />
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
           {Array.from({ length: 5 }).map((_, i) => (
-            <TableRow key={i}>
-              <TableCell>
-                <Skeleton className="h-4 w-[80px]" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-4 w-full" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-4 w-[120px]" />
-              </TableCell>
-              <TableCell className="text-right">
+            <tr key={i} className="border-b bg-white dark:border-gray-700 dark:bg-gray-800">
+              <td className="px-6 py-4">
+                <div className="h-4 w-[80px] animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+              </td>
+              <td className="px-6 py-4">
+                <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+              </td>
+              <td className="px-6 py-4">
+                <div className="h-4 w-[120px] animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+              </td>
+              <td className="px-6 py-4 text-right">
                 <div className="flex justify-end space-x-2">
-                  <Skeleton className="h-8 w-8 rounded-md" />
-                  <Skeleton className="h-8 w-8 rounded-md" />
+                  <div className="h-8 w-8 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700" />
+                  <div className="h-8 w-8 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700" />
                 </div>
-              </TableCell>
-            </TableRow>
+              </td>
+            </tr>
           ))}
-        </TableBody>
-      </Table>
-    </motion.div>
-  )
+        </tbody>
+      </table>
+    </div>
+  );
 }

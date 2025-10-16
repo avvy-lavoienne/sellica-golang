@@ -18,10 +18,10 @@ func (s *Service) GetTicketByID(ctx context.Context, ticketID string) (*TicketRe
 	}()
 
 	query := `
-		SELECT id, code, requester_name, requester_nik, requester_phone, 
-			   requester_email, requester_address, document_type, purpose, 
-			   status, priority, notes, metadata, created_at, updated_at, completed_at
-		FROM silpana_tickets 
+		SELECT id, ticket_code, nama_pengaduan, nik_pengaduan, no_hp_pengaduan, 
+			   email_pengaduan, alamat_pengaduan, jenis_pengaduan, deskripsi_pengaduan, 
+			   ticket_status, priority, tindak_lanjut_pengaduan, created_at, updated_at
+		FROM silpana 
 		WHERE id = $1`
 
 	results, err := s.dbService.Query(ctx, query, ticketID)
@@ -354,4 +354,260 @@ func (s *Service) GetTicketsByPriority(ctx context.Context, priority TicketPrior
 	}
 
 	return tickets, nil
+}
+
+
+// PaginatedTicketsResponse represents paginated tickets with metadata
+type PaginatedTicketsResponse struct {
+	Tickets    []*SilpanaTicket `json:"tickets"`
+	TotalCount int              `json:"total_count"`
+	Page       int              `json:"page"`
+	PageSize   int              `json:"page_size"`
+	TotalPages int              `json:"total_pages"`
+}
+
+// BulkOperationResponse represents the response for bulk operations
+type BulkOperationResponse struct {
+	SuccessCount int               `json:"success_count"`
+	FailedCount  int               `json:"failed_count"`
+	FailedIDs    []string          `json:"failed_ids,omitempty"`
+	Errors       map[string]string `json:"errors,omitempty"`
+}
+
+// GetAllTickets retrieves all tickets with pagination support
+func (s *Service) GetAllTickets(ctx context.Context, page, pageSize int) (*PaginatedTicketsResponse, error) {
+	start := time.Now()
+	defer func() {
+		s.monitoringService.RecordDuration("silpana_get_all_tickets_duration", time.Since(start), map[string]string{
+			"operation": "get_all_tickets",
+		})
+	}()
+
+	// Validate pagination parameters
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 || pageSize > 100 {
+		pageSize = 20 // Default page size
+	}
+
+	// Calculate offset
+	offset := (page - 1) * pageSize
+
+	// Get total count (for calculating total pages)
+	countQuery := `SELECT COUNT(*) as count FROM silpana`
+	countResults, err := s.dbService.Query(ctx, countQuery)
+	if err != nil {
+		s.monitoringService.IncrementCounter("silpana_get_all_tickets_errors", map[string]string{"error": "count_query"})
+		return nil, fmt.Errorf("failed to count tickets: %w", err)
+	}
+
+	totalCount := 0
+	if len(countResults) > 0 {
+		if count, ok := countResults[0]["count"].(int64); ok {
+			totalCount = int(count)
+		}
+	}
+
+	// Get paginated tickets
+	query := `SELECT id, ticket_code, nama_pengaduan, nik_pengaduan, no_hp_pengaduan, 
+		email_pengaduan, alamat_pengaduan, jenis_pengaduan, deskripsi_pengaduan, 
+		ticket_status, priority_level, tindak_lanjut_pengaduan, created_at, updated_at 
+		FROM silpana 
+		ORDER BY created_at DESC 
+		LIMIT $1 OFFSET $2`
+
+	results, err := s.dbService.Query(ctx, query, pageSize, offset)
+	if err != nil {
+		s.monitoringService.IncrementCounter("silpana_get_all_tickets_errors", map[string]string{"error": "data_query"})
+		return nil, fmt.Errorf("failed to get tickets: %w", err)
+	}
+
+	tickets := make([]*SilpanaTicket, len(results))
+	for i, result := range results {
+		ticket := &SilpanaTicket{
+			ID:               getString(result, "id"),
+			Code:             getString(result, "ticket_code"),
+			RequesterName:    getString(result, "nama_pengaduan"),
+			RequesterNIK:     getString(result, "nik_pengaduan"),
+			RequesterPhone:   getString(result, "no_hp_pengaduan"),
+			RequesterEmail:   getString(result, "email_pengaduan"),
+			RequesterAddress: getString(result, "alamat_pengaduan"),
+			DocumentType:     getString(result, "jenis_pengaduan"),
+			Purpose:          getString(result, "deskripsi_pengaduan"),
+			Status:           TicketStatus(getString(result, "ticket_status")),
+			Priority:         TicketPriority(getString(result, "priority_level")),
+			Notes:            getString(result, "tindak_lanjut_pengaduan"),
+			CreatedAt:        getTime(result, "created_at"),
+			UpdatedAt:        getTime(result, "updated_at"),
+		}
+		tickets[i] = ticket
+	}
+
+	// Calculate total pages
+	totalPages := (totalCount + pageSize - 1) / pageSize
+	if totalPages == 0 {
+		totalPages = 1
+	}
+
+	return &PaginatedTicketsResponse{
+		Tickets:    tickets,
+		TotalCount: totalCount,
+		Page:       page,
+		PageSize:   pageSize,
+		TotalPages: totalPages,
+	}, nil
+}
+
+// BulkApproveTickets updates multiple tickets to "in_progress" status
+func (s *Service) BulkApproveTickets(ctx context.Context, ticketIDs []string, changedBy string) (*BulkOperationResponse, error) {
+	start := time.Now()
+	defer func() {
+		s.monitoringService.RecordDuration("silpana_bulk_approve_duration", time.Since(start), map[string]string{
+			"operation": "bulk_approve",
+			"count":     fmt.Sprintf("%d", len(ticketIDs)),
+		})
+	}()
+
+	if len(ticketIDs) == 0 {
+		return nil, fmt.Errorf("no ticket IDs provided")
+	}
+
+	successCount := 0
+	failedIDs := make([]string, 0)
+	errors := make(map[string]string)
+
+	// Process each ticket individually (allows partial success)
+	for _, ticketID := range ticketIDs {
+		updateQuery := `
+			UPDATE silpana
+			SET ticket_status = 'in_progress', 
+			    updated_at = NOW()
+			WHERE id = $1`
+
+		err := s.dbService.Execute(ctx, updateQuery, ticketID)
+		if err != nil {
+			failedIDs = append(failedIDs, ticketID)
+			errors[ticketID] = err.Error()
+			s.monitoringService.IncrementCounter("silpana_bulk_approve_errors", map[string]string{
+				"ticket_id": ticketID,
+				"error":     "database_update",
+			})
+			continue
+		}
+
+		successCount++
+	}
+
+	s.monitoringService.IncrementCounter("silpana_bulk_approve_success", map[string]string{
+		"count": fmt.Sprintf("%d", successCount),
+	})
+
+	return &BulkOperationResponse{
+		SuccessCount: successCount,
+		FailedCount:  len(failedIDs),
+		FailedIDs:    failedIDs,
+		Errors:       errors,
+	}, nil
+}
+
+// BulkRejectTickets updates multiple tickets to "rejected" status
+func (s *Service) BulkRejectTickets(ctx context.Context, ticketIDs []string, changedBy string, reason string) (*BulkOperationResponse, error) {
+	start := time.Now()
+	defer func() {
+		s.monitoringService.RecordDuration("silpana_bulk_reject_duration", time.Since(start), map[string]string{
+			"operation": "bulk_reject",
+			"count":     fmt.Sprintf("%d", len(ticketIDs)),
+		})
+	}()
+
+	if len(ticketIDs) == 0 {
+		return nil, fmt.Errorf("no ticket IDs provided")
+	}
+
+	successCount := 0
+	failedIDs := make([]string, 0)
+	errors := make(map[string]string)
+
+	// Process each ticket individually
+	for _, ticketID := range ticketIDs {
+		updateQuery := `
+			UPDATE silpana
+			SET ticket_status = 'rejected',
+			    resolution_notes = $2,
+			    updated_at = NOW()
+			WHERE id = $1`
+
+		err := s.dbService.Execute(ctx, updateQuery, ticketID, reason)
+		if err != nil {
+			failedIDs = append(failedIDs, ticketID)
+			errors[ticketID] = err.Error()
+			s.monitoringService.IncrementCounter("silpana_bulk_reject_errors", map[string]string{
+				"ticket_id": ticketID,
+				"error":     "database_update",
+			})
+			continue
+		}
+
+		successCount++
+	}
+
+	s.monitoringService.IncrementCounter("silpana_bulk_reject_success", map[string]string{
+		"count": fmt.Sprintf("%d", successCount),
+	})
+
+	return &BulkOperationResponse{
+		SuccessCount: successCount,
+		FailedCount:  len(failedIDs),
+		FailedIDs:    failedIDs,
+		Errors:       errors,
+	}, nil
+}
+
+// BulkDeleteTickets deletes multiple tickets
+func (s *Service) BulkDeleteTickets(ctx context.Context, ticketIDs []string, deletedBy string) (*BulkOperationResponse, error) {
+	start := time.Now()
+	defer func() {
+		s.monitoringService.RecordDuration("silpana_bulk_delete_duration", time.Since(start), map[string]string{
+			"operation": "bulk_delete",
+			"count":     fmt.Sprintf("%d", len(ticketIDs)),
+		})
+	}()
+
+	if len(ticketIDs) == 0 {
+		return nil, fmt.Errorf("no ticket IDs provided")
+	}
+
+	successCount := 0
+	failedIDs := make([]string, 0)
+	errors := make(map[string]string)
+
+	// Process each ticket individually
+	for _, ticketID := range ticketIDs {
+		deleteQuery := `DELETE FROM silpana WHERE id = $1`
+
+		err := s.dbService.Execute(ctx, deleteQuery, ticketID)
+		if err != nil {
+			failedIDs = append(failedIDs, ticketID)
+			errors[ticketID] = err.Error()
+			s.monitoringService.IncrementCounter("silpana_bulk_delete_errors", map[string]string{
+				"ticket_id": ticketID,
+				"error":     "database_delete",
+			})
+			continue
+		}
+
+		successCount++
+	}
+
+	s.monitoringService.IncrementCounter("silpana_bulk_delete_success", map[string]string{
+		"count": fmt.Sprintf("%d", successCount),
+	})
+
+	return &BulkOperationResponse{
+		SuccessCount: successCount,
+		FailedCount:  len(failedIDs),
+		FailedIDs:    failedIDs,
+		Errors:       errors,
+	}, nil
 }

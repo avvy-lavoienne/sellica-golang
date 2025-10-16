@@ -7,13 +7,143 @@ import React, {
   useEffect,
   useRef,
 } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { cn } from "@/lib/conn/utils";
+
+// Flowbite Pro component interfaces (simplified for this implementation)
+// In a real Flowbite Pro setup, these would be imported from "flowbite-react"
+interface ButtonProps {
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  color?: string;
+  size?: string;
+  className?: string;
+  type?: "button" | "submit" | "reset";
+}
+
+interface TextInputProps {
+  type?: string;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string;
+  required?: boolean;
+  disabled?: boolean;
+  className?: string;
+  "aria-label"?: string;
+  name?: string;
+  maxLength?: number;
+}
+
+interface LabelProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+interface CheckboxProps {
+  checked?: boolean;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  disabled?: boolean;
+  className?: string;
+  "aria-label"?: string;
+}
+
+// Simplified Flowbite Pro components (in production, import from "flowbite-react")
+const Button: React.FC<ButtonProps> = ({
+  children,
+  onClick,
+  disabled = false,
+  color = "blue",
+  size = "md",
+  className = "",
+  type = "button"
+}) => {
+  const baseClasses = "inline-flex items-center rounded-lg font-medium focus:outline-none focus:ring-4 transition-all duration-200";
+  const colorClasses = {
+    blue: "bg-blue-700 hover:bg-blue-800 text-white focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800",
+    gray: "bg-gray-600 hover:bg-gray-700 text-white focus:ring-gray-300 dark:bg-gray-700 dark:hover:bg-gray-800 dark:focus:ring-gray-800",
+    red: "bg-red-600 hover:bg-red-700 text-white focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800",
+    green: "bg-green-600 hover:bg-green-700 text-white focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+  };
+  const sizeClasses = {
+    md: "px-5 py-2.5 text-sm",
+    lg: "px-6 py-3 text-base"
+  };
+
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={`${baseClasses} ${colorClasses[color as keyof typeof colorClasses]} ${sizeClasses[size as keyof typeof sizeClasses]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+    >
+      {children}
+    </button>
+  );
+};
+
+const TextInput: React.FC<TextInputProps> = ({
+  type = "text",
+  value,
+  onChange,
+  placeholder,
+  required,
+  disabled,
+  className = "",
+  "aria-label": ariaLabel,
+  name,
+  maxLength
+}) => (
+  <input
+    type={type}
+    value={value}
+    onChange={onChange}
+    placeholder={placeholder}
+    required={required}
+    disabled={disabled}
+    aria-label={ariaLabel}
+    name={name}
+    maxLength={maxLength}
+    className={`block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary-500 dark:focus:ring-primary-500 ${className}`}
+  />
+);
+
+const Label: React.FC<LabelProps> = ({ children, className = "" }) => (
+  <label className={`mb-2 block text-sm font-medium text-gray-900 dark:text-white ${className}`}>
+    {children}
+  </label>
+);
+
+const Checkbox: React.FC<CheckboxProps> = ({
+  checked,
+  onChange,
+  disabled,
+  className = "",
+  "aria-label": ariaLabel
+}) => (
+  <input
+    type="checkbox"
+    checked={checked}
+    onChange={onChange}
+    disabled={disabled}
+    aria-label={ariaLabel}
+    className={`h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600 ${className}`}
+  />
+);
+
+import {
+  UserIcon,
+  UsersIcon,
+  CheckIcon,
+  CalendarIcon,
+  ArrowPathIcon,
+  DocumentTextIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
+
+// Flowbite Heroicon integration for consistent iconography
 import type {
   DuplicateOperatorData,
   DuplicateOperatorFormData,
 } from "@/types/data-rekam/duplicate-operator";
-import { User, Users, UserCheck, Calendar } from "lucide-react";
 
 // Enhanced interface with enterprise-grade features
 interface DuplicateOperatorFormProps {
@@ -43,7 +173,7 @@ interface DuplicateOperatorFormProps {
   "aria-label"?: string;
 }
 
-export default function DuplicateOperatorForm({
+const DuplicateOperatorForm: React.FC<DuplicateOperatorFormProps> = ({
   formData,
   setFormData,
   onSubmit,
@@ -56,7 +186,7 @@ export default function DuplicateOperatorForm({
   delay = 0,
   disableAnimations = false,
   "aria-label": ariaLabel,
-}: DuplicateOperatorFormProps) {
+}) => {
   // State management with better UX
   const [activeSection, setActiveSection] = useState<string>("duplicate");
   const [validationErrors, setValidationErrors] = useState<
@@ -65,33 +195,6 @@ export default function DuplicateOperatorForm({
   const [isFormValid, setIsFormValid] = useState(false);
   const [showValidation, setShowValidation] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
-
-  // Theme and accessibility
-  const prefersReducedMotion = useReducedMotion();
-  const shouldAnimate = !disableAnimations && !prefersReducedMotion;
-
-  // Enhanced color system consistent with other components
-  const colorSchemes = useMemo(
-    () => ({
-      primary: {
-        bg: "bg-primary/5",
-        text: "text-primary",
-        accent: "text-primary",
-        bgClass: "bg-primary/5",
-        borderClass: "border-primary/20",
-        glowClass: "shadow-primary/20",
-      },
-      indigo: {
-        bg: "bg-indigo-50 dark:bg-indigo-900/20",
-        text: "text-indigo-700 dark:text-indigo-300",
-        accent: "text-indigo-600 dark:text-indigo-400",
-        bgClass: "bg-indigo-50 dark:bg-indigo-900/20",
-        borderClass: "border-indigo-200 dark:border-indigo-800",
-        glowClass: "shadow-indigo-500/20",
-      },
-    }),
-    [],
-  );
 
   // Enhanced input change handler with validation
   const handleInputChange = useCallback(
@@ -194,7 +297,7 @@ export default function DuplicateOperatorForm({
         id: "duplicate",
         title: "Data Duplikat",
         description: "Informasi data yang terduplikat",
-        icon: User,
+        icon: UserIcon,
         color: "indigo",
         fields: ["nik_duplicate", "nama_duplicate"],
       },
@@ -202,7 +305,7 @@ export default function DuplicateOperatorForm({
         id: "operator",
         title: "Data Operator",
         description: "Informasi operator yang menangani",
-        icon: Users,
+        icon: UsersIcon,
         color: "green",
         fields: ["nik_operator", "nama_operator"],
       },
@@ -210,7 +313,7 @@ export default function DuplicateOperatorForm({
         id: "pengaju",
         title: "Data Pengaju",
         description: "Informasi pengaju permohonan",
-        icon: UserCheck,
+        icon: CheckIcon,
         color: "blue",
         fields: ["nik_pengaju", "nama_pengaju"],
       },
@@ -218,7 +321,7 @@ export default function DuplicateOperatorForm({
         id: "tanggal",
         title: "Detail Perekaman",
         description: "Tanggal dan status perekaman",
-        icon: Calendar,
+        icon: CalendarIcon,
         color: "purple",
         fields: [
           "tanggal_perekaman",
@@ -231,89 +334,10 @@ export default function DuplicateOperatorForm({
     [],
   );
 
-  // Animation variants for enterprise-grade micro-interactions
-  const containerVariants = {
-    hidden: {
-      opacity: 0,
-      y: 16,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: shouldAnimate ? 0.4 : 0,
-        ease: "easeOut" as const,
-        delay: delay,
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: {
-      opacity: 0,
-      y: 8,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: shouldAnimate ? 0.3 : 0,
-        ease: "easeOut" as const,
-      },
-    },
-  };
-
-  const sidebarVariants = {
-    hidden: {
-      opacity: 0,
-      x: -20,
-    },
-    visible: {
-      opacity: 1,
-      x: 0,
-      transition: {
-        duration: shouldAnimate ? 0.3 : 0,
-        ease: "easeOut" as const,
-        staggerChildren: 0.05,
-      },
-    },
-  };
-
-  // Get section completion status
-  const getSectionStatus = useCallback(
-    (sectionId: string) => {
-      const section = sections.find((s) => s.id === sectionId);
-      if (!section) return { completed: false, hasErrors: false };
-
-      const hasErrors = section.fields.some((field) => validationErrors[field]);
-      const completed = section.fields.every((field) => {
-        if (
-          field === "is_ready_to_record" ||
-          field === "estimasi_tanggal_perekaman"
-        )
-          return true;
-        return formData[field as keyof DuplicateOperatorFormData];
-      });
-
-      return { completed, hasErrors };
-    },
-    [sections, validationErrors, formData],
-  );
-
-  // Accessibility attributes
-  const accessibilityProps = {
-    role: "form",
-    "aria-label":
-      ariaLabel ||
-      `Form ${isEditing ? "edit" : "pengajuan"} duplicate operator`,
-    "aria-describedby": "form-description",
-  };
-
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+    <div className={`overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 ${className}`}>
       <div className="flex flex-col md:flex-row">
-        {/* Sidebar Navigation */}
+        {/* Sidebar Navigation with Flowbite styling */}
         <div className="w-full bg-gray-50 p-4 dark:bg-gray-900 md:w-64">
           <div className="space-y-1">
             {sections.map((section) => (
@@ -330,6 +354,7 @@ export default function DuplicateOperatorForm({
                 aria-label={`Navigasi ke bagian ${section.title}`}
               >
                 <span className="mr-3">
+                  {/* Flowbite Heroicon integration for section icons */}
                   <section.icon className="h-5 w-5" />
                 </span>
                 <span className="font-medium">{section.title}</span>
@@ -355,50 +380,31 @@ export default function DuplicateOperatorForm({
           </div>
         </div>
 
-        {/* Form Content */}
+        {/* Form Content with Flowbite styling */}
         <div className="flex-1 p-6">
-          <form onSubmit={onSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6" ref={formRef}>
             {/* Data Duplikat Section */}
             {activeSection === "duplicate" && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="space-y-4"
-              >
+              <div className="space-y-4">
                 <h2 className="flex items-center text-xl font-semibold text-gray-800 dark:text-gray-200">
                   <span className="mr-2 rounded-md bg-indigo-100 p-1.5 dark:bg-indigo-900/30">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-indigo-600 dark:text-indigo-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
+                    {/* Flowbite Heroicon integration for section header */}
+                    <UserIcon className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                   </span>
                   Data Duplikat
                 </h2>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <Label>
                       NIK Duplikat <span className="text-red-500">*</span>
-                    </label>
+                    </Label>
                     <div className="relative">
-                      <input
+                      <TextInput
                         type="text"
                         name="nik_duplicate"
                         value={formData.nik_duplicate}
                         onChange={handleInputChange}
                         maxLength={16}
-                        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                         placeholder="Masukkan 16 angka"
                         required
                         aria-label="NIK Duplikat"
@@ -413,64 +419,44 @@ export default function DuplicateOperatorForm({
                     </div>
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <Label>
                       Nama Duplikat <span className="text-red-500">*</span>
-                    </label>
-                    <input
+                    </Label>
+                    <TextInput
                       type="text"
                       name="nama_duplicate"
                       value={formData.nama_duplicate}
                       onChange={handleInputChange}
-                      className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                       required
                       aria-label="Nama Duplikat"
                     />
                   </div>
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {/* Data Operator Section */}
             {activeSection === "operator" && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="space-y-4"
-              >
+              <div className="space-y-4">
                 <h2 className="flex items-center text-xl font-semibold text-gray-800 dark:text-gray-200">
-                  <span className="mr-2 rounded-md bg-indigo-100 p-1.5 dark:bg-indigo-900/30">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-indigo-600 dark:text-indigo-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-                      />
-                    </svg>
+                  <span className="mr-2 rounded-md bg-green-100 p-1.5 dark:bg-green-900/30">
+                    {/* Flowbite Heroicon integration for section header */}
+                    <UsersIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
                   </span>
                   Data Operator
                 </h2>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <Label>
                       NIK Operator <span className="text-red-500">*</span>
-                    </label>
+                    </Label>
                     <div className="relative">
-                      <input
+                      <TextInput
                         type="text"
                         name="nik_operator"
                         value={formData.nik_operator}
                         onChange={handleInputChange}
                         maxLength={16}
-                        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                         placeholder="Masukkan 16 angka"
                         required
                         aria-label="NIK Operator"
@@ -485,154 +471,99 @@ export default function DuplicateOperatorForm({
                     </div>
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <Label>
                       Nama Operator <span className="text-red-500">*</span>
-                    </label>
-                    <input
+                    </Label>
+                    <TextInput
                       type="text"
                       name="nama_operator"
                       value={formData.nama_operator}
                       onChange={handleInputChange}
-                      className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                       required
                       aria-label="Nama Operator"
                     />
                   </div>
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {/* Data Pengaju Section */}
             {activeSection === "pengaju" && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="space-y-4"
-              >
+              <div className="space-y-4">
                 <h2 className="flex items-center text-xl font-semibold text-gray-800 dark:text-gray-200">
-                  <span className="mr-2 rounded-md bg-indigo-100 p-1.5 dark:bg-indigo-900/30">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-indigo-600 dark:text-indigo-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
+                  <span className="mr-2 rounded-md bg-blue-100 p-1.5 dark:bg-blue-900/30">
+                    {/* Flowbite Heroicon integration for section header */}
+                    <CheckIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </span>
                   Data Pengaju
                 </h2>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      NIK Pengaju
-                    </label>
-                    <input
+                    <Label>NIK Pengaju</Label>
+                    <TextInput
                       type="text"
                       name="nik_pengaju"
                       value={formData.nik_pengaju}
-                      className="w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-gray-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-400"
-                      readOnly
+                      disabled
                       aria-label="NIK Pengaju"
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Nama Pengaju
-                    </label>
-                    <input
+                    <Label>Nama Pengaju</Label>
+                    <TextInput
                       type="text"
                       name="nama_pengaju"
                       value={formData.nama_pengaju}
-                      className="w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-gray-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-400"
-                      readOnly
+                      disabled
                       aria-label="Nama Pengaju"
                     />
                   </div>
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {/* Detail Perekaman Section */}
             {activeSection === "tanggal" && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="space-y-4"
-              >
+              <div className="space-y-4">
                 <h2 className="flex items-center text-xl font-semibold text-gray-800 dark:text-gray-200">
-                  <span className="mr-2 rounded-md bg-indigo-100 p-1.5 dark:bg-indigo-900/30">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-indigo-600 dark:text-indigo-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
+                  <span className="mr-2 rounded-md bg-purple-100 p-1.5 dark:bg-purple-900/30">
+                    {/* Flowbite Heroicon integration for section header */}
+                    <CalendarIcon className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                   </span>
                   Detail Perekaman
                 </h2>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <Label>
                       Tanggal Perekaman <span className="text-red-500">*</span>
-                    </label>
-                    <input
+                    </Label>
+                    <TextInput
                       type="date"
                       name="tanggal_perekaman"
                       value={formData.tanggal_perekaman}
                       onChange={handleInputChange}
-                      className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                       required
                       aria-label="Tanggal Perekaman"
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Tanggal Pengajuan <span className="text-red-500">*</span>
-                    </label>
-                    <input
+                    <Label>Tanggal Pengajuan</Label>
+                    <TextInput
                       type="date"
                       name="tanggal_pengajuan"
                       value={formData.tanggal_pengajuan}
-                      onChange={handleInputChange}
-                      className="w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-gray-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-400"
-                      readOnly
+                      disabled
                       aria-label="Tanggal Pengajuan"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Estimasi Tanggal Perekaman Ulang
-                  </label>
-                  <input
+                  <Label>Estimasi Tanggal Perekaman Ulang</Label>
+                  <TextInput
                     type="date"
                     name="estimasi_tanggal_perekaman"
                     value={formData.estimasi_tanggal_perekaman || ""}
                     onChange={handleInputChange}
-                    className={
-                      ["admin", "superuser"].includes(userRole)
-                        ? "w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                        : "w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-gray-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-400"
-                    }
                     disabled={!["admin", "superuser"].includes(userRole)}
                     aria-label="Estimasi Tanggal Perekaman Ulang"
                   />
@@ -640,9 +571,7 @@ export default function DuplicateOperatorForm({
                 {["admin", "superuser"].includes(userRole) && (
                   <div className="mt-4">
                     <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        name="is_ready_to_record"
+                      <Checkbox
                         checked={formData.is_ready_to_record || false}
                         onChange={(e) =>
                           setFormData((prev) => ({
@@ -650,7 +579,6 @@ export default function DuplicateOperatorForm({
                             is_ready_to_record: e.target.checked,
                           }))
                         }
-                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                         aria-label="Selesai"
                       />
                       <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
@@ -659,74 +587,47 @@ export default function DuplicateOperatorForm({
                     </label>
                   </div>
                 )}
-              </motion.div>
+              </div>
             )}
 
-            {/* Form Actions */}
+            {/* Form Actions with Flowbite Button components */}
             <div className="flex justify-end space-x-4 border-t border-gray-200 pt-6 dark:border-gray-700">
-              <motion.button
+              <Button
                 type="button"
                 onClick={onCancel}
-                className="rounded-lg border border-gray-300 px-6 py-2.5 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:focus:ring-offset-gray-800"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                aria-label="Batalkan pengajuan"
+                color="gray"
+                size="lg"
               >
+                {/* Flowbite Heroicon integration for cancel action */}
+                <XMarkIcon className="h-5 w-5 mr-2" />
                 Batal
-              </motion.button>
-              <motion.button
+              </Button>
+              <Button
                 type="submit"
                 disabled={loading}
-                className={`rounded-lg px-6 py-2.5 text-white ${
-                  loading
-                    ? "cursor-not-allowed bg-indigo-400"
-                    : "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-                }`}
-                whileHover={loading ? {} : { scale: 1.02 }}
-                whileTap={loading ? {} : { scale: 0.98 }}
-                aria-label={
-                  loading
-                    ? "Sedang menyimpan"
-                    : isEditing
-                      ? "Perbarui data"
-                      : "Ajukan data"
-                }
+                color="blue"
+                size="lg"
               >
                 {loading ? (
-                  <div className="flex items-center">
-                    <svg
-                      className="-ml-1 mr-2 h-4 w-4 animate-spin text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
+                  <>
+                    {/* Flowbite Heroicon integration for loading state */}
+                    <ArrowPathIcon className="h-5 w-5 mr-2 animate-spin" />
                     Menyimpan...
-                  </div>
-                ) : isEditing ? (
-                  "Perbarui Data"
+                  </>
                 ) : (
-                  "Ajukan Data"
+                  <>
+                    {/* Flowbite Heroicon integration for save action */}
+                    <DocumentTextIcon className="h-5 w-5 mr-2" />
+                    {isEditing ? "Perbarui Data" : "Ajukan Data"}
+                  </>
                 )}
-              </motion.button>
+              </Button>
             </div>
           </form>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default DuplicateOperatorForm;

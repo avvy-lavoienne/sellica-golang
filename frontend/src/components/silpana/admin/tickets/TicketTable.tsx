@@ -34,6 +34,9 @@ import {
 import { SilpanaData } from "@/types/silpana/silpana";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
+import { TablePagination } from "./TablePagination";
+import { BulkActionToolbar } from "./BulkActionToolbar";
+import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
 
 interface TicketTableProps {
   tickets: SilpanaData[];
@@ -45,6 +48,12 @@ interface TicketTableProps {
   onEditTicket: (ticketId: string) => void;
   onDeleteTicket: (ticketId: string) => void;
   onUpdateStatus: (ticketId: string, status: string) => void;
+  // Pagination props
+  currentPage?: number;
+  totalItems?: number;
+  pageSize?: number;
+  onPageChange?: (page: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
 }
 
 type SortField = "ticket_code" | "created_at" | "ticket_status" | "priority_level";
@@ -60,9 +69,152 @@ export function TicketTable({
   onEditTicket,
   onDeleteTicket,
   onUpdateStatus,
+  // Pagination props with defaults
+  currentPage = 1,
+  totalItems = 0,
+  pageSize = 20,
+  onPageChange = () => {},
+  onPageSizeChange = () => {},
 }: TicketTableProps) {
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [bulkLoading, setBulkLoading] = useState(false);
+
+  // Modal states
+  const [approveDialogOpen, setApproveDialogOpen] = useState(false);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // Bulk action handlers - now use modals instead of window.confirm
+  const handleApproveAll = async () => {
+    if (selectedTickets.length === 0) return;
+    setApproveDialogOpen(true);
+  };
+
+  const handleApproveConfirm = async () => {
+    setBulkLoading(true);
+    try {
+      // Update each ticket status to "in_progress"
+      await Promise.all(
+        selectedTickets.map(ticketId => onUpdateStatus(ticketId, "in_progress"))
+      );
+      
+      // Clear selection after success
+      onSelectAll(false);
+      setApproveDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to approve tickets:", error);
+      alert("Gagal menyetujui tiket. Silakan coba lagi.");
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  const handleRejectAll = async () => {
+    if (selectedTickets.length === 0) return;
+    setRejectDialogOpen(true);
+  };
+
+  const handleRejectConfirm = async () => {
+    setBulkLoading(true);
+    try {
+      // Update each ticket status to "rejected"
+      await Promise.all(
+        selectedTickets.map(ticketId => onUpdateStatus(ticketId, "rejected"))
+      );
+      
+      // Clear selection after success
+      onSelectAll(false);
+      setRejectDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to reject tickets:", error);
+      alert("Gagal menolak tiket. Silakan coba lagi.");
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    if (selectedTickets.length === 0) return;
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    setBulkLoading(true);
+    try {
+      // Delete each ticket
+      await Promise.all(
+        selectedTickets.map(ticketId => onDeleteTicket(ticketId))
+      );
+      
+      // Clear selection after success
+      onSelectAll(false);
+      setDeleteDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to delete tickets:", error);
+      alert("Gagal menghapus tiket. Silakan coba lagi.");
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  const handleExportCSV = () => {
+    if (selectedTickets.length === 0) return;
+
+    // Get selected ticket data
+    const selectedData = tickets.filter(ticket => 
+      ticket.id && selectedTickets.includes(ticket.id)
+    );
+
+    // Create CSV header
+    const headers = [
+      "Kode Tiket",
+      "Nama Pemohon",
+      "Email",
+      "No Telepon",
+      "Kategori",
+      "Status",
+      "Prioritas",
+      "Tanggal Dibuat",
+      "Deskripsi"
+    ];
+
+    // Create CSV rows
+    const rows = selectedData.map(ticket => [
+      ticket.ticket_code || "",
+      ticket.nama_pengaduan || "",
+      ticket.email || "",
+      ticket.nomor_telepon || "",
+      ticket.kategori_pengaduan || "",
+      ticket.ticket_status || "",
+      ticket.priority_level || "",
+      ticket.created_at ? format(new Date(ticket.created_at), "dd/MM/yyyy HH:mm") : "",
+      (ticket.deskripsi_pengaduan || "").replace(/"/g, '""') // Escape quotes
+    ]);
+
+    // Combine headers and rows
+    const csv = [
+      headers.join(","),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
+    ].join("\n");
+
+    // Create blob and download
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute("href", url);
+    link.setAttribute("download", `tickets-export-${format(new Date(), "yyyyMMdd-HHmmss")}.csv`);
+    link.style.visibility = "hidden";
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleClearSelection = () => {
+    onSelectAll(false);
+  };
 
   // Sort tickets
   const sortedTickets = React.useMemo(() => {
@@ -184,7 +336,21 @@ export function TicketTable({
   }
 
   return (
-    <div className="rounded-md border">
+    <div className="space-y-4">
+      {/* Bulk Action Toolbar */}
+      <BulkActionToolbar
+        selectedCount={selectedTickets.length}
+        totalCount={tickets.length}
+        onApproveAll={handleApproveAll}
+        onRejectAll={handleRejectAll}
+        onDeleteAll={handleDeleteAll}
+        onExport={handleExportCSV}
+        onClearSelection={handleClearSelection}
+        loading={bulkLoading}
+      />
+
+      {/* Ticket Table */}
+      <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
@@ -350,6 +516,54 @@ export function TicketTable({
           )})}
         </TableBody>
       </Table>
+
+      {/* Pagination Controls */}
+      {totalItems > 0 && (
+        <TablePagination
+          currentPage={currentPage}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={onPageChange}
+          onPageSizeChange={onPageSizeChange}
+          loading={loading}
+        />
+      )}
+      </div>
+
+      {/* Confirmation Dialogs */}
+      <ConfirmationDialog
+        isOpen={approveDialogOpen}
+        onClose={() => setApproveDialogOpen(false)}
+        onConfirm={handleApproveConfirm}
+        title="Setujui Tiket"
+        message={`Setujui ${selectedTickets.length} tiket yang dipilih? Tindakan ini akan mengubah status tiket menjadi "Diproses".`}
+        variant="info"
+        confirmText="Setujui"
+        loading={bulkLoading}
+      />
+
+      <ConfirmationDialog
+        isOpen={rejectDialogOpen}
+        onClose={() => setRejectDialogOpen(false)}
+        onConfirm={handleRejectConfirm}
+        title="Tolak Tiket"
+        message={`Tolak ${selectedTickets.length} tiket yang dipilih? Tindakan ini akan mengubah status tiket menjadi "Ditolak" dan tidak dapat dibatalkan.`}
+        variant="warning"
+        confirmText="Tolak"
+        loading={bulkLoading}
+      />
+
+      <ConfirmationDialog
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Hapus Tiket"
+        message={`PERINGATAN: Hapus ${selectedTickets.length} tiket yang dipilih? Tindakan ini PERMANEN dan tidak dapat dibatalkan!`}
+        variant="danger"
+        confirmText="Hapus"
+        loading={bulkLoading}
+        requireDoubleConfirm={true}
+      />
     </div>
   );
 }
