@@ -14,17 +14,15 @@
  * - Visual hierarchy and information architecture
  */
 
-import { memo, useMemo, useState, useCallback } from "react";
+import { memo, useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/conn/utils";
-import { Badge } from "@/components/ui/badge";
-import { 
+import {
   AlertCircle, 
   CheckCircle, 
   Clock, 
-  FileText, 
-  RefreshCw,
-  Plus 
+  FileText,
+  Plus,
 } from "lucide-react";
 
 // ============================================================================
@@ -53,12 +51,8 @@ interface PengaduanBulananHeaderProps {
   delay?: number;
   /** Disable animations for accessibility */
   disableAnimations?: boolean;
-  /** Callback for refresh button click */
-  onRefresh?: () => void | Promise<void>;
   /** Callback for create new complaint button click */
   onCreateNew?: () => void;
-  /** Show loading state on refresh button */
-  isRefreshing?: boolean;
   /** Show action buttons */
   showActionButtons?: boolean;
   /** Last update timestamp (ISO string or Date object) */
@@ -108,17 +102,13 @@ function PengaduanBulananHeader({
   className,
   delay = 0.2,
   disableAnimations = false,
-  onRefresh,
   onCreateNew,
-  isRefreshing = false,
   showActionButtons = true,
   lastUpdated,
 }: PengaduanBulananHeaderProps) {
   // ========================================================================
   // State Management
   // ========================================================================
-
-  const [isHoveringRefresh, setIsHoveringRefresh] = useState(false);
 
   // ========================================================================
   // Accessibility and Theme
@@ -241,31 +231,6 @@ function PengaduanBulananHeader({
       },
     },
   };
-
-  /**
-   * Rotation animation for refresh button
-   */
-  const rotationVariants = {
-    idle: { rotate: 0 },
-    spinning: {
-      rotate: 360,
-      transition: {
-        duration: 1,
-        repeat: Infinity,
-        ease: "linear" as const,
-      },
-    },
-  };
-
-  // ========================================================================
-  // Event Handlers
-  // ========================================================================
-
-  const handleRefresh = useCallback(async () => {
-    if (onRefresh && !isRefreshing) {
-      await onRefresh();
-    }
-  }, [onRefresh, isRefreshing]);
 
   // ========================================================================
   // Render: Main Component
@@ -398,70 +363,17 @@ function PengaduanBulananHeader({
               </motion.p>
             </div>
 
-            {/* Right Column: Action Buttons */}
+            {/* Right Column: Action Group */}
             {showActionButtons && (
               <motion.div
                 variants={itemVariants}
-                className="flex flex-col sm:flex-row gap-3 lg:justify-end"
+                className="flex flex-col sm:flex-row gap-3 lg:justify-end lg:items-center"
               >
-                {/* Refresh Button with Tooltip */}
-                <motion.div
-                  className="relative"
-                  onHoverStart={() => setIsHoveringRefresh(true)}
-                  onHoverEnd={() => setIsHoveringRefresh(false)}
-                >
-                  <motion.button
-                    onClick={handleRefresh}
-                    disabled={isRefreshing}
-                    className={cn(
-                      "h-12 px-4 rounded-xl border border-border/50",
-                      "bg-background/50 backdrop-blur-md",
-                      "flex items-center justify-center gap-2",
-                      "text-sm font-medium text-muted-foreground",
-                      "transition-all duration-200",
-                      "hover:bg-background hover:shadow-md hover:border-border",
-                      "disabled:opacity-70 disabled:cursor-not-allowed",
-                      "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 dark:focus:ring-offset-background",
-                    )}
-                    whileHover={shouldAnimate ? { y: -2 } : {}}
-                    whileTap={shouldAnimate ? { y: 0, scale: 0.98 } : {}}
-                    aria-label="Refresh data"
-                    title="Refresh Data"
-                  >
-                    <motion.div
-                      variants={rotationVariants}
-                      animate={isRefreshing ? "spinning" : "idle"}
-                    >
-                      <RefreshCw className="h-5 w-5" strokeWidth={1.5} />
-                    </motion.div>
-                  </motion.button>
-
-                  {/* Tooltip */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={
-                      isHoveringRefresh && shouldAnimate
-                        ? { opacity: 1, y: 0 }
-                        : { opacity: 0, y: 8 }
-                    }
-                    transition={{ duration: 0.15 }}
-                    className={cn(
-                      "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg",
-                      "bg-foreground text-background text-xs font-medium whitespace-nowrap",
-                      "pointer-events-none z-50",
-                      "shadow-lg",
-                    )}
-                  >
-                    Refresh Data
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 h-1 w-1.5 bg-foreground" />
-                  </motion.div>
-                </motion.div>
-
-                {/* Create New Complaint Button */}
+                {/* Create New Complaint Button - Primary Action */}
                 <motion.button
                   onClick={onCreateNew}
                   className={cn(
-                    "h-12 px-6 rounded-xl",
+                    "h-11 px-5 rounded-xl",
                     "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600",
                     "text-white font-semibold text-sm",
                     "flex items-center justify-center gap-2",
@@ -469,8 +381,9 @@ function PengaduanBulananHeader({
                     "shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40",
                     "focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 dark:focus:ring-offset-background",
                     "disabled:opacity-50 disabled:cursor-not-allowed",
+                    "whitespace-nowrap",
                   )}
-                  whileHover={shouldAnimate ? { y: -2 } : {}}
+                  whileHover={shouldAnimate ? { y: -2, scale: 1.02 } : {}}
                   whileTap={shouldAnimate ? { y: 0, scale: 0.98 } : {}}
                   aria-label="Create new complaint"
                 >
