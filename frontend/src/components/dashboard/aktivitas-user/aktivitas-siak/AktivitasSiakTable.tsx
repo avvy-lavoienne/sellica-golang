@@ -1,7 +1,7 @@
 "use client";
 
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
 import {
   ChevronDownIcon,
   ChevronUpIcon,
@@ -14,8 +14,6 @@ import {
   RefreshCw,
   BarChart3,
   TrendingUp,
-  Users,
-  Activity,
   ChevronLeft,
   ChevronRight,
   MoreHorizontal,
@@ -23,23 +21,12 @@ import {
   EyeOff,
   SortAsc,
   SortDesc,
-  ArrowUpDown,
-  Clock,
   Database,
   Zap,
   AlertCircle,
-  CheckCircle,
-  Info,
 } from "lucide-react";
 import type { AktivitasSiakData } from "@/types/aktivitas-user/aktivitas-siak";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -64,6 +51,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { cn } from "@/lib/conn/utils";
 import { toast } from "react-toastify";
 
@@ -92,11 +86,9 @@ export default function AktivitasSiakTable({
 }: AktivitasSiakTableProps) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortField, setSortField] = useState<string>("bulan_rekapitulasi");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [filterPeriod, setFilterPeriod] = useState<string>("all");
   const [isHovered, setIsHovered] = useState(false);
-  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
 
   const rowsPerPage = 5;
   const totalPages = Math.ceil(totalCount / rowsPerPage);
@@ -767,3 +759,4 @@ export default function AktivitasSiakTable({
     </TooltipProvider>
   );
 }
+
