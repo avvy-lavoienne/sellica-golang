@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -40,23 +41,45 @@ func (s *Service) CheckPendingUserExists(ctx context.Context, email string) (boo
 	}
 
 	// Use Supabase client to check pending users
+	// Query without .Single() to avoid PGRST116 error on empty result
 	data, _, err := s.client.From("pending_users").
-		Select("email", "", false).
+		Select("id,email", "", false).
 		Eq("email", email).
-		Single().
 		Execute()
 
 	if err != nil {
-		// If no rows found, user doesn't exist
-		if err.Error() == "PGRST116" || err.Error() == "No rows found" {
-			return false, nil
-		}
-		logrus.WithError(err).WithField("email", email).Error("Failed to check pending user existence")
-		return false, err
+		logrus.WithError(err).WithField("email", email).Debug("Database query error when checking pending user")
+		// Return false (user doesn't exist) to allow registration to proceed
+		return false, nil
 	}
 
-	// If we got data, user exists
-	return len(data) > 0, nil
+	// Debug log to understand the data structure
+	logrus.WithFields(logrus.Fields{
+		"email":      email,
+		"data_len":   len(data),
+		"data_type":  fmt.Sprintf("%T", data),
+	}).Debug("Pending user check result")
+
+	// If data is empty or has no content, user doesn't exist
+	if len(data) == 0 {
+		return false, nil
+	}
+
+	// Parse to check if we actually got a record
+	var results []map[string]interface{}
+	if err := json.Unmarshal(data, &results); err != nil {
+		logrus.WithError(err).WithField("email", email).Warn("Failed to parse user check result")
+		return false, nil // Assume doesn't exist if we can't parse
+	}
+
+	// If results list is empty, user doesn't exist
+	if len(results) == 0 {
+		return false, nil
+	}
+
+	// User exists
+	logrus.WithField("email", email).Debug("Pending user found")
+	return true, nil
 }
 
 // CreatePendingUser inserts a new pending user into the database
@@ -69,17 +92,29 @@ func (s *Service) CreatePendingUser(ctx context.Context, user *PendingUser) erro
 		user.ID = uuid.New().String()
 	}
 
-	// Prepare user data for insertion
+	// Prepare user data for insertion (only fields that exist in pending_users table)
 	userData := map[string]interface{}{
 		"id":           user.ID,
 		"email":        user.Email,
 		"name":         user.Name,
 		"password":     user.Password,
-		"position":     user.Position,
-		"nip":          user.NIP,
-		"nik":          user.NIK,
 		"status":       user.Status,
 		"requested_at": user.CreatedAt.Format(time.RFC3339),
+	}
+
+	// Store optional metadata (position, nip, nik) in user_metadata JSON field
+	metadata := map[string]interface{}{}
+	if user.Position != "" {
+		metadata["position"] = user.Position
+	}
+	if user.NIP != "" {
+		metadata["nip"] = user.NIP
+	}
+	if user.NIK != "" {
+		metadata["nik"] = user.NIK
+	}
+	if len(metadata) > 0 {
+		userData["user_metadata"] = metadata
 	}
 
 	// Insert into pending_users table
