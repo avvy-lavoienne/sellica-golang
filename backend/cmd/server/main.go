@@ -25,6 +25,7 @@ import (
 	"selly-backend/internal/services/monitoring"
 	"selly-backend/internal/services/rag"
 	"selly-backend/internal/services/silpana"
+	"selly-backend/internal/services/supabase_analyzer"
 	"selly-backend/internal/services/training"
 	"selly-backend/internal/services/websocket"
 )
@@ -65,6 +66,7 @@ func main() {
 		services.Concurrent,
 		services.Silpana,
 		services.SilpanaBroadcaster,
+		services.SupabaseAnalyzer,
 	)
 	routes.SetupRoutes(router, routeServices)
 
@@ -129,6 +131,7 @@ type Services struct {
 	// Real-time Services
 	WebSocketHub        *websocket.Hub
 	SilpanaBroadcaster  *silpana.WebSocketBroadcaster
+	SupabaseAnalyzer    *supabase_analyzer.Service
 
 	// Enhanced Services (Optimization Layer) - Placeholder interfaces
 	AI           interface{} // *ai.Service - To be implemented
@@ -333,6 +336,21 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	silpanaBroadcaster := silpana.NewWebSocketBroadcaster(wsHub)
 	logrus.Info("📡 SILPANA WebSocket broadcaster initialized")
 
+	// Initialize Supabase Analyzer service
+	// We'll need to get the database URL from config to create a direct SQL connection
+	var supabaseAnalyzer *supabase_analyzer.Service
+	if cfg.Database.URL != "" && cfg.Database.ServiceRoleKey != "" {
+		// Create a direct PostgreSQL connection for metadata queries
+		supabaseAnalyzer = supabase_analyzer.NewService(
+			dbService.GetClient(),
+			nil, // SQL connection will be handled within the service
+			cfg.Database.URL,
+		)
+		logrus.Info("🔍 Supabase analyzer service initialized successfully")
+	} else {
+		logrus.Warn("⚠️ Supabase analyzer service initialization skipped - missing database configuration")
+	}
+
 	// Initialize Enhanced Services (Optimization Layer)
 	logrus.Info("🚀 Initializing enhanced services...")
 
@@ -390,6 +408,7 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		// Real-time Services
 		WebSocketHub:       wsHub,
 		SilpanaBroadcaster: silpanaBroadcaster,
+		SupabaseAnalyzer:   supabaseAnalyzer,
 
 		// Enhanced Services (placeholders)
 		AI:           aiService,

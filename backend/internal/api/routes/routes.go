@@ -17,6 +17,7 @@ import (
 	"selly-backend/internal/services/eventbus"
 	"selly-backend/internal/services/monitoring"
 	"selly-backend/internal/services/silpana"
+	"selly-backend/internal/services/supabase_analyzer"
 	"selly-backend/internal/services/training"
 	ws "selly-backend/internal/services/websocket"
 )
@@ -33,6 +34,7 @@ type Services struct {
 	Concurrent         *concurrent.Service
 	Silpana            silpana.ServiceInterface
 	SilpanaBroadcaster *silpana.WebSocketBroadcaster
+	SupabaseAnalyzer   *supabase_analyzer.Service
 }
 
 // SetupRoutes configures all API routes and middleware
@@ -45,6 +47,7 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	chatHandler := handlers.NewChatHandler(services.Chat, services.Monitoring)
 	trainingHandler := handlers.NewTrainingHandler(services.Training)
 	performanceHandler := handlers.NewPerformanceHandler(services.Chat, services.Monitoring)
+	supabaseAnalyzerHandler := handlers.NewSupabaseAnalyzerHandler(services.SupabaseAnalyzer, services.Monitoring)
 
 	// Global middleware
 	router.Use(middleware.RequestIDMiddleware())
@@ -87,6 +90,11 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 
 	// SILPANA ticketing routes (public)
 	setupSilpanaRoutes(router, services.Silpana, services.SilpanaBroadcaster)
+
+	// Supabase analyzer routes (public)
+	if services.SupabaseAnalyzer != nil {
+		setupSupabaseAnalyzerRoutes(router, supabaseAnalyzerHandler)
+	}
 
 	// WebSocket routes (public)
 	if services.SilpanaBroadcaster != nil {
@@ -241,7 +249,7 @@ func setupPerformanceRoutes(router *gin.Engine, handler *handlers.PerformanceHan
 }
 
 // GetServices creates and returns the services struct for dependency injection
-func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service, silpanaService silpana.ServiceInterface, silpanaBroadcaster *silpana.WebSocketBroadcaster) *Services {
+func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service, silpanaService silpana.ServiceInterface, silpanaBroadcaster *silpana.WebSocketBroadcaster, supabaseAnalyzer *supabase_analyzer.Service) *Services {
 	return &Services{
 		EventBus:           eventBus,
 		Database:           db,
@@ -253,6 +261,7 @@ func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cach
 		Concurrent:         concurrent,
 		Silpana:            silpanaService,
 		SilpanaBroadcaster: silpanaBroadcaster,
+		SupabaseAnalyzer:   supabaseAnalyzer,
 	}
 }
 
