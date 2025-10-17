@@ -5,7 +5,10 @@
   "scripts": {
     "dev:frontend": "next dev",
     "dev:backend": "cd ../backend && go run ./cmd/server/main.go",
-    "dev": "concurrently \"pnpm dev:frontend\" \"pnpm dev:backend\"",
+    "dev": "pm2 start ecosystem.config.js --env development",
+    "dev:stop": "pm2 stop sellica-development",
+    "dev:logs": "pm2 logs sellica-development",
+    "dev:delete": "pm2 delete sellica-development",
     "prod": "pnpm build && pnpm start:prod",
     "start:prod": "concurrently \"pnpm start\" \"cd ../backend && go run ./cmd/server/main.go\"",
     "build": "cross-env DISABLE_RUNTIME_LOGS=true next build",
