@@ -342,6 +342,37 @@ export default function AktivitasSiakPage() {
                 }
                 toast.success("Data berhasil diperbarui!");
             } else {
+                // CHECK FOR DUPLICATE RECORD (Phase 1 Implementation)
+                // Prevent creating multiple records for the same user and month
+                const { data: existingRecord, error: checkError } = await supabase
+                    .from("aktivitas_siak")
+                    .select("id, bulan_rekapitulasi")
+                    .eq("user_id", user.id)
+                    .eq("bulan_rekapitulasi", formData.bulan_rekapitulasi)
+                    .maybeSingle();
+
+                if (checkError) {
+                    console.error("Error checking for duplicate:", checkError);
+                    // Continue anyway - might be a permission issue
+                }
+
+                if (existingRecord) {
+                    setLoading(false);
+                    const monthYear = new Date(formData.bulan_rekapitulasi + "-01")
+                        .toLocaleDateString("id-ID", {
+                            month: "long",
+                            year: "numeric",
+                        });
+                    
+                    toast.error(
+                        `Sudah ada data untuk periode ${monthYear}. Gunakan tombol Edit untuk mengubah data tersebut.`,
+                        {
+                            autoClose: 5000,
+                        }
+                    );
+                    return;
+                }
+
                 const { error } = await supabase
                     .from("aktivitas_siak")
                     .insert(dataToSave);
