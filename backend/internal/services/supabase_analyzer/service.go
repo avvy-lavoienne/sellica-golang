@@ -248,13 +248,22 @@ func (s *Service) getTableColumns(ctx context.Context, schema, tableName string)
 	return columns, rows.Err()
 }
 
-// getTableRowCount retrieves the row count for a specific table
+// getTableRowCount retrieves the row count for a specific table with timeout
 func (s *Service) getTableRowCount(ctx context.Context, schema, tableName string) (int64, error) {
+	// Add a 5-second timeout for row count queries to prevent hanging on large tables
+	timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
 	query := fmt.Sprintf("SELECT COUNT(*) FROM %s.%s", schema, tableName)
 	var count int64
 
-	err := s.db.QueryRowContext(ctx, query).Scan(&count)
+	err := s.db.QueryRowContext(timeoutCtx, query).Scan(&count)
 	if err != nil {
+		// Log timeout separately for debugging
+		if timeoutCtx.Err() != nil {
+			logrus.Warnf("Row count query timed out for table %s.%s (likely large table)", schema, tableName)
+			return 0, nil // Return 0 but don't error out
+		}
 		return 0, err
 	}
 
@@ -263,66 +272,68 @@ func (s *Service) getTableRowCount(ctx context.Context, schema, tableName string
 
 // analyzeBuckets retrieves and analyzes all storage buckets
 func (s *Service) analyzeBuckets(ctx context.Context) ([]BucketInfo, error) {
-	if s.client == nil {
-		return nil, fmt.Errorf("Supabase client not available")
-	}
+	// Try SQL query first if we have a connection
+	if s.db != nil {
+		query := `
+			SELECT 
+				b.id,
+				b.name,
+				b.public,
+				b.created_at,
+				b.updated_at,
+				COALESCE(SUM(o.size), 0)::bigint as total_size,
+				COUNT(o.id) as file_count
+			FROM storage.buckets b
+			LEFT JOIN storage.objects o ON b.id = o.bucket_id
+			GROUP BY b.id, b.name, b.public, b.created_at, b.updated_at
+			ORDER BY b.name
+		`
 
-	// Query the storage.buckets table to get bucket metadata
-	query := `
-		SELECT 
-			b.id,
-			b.name,
-			b.public,
-			b.created_at,
-			b.updated_at,
-			COALESCE(SUM(o.size), 0)::bigint as total_size,
-			COUNT(o.id) as file_count
-		FROM storage.buckets b
-		LEFT JOIN storage.objects o ON b.id = o.bucket_id
-		GROUP BY b.id, b.name, b.public, b.created_at, b.updated_at
-		ORDER BY b.name
-	`
+		rows, err := s.db.QueryContext(ctx, query)
+		if err == nil {
+			defer rows.Close()
 
-	rows, err := s.db.QueryContext(ctx, query)
-	if err != nil {
-		logrus.Warnf("Failed to query buckets from storage schema: %v", err)
-		// Fallback: try to use the Supabase client API
-		return s.analyzeBucketsViaAPI(ctx)
-	}
-	defer rows.Close()
+			var bucketInfos []BucketInfo
 
-	var bucketInfos []BucketInfo
+			for rows.Next() {
+				var (
+					id        string
+					name      string
+					isPublic  bool
+					createdAt string
+					updatedAt string
+					sizeBytes int64
+					fileCount int
+				)
 
-	for rows.Next() {
-		var (
-			id        string
-			name      string
-			isPublic  bool
-			createdAt string
-			updatedAt string
-			sizeBytes int64
-			fileCount int
-		)
+				if err := rows.Scan(&id, &name, &isPublic, &createdAt, &updatedAt, &sizeBytes, &fileCount); err != nil {
+					logrus.Errorf("Error scanning bucket row: %v", err)
+					continue
+				}
 
-		if err := rows.Scan(&id, &name, &isPublic, &createdAt, &updatedAt, &sizeBytes, &fileCount); err != nil {
-			logrus.Errorf("Error scanning bucket row: %v", err)
-			continue
+				bucketInfo := BucketInfo{
+					ID:        id,
+					Name:      name,
+					IsPublic:  isPublic,
+					CreatedAt: createdAt,
+					UpdatedAt: updatedAt,
+					SizeBytes: sizeBytes,
+					FileCount: fileCount,
+				}
+
+				bucketInfos = append(bucketInfos, bucketInfo)
+			}
+
+			if rowErr := rows.Err(); rowErr == nil && len(bucketInfos) > 0 {
+				return bucketInfos, nil // Success with SQL query
+			}
+			// Fall through to API method if no buckets found or rows error
 		}
-
-		bucketInfo := BucketInfo{
-			ID:        id,
-			Name:      name,
-			IsPublic:  isPublic,
-			CreatedAt: createdAt,
-			UpdatedAt: updatedAt,
-			SizeBytes: sizeBytes,
-			FileCount: fileCount,
-		}
-
-		bucketInfos = append(bucketInfos, bucketInfo)
+		// If SQL query failed, fall through to API method
 	}
-
-	return bucketInfos, rows.Err()
+	
+	// Fallback: use the Supabase client API
+	return s.analyzeBucketsViaAPI(ctx)
 }
 
 // analyzeBucketsViaAPI is a fallback method using the Supabase Go client

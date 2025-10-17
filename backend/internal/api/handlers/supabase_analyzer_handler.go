@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -28,6 +30,10 @@ func NewSupabaseAnalyzerHandler(analyzer *supabase_analyzer.Service, monitoring 
 // GET /api/v1/supabase/analyze
 func (h *SupabaseAnalyzerHandler) AnalyzeProject(c *gin.Context) {
 	ctx := c.Request.Context()
+	
+	// Add a 30-second timeout for the full analysis
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 
 	// Get query parameters
 	includeTables := c.DefaultQuery("tables", "true") == "true"
@@ -127,6 +133,10 @@ func (h *SupabaseAnalyzerHandler) ListBuckets(c *gin.Context) {
 // GET /api/v1/supabase/overview
 func (h *SupabaseAnalyzerHandler) GetProjectOverview(c *gin.Context) {
 	ctx := c.Request.Context()
+	
+	// Add a 10-second timeout for quick overview
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 
 	// Quick analysis without heavy data
 	filter := supabase_analyzer.AnalysisFilter{
@@ -134,7 +144,7 @@ func (h *SupabaseAnalyzerHandler) GetProjectOverview(c *gin.Context) {
 		IncludeBuckets:  true,
 		IncludeColumns:  false, // Skip detailed columns for overview
 		SchemaName:      "public",
-		MaxTableResults: 100,
+		MaxTableResults: 50, // Limit to first 50 tables for speed
 	}
 
 	analysis, err := h.analyzer.AnalyzeProject(ctx, filter)
