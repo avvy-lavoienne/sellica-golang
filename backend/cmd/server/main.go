@@ -15,6 +15,7 @@ import (
 
 	"selly-backend/internal/api/routes"
 	"selly-backend/internal/config"
+	"selly-backend/internal/services/aktivitas_siak"
 	"selly-backend/internal/services/auth"
 	"selly-backend/internal/services/cache"
 	"selly-backend/internal/services/chat"
@@ -67,6 +68,7 @@ func main() {
 		services.Silpana,
 		services.SilpanaBroadcaster,
 		services.SupabaseAnalyzer,
+		services.AktivitasSiak,
 	)
 	routes.SetupRoutes(router, routeServices)
 
@@ -121,12 +123,13 @@ type Services struct {
 	Monitoring *monitoring.Service
 
 	// Business Logic Services (Application Layer)
-	Chat       *chat.Service
-	Training   *training.Service
-	Knowledge  *knowledge.DocumentLoaderService
-	RAG        *rag.RedisRAGService
-	Concurrent *concurrent.Service
-	Silpana    silpana.ServiceInterface
+	Chat           *chat.Service
+	Training       *training.Service
+	Knowledge      *knowledge.DocumentLoaderService
+	RAG            *rag.RedisRAGService
+	Concurrent     *concurrent.Service
+	Silpana        silpana.ServiceInterface
+	AktivitasSiak  aktivitas_siak.Service
 
 	// Real-time Services
 	WebSocketHub        *websocket.Hub
@@ -326,6 +329,13 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	}
 	logrus.Info("🎫 SILPANA ticketing service initialized successfully")
 
+	// Initialize Aktivitas SIAK service
+	// TODO: Complete PostgreSQL adapter implementation
+	// Currently nil - service registration is in place but implementation pending
+	var aktivitasSiakService aktivitas_siak.Service
+	aktivitasSiakService = nil
+	logrus.Info("ℹ️ Aktivitas SIAK service placeholder initialized (PostgreSQL adapter implementation pending)")
+
 	// Initialize WebSocket hub for real-time features
 	logrus.Info("🔌 Initializing WebSocket hub...")
 	wsHub := websocket.NewHub(websocket.DefaultConfig())
@@ -398,12 +408,13 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		Monitoring: monitoringService,
 
 		// Business Logic Services
-		Chat:       chatService,
-		Training:   trainingService,
-		Knowledge:  knowledgeService,
-		RAG:        ragService,
-		Concurrent: concurrentService,
-		Silpana:    silpanaService,
+		Chat:          chatService,
+		Training:      trainingService,
+		Knowledge:     knowledgeService,
+		RAG:           ragService,
+		Concurrent:    concurrentService,
+		Silpana:       silpanaService,
+		AktivitasSiak: aktivitasSiakService,
 
 		// Real-time Services
 		WebSocketHub:       wsHub,

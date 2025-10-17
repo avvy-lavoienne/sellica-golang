@@ -6,9 +6,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/sirupsen/logrus"
 
 	"selly-backend/internal/api/handlers"
 	"selly-backend/internal/api/middleware"
+	"selly-backend/internal/services/aktivitas_siak"
 	"selly-backend/internal/services/auth"
 	"selly-backend/internal/services/cache"
 	"selly-backend/internal/services/chat"
@@ -35,6 +37,7 @@ type Services struct {
 	Silpana            silpana.ServiceInterface
 	SilpanaBroadcaster *silpana.WebSocketBroadcaster
 	SupabaseAnalyzer   *supabase_analyzer.Service
+	AktivitasSiak      aktivitas_siak.Service
 }
 
 // SetupRoutes configures all API routes and middleware
@@ -90,6 +93,11 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 
 	// SILPANA ticketing routes (public)
 	setupSilpanaRoutes(router, services.Silpana, services.SilpanaBroadcaster)
+
+	// Aktivitas SIAK routes (protected)
+	if services.AktivitasSiak != nil {
+		setupAktivitasSiakRoutes(router, services.AktivitasSiak, services.Auth)
+	}
 
 	// Supabase analyzer routes (public)
 	if services.SupabaseAnalyzer != nil {
@@ -249,7 +257,7 @@ func setupPerformanceRoutes(router *gin.Engine, handler *handlers.PerformanceHan
 }
 
 // GetServices creates and returns the services struct for dependency injection
-func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service, silpanaService silpana.ServiceInterface, silpanaBroadcaster *silpana.WebSocketBroadcaster, supabaseAnalyzer *supabase_analyzer.Service) *Services {
+func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service, silpanaService silpana.ServiceInterface, silpanaBroadcaster *silpana.WebSocketBroadcaster, supabaseAnalyzer *supabase_analyzer.Service, aktivitasSiakService aktivitas_siak.Service) *Services {
 	return &Services{
 		EventBus:           eventBus,
 		Database:           db,
@@ -262,6 +270,7 @@ func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cach
 		Silpana:            silpanaService,
 		SilpanaBroadcaster: silpanaBroadcaster,
 		SupabaseAnalyzer:   supabaseAnalyzer,
+		AktivitasSiak:      aktivitasSiakService,
 	}
 }
 
@@ -301,6 +310,43 @@ func setupSilpanaRoutes(router *gin.Engine, silpanaService silpana.ServiceInterf
 		// Ticket filtering endpoints
 		api.GET("/tickets/status/:status", silpanaHandler.GetTicketsByStatus) // GET /api/v1/silpana/tickets/status/:status - Get tickets by status
 	}
+}
+
+// setupAktivitasSiakRoutes configures Aktivitas SIAK civil registry activity management endpoints
+func setupAktivitasSiakRoutes(router *gin.Engine, aktivitasSiakService aktivitas_siak.Service, authService *auth.Service) {
+	// Create logger for handlers
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp: true,
+	})
+
+	// Create Aktivitas SIAK HTTP handlers
+	handlers, err := aktivitas_siak.NewHTTPHandlers(aktivitasSiakService, logger)
+	if err != nil {
+		log.Printf("❌ Failed to create Aktivitas SIAK handlers: %v", err)
+		return
+	}
+
+	// API group for Aktivitas SIAK endpoints (protected with authentication)
+	api := router.Group("/api/v1/aktivitas-siak")
+	api.Use(middleware.AuthMiddleware(authService)) // All routes require authentication
+	{
+		// Health check (public within protected group)
+		api.GET("/health", handlers.Health)
+
+		// CRUD operations
+		api.POST("", handlers.CreateRecord)           // POST /api/v1/aktivitas-siak - Create new record
+		api.GET("", handlers.ListRecords)             // GET /api/v1/aktivitas-siak - List records with pagination
+		api.GET("/:id", handlers.GetRecord)           // GET /api/v1/aktivitas-siak/:id - Get record by ID
+		api.PUT("/:id", handlers.UpdateRecord)        // PUT /api/v1/aktivitas-siak/:id - Update record
+		api.DELETE("/:id", handlers.DeleteRecord)     // DELETE /api/v1/aktivitas-siak/:id - Delete record
+
+		// Utility endpoints
+		api.POST("/check-duplicate", handlers.CheckDuplicate) // POST /api/v1/aktivitas-siak/check-duplicate - Check for duplicate
+		api.GET("/statistics", handlers.GetStatistics)        // GET /api/v1/aktivitas-siak/statistics - Get statistics
+	}
+
+	log.Println("📊 Aktivitas SIAK routes configured successfully")
 }
 
 // setupWebSocketRoutes configures WebSocket endpoints for real-time updates
