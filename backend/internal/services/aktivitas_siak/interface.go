@@ -7,11 +7,11 @@ type DatabaseAdapter interface {
 	// Create inserts a new aktivitas_siak record and returns the created record
 	Create(ctx context.Context, userID string, req *AktivitasSiakCreateRequest) (*AktivitasSiakData, error)
 
-	// GetByID retrieves a single aktivitas_siak record by ID
-	GetByID(ctx context.Context, id int) (*AktivitasSiakData, error)
+	// GetByID retrieves a single aktivitas_siak record by UUID
+	GetByID(ctx context.Context, id string) (*AktivitasSiakData, error)
 
-	// GetByUserAndMonth retrieves a record for a specific user and month
-	GetByUserAndMonth(ctx context.Context, userID string, bulan, tahun int) (*AktivitasSiakData, error)
+	// GetByUserAndMonth retrieves a record for a specific user and month string
+	GetByUserAndMonth(ctx context.Context, userID string, bulanRekapitulasi string) (*AktivitasSiakData, error)
 
 	// ListByUser retrieves all aktivitas_siak records for a specific user with pagination
 	ListByUser(ctx context.Context, userID string, page, pageSize int) (*AktivitasSiakListResponse, error)
@@ -20,13 +20,13 @@ type DatabaseAdapter interface {
 	ListAll(ctx context.Context, page, pageSize int) (*AktivitasSiakListResponse, error)
 
 	// Update modifies an existing aktivitas_siak record
-	Update(ctx context.Context, id int, userID string, req *AktivitasSiakUpdateRequest) (*AktivitasSiakData, error)
+	Update(ctx context.Context, id string, userID string, req *AktivitasSiakUpdateRequest) (*AktivitasSiakData, error)
 
 	// Delete removes an aktivitas_siak record
-	Delete(ctx context.Context, id int, userID string) error
+	Delete(ctx context.Context, id string, userID string) error
 
-	// CheckDuplicate checks if a record exists for the given user, month, and year
-	CheckDuplicate(ctx context.Context, userID string, bulan, tahun int) (exists bool, id *int, err error)
+	// CheckDuplicate checks if a record exists for the given user and month string
+	CheckDuplicate(ctx context.Context, userID string, bulanRekapitulasi string) (exists bool, id *string, err error)
 
 	// GetStatistics retrieves summary statistics for user's aktivitas records
 	GetStatistics(ctx context.Context, userID string) (*Statistics, error)
@@ -77,16 +77,16 @@ type AuditLogger interface {
 	LogCreate(ctx context.Context, userID string, record *AktivitasSiakData) error
 
 	// LogUpdate logs a record modification
-	LogUpdate(ctx context.Context, userID string, recordID int, changes map[string]interface{}) error
+	LogUpdate(ctx context.Context, userID string, recordID string, changes map[string]interface{}) error
 
 	// LogDelete logs a record deletion
-	LogDelete(ctx context.Context, userID string, recordID int) error
+	LogDelete(ctx context.Context, userID string, recordID string) error
 
 	// LogView logs a record access (for audit trail)
-	LogView(ctx context.Context, userID string, recordID int) error
+	LogView(ctx context.Context, userID string, recordID string) error
 
 	// GetAuditTrail retrieves audit log entries for a record
-	GetAuditTrail(ctx context.Context, recordID int) ([]map[string]interface{}, error)
+	GetAuditTrail(ctx context.Context, recordID string) ([]map[string]interface{}, error)
 }
 
 // RateLimitChecker defines the interface for rate limiting
@@ -106,20 +106,20 @@ type Service interface {
 	// Create creates a new aktivitas_siak record with validation
 	Create(ctx context.Context, userID string, req *AktivitasSiakCreateRequest) (*AktivitasSiakData, error)
 
-	// GetByID retrieves a single record with authorization check
-	GetByID(ctx context.Context, userID string, id int, isAdmin bool) (*AktivitasSiakData, error)
+	// GetByID retrieves a single record with authorization check (UUID-based)
+	GetByID(ctx context.Context, userID string, id string, isAdmin bool) (*AktivitasSiakData, error)
 
 	// List retrieves records for user or all records if admin
 	List(ctx context.Context, userID string, isAdmin bool, page, pageSize int) (*AktivitasSiakListResponse, error)
 
-	// Update modifies a record with validation
-	Update(ctx context.Context, userID string, id int, req *AktivitasSiakUpdateRequest, isAdmin bool) (*AktivitasSiakData, error)
+	// Update modifies a record with validation (UUID-based)
+	Update(ctx context.Context, userID string, id string, req *AktivitasSiakUpdateRequest, isAdmin bool) (*AktivitasSiakData, error)
 
-	// Delete removes a record with authorization check
-	Delete(ctx context.Context, userID string, id int, isAdmin bool) error
+	// Delete removes a record with authorization check (UUID-based)
+	Delete(ctx context.Context, userID string, id string, isAdmin bool) error
 
-	// CheckDuplicate checks if record exists for user/month/year
-	CheckDuplicate(ctx context.Context, userID string, bulan, tahun int) (*DuplicateCheckResponse, error)
+	// CheckDuplicate checks if record exists for user and month string
+	CheckDuplicate(ctx context.Context, userID string, bulanRekapitulasi string) (*DuplicateCheckResponse, error)
 
 	// GetStatistics returns user statistics (or admin statistics if isAdmin=true)
 	GetStatistics(ctx context.Context, userID string, isAdmin bool) (*Statistics, error)

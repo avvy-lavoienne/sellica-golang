@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	supabase "github.com/supabase-community/supabase-go"
 )
 
 // DatabaseServiceInterface defines the interface for database services (Supabase-based)
@@ -58,14 +59,53 @@ func (sf *ServiceFactory) CreateAktivitasSiakService() (Service, error) {
 		return nil, fmt.Errorf("database service is required")
 	}
 
-	// For now, we'll return a placeholder error indicating the service needs to be properly connected
-	// to a PostgreSQL database adapter. The existing code uses *sql.DB which needs to be obtained
-	// from the Supabase connection.
-	
-	// TODO: Implement proper database adapter that connects Supabase client to PostgreSQL
-	// This requires extracting the connection string from Supabase and creating a *sql.DB
-	
-	return nil, fmt.Errorf("aktivitas_siak service initialization needs PostgreSQL connection - implementation pending")
+	// Get Supabase client from database service
+	clientInterface := sf.dbService.GetClient()
+	if clientInterface == nil {
+		return nil, fmt.Errorf("failed to get Supabase client from database service")
+	}
+
+	// Type assert to *supabase.Client
+	client, ok := clientInterface.(*supabase.Client)
+	if !ok {
+		return nil, fmt.Errorf("database client is not a *supabase.Client")
+	}
+
+	// Create database adapter using Supabase client
+	dbAdapter, err := NewSupabaseDatabaseAdapter(client, sf.logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create database adapter: %w", err)
+	}
+
+	// Create cache adapter (optional)
+	var cacheAdapter CacheAdapter
+	if sf.cacheService != nil {
+		cacheAdapter = NewCacheAdapterImpl(sf.cacheService)
+	}
+
+	// Create monitoring adapter (optional)
+	var monitoringAdapter MonitoringAdapter
+	if sf.monitoringService != nil {
+		monitoringAdapter = NewMonitoringAdapterImpl(sf.monitoringService)
+	}
+
+	// Create the service with all adapters
+	// Note: auditLog and rateLimiter are optional (nil is acceptable)
+	service, err := NewService(
+		dbAdapter,
+		cacheAdapter,
+		monitoringAdapter,
+		nil, // auditLog - not implemented yet
+		nil, // rateLimiter - not implemented yet
+		sf.logger,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create aktivitas_siak service: %w", err)
+	}
+
+	sf.logger.Info("Aktivitas SIAK service initialized successfully with Supabase client")
+
+	return service, nil
 }
 
 // ValidateDependencies checks if all required dependencies are healthy

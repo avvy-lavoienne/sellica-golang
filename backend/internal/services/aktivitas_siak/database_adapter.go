@@ -2,246 +2,164 @@ package aktivitas_siak
 
 import (
 	"context"
-	"database/sql"
+	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"github.com/supabase-community/supabase-go"
 )
 
-// PostgresDatabaseAdapter implements DatabaseAdapter for PostgreSQL via Supabase
-type PostgresDatabaseAdapter struct {
-	db     *sql.DB
+// SupabaseDatabaseAdapter implements DatabaseAdapter for Supabase PostgreSQL
+// This adapter uses the Supabase Go SDK directly instead of database/sql
+type SupabaseDatabaseAdapter struct {
+	client *supabase.Client
 	logger *logrus.Logger
 }
 
-// NewPostgresDatabaseAdapter creates a new PostgreSQL database adapter
-func NewPostgresDatabaseAdapter(db *sql.DB, logger *logrus.Logger) (DatabaseAdapter, error) {
-	if db == nil {
-		return nil, fmt.Errorf("database connection is required")
+// NewSupabaseDatabaseAdapter creates a new Supabase database adapter
+func NewSupabaseDatabaseAdapter(client *supabase.Client, logger *logrus.Logger) (DatabaseAdapter, error) {
+	if client == nil {
+		return nil, fmt.Errorf("supabase client is required")
 	}
 	if logger == nil {
 		return nil, fmt.Errorf("logger is required")
 	}
 
-	return &PostgresDatabaseAdapter{
-		db:     db,
+	return &SupabaseDatabaseAdapter{
+		client: client,
 		logger: logger,
 	}, nil
 }
 
 // Create inserts a new aktivitas_siak record
-func (p *PostgresDatabaseAdapter) Create(ctx context.Context, userID string, req *AktivitasSiakCreateRequest) (*AktivitasSiakData, error) {
-	query := `
-		INSERT INTO aktivitas_siak (
-			user_id,
-			bulan_rekapitulasi,
-			tahun_rekapitulasi,
-			catatan_kegiatan,
-			laporan_kegiatan,
-			surat_masuk,
-			surat_keluar,
-			surat_catat,
-			akte_perkawinan,
-			akte_perceraian,
-			akte_kelahiran,
-			akte_catatan_pinggiran,
-			created_at
-		) VALUES (
-			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW()
-		)
-		RETURNING id, user_id, bulan_rekapitulasi, tahun_rekapitulasi, catatan_kegiatan,
-				  laporan_kegiatan, surat_masuk, surat_keluar, surat_catat, akte_perkawinan,
-				  akte_perceraian, akte_kelahiran, akte_catatan_pinggiran, created_at, updated_at
-	`
-
-	var record AktivitasSiakData
-	var updatedAt *time.Time
-
-	err := p.db.QueryRowContext(ctx, query,
-		userID,
-		req.BulanRekapitulasi,
-		req.TahunRekapitulasi,
-		req.CatatanKegiatan,
-		req.LaporanKegiatan,
-		req.SuratMasuk,
-		req.SuratKeluar,
-		req.SuratCatat,
-		req.AktePerkawinan,
-		req.AktePenceraian,
-		req.AkteKelahiran,
-		req.AkteCatatanPinggiran,
-	).Scan(
-		&record.ID,
-		&record.UserID,
-		&record.BulanRekapitulasi,
-		&record.TahunRekapitulasi,
-		&record.CatatanKegiatan,
-		&record.LaporanKegiatan,
-		&record.SuratMasuk,
-		&record.SuratKeluar,
-		&record.SuratCatat,
-		&record.AktePerkawinan,
-		&record.AktePenceraian,
-		&record.AkteKelahiran,
-		&record.AkteCatatanPinggiran,
-		&record.CreatedAt,
-		&updatedAt,
-	)
-
-	if err != nil {
-		p.logger.WithError(err).Error("Failed to create aktivitas_siak record")
-		return nil, err
+func (s *SupabaseDatabaseAdapter) Create(ctx context.Context, userID string, req *AktivitasSiakCreateRequest) (*AktivitasSiakData, error) {
+	// Prepare insert data
+	insertData := map[string]interface{}{
+		"user_id":                        userID,
+		"total_aktivitas_individu":       req.TotalAktivitasIndividu,
+		"total_aktivitas_keseluruhan":    req.TotalAktivitasKeseluruhan,
+		"fix_anomali_data":               req.FixAномaliData,
+		"restore_data_maintenance":       req.RestoreDataMaintenance,
+		"restore_data_ktp":                req.RestoreDataKTP,
+		"daftar_duplikasi":               req.DaftarDuplikasi,
+		"login_user":                     req.LoginUser,
+		"logout_user":                    req.LogoutUser,
+		"mutasi_elemen_data":             req.MutasiElemenData,
+		"bulan_rekapitulasi":             req.BulanRekapitulasi,
 	}
 
-	record.UpdatedAt = updatedAt
+	// Execute insert
+	data, _, err := s.client.From("aktivitas_siak").
+		Insert(insertData, false, "", "", "").
+		Execute()
+
+	if err != nil {
+		s.logger.WithError(err).Error("Failed to create aktivitas_siak record")
+		return nil, fmt.Errorf("failed to insert record: %w", err)
+	}
+
+	// Parse response
+	var records []AktivitasSiakData
+	if err := json.Unmarshal(data, &records); err != nil {
+		s.logger.WithError(err).Error("Failed to parse created aktivitas_siak record")
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	if len(records) == 0 {
+		return nil, fmt.Errorf("no record returned after insert")
+	}
+
+	return &records[0], nil
+}
+
+// GetByID retrieves a single record by UUID
+func (s *SupabaseDatabaseAdapter) GetByID(ctx context.Context, id string) (*AktivitasSiakData, error) {
+	data, _, err := s.client.From("aktivitas_siak").
+		Select("*", "", false).
+		Eq("id", id).
+		Single().
+		Execute()
+
+	if err != nil {
+		s.logger.WithError(err).WithField("id", id).Error("Failed to retrieve aktivitas_siak record by ID")
+		return nil, fmt.Errorf("record not found: %w", err)
+	}
+
+	var record AktivitasSiakData
+	if err := json.Unmarshal(data, &record); err != nil {
+		s.logger.WithError(err).Error("Failed to parse aktivitas_siak record")
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+
 	return &record, nil
 }
 
-// GetByID retrieves a single record by ID
-func (p *PostgresDatabaseAdapter) GetByID(ctx context.Context, id int) (*AktivitasSiakData, error) {
-	query := `
-		SELECT id, user_id, bulan_rekapitulasi, tahun_rekapitulasi, catatan_kegiatan,
-			   laporan_kegiatan, surat_masuk, surat_keluar, surat_catat, akte_perkawinan,
-			   akte_perceraian, akte_kelahiran, akte_catatan_pinggiran, created_at, updated_at
-		FROM aktivitas_siak
-		WHERE id = $1
-	`
-
-	var record AktivitasSiakData
-	var updatedAt *time.Time
-
-	err := p.db.QueryRowContext(ctx, query, id).Scan(
-		&record.ID,
-		&record.UserID,
-		&record.BulanRekapitulasi,
-		&record.TahunRekapitulasi,
-		&record.CatatanKegiatan,
-		&record.LaporanKegiatan,
-		&record.SuratMasuk,
-		&record.SuratKeluar,
-		&record.SuratCatat,
-		&record.AktePerkawinan,
-		&record.AktePenceraian,
-		&record.AkteKelahiran,
-		&record.AkteCatatanPinggiran,
-		&record.CreatedAt,
-		&updatedAt,
-	)
+// GetByUserAndMonth retrieves a record for a specific user and month string
+func (s *SupabaseDatabaseAdapter) GetByUserAndMonth(ctx context.Context, userID string, bulanRekapitulasi string) (*AktivitasSiakData, error) {
+	data, _, err := s.client.From("aktivitas_siak").
+		Select("*", "", false).
+		Eq("user_id", userID).
+		Eq("bulan_rekapitulasi", bulanRekapitulasi).
+		Single().
+		Execute()
 
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("record not found")
-		}
-		p.logger.WithError(err).Error("Failed to retrieve aktivitas_siak record by ID")
-		return nil, err
+		s.logger.WithError(err).WithFields(logrus.Fields{
+			"user_id":             userID,
+			"bulan_rekapitulasi": bulanRekapitulasi,
+		}).Debug("No record found for user and month")
+		return nil, fmt.Errorf("record not found: %w", err)
 	}
-
-	record.UpdatedAt = updatedAt
-	return &record, nil
-}
-
-// GetByUserAndMonth retrieves a record for a specific user and month
-func (p *PostgresDatabaseAdapter) GetByUserAndMonth(ctx context.Context, userID string, bulan, tahun int) (*AktivitasSiakData, error) {
-	query := `
-		SELECT id, user_id, bulan_rekapitulasi, tahun_rekapitulasi, catatan_kegiatan,
-			   laporan_kegiatan, surat_masuk, surat_keluar, surat_catat, akte_perkawinan,
-			   akte_perceraian, akte_kelahiran, akte_catatan_pinggiran, created_at, updated_at
-		FROM aktivitas_siak
-		WHERE user_id = $1 AND bulan_rekapitulasi = $2 AND tahun_rekapitulasi = $3
-	`
 
 	var record AktivitasSiakData
-	var updatedAt *time.Time
-
-	err := p.db.QueryRowContext(ctx, query, userID, bulan, tahun).Scan(
-		&record.ID,
-		&record.UserID,
-		&record.BulanRekapitulasi,
-		&record.TahunRekapitulasi,
-		&record.CatatanKegiatan,
-		&record.LaporanKegiatan,
-		&record.SuratMasuk,
-		&record.SuratKeluar,
-		&record.SuratCatat,
-		&record.AktePerkawinan,
-		&record.AktePenceraian,
-		&record.AkteKelahiran,
-		&record.AkteCatatanPinggiran,
-		&record.CreatedAt,
-		&updatedAt,
-	)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("record not found")
-		}
-		p.logger.WithError(err).Error("Failed to retrieve aktivitas_siak record by user and month")
-		return nil, err
+	if err := json.Unmarshal(data, &record); err != nil {
+		s.logger.WithError(err).Error("Failed to parse aktivitas_siak record")
+		return nil, fmt.Errorf("failed to parse response: %w", err)
 	}
 
-	record.UpdatedAt = updatedAt
 	return &record, nil
 }
 
 // ListByUser retrieves all records for a user with pagination
-func (p *PostgresDatabaseAdapter) ListByUser(ctx context.Context, userID string, page, pageSize int) (*AktivitasSiakListResponse, error) {
-	// Get total count
-	countQuery := `SELECT COUNT(*) FROM aktivitas_siak WHERE user_id = $1`
-	var total int
-	if err := p.db.QueryRowContext(ctx, countQuery, userID).Scan(&total); err != nil {
-		return nil, err
-	}
-
-	// Get paginated data
+func (s *SupabaseDatabaseAdapter) ListByUser(ctx context.Context, userID string, page, pageSize int) (*AktivitasSiakListResponse, error) {
+	// Calculate offset
 	offset := (page - 1) * pageSize
-	dataQuery := `
-		SELECT id, user_id, bulan_rekapitulasi, tahun_rekapitulasi, catatan_kegiatan,
-			   laporan_kegiatan, surat_masuk, surat_keluar, surat_catat, akte_perkawinan,
-			   akte_perceraian, akte_kelahiran, akte_catatan_pinggiran, created_at, updated_at
-		FROM aktivitas_siak
-		WHERE user_id = $1
-		ORDER BY tahun_rekapitulasi DESC, bulan_rekapitulasi DESC
-		LIMIT $2 OFFSET $3
-	`
 
-	rows, err := p.db.QueryContext(ctx, dataQuery, userID, pageSize, offset)
+	// Get total count
+	countData, _, err := s.client.From("aktivitas_siak").
+		Select("id", "exact", false).
+		Eq("user_id", userID).
+		Execute()
+
 	if err != nil {
-		p.logger.WithError(err).Error("Failed to list aktivitas_siak records by user")
-		return nil, err
+		s.logger.WithError(err).Error("Failed to count user's aktivitas_siak records")
+		return nil, fmt.Errorf("failed to count records: %w", err)
 	}
-	defer rows.Close()
+
+	var countRecords []map[string]interface{}
+	if err := json.Unmarshal(countData, &countRecords); err != nil {
+		s.logger.WithError(err).Error("Failed to parse count response")
+		return nil, fmt.Errorf("failed to parse count: %w", err)
+	}
+	total := len(countRecords)
+
+	// Get paginated data (ordered by created_at descending)
+	data, _, err := s.client.From("aktivitas_siak").
+		Select("*", "", false).
+		Eq("user_id", userID).
+		Range(offset, offset+pageSize-1, "").
+		Execute()
+
+	if err != nil {
+		s.logger.WithError(err).Error("Failed to list user's aktivitas_siak records")
+		return nil, fmt.Errorf("failed to retrieve records: %w", err)
+	}
 
 	var records []AktivitasSiakData
-	for rows.Next() {
-		var record AktivitasSiakData
-		var updatedAt *time.Time
-
-		if err := rows.Scan(
-			&record.ID,
-			&record.UserID,
-			&record.BulanRekapitulasi,
-			&record.TahunRekapitulasi,
-			&record.CatatanKegiatan,
-			&record.LaporanKegiatan,
-			&record.SuratMasuk,
-			&record.SuratKeluar,
-			&record.SuratCatat,
-			&record.AktePerkawinan,
-			&record.AktePenceraian,
-			&record.AkteKelahiran,
-			&record.AkteCatatanPinggiran,
-			&record.CreatedAt,
-			&updatedAt,
-		); err != nil {
-			return nil, err
-		}
-		record.UpdatedAt = updatedAt
-		records = append(records, record)
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, err
+	if err := json.Unmarshal(data, &records); err != nil {
+		s.logger.WithError(err).Error("Failed to parse aktivitas_siak records")
+		return nil, fmt.Errorf("failed to parse response: %w", err)
 	}
 
 	totalPages := (total + pageSize - 1) / pageSize
@@ -256,62 +174,42 @@ func (p *PostgresDatabaseAdapter) ListByUser(ctx context.Context, userID string,
 }
 
 // ListAll retrieves all records (admin only) with pagination
-func (p *PostgresDatabaseAdapter) ListAll(ctx context.Context, page, pageSize int) (*AktivitasSiakListResponse, error) {
-	// Get total count
-	countQuery := `SELECT COUNT(*) FROM aktivitas_siak`
-	var total int
-	if err := p.db.QueryRowContext(ctx, countQuery).Scan(&total); err != nil {
-		return nil, err
-	}
-
-	// Get paginated data
+func (s *SupabaseDatabaseAdapter) ListAll(ctx context.Context, page, pageSize int) (*AktivitasSiakListResponse, error) {
+	// Calculate offset
 	offset := (page - 1) * pageSize
-	dataQuery := `
-		SELECT id, user_id, bulan_rekapitulasi, tahun_rekapitulasi, catatan_kegiatan,
-			   laporan_kegiatan, surat_masuk, surat_keluar, surat_catat, akte_perkawinan,
-			   akte_perceraian, akte_kelahiran, akte_catatan_pinggiran, created_at, updated_at
-		FROM aktivitas_siak
-		ORDER BY tahun_rekapitulasi DESC, bulan_rekapitulasi DESC, created_at DESC
-		LIMIT $1 OFFSET $2
-	`
 
-	rows, err := p.db.QueryContext(ctx, dataQuery, pageSize, offset)
+	// Get total count
+	countData, _, err := s.client.From("aktivitas_siak").
+		Select("id", "exact", false).
+		Execute()
+
 	if err != nil {
-		p.logger.WithError(err).Error("Failed to list all aktivitas_siak records")
-		return nil, err
+		s.logger.WithError(err).Error("Failed to count all aktivitas_siak records")
+		return nil, fmt.Errorf("failed to count records: %w", err)
 	}
-	defer rows.Close()
+
+	var countRecords []map[string]interface{}
+	if err := json.Unmarshal(countData, &countRecords); err != nil {
+		s.logger.WithError(err).Error("Failed to parse count response")
+		return nil, fmt.Errorf("failed to parse count: %w", err)
+	}
+	total := len(countRecords)
+
+	// Get paginated data (ordered by created_at descending)
+	data, _, err := s.client.From("aktivitas_siak").
+		Select("*", "", false).
+		Range(offset, offset+pageSize-1, "").
+		Execute()
+
+	if err != nil {
+		s.logger.WithError(err).Error("Failed to list all aktivitas_siak records")
+		return nil, fmt.Errorf("failed to retrieve records: %w", err)
+	}
 
 	var records []AktivitasSiakData
-	for rows.Next() {
-		var record AktivitasSiakData
-		var updatedAt *time.Time
-
-		if err := rows.Scan(
-			&record.ID,
-			&record.UserID,
-			&record.BulanRekapitulasi,
-			&record.TahunRekapitulasi,
-			&record.CatatanKegiatan,
-			&record.LaporanKegiatan,
-			&record.SuratMasuk,
-			&record.SuratKeluar,
-			&record.SuratCatat,
-			&record.AktePerkawinan,
-			&record.AktePenceraian,
-			&record.AkteKelahiran,
-			&record.AkteCatatanPinggiran,
-			&record.CreatedAt,
-			&updatedAt,
-		); err != nil {
-			return nil, err
-		}
-		record.UpdatedAt = updatedAt
-		records = append(records, record)
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, err
+	if err := json.Unmarshal(data, &records); err != nil {
+		s.logger.WithError(err).Error("Failed to parse aktivitas_siak records")
+		return nil, fmt.Errorf("failed to parse response: %w", err)
 	}
 
 	totalPages := (total + pageSize - 1) / pageSize
@@ -326,195 +224,204 @@ func (p *PostgresDatabaseAdapter) ListAll(ctx context.Context, page, pageSize in
 }
 
 // Update modifies an existing record
-func (p *PostgresDatabaseAdapter) Update(ctx context.Context, id int, userID string, req *AktivitasSiakUpdateRequest) (*AktivitasSiakData, error) {
-	query := `
-		UPDATE aktivitas_siak
-		SET catatan_kegiatan = COALESCE($2, catatan_kegiatan),
-			laporan_kegiatan = COALESCE($3, laporan_kegiatan),
-			surat_masuk = COALESCE($4, surat_masuk),
-			surat_keluar = COALESCE($5, surat_keluar),
-			surat_catat = COALESCE($6, surat_catat),
-			akte_perkawinan = COALESCE($7, akte_perkawinan),
-			akte_perceraian = COALESCE($8, akte_perceraian),
-			akte_kelahiran = COALESCE($9, akte_kelahiran),
-			akte_catatan_pinggiran = COALESCE($10, akte_catatan_pinggiran),
-			updated_at = NOW()
-		WHERE id = $1
-		RETURNING id, user_id, bulan_rekapitulasi, tahun_rekapitulasi, catatan_kegiatan,
-				  laporan_kegiatan, surat_masuk, surat_keluar, surat_catat, akte_perkawinan,
-				  akte_perceraian, akte_kelahiran, akte_catatan_pinggiran, created_at, updated_at
-	`
+func (s *SupabaseDatabaseAdapter) Update(ctx context.Context, id string, userID string, req *AktivitasSiakUpdateRequest) (*AktivitasSiakData, error) {
+	// Build update data (only include non-nil fields)
+	updateData := make(map[string]interface{})
 
-	var record AktivitasSiakData
-	var updatedAt *time.Time
-
-	err := p.db.QueryRowContext(ctx, query,
-		id,
-		req.CatatanKegiatan,
-		req.LaporanKegiatan,
-		req.SuratMasuk,
-		req.SuratKeluar,
-		req.SuratCatat,
-		req.AktePerkawinan,
-		req.AktePenceraian,
-		req.AkteKelahiran,
-		req.AkteCatatanPinggiran,
-	).Scan(
-		&record.ID,
-		&record.UserID,
-		&record.BulanRekapitulasi,
-		&record.TahunRekapitulasi,
-		&record.CatatanKegiatan,
-		&record.LaporanKegiatan,
-		&record.SuratMasuk,
-		&record.SuratKeluar,
-		&record.SuratCatat,
-		&record.AktePerkawinan,
-		&record.AktePenceraian,
-		&record.AkteKelahiran,
-		&record.AkteCatatanPinggiran,
-		&record.CreatedAt,
-		&updatedAt,
-	)
-
-	if err != nil {
-		p.logger.WithError(err).Error("Failed to update aktivitas_siak record")
-		return nil, err
+	if req.TotalAktivitasIndividu != nil {
+		updateData["total_aktivitas_individu"] = *req.TotalAktivitasIndividu
+	}
+	if req.TotalAktivitasKeseluruhan != nil {
+		updateData["total_aktivitas_keseluruhan"] = *req.TotalAktivitasKeseluruhan
+	}
+	if req.FixAномaliData != nil {
+		updateData["fix_anomali_data"] = *req.FixAномaliData
+	}
+	if req.RestoreDataMaintenance != nil {
+		updateData["restore_data_maintenance"] = *req.RestoreDataMaintenance
+	}
+	if req.RestoreDataKTP != nil {
+		updateData["restore_data_ktp"] = *req.RestoreDataKTP
+	}
+	if req.DaftarDuplikasi != nil {
+		updateData["daftar_duplikasi"] = *req.DaftarDuplikasi
+	}
+	if req.LoginUser != nil {
+		updateData["login_user"] = *req.LoginUser
+	}
+	if req.LogoutUser != nil {
+		updateData["logout_user"] = *req.LogoutUser
+	}
+	if req.MutasiElemenData != nil {
+		updateData["mutasi_elemen_data"] = *req.MutasiElemenData
+	}
+	if req.BulanRekapitulasi != nil {
+		updateData["bulan_rekapitulasi"] = *req.BulanRekapitulasi
 	}
 
-	record.UpdatedAt = updatedAt
-	return &record, nil
+	if len(updateData) == 0 {
+		// No fields to update, return current record
+		return s.GetByID(ctx, id)
+	}
+
+	// Execute update
+	data, _, err := s.client.From("aktivitas_siak").
+		Update(updateData, "", "").
+		Eq("id", id).
+		Execute()
+
+	if err != nil {
+		s.logger.WithError(err).WithField("id", id).Error("Failed to update aktivitas_siak record")
+		return nil, fmt.Errorf("failed to update record: %w", err)
+	}
+
+	var records []AktivitasSiakData
+	if err := json.Unmarshal(data, &records); err != nil {
+		s.logger.WithError(err).Error("Failed to parse updated aktivitas_siak record")
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	if len(records) == 0 {
+		return nil, fmt.Errorf("no record returned after update")
+	}
+
+	return &records[0], nil
 }
 
 // Delete removes a record
-func (p *PostgresDatabaseAdapter) Delete(ctx context.Context, id int, userID string) error {
-	result, err := p.db.ExecContext(ctx, `DELETE FROM aktivitas_siak WHERE id = $1`, id)
-	if err != nil {
-		p.logger.WithError(err).Error("Failed to delete aktivitas_siak record")
-		return err
-	}
+func (s *SupabaseDatabaseAdapter) Delete(ctx context.Context, id string, userID string) error {
+	_, _, err := s.client.From("aktivitas_siak").
+		Delete("", "").
+		Eq("id", id).
+		Execute()
 
-	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return err
-	}
-
-	if rowsAffected == 0 {
-		return fmt.Errorf("record not found")
+		s.logger.WithError(err).WithField("id", id).Error("Failed to delete aktivitas_siak record")
+		return fmt.Errorf("failed to delete record: %w", err)
 	}
 
 	return nil
 }
 
-// CheckDuplicate checks if a record exists for the user, month, and year
-func (p *PostgresDatabaseAdapter) CheckDuplicate(ctx context.Context, userID string, bulan, tahun int) (exists bool, id *int, err error) {
-	query := `
-		SELECT id FROM aktivitas_siak
-		WHERE user_id = $1 AND bulan_rekapitulasi = $2 AND tahun_rekapitulasi = $3
-		LIMIT 1
-	`
+// CheckDuplicate checks if a record exists for the user and month string
+func (s *SupabaseDatabaseAdapter) CheckDuplicate(ctx context.Context, userID string, bulanRekapitulasi string) (exists bool, id *string, err error) {
+	data, _, err := s.client.From("aktivitas_siak").
+		Select("id", "", false).
+		Eq("user_id", userID).
+		Eq("bulan_rekapitulasi", bulanRekapitulasi).
+		Limit(1, "").
+		Execute()
 
-	var recordID int
-	err = p.db.QueryRowContext(ctx, query, userID, bulan, tahun).Scan(&recordID)
-
-	if err == sql.ErrNoRows {
+	if err != nil {
+		// If error is "no rows", that's not an error - just means no duplicate
+		s.logger.WithError(err).Debug("No duplicate found (expected for new records)")
 		return false, nil, nil
 	}
 
-	if err != nil {
-		p.logger.WithError(err).Error("Failed to check for duplicate aktivitas_siak record")
-		return false, nil, err
+	var records []struct {
+		ID string `json:"id"`
+	}
+	if err := json.Unmarshal(data, &records); err != nil {
+		s.logger.WithError(err).Error("Failed to parse duplicate check response")
+		return false, nil, fmt.Errorf("failed to parse response: %w", err)
 	}
 
+	if len(records) == 0 {
+		return false, nil, nil
+	}
+
+	recordID := records[0].ID
 	return true, &recordID, nil
 }
 
 // GetStatistics retrieves statistics for a user
-func (p *PostgresDatabaseAdapter) GetStatistics(ctx context.Context, userID string) (*Statistics, error) {
-	query := `
-		SELECT
-			COUNT(*) as total_records,
-			AVG(COALESCE(surat_masuk, 0))::FLOAT as avg_surat_masuk,
-			AVG(COALESCE(surat_keluar, 0))::FLOAT as avg_surat_keluar,
-			AVG(COALESCE(surat_catat, 0))::FLOAT as avg_surat_catat,
-			AVG(COALESCE(akte_perkawinan, 0))::FLOAT as avg_akte_perkawinan,
-			AVG(COALESCE(akte_perceraian, 0))::FLOAT as avg_akte_perceraian,
-			AVG(COALESCE(akte_kelahiran, 0))::FLOAT as avg_akte_kelahiran,
-			MAX(COALESCE(surat_masuk, 0)) as highest_surat_masuk,
-			MAX(COALESCE(akte_kelahiran, 0)) as highest_akte_kelahiran,
-			MAX(updated_at) FILTER (WHERE updated_at IS NOT NULL) as last_update
-		FROM aktivitas_siak
-		WHERE user_id = $1
-	`
-
-	stats := &Statistics{}
-	var lastUpdate *time.Time
-
-	err := p.db.QueryRowContext(ctx, query, userID).Scan(
-		&stats.TotalRecords,
-		&stats.AverageSuratMasuk,
-		&stats.AverageSuratKeluar,
-		&stats.AverageSuratCatat,
-		&stats.AverageAktePerkawinan,
-		&stats.AverageAktePenceraian,
-		&stats.AverageAkteKelahiran,
-		&stats.HighestSuratMasuk,
-		&stats.HighestAkteKelahiran,
-		&lastUpdate,
-	)
+func (s *SupabaseDatabaseAdapter) GetStatistics(ctx context.Context, userID string) (*Statistics, error) {
+	// Get all records for the user (ordered by created_at descending)
+	data, _, err := s.client.From("aktivitas_siak").
+		Select("*", "", false).
+		Eq("user_id", userID).
+		Execute()
 
 	if err != nil {
-		p.logger.WithError(err).Error("Failed to get aktivitas_siak statistics")
-		return nil, err
+		s.logger.WithError(err).Error("Failed to get statistics for user")
+		return nil, fmt.Errorf("failed to retrieve records: %w", err)
 	}
 
-	if lastUpdate != nil {
-		stats.LastUpdateTime = *lastUpdate
+	var records []AktivitasSiakData
+	if err := json.Unmarshal(data, &records); err != nil {
+		s.logger.WithError(err).Error("Failed to parse records for statistics")
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	// Calculate statistics
+	stats := &Statistics{
+		TotalRecords: len(records),
+	}
+
+	if len(records) > 0 {
+		stats.LastEntryTime = records[0].CreatedAt // First record (most recent due to DESC order)
+		stats.OldestEntryTime = records[len(records)-1].CreatedAt
+
+		// Count unique months
+		uniqueMonths := make(map[string]bool)
+		currentMonth := time.Now().Format("January 2006")
+		recordsThisMonth := 0
+
+		for _, record := range records {
+			uniqueMonths[record.BulanRekapitulasi] = true
+			if record.BulanRekapitulasi == currentMonth {
+				recordsThisMonth++
+			}
+		}
+
+		stats.UniqueMonths = len(uniqueMonths)
+		stats.RecordsThisMonth = recordsThisMonth
 	}
 
 	return stats, nil
 }
 
 // GetAdminStatistics retrieves statistics for all records (admin only)
-func (p *PostgresDatabaseAdapter) GetAdminStatistics(ctx context.Context) (*Statistics, error) {
-	query := `
-		SELECT
-			COUNT(*) as total_records,
-			AVG(COALESCE(surat_masuk, 0))::FLOAT as avg_surat_masuk,
-			AVG(COALESCE(surat_keluar, 0))::FLOAT as avg_surat_keluar,
-			AVG(COALESCE(surat_catat, 0))::FLOAT as avg_surat_catat,
-			AVG(COALESCE(akte_perkawinan, 0))::FLOAT as avg_akte_perkawinan,
-			AVG(COALESCE(akte_perceraian, 0))::FLOAT as avg_akte_perceraian,
-			AVG(COALESCE(akte_kelahiran, 0))::FLOAT as avg_akte_kelahiran,
-			MAX(COALESCE(surat_masuk, 0)) as highest_surat_masuk,
-			MAX(COALESCE(akte_kelahiran, 0)) as highest_akte_kelahiran,
-			MAX(updated_at) as last_update
-		FROM aktivitas_siak
-	`
-
-	stats := &Statistics{}
-	var lastUpdate *time.Time
-
-	err := p.db.QueryRowContext(ctx, query).Scan(
-		&stats.TotalRecords,
-		&stats.AverageSuratMasuk,
-		&stats.AverageSuratKeluar,
-		&stats.AverageSuratCatat,
-		&stats.AverageAktePerkawinan,
-		&stats.AverageAktePenceraian,
-		&stats.AverageAkteKelahiran,
-		&stats.HighestSuratMasuk,
-		&stats.HighestAkteKelahiran,
-		&lastUpdate,
-	)
+func (s *SupabaseDatabaseAdapter) GetAdminStatistics(ctx context.Context) (*Statistics, error) {
+	// Get all records (ordered by created_at descending)
+	data, _, err := s.client.From("aktivitas_siak").
+		Select("*", "", false).
+		Execute()
 
 	if err != nil {
-		p.logger.WithError(err).Error("Failed to get admin aktivitas_siak statistics")
-		return nil, err
+		s.logger.WithError(err).Error("Failed to get admin statistics")
+		return nil, fmt.Errorf("failed to retrieve records: %w", err)
 	}
 
-	if lastUpdate != nil {
-		stats.LastUpdateTime = *lastUpdate
+	var records []AktivitasSiakData
+	if err := json.Unmarshal(data, &records); err != nil {
+		s.logger.WithError(err).Error("Failed to parse records for admin statistics")
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	// Calculate statistics
+	stats := &Statistics{
+		TotalRecords: len(records),
+	}
+
+	if len(records) > 0 {
+		stats.LastEntryTime = records[0].CreatedAt
+		stats.OldestEntryTime = records[len(records)-1].CreatedAt
+
+		// Count unique months
+		uniqueMonths := make(map[string]bool)
+		currentMonth := time.Now().Format("January 2006")
+		recordsThisMonth := 0
+
+		for _, record := range records {
+			uniqueMonths[record.BulanRekapitulasi] = true
+			if record.BulanRekapitulasi == currentMonth {
+				recordsThisMonth++
+			}
+		}
+
+		stats.UniqueMonths = len(uniqueMonths)
+		stats.RecordsThisMonth = recordsThisMonth
 	}
 
 	return stats, nil

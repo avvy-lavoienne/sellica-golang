@@ -76,19 +76,18 @@ func (s *ServiceImpl) Create(ctx context.Context, userID string, req *AktivitasS
 	}
 
 	// Check for duplicates
-	exists, existingID, err := s.db.CheckDuplicate(ctx, userID, req.BulanRekapitulasi, req.TahunRekapitulasi)
+	exists, existingID, err := s.db.CheckDuplicate(ctx, userID, req.BulanRekapitulasi)
 	if err != nil {
 		s.logger.WithError(err).Error("Error checking for duplicate aktivitas_siak record")
 		return nil, fmt.Errorf("gagal memeriksa data duplikat")
 	}
 	if exists {
 		s.logger.WithFields(logrus.Fields{
-			"user_id": userID,
-			"bulan":   req.BulanRekapitulasi,
-			"tahun":   req.TahunRekapitulasi,
-			"existing_id": existingID,
+			"user_id":            userID,
+			"bulan_rekapitulasi": req.BulanRekapitulasi,
+			"existing_id":        existingID,
 		}).Info("Duplicate aktivitas_siak record attempted")
-		return nil, fmt.Errorf("sudah ada data untuk bulan dan tahun ini")
+		return nil, fmt.Errorf("sudah ada data untuk bulan ini: %s", req.BulanRekapitulasi)
 	}
 
 	// Create record in database
@@ -124,7 +123,7 @@ func (s *ServiceImpl) Create(ctx context.Context, userID string, req *AktivitasS
 }
 
 // GetByID retrieves a single aktivitas_siak record with authorization check
-func (s *ServiceImpl) GetByID(ctx context.Context, userID string, id int, isAdmin bool) (*AktivitasSiakData, error) {
+func (s *ServiceImpl) GetByID(ctx context.Context, userID string, id string, isAdmin bool) (*AktivitasSiakData, error) {
 	start := time.Now()
 	operation := "get_by_id"
 	defer func() {
@@ -135,7 +134,7 @@ func (s *ServiceImpl) GetByID(ctx context.Context, userID string, id int, isAdmi
 
 	// Check cache first
 	if s.cache != nil {
-		cacheKey := fmt.Sprintf("aktivitas_siak:id:%d", id)
+		cacheKey := fmt.Sprintf("aktivitas_siak:id:%s", id)
 		var cached AktivitasSiakData
 		if err := s.cache.Get(ctx, cacheKey, &cached); err == nil {
 			s.monitor.RecordCacheHit()
@@ -162,7 +161,7 @@ func (s *ServiceImpl) GetByID(ctx context.Context, userID string, id int, isAdmi
 
 	// Cache the result
 	if s.cache != nil {
-		cacheKey := fmt.Sprintf("aktivitas_siak:id:%d", id)
+		cacheKey := fmt.Sprintf("aktivitas_siak:id:%s", id)
 		if cacheErr := s.cache.Set(ctx, cacheKey, record, 3600); cacheErr != nil {
 			s.logger.WithError(cacheErr).Debug("Failed to cache aktivitas_siak record")
 		}
@@ -217,7 +216,7 @@ func (s *ServiceImpl) List(ctx context.Context, userID string, isAdmin bool, pag
 }
 
 // Update modifies an aktivitas_siak record
-func (s *ServiceImpl) Update(ctx context.Context, userID string, id int, req *AktivitasSiakUpdateRequest, isAdmin bool) (*AktivitasSiakData, error) {
+func (s *ServiceImpl) Update(ctx context.Context, userID string, id string, req *AktivitasSiakUpdateRequest, isAdmin bool) (*AktivitasSiakData, error) {
 	start := time.Now()
 	operation := "update"
 	defer func() {
@@ -247,15 +246,15 @@ func (s *ServiceImpl) Update(ctx context.Context, userID string, id int, req *Ak
 	// Log update in audit log
 	if s.auditLog != nil {
 		changes := map[string]interface{}{
-			"catatan_kegiatan":       req.CatatanKegiatan,
-			"laporan_kegiatan":       req.LaporanKegiatan,
-			"surat_masuk":            req.SuratMasuk,
-			"surat_keluar":           req.SuratKeluar,
-			"surat_catat":            req.SuratCatat,
-			"akte_perkawinan":        req.AktePerkawinan,
-			"akte_perceraian":        req.AktePenceraian,
-			"akte_kelahiran":         req.AkteKelahiran,
-			"akte_catatan_pinggiran": req.AkteCatatanPinggiran,
+			"total_aktivitas_individu":    req.TotalAktivitasIndividu,
+			"total_aktivitas_keseluruhan": req.TotalAktivitasKeseluruhan,
+			"fix_anomali_data":            req.FixAномaliData,
+			"restore_data_maintenance":    req.RestoreDataMaintenance,
+			"restore_data_ktp":            req.RestoreDataKTP,
+			"daftar_duplikasi":            req.DaftarDuplikasi,
+			"login_user":                  req.LoginUser,
+			"logout_user":                 req.LogoutUser,
+			"mutasi_elemen_data":          req.MutasiElemenData,
 		}
 		if auditErr := s.auditLog.LogUpdate(ctx, userID, id, changes); auditErr != nil {
 			s.logger.WithError(auditErr).Warn("Failed to log aktivitas_siak update in audit trail")
@@ -264,7 +263,7 @@ func (s *ServiceImpl) Update(ctx context.Context, userID string, id int, req *Ak
 
 	// Invalidate cache
 	if s.cache != nil {
-		cacheKey := fmt.Sprintf("aktivitas_siak:id:%d", id)
+		cacheKey := fmt.Sprintf("aktivitas_siak:id:%s", id)
 		if cacheErr := s.cache.Delete(ctx, cacheKey); cacheErr != nil {
 			s.logger.WithError(cacheErr).Debug("Failed to invalidate cache after aktivitas_siak update")
 		}
@@ -282,7 +281,7 @@ func (s *ServiceImpl) Update(ctx context.Context, userID string, id int, req *Ak
 }
 
 // Delete removes an aktivitas_siak record
-func (s *ServiceImpl) Delete(ctx context.Context, userID string, id int, isAdmin bool) error {
+func (s *ServiceImpl) Delete(ctx context.Context, userID string, id string, isAdmin bool) error {
 	start := time.Now()
 	operation := "delete"
 	defer func() {
@@ -317,7 +316,7 @@ func (s *ServiceImpl) Delete(ctx context.Context, userID string, id int, isAdmin
 
 	// Invalidate cache
 	if s.cache != nil {
-		cacheKey := fmt.Sprintf("aktivitas_siak:id:%d", id)
+		cacheKey := fmt.Sprintf("aktivitas_siak:id:%s", id)
 		if cacheErr := s.cache.Delete(ctx, cacheKey); cacheErr != nil {
 			s.logger.WithError(cacheErr).Debug("Failed to invalidate cache after aktivitas_siak deletion")
 		}
@@ -334,9 +333,9 @@ func (s *ServiceImpl) Delete(ctx context.Context, userID string, id int, isAdmin
 	return nil
 }
 
-// CheckDuplicate checks if a record exists for the given month and year
-func (s *ServiceImpl) CheckDuplicate(ctx context.Context, userID string, bulan, tahun int) (*DuplicateCheckResponse, error) {
-	exists, id, err := s.db.CheckDuplicate(ctx, userID, bulan, tahun)
+// CheckDuplicate checks if a record exists for the given month (as string, e.g., "Oktober 2025")
+func (s *ServiceImpl) CheckDuplicate(ctx context.Context, userID string, bulanRekapitulasi string) (*DuplicateCheckResponse, error) {
+	exists, id, err := s.db.CheckDuplicate(ctx, userID, bulanRekapitulasi)
 	if err != nil {
 		return nil, fmt.Errorf("gagal memeriksa data duplikat")
 	}
@@ -369,52 +368,41 @@ func (s *ServiceImpl) GetStatistics(ctx context.Context, userID string, isAdmin 
 func (s *ServiceImpl) Validate(req *AktivitasSiakCreateRequest) *ValidationResult {
 	errors := make(map[string]string)
 
-	// Validate month
-	if req.BulanRekapitulasi < 1 || req.BulanRekapitulasi > 12 {
-		errors["bulan_rekapitulasi"] = "Bulan harus antara 1 dan 12"
+	// Validate bulan_rekapitulasi (should be non-empty string like "Oktober 2025")
+	if req.BulanRekapitulasi == "" {
+		errors["bulan_rekapitulasi"] = "Bulan rekapitulasi wajib diisi (contoh: 'Oktober 2025')"
+	}
+	if len(req.BulanRekapitulasi) > 100 {
+		errors["bulan_rekapitulasi"] = "Bulan rekapitulasi tidak boleh lebih dari 100 karakter"
 	}
 
-	// Validate year
-	if req.TahunRekapitulasi < 2000 || req.TahunRekapitulasi > time.Now().Year()+1 {
-		errors["tahun_rekapitulasi"] = "Tahun tidak valid"
+	// Validate TEXT fields - all are optional, just check length if provided
+	if len(req.TotalAktivitasIndividu) > 500 {
+		errors["total_aktivitas_individu"] = "Total aktivitas individu tidak boleh lebih dari 500 karakter"
 	}
-
-	// Validate required text fields
-	if req.CatatanKegiatan == "" {
-		errors["catatan_kegiatan"] = "Catatan kegiatan wajib diisi"
+	if len(req.TotalAktivitasKeseluruhan) > 500 {
+		errors["total_aktivitas_keseluruhan"] = "Total aktivitas keseluruhan tidak boleh lebih dari 500 karakter"
 	}
-	if len(req.CatatanKegiatan) > 1000 {
-		errors["catatan_kegiatan"] = "Catatan kegiatan tidak boleh lebih dari 1000 karakter"
+	if len(req.FixAномaliData) > 500 {
+		errors["fix_anomali_data"] = "Fix anomali data tidak boleh lebih dari 500 karakter"
 	}
-
-	if req.LaporanKegiatan == "" {
-		errors["laporan_kegiatan"] = "Laporan kegiatan wajib diisi"
+	if len(req.RestoreDataMaintenance) > 500 {
+		errors["restore_data_maintenance"] = "Restore data maintenance tidak boleh lebih dari 500 karakter"
 	}
-	if len(req.LaporanKegiatan) > 1000 {
-		errors["laporan_kegiatan"] = "Laporan kegiatan tidak boleh lebih dari 1000 karakter"
+	if len(req.RestoreDataKTP) > 500 {
+		errors["restore_data_ktp"] = "Restore data KTP tidak boleh lebih dari 500 karakter"
 	}
-
-	// Validate optional numeric fields if provided
-	if req.SuratMasuk != nil && *req.SuratMasuk < 0 {
-		errors["surat_masuk"] = "Surat masuk tidak boleh negatif"
+	if len(req.DaftarDuplikasi) > 500 {
+		errors["daftar_duplikasi"] = "Daftar duplikasi tidak boleh lebih dari 500 karakter"
 	}
-	if req.SuratKeluar != nil && *req.SuratKeluar < 0 {
-		errors["surat_keluar"] = "Surat keluar tidak boleh negatif"
+	if len(req.LoginUser) > 500 {
+		errors["login_user"] = "Login user tidak boleh lebih dari 500 karakter"
 	}
-	if req.SuratCatat != nil && *req.SuratCatat < 0 {
-		errors["surat_catat"] = "Surat catat tidak boleh negatif"
+	if len(req.LogoutUser) > 500 {
+		errors["logout_user"] = "Logout user tidak boleh lebih dari 500 karakter"
 	}
-	if req.AktePerkawinan != nil && *req.AktePerkawinan < 0 {
-		errors["akte_perkawinan"] = "Akta perkawinan tidak boleh negatif"
-	}
-	if req.AktePenceraian != nil && *req.AktePenceraian < 0 {
-		errors["akte_perceraian"] = "Akta perceraian tidak boleh negatif"
-	}
-	if req.AkteKelahiran != nil && *req.AkteKelahiran < 0 {
-		errors["akte_kelahiran"] = "Akta kelahiran tidak boleh negatif"
-	}
-	if req.AkteCatatanPinggiran != nil && *req.AkteCatatanPinggiran < 0 {
-		errors["akte_catatan_pinggiran"] = "Akta catatan pinggiran tidak boleh negatif"
+	if len(req.MutasiElemenData) > 500 {
+		errors["mutasi_elemen_data"] = "Mutasi elemen data tidak boleh lebih dari 500 karakter"
 	}
 
 	return &ValidationResult{

@@ -67,8 +67,9 @@ func (h *HTTPHandlers) CreateRecord(c *gin.Context) {
 
 // GetRecord handles GET /api/v1/aktivitas-siak/:id
 func (h *HTTPHandlers) GetRecord(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
+	// Get UUID string directly from path parameter
+	id := c.Param("id")
+	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "ID tidak valid",
 		})
@@ -139,8 +140,9 @@ func (h *HTTPHandlers) ListRecords(c *gin.Context) {
 
 // UpdateRecord handles PUT /api/v1/aktivitas-siak/:id
 func (h *HTTPHandlers) UpdateRecord(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
+	// Get UUID string directly from path parameter
+	id := c.Param("id")
+	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "ID tidak valid",
 		})
@@ -183,8 +185,9 @@ func (h *HTTPHandlers) UpdateRecord(c *gin.Context) {
 
 // DeleteRecord handles DELETE /api/v1/aktivitas-siak/:id
 func (h *HTTPHandlers) DeleteRecord(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
+	// Get UUID string directly from path parameter
+	id := c.Param("id")
+	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "ID tidak valid",
 		})
@@ -202,7 +205,7 @@ func (h *HTTPHandlers) DeleteRecord(c *gin.Context) {
 	isAdmin, _ := c.Get("is_admin")
 	isAdminBool := isAdmin != nil && isAdmin.(bool)
 
-	err = h.service.Delete(c.Request.Context(), userID.(string), id, isAdminBool)
+	err := h.service.Delete(c.Request.Context(), userID.(string), id, isAdminBool)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -234,7 +237,8 @@ func (h *HTTPHandlers) CheckDuplicate(c *gin.Context) {
 		return
 	}
 
-	response, err := h.service.CheckDuplicate(c.Request.Context(), userID.(string), req.BulanRekapitulasi, req.TahunRekapitulasi)
+	// Call service with single bulan_rekapitulasi parameter (string like "Oktober 2025")
+	response, err := h.service.CheckDuplicate(c.Request.Context(), userID.(string), req.BulanRekapitulasi)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

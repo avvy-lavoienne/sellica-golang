@@ -4,51 +4,52 @@ import (
 	"time"
 )
 
-// AktivitasSiakData represents the complete database record for aktivitas_siak
+// AktivitasSiakData represents the complete database record for aktivitas_siak table
+// Schema matches actual Supabase table: id (uuid), user_id (uuid), 9 TEXT fields, bulan_rekapitulasi (text), created_at
 type AktivitasSiakData struct {
-	ID                    int       `json:"id" db:"id"`
-	UserID                string    `json:"user_id" db:"user_id"`
-	BulanRekapitulasi     int       `json:"bulan_rekapitulasi" db:"bulan_rekapitulasi"` // 1-12, month number
-	TahunRekapitulasi     int       `json:"tahun_rekapitulasi" db:"tahun_rekapitulasi"` // YYYY year
-	CatatanKegiatan       string    `json:"catatan_kegiatan" db:"catatan_kegiatan"`
-	LaporanKegiatan       string    `json:"laporan_kegiatan" db:"laporan_kegiatan"`
-	SuratMasuk            int       `json:"surat_masuk" db:"surat_masuk"`              // number of incoming letters
-	SuratKeluar           int       `json:"surat_keluar" db:"surat_keluar"`            // number of outgoing letters
-	SuratCatat            int       `json:"surat_catat" db:"surat_catat"`              // number of registered letters
-	AktePerkawinan        int       `json:"akte_perkawinan" db:"akte_perkawinan"`      // marriage certificates
-	AktePenceraian        int       `json:"akte_perceraian" db:"akte_perceraian"`      // divorce certificates
-	AkteKelahiran         int       `json:"akte_kelahiran" db:"akte_kelahiran"`        // birth certificates
-	AkteCatatanPinggiran  int       `json:"akte_catatan_pinggiran" db:"akte_catatan_pinggiran"` // marginal note certificates
-	CreatedAt             time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt             *time.Time `json:"updated_at,omitempty" db:"updated_at"` // null if never updated
+	ID                           string     `json:"id" db:"id"`                                         // UUID primary key
+	UserID                       string     `json:"user_id" db:"user_id"`                               // UUID foreign key to profiles
+	TotalAktivitasIndividu       string     `json:"total_aktivitas_individu" db:"total_aktivitas_individu"`
+	TotalAktivitasKeseluruhan    string     `json:"total_aktivitas_keseluruhan" db:"total_aktivitas_keseluruhan"`
+	FixAномaliData               string     `json:"fix_anomali_data" db:"fix_anomali_data"`
+	RestoreDataMaintenance       string     `json:"restore_data_maintenance" db:"restore_data_maintenance"`
+	RestoreDataKTP               string     `json:"restore_data_ktp" db:"restore_data_ktp"`
+	DaftarDuplikasi              string     `json:"daftar_duplikasi" db:"daftar_duplikasi"`
+	LoginUser                    string     `json:"login_user" db:"login_user"`
+	LogoutUser                   string     `json:"logout_user" db:"logout_user"`
+	MutasiElemenData             string     `json:"mutasi_elemen_data" db:"mutasi_elemen_data"`
+	BulanRekapitulasi            string     `json:"bulan_rekapitulasi" db:"bulan_rekapitulasi"`         // TEXT field (e.g., "Oktober 2025")
+	CreatedAt                    time.Time  `json:"created_at" db:"created_at"`
 }
 
 // AktivitasSiakCreateRequest represents the input for creating a new aktivitas_siak record
+// All fields match the actual database TEXT columns
 type AktivitasSiakCreateRequest struct {
-	BulanRekapitulasi    int     `json:"bulan_rekapitulasi" binding:"required,min=1,max=12"`
-	TahunRekapitulasi    int     `json:"tahun_rekapitulasi" binding:"required,min=2000"`
-	CatatanKegiatan      string  `json:"catatan_kegiatan" binding:"required,max=1000"`
-	LaporanKegiatan      string  `json:"laporan_kegiatan" binding:"required,max=1000"`
-	SuratMasuk           *int    `json:"surat_masuk,omitempty" binding:"min=0"`
-	SuratKeluar          *int    `json:"surat_keluar,omitempty" binding:"min=0"`
-	SuratCatat           *int    `json:"surat_catat,omitempty" binding:"min=0"`
-	AktePerkawinan       *int    `json:"akte_perkawinan,omitempty" binding:"min=0"`
-	AktePenceraian       *int    `json:"akte_perceraian,omitempty" binding:"min=0"`
-	AkteKelahiran        *int    `json:"akte_kelahiran,omitempty" binding:"min=0"`
-	AkteCatatanPinggiran *int    `json:"akte_catatan_pinggiran,omitempty" binding:"min=0"`
+	TotalAktivitasIndividu       string  `json:"total_aktivitas_individu" binding:"omitempty,max=500"`
+	TotalAktivitasKeseluruhan    string  `json:"total_aktivitas_keseluruhan" binding:"omitempty,max=500"`
+	FixAномaliData               string  `json:"fix_anomali_data" binding:"omitempty,max=500"`
+	RestoreDataMaintenance       string  `json:"restore_data_maintenance" binding:"omitempty,max=500"`
+	RestoreDataKTP               string  `json:"restore_data_ktp" binding:"omitempty,max=500"`
+	DaftarDuplikasi              string  `json:"daftar_duplikasi" binding:"omitempty,max=500"`
+	LoginUser                    string  `json:"login_user" binding:"omitempty,max=500"`
+	LogoutUser                   string  `json:"logout_user" binding:"omitempty,max=500"`
+	MutasiElemenData             string  `json:"mutasi_elemen_data" binding:"omitempty,max=500"`
+	BulanRekapitulasi            string  `json:"bulan_rekapitulasi" binding:"required,max=100"` // Required: e.g., "Oktober 2025"
 }
 
 // AktivitasSiakUpdateRequest represents the input for updating an aktivitas_siak record
+// All fields are optional for partial updates
 type AktivitasSiakUpdateRequest struct {
-	CatatanKegiatan      string  `json:"catatan_kegiatan,omitempty" binding:"max=1000"`
-	LaporanKegiatan      string  `json:"laporan_kegiatan,omitempty" binding:"max=1000"`
-	SuratMasuk           *int    `json:"surat_masuk,omitempty" binding:"min=0"`
-	SuratKeluar          *int    `json:"surat_keluar,omitempty" binding:"min=0"`
-	SuratCatat           *int    `json:"surat_catat,omitempty" binding:"min=0"`
-	AktePerkawinan       *int    `json:"akte_perkawinan,omitempty" binding:"min=0"`
-	AktePenceraian       *int    `json:"akte_perceraian,omitempty" binding:"min=0"`
-	AkteKelahiran        *int    `json:"akte_kelahiran,omitempty" binding:"min=0"`
-	AkteCatatanPinggiran *int    `json:"akte_catatan_pinggiran,omitempty" binding:"min=0"`
+	TotalAktivitasIndividu       *string `json:"total_aktivitas_individu,omitempty" binding:"omitempty,max=500"`
+	TotalAktivitasKeseluruhan    *string `json:"total_aktivitas_keseluruhan,omitempty" binding:"omitempty,max=500"`
+	FixAномaliData               *string `json:"fix_anomali_data,omitempty" binding:"omitempty,max=500"`
+	RestoreDataMaintenance       *string `json:"restore_data_maintenance,omitempty" binding:"omitempty,max=500"`
+	RestoreDataKTP               *string `json:"restore_data_ktp,omitempty" binding:"omitempty,max=500"`
+	DaftarDuplikasi              *string `json:"daftar_duplikasi,omitempty" binding:"omitempty,max=500"`
+	LoginUser                    *string `json:"login_user,omitempty" binding:"omitempty,max=500"`
+	LogoutUser                   *string `json:"logout_user,omitempty" binding:"omitempty,max=500"`
+	MutasiElemenData             *string `json:"mutasi_elemen_data,omitempty" binding:"omitempty,max=500"`
+	BulanRekapitulasi            *string `json:"bulan_rekapitulasi,omitempty" binding:"omitempty,max=100"`
 }
 
 // AktivitasSiakListResponse represents paginated list response
@@ -61,15 +62,15 @@ type AktivitasSiakListResponse struct {
 }
 
 // DuplicateCheckRequest represents a request to check for duplicate monthly records
+// Uses string-based month identifier instead of integer month/year
 type DuplicateCheckRequest struct {
-	BulanRekapitulasi int `json:"bulan_rekapitulasi" binding:"required,min=1,max=12"`
-	TahunRekapitulasi int `json:"tahun_rekapitulasi" binding:"required,min=2000"`
+	BulanRekapitulasi string `json:"bulan_rekapitulasi" binding:"required,max=100"` // e.g., "Oktober 2025"
 }
 
 // DuplicateCheckResponse indicates if a duplicate record exists
 type DuplicateCheckResponse struct {
-	Exists bool `json:"exists"`
-	ID     *int `json:"id,omitempty"` // ID of existing record if it exists
+	Exists bool    `json:"exists"`
+	ID     *string `json:"id,omitempty"` // UUID of existing record if it exists
 }
 
 // ValidationResult holds validation errors
@@ -79,15 +80,11 @@ type ValidationResult struct {
 }
 
 // Statistics represents summary statistics for aktivitas records
+// Simplified for TEXT-based fields (no numeric aggregation)
 type Statistics struct {
-	TotalRecords           int       `json:"total_records"`
-	AverageSuratMasuk      float64   `json:"average_surat_masuk"`
-	AverageSuratKeluar     float64   `json:"average_surat_keluar"`
-	AverageSuratCatat      float64   `json:"average_surat_catat"`
-	AverageAktePerkawinan  float64   `json:"average_akte_perkawinan"`
-	AverageAktePenceraian  float64   `json:"average_akte_perceraian"`
-	AverageAkteKelahiran   float64   `json:"average_akte_kelahiran"`
-	HighestSuratMasuk      int       `json:"highest_surat_masuk"`
-	HighestAkteKelahiran   int       `json:"highest_akte_kelahiran"`
-	LastUpdateTime         time.Time `json:"last_update_time"`
+	TotalRecords     int       `json:"total_records"`
+	UniqueMonths     int       `json:"unique_months"`      // Number of unique month entries
+	LastEntryTime    time.Time `json:"last_entry_time"`    // Most recent created_at
+	OldestEntryTime  time.Time `json:"oldest_entry_time"`  // Oldest created_at
+	RecordsThisMonth int       `json:"records_this_month"` // Records for current month
 }
