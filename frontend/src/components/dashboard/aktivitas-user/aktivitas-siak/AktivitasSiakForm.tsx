@@ -24,10 +24,11 @@ interface AktivitasSiakFormProps {
     onCancel: () => void;
     loading: boolean;
     isEditing: boolean;
+    userRole: string;
 }
 
 export default function AktivitasSiakForm({
-                                              formData, setFormData, onSubmit, onCancel, loading, isEditing
+                                              formData, setFormData, onSubmit, onCancel, loading, isEditing, userRole
                                           }: AktivitasSiakFormProps) {
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [formProgress, setFormProgress] = useState(0);

@@ -14,7 +14,7 @@ interface FormInputProps {
   required?: boolean;
   disabled?: boolean;
   helperText?: string;
-  icon?: React.ComponentType<any>;
+  icon?: React.FC<React.SVGProps<SVGSVGElement>>;
   className?: string;
 }
 
@@ -36,9 +36,10 @@ export function FormInput({
     <div className={twMerge('space-y-2', className)}>
       <Label
         htmlFor={name}
-        value={`${label}${required ? ' *' : ''}`}
         className="text-sm font-medium text-gray-900 dark:text-white"
-      />
+      >
+        {`${label}${required ? ' *' : ''}`}
+      </Label>
       <TextInput
         id={name}
         name={name}
@@ -97,9 +98,10 @@ export function FormTextarea({
     <div className={twMerge('space-y-2', className)}>
       <Label
         htmlFor={name}
-        value={`${label}${required ? ' *' : ''}`}
         className="text-sm font-medium text-gray-900 dark:text-white"
-      />
+      >
+        {`${label}${required ? ' *' : ''}`}
+      </Label>
       <Textarea
         id={name}
         name={name}
@@ -155,9 +157,10 @@ export function FormSelect({
     <div className={twMerge('space-y-2', className)}>
       <Label
         htmlFor={name}
-        value={`${label}${required ? ' *' : ''}`}
         className="text-sm font-medium text-gray-900 dark:text-white"
-      />
+      >
+        {`${label}${required ? ' *' : ''}`}
+      </Label>
       <Select
         id={name}
         name={name}
