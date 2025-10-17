@@ -1,0 +1,68 @@
+[
+  {
+    "function_name": "auto_create_ticket_progress",
+    "arguments": "",
+    "returns": "trigger",
+    "definition": "CREATE OR REPLACE FUNCTION public.auto_create_ticket_progress()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nDECLARE\r\n  category_value VARCHAR(100);\r\n  total_steps_count INT;\r\nBEGIN\r\n  -- Get category from ticket\r\n  category_value := NEW.jenis_pengaduan;\r\n  \r\n  -- Count total steps for this category\r\n  SELECT COUNT(*) INTO total_steps_count\r\n  FROM ticket_steps\r\n  WHERE category = category_value AND is_active = true;\r\n  \r\n  -- If no steps configured, use default 5\r\n  IF total_steps_count = 0 THEN\r\n    total_steps_count := 5;\r\n  END IF;\r\n  \r\n  -- Insert default progress\r\n  INSERT INTO ticket_progress (\r\n    ticket_id,\r\n    current_step,\r\n    step_order,\r\n    total_steps,\r\n    completion_percentage,\r\n    status_description,\r\n    guest_visible_notes\r\n  ) VALUES (\r\n    NEW.id,\r\n    'submission_received',\r\n    1,\r\n    total_steps_count,\r\n    ROUND(100.0 / total_steps_count),\r\n    'Tiket Anda telah diterima',\r\n    'Terima kasih! Tiket Anda telah diterima oleh sistem. Petugas kami akan segera memverifikasi dokumen Anda.'\r\n  );\r\n  \r\n  -- Insert initial history entry\r\n  INSERT INTO status_history (\r\n    ticket_id,\r\n    new_status,\r\n    step_name,\r\n    step_order,\r\n    guest_visible_message,\r\n    occurred_at\r\n  ) VALUES (\r\n    NEW.id,\r\n    NEW.ticket_status,\r\n    'submission_received',\r\n    1,\r\n    'Tiket Anda berhasil dibuat dengan kode ' || NEW.ticket_code,\r\n    NOW()\r\n  );\r\n  \r\n  RETURN NEW;\r\nEND;\r\n$function$\n"
+  },
+  {
+    "function_name": "auto_generate_ticket_code",
+    "arguments": "",
+    "returns": "trigger",
+    "definition": "CREATE OR REPLACE FUNCTION public.auto_generate_ticket_code()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nBEGIN\r\n  -- Generate ticket code if not provided\r\n  IF NEW.ticket_code IS NULL OR NEW.ticket_code = '' THEN\r\n    NEW.ticket_code := generate_ticket_code();\r\n  END IF;\r\n  \r\n  RETURN NEW;\r\nEND;\r\n$function$\n"
+  },
+  {
+    "function_name": "calculate_completion_percentage",
+    "arguments": "step_order integer, total_steps integer",
+    "returns": "integer",
+    "definition": "CREATE OR REPLACE FUNCTION public.calculate_completion_percentage(step_order integer, total_steps integer)\n RETURNS integer\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\r\nBEGIN\r\n  RETURN ROUND((step_order::DECIMAL / total_steps) * 100);\r\nEND;\r\n$function$\n"
+  },
+  {
+    "function_name": "cleanup_expired_sessions",
+    "arguments": "",
+    "returns": "integer",
+    "definition": "CREATE OR REPLACE FUNCTION public.cleanup_expired_sessions()\n RETURNS integer\n LANGUAGE plpgsql\nAS $function$ DECLARE deleted_count INTEGER; BEGIN DELETE FROM selly_chat_sessions WHERE expires_at < NOW(); GET DIAGNOSTICS deleted_count = ROW_COUNT; DELETE FROM selly_chat_messages WHERE scheduled_deletion_at < NOW(); RETURN deleted_count; END; $function$\n"
+  },
+  {
+    "function_name": "generate_ticket_code",
+    "arguments": "",
+    "returns": "text",
+    "definition": "CREATE OR REPLACE FUNCTION public.generate_ticket_code()\n RETURNS text\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\r\nDECLARE\r\n  date_part TEXT;\r\n  hex_part TEXT;\r\n  new_code TEXT;\r\n  code_exists BOOLEAN;\r\n  attempt_count INTEGER := 0;\r\n  max_attempts INTEGER := 100;\r\nBEGIN\r\n  -- Get current date in YYMMDD format (251005 = October 5, 2025)\r\n  date_part := TO_CHAR(NOW(), 'YYMMDD');\r\n  \r\n  -- Generate unique code with collision detection\r\n  LOOP\r\n    -- Generate 8-character hex string from random seed\r\n    hex_part := UPPER(SUBSTRING(\r\n      MD5(RANDOM()::TEXT || NOW()::TEXT || attempt_count::TEXT) \r\n      FROM 1 FOR 8\r\n    ));\r\n    \r\n    -- Combine parts: SPL + YYMMDD + 8-char hex\r\n    new_code := 'SPL' || date_part || hex_part;\r\n    \r\n    -- Check if code already exists in database\r\n    SELECT EXISTS(SELECT 1 FROM silpana WHERE ticket_code = new_code) INTO code_exists;\r\n    \r\n    -- If code is unique, return it\r\n    IF NOT code_exists THEN\r\n      RETURN new_code;\r\n    END IF;\r\n    \r\n    -- Increment attempt counter and check limit\r\n    attempt_count := attempt_count + 1;\r\n    IF attempt_count >= max_attempts THEN\r\n      RAISE EXCEPTION 'Unable to generate unique ticket code after % attempts', max_attempts;\r\n    END IF;\r\n  END LOOP;\r\nEND;\r\n$function$\n"
+  },
+  {
+    "function_name": "initialize_ticket_progress",
+    "arguments": "p_ticket_id uuid",
+    "returns": "void",
+    "definition": "CREATE OR REPLACE FUNCTION public.initialize_ticket_progress(p_ticket_id uuid)\n RETURNS void\n LANGUAGE plpgsql\nAS $function$\r\nDECLARE\r\n  v_ticket_exists BOOLEAN;\r\n  v_progress_exists BOOLEAN;\r\n  v_category TEXT;\r\nBEGIN\r\n  -- Check if ticket exists\r\n  SELECT EXISTS(SELECT 1 FROM silpana WHERE id = p_ticket_id) INTO v_ticket_exists;\r\n  IF NOT v_ticket_exists THEN\r\n    RAISE EXCEPTION 'Ticket with ID % does not exist', p_ticket_id;\r\n  END IF;\r\n\r\n  -- Check if progress already exists\r\n  SELECT EXISTS(SELECT 1 FROM ticket_progress WHERE ticket_id = p_ticket_id) INTO v_progress_exists;\r\n  IF v_progress_exists THEN\r\n    RAISE NOTICE 'Progress tracking already exists for ticket %', p_ticket_id;\r\n    RETURN;\r\n  END IF;\r\n\r\n  -- Get ticket category (using a default if column doesn't exist)\r\n  -- Note: Column name might vary - adjust based on your schema\r\n  BEGIN\r\n    SELECT COALESCE(jenis_pengaduan, 'Umum') INTO v_category FROM silpana WHERE id = p_ticket_id;\r\n  EXCEPTION WHEN undefined_column THEN\r\n    -- If column doesn't exist, use default\r\n    v_category := 'Umum';\r\n  END;\r\n\r\n  -- Create initial progress entry\r\n  INSERT INTO ticket_progress (\r\n    id,\r\n    ticket_id,\r\n    current_step,\r\n    step_order,\r\n    total_steps,\r\n    completion_percentage,\r\n    estimated_completion_date,\r\n    estimated_hours_remaining,\r\n    status_description,\r\n    guest_visible_notes,\r\n    required_documents,\r\n    uploaded_documents,\r\n    verified_documents,\r\n    created_at,\r\n    updated_at\r\n  ) VALUES (\r\n    gen_random_uuid(),\r\n    p_ticket_id,\r\n    'Pengaduan Diterima',           -- Initial step\r\n    1,                               -- First step\r\n    5,                               -- Default 5 steps\r\n    20,                              -- 20% complete (step 1 of 5)\r\n    NOW() + INTERVAL '7 days',       -- Estimated 7 days\r\n    168,                             -- 168 hours = 7 days\r\n    'Pengaduan Anda sedang dalam proses verifikasi. Tim kami akan segera menindaklanjuti.',\r\n    'Tiket Anda telah diterima dan sedang dalam antrian verifikasi.',\r\n    '[]'::jsonb,                     -- Empty JSON array for required documents\r\n    '[]'::jsonb,                     -- Empty JSON array for uploaded documents\r\n    '[]'::jsonb,                     -- Empty JSON array for verified documents\r\n    NOW(),\r\n    NOW()\r\n  );\r\n\r\n  RAISE NOTICE '✅ Progress tracking initialized for ticket %', p_ticket_id;\r\nEND;\r\n$function$\n"
+  },
+  {
+    "function_name": "set_ticket_code",
+    "arguments": "",
+    "returns": "trigger",
+    "definition": "CREATE OR REPLACE FUNCTION public.set_ticket_code()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\r\nBEGIN\r\n  -- Generate ticket code if not provided or empty\r\n  IF NEW.ticket_code IS NULL OR NEW.ticket_code = '' THEN\r\n    NEW.ticket_code := generate_ticket_code();\r\n  END IF;\r\n  \r\n  -- Update last_updated timestamp\r\n  NEW.last_updated := NOW();\r\n  \r\n  -- If this is an update and status changed, log to history (if table exists)\r\n  IF TG_OP = 'UPDATE' AND OLD.ticket_status IS DISTINCT FROM NEW.ticket_status THEN\r\n    -- Check if ticket_history table exists before inserting\r\n    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'ticket_history') THEN\r\n      INSERT INTO ticket_history (ticket_id, status_from, status_to, changed_by, notes)\r\n      VALUES (NEW.id, OLD.ticket_status, NEW.ticket_status, 'system', 'Status changed via trigger');\r\n    END IF;\r\n  END IF;\r\n  \r\n  RETURN NEW;\r\nEND;\r\n$function$\n"
+  },
+  {
+    "function_name": "update_session_statistics",
+    "arguments": "",
+    "returns": "trigger",
+    "definition": "CREATE OR REPLACE FUNCTION public.update_session_statistics()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$ BEGIN UPDATE selly_chat_sessions SET message_count = message_count + 1, last_interaction = NOW(), updated_at = NOW(), total_processing_time = COALESCE(total_processing_time, 0) + COALESCE(NEW.processing_time_ms, 0), average_response_time = CASE WHEN message_count > 0 THEN (COALESCE(total_processing_time, 0) + COALESCE(NEW.processing_time_ms, 0)) / (message_count + 1) ELSE COALESCE(NEW.processing_time_ms, 0) END WHERE id = NEW.session_id; UPDATE profiles SET last_selly_interaction = NOW(), selly_conversation_count = selly_conversation_count + 1 WHERE id = (SELECT user_id FROM selly_chat_sessions WHERE id = NEW.session_id AND user_id IS NOT NULL); RETURN NEW; END; $function$\n"
+  },
+  {
+    "function_name": "update_ticket_progress_updated_at",
+    "arguments": "",
+    "returns": "trigger",
+    "definition": "CREATE OR REPLACE FUNCTION public.update_ticket_progress_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nBEGIN\r\n  NEW.updated_at = NOW();\r\n  RETURN NEW;\r\nEND;\r\n$function$\n"
+  },
+  {
+    "function_name": "update_ticket_steps_updated_at",
+    "arguments": "",
+    "returns": "trigger",
+    "definition": "CREATE OR REPLACE FUNCTION public.update_ticket_steps_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nBEGIN\r\n  NEW.updated_at = NOW();\r\n  RETURN NEW;\r\nEND;\r\n$function$\n"
+  },
+  {
+    "function_name": "update_updated_at_column",
+    "arguments": "",
+    "returns": "trigger",
+    "definition": "CREATE OR REPLACE FUNCTION public.update_updated_at_column()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nBEGIN\r\n    NEW.updated_at = NOW();\r\n    RETURN NEW;\r\nEND;\r\n$function$\n"
+  }
+]

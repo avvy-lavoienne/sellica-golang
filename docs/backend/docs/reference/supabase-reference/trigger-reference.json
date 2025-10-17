@@ -1,0 +1,82 @@
+[
+  {
+    "table_name": "selly_chat_messages",
+    "trigger_name": "trigger_update_session_statistics",
+    "event_type": "INSERT",
+    "timing": "AFTER",
+    "orientation": "ROW",
+    "function_call": "EXECUTE FUNCTION update_session_statistics()"
+  },
+  {
+    "table_name": "silpana",
+    "trigger_name": "trigger_auto_create_ticket_progress",
+    "event_type": "INSERT",
+    "timing": "AFTER",
+    "orientation": "ROW",
+    "function_call": "EXECUTE FUNCTION auto_create_ticket_progress()"
+  },
+  {
+    "table_name": "silpana",
+    "trigger_name": "trigger_auto_generate_ticket_code",
+    "event_type": "INSERT",
+    "timing": "BEFORE",
+    "orientation": "ROW",
+    "function_call": "EXECUTE FUNCTION auto_generate_ticket_code()"
+  },
+  {
+    "table_name": "silpana",
+    "trigger_name": "trigger_auto_generate_ticket_code",
+    "event_type": "UPDATE",
+    "timing": "BEFORE",
+    "orientation": "ROW",
+    "function_call": "EXECUTE FUNCTION auto_generate_ticket_code()"
+  },
+  {
+    "table_name": "silpana",
+    "trigger_name": "trigger_set_ticket_code",
+    "event_type": "INSERT",
+    "timing": "BEFORE",
+    "orientation": "ROW",
+    "function_call": "EXECUTE FUNCTION set_ticket_code()"
+  },
+  {
+    "table_name": "silpana",
+    "trigger_name": "trigger_set_ticket_code",
+    "event_type": "UPDATE",
+    "timing": "BEFORE",
+    "orientation": "ROW",
+    "function_call": "EXECUTE FUNCTION set_ticket_code()"
+  },
+  {
+    "table_name": "ticket_progress",
+    "trigger_name": "trigger_update_ticket_progress_updated_at",
+    "event_type": "UPDATE",
+    "timing": "BEFORE",
+    "orientation": "ROW",
+    "function_call": "EXECUTE FUNCTION update_ticket_progress_updated_at()"
+  },
+  {
+    "table_name": "ticket_steps",
+    "trigger_name": "trigger_update_ticket_steps_updated_at",
+    "event_type": "UPDATE",
+    "timing": "BEFORE",
+    "orientation": "ROW",
+    "function_call": "EXECUTE FUNCTION update_ticket_steps_updated_at()"
+  },
+  {
+    "table_name": "training_data",
+    "trigger_name": "update_training_data_updated_at",
+    "event_type": "UPDATE",
+    "timing": "BEFORE",
+    "orientation": "ROW",
+    "function_call": "EXECUTE FUNCTION update_updated_at_column()"
+  },
+  {
+    "table_name": "training_sessions",
+    "trigger_name": "update_training_sessions_updated_at",
+    "event_type": "UPDATE",
+    "timing": "BEFORE",
+    "orientation": "ROW",
+    "function_call": "EXECUTE FUNCTION update_updated_at_column()"
+  }
+]

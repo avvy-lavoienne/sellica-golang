@@ -1,0 +1,65 @@
+[
+  {
+    "table_name": "adjudicate_record"
+  },
+  {
+    "table_name": "aktivitas_siak"
+  },
+  {
+    "table_name": "aktivitas_user"
+  },
+  {
+    "table_name": "dokumentasi"
+  },
+  {
+    "table_name": "duplicate_operator"
+  },
+  {
+    "table_name": "pending_users"
+  },
+  {
+    "table_name": "pengaduan_bulanan"
+  },
+  {
+    "table_name": "pengajuan_bulanan"
+  },
+  {
+    "table_name": "profiles"
+  },
+  {
+    "table_name": "salah_rekam"
+  },
+  {
+    "table_name": "selly_chat_messages"
+  },
+  {
+    "table_name": "selly_chat_sessions"
+  },
+  {
+    "table_name": "silpana"
+  },
+  {
+    "table_name": "status_history"
+  },
+  {
+    "table_name": "ticket_communication"
+  },
+  {
+    "table_name": "ticket_history"
+  },
+  {
+    "table_name": "ticket_progress"
+  },
+  {
+    "table_name": "ticket_steps"
+  },
+  {
+    "table_name": "training_analytics"
+  },
+  {
+    "table_name": "training_data"
+  },
+  {
+    "table_name": "training_sessions"
+  }
+]
