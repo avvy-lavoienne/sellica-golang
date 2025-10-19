@@ -1,0 +1,318 @@
+package handlers
+
+import (
+	"net/http"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"selly-backend/internal/services/duplicate_operator"
+)
+
+// DuplicateOperatorHandler handles HTTP requests for duplicate operator operations
+type DuplicateOperatorHandler struct {
+	service duplicate_operator.Service
+}
+
+// NewDuplicateOperatorHandler creates a new handler instance
+func NewDuplicateOperatorHandler(service duplicate_operator.Service) *DuplicateOperatorHandler {
+	return &DuplicateOperatorHandler{
+		service: service,
+	}
+}
+
+// ListRecords handles GET /api/v1/duplicate-operators
+func (h *DuplicateOperatorHandler) ListRecords(c *gin.Context) {
+	// Parse pagination parameters
+	page := 1
+	pageSize := 10
+	
+	if p := c.Query("page"); p != "" {
+		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
+			page = parsed
+		}
+	}
+	
+	if ps := c.Query("page_size"); ps != "" {
+		if parsed, err := strconv.Atoi(ps); err == nil && parsed > 0 && parsed <= 100 {
+			pageSize = parsed
+		}
+	}
+
+	// Build filters
+	filters := make(map[string]interface{})
+	
+	if status := c.Query("status"); status != "" && status != "all" {
+		if status == "ready" {
+			filters["is_ready_to_record"] = true
+		} else if status == "not_ready" {
+			filters["is_ready_to_record"] = false
+		}
+	}
+
+	// Call service
+	response, err := h.service.ListRecords(c, filters, page, pageSize)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "error",
+			"code":    http.StatusInternalServerError,
+			"message": "gagal mengambil data: " + err.Error(),
+		})
+		return
+	}
+
+	// Return successful response
+	c.JSON(http.StatusOK, gin.H{
+		"status":     "success",
+		"code":       http.StatusOK,
+		"message":    "data berhasil diambil",
+		"data":       response.Data,
+		"pagination": response.Pagination,
+	})
+}
+
+// GetRecord handles GET /api/v1/duplicate-operators/:id
+func (h *DuplicateOperatorHandler) GetRecord(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "error",
+			"code":    http.StatusBadRequest,
+			"message": "ID parameter is required",
+		})
+		return
+	}
+
+	// Call service
+	record, err := h.service.GetRecord(c, id)
+	if err != nil {
+		// Check if record not found
+		if err.Error() == "no rows in result set" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"status":  "error",
+				"code":    http.StatusNotFound,
+				"message": "record tidak ditemukan",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "error",
+			"code":    http.StatusInternalServerError,
+			"message": "gagal mengambil data: " + err.Error(),
+		})
+		return
+	}
+
+	// Return successful response
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"code":    http.StatusOK,
+		"message": "data berhasil diambil",
+		"data":    record,
+	})
+}
+
+// CreateRecord handles POST /api/v1/duplicate-operators
+func (h *DuplicateOperatorHandler) CreateRecord(c *gin.Context) {
+	var req duplicate_operator.CreateRequest
+	
+	// Parse request body
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "error",
+			"code":    http.StatusBadRequest,
+			"message": "invalid request: " + err.Error(),
+		})
+		return
+	}
+
+	// Validate request
+	if validationErr := duplicate_operator.ValidateCreateRequest(&req); validationErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "error",
+			"code":    http.StatusBadRequest,
+			"message": validationErr.Message,
+			"details": validationErr.ErrorDetails,
+		})
+		return
+	}
+
+	// Get user ID from context (set by auth middleware)
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status":  "error",
+			"code":    http.StatusUnauthorized,
+			"message": "user context not found",
+		})
+		return
+	}
+
+	// Call service
+	record, err := h.service.CreateRecord(c, userID.(string), &req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "error",
+			"code":    http.StatusInternalServerError,
+			"message": "gagal membuat data: " + err.Error(),
+		})
+		return
+	}
+
+	// Return successful response
+	c.JSON(http.StatusCreated, gin.H{
+		"status":  "success",
+		"code":    http.StatusCreated,
+		"message": "data berhasil dibuat",
+		"data":    record,
+	})
+}
+
+// UpdateRecord handles PUT /api/v1/duplicate-operators/:id
+func (h *DuplicateOperatorHandler) UpdateRecord(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "error",
+			"code":    http.StatusBadRequest,
+			"message": "ID parameter is required",
+		})
+		return
+	}
+
+	var req duplicate_operator.UpdateRequest
+	
+	// Parse request body
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "error",
+			"code":    http.StatusBadRequest,
+			"message": "invalid request: " + err.Error(),
+		})
+		return
+	}
+
+	// Validate request
+	if validationErr := duplicate_operator.ValidateUpdateRequest(&req); validationErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "error",
+			"code":    http.StatusBadRequest,
+			"message": validationErr.Message,
+			"details": validationErr.ErrorDetails,
+		})
+		return
+	}
+
+	// Call service
+	record, err := h.service.UpdateRecord(c, id, &req)
+	if err != nil {
+		// Check if record not found
+		if err.Error() == "no rows in result set" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"status":  "error",
+				"code":    http.StatusNotFound,
+				"message": "record tidak ditemukan",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "error",
+			"code":    http.StatusInternalServerError,
+			"message": "gagal memperbarui data: " + err.Error(),
+		})
+		return
+	}
+
+	// Return successful response
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"code":    http.StatusOK,
+		"message": "data berhasil diperbarui",
+		"data":    record,
+	})
+}
+
+// DeleteRecord handles DELETE /api/v1/duplicate-operators/:id
+func (h *DuplicateOperatorHandler) DeleteRecord(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "error",
+			"code":    http.StatusBadRequest,
+			"message": "ID parameter is required",
+		})
+		return
+	}
+
+	// Call service
+	err := h.service.DeleteRecord(c, id)
+	if err != nil {
+		// Check if record not found
+		if err.Error() == "no rows in result set" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"status":  "error",
+				"code":    http.StatusNotFound,
+				"message": "record tidak ditemukan",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "error",
+			"code":    http.StatusInternalServerError,
+			"message": "gagal menghapus data: " + err.Error(),
+		})
+		return
+	}
+
+	// Return successful response
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"code":    http.StatusOK,
+		"message": "data berhasil dihapus",
+	})
+}
+
+// SearchRecords handles GET /api/v1/duplicate-operators/search
+func (h *DuplicateOperatorHandler) SearchRecords(c *gin.Context) {
+	query := c.Query("q")
+	if query == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "error",
+			"code":    http.StatusBadRequest,
+			"message": "search query parameter 'q' is required",
+		})
+		return
+	}
+
+	// Build filters
+	filters := make(map[string]interface{})
+	
+	if status := c.Query("status"); status != "" && status != "all" {
+		if status == "ready" {
+			filters["is_ready_to_record"] = true
+		} else if status == "not_ready" {
+			filters["is_ready_to_record"] = false
+		}
+	}
+
+	// Call service
+	records, err := h.service.SearchRecords(c, query, filters)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "error",
+			"code":    http.StatusInternalServerError,
+			"message": "gagal mencari data: " + err.Error(),
+		})
+		return
+	}
+
+	// Return successful response
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"code":    http.StatusOK,
+		"message": "pencarian berhasil",
+		"data":    records,
+	})
+}

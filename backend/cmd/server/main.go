@@ -21,6 +21,7 @@ import (
 	"selly-backend/internal/services/chat"
 	"selly-backend/internal/services/concurrent"
 	"selly-backend/internal/services/database"
+	"selly-backend/internal/services/duplicate_operator"
 	"selly-backend/internal/services/eventbus"
 	"selly-backend/internal/services/knowledge"
 	"selly-backend/internal/services/monitoring"
@@ -69,6 +70,7 @@ func main() {
 		services.SilpanaBroadcaster,
 		services.SupabaseAnalyzer,
 		services.AktivitasSiak,
+		services.DuplicateOperator,
 	)
 	routes.SetupRoutes(router, routeServices)
 
@@ -123,13 +125,14 @@ type Services struct {
 	Monitoring *monitoring.Service
 
 	// Business Logic Services (Application Layer)
-	Chat           *chat.Service
-	Training       *training.Service
-	Knowledge      *knowledge.DocumentLoaderService
-	RAG            *rag.RedisRAGService
-	Concurrent     *concurrent.Service
-	Silpana        silpana.ServiceInterface
-	AktivitasSiak  aktivitas_siak.Service
+	Chat              *chat.Service
+	Training          *training.Service
+	Knowledge         *knowledge.DocumentLoaderService
+	RAG               *rag.RedisRAGService
+	Concurrent        *concurrent.Service
+	Silpana           silpana.ServiceInterface
+	AktivitasSiak     aktivitas_siak.Service
+	DuplicateOperator duplicate_operator.Service
 
 	// Real-time Services
 	WebSocketHub        *websocket.Hub
@@ -356,6 +359,12 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	}
 	logrus.Info("✅ Aktivitas SIAK service initialized successfully")
 
+	// Initialize Duplicate Operator service
+	supabaseClient := dbService.GetClient()
+	duplicateOperatorAdapter := duplicate_operator.NewSupabaseAdapter(supabaseClient)
+	duplicateOperatorService := duplicate_operator.NewService(duplicateOperatorAdapter)
+	logrus.Info("✅ Duplicate Operator service initialized successfully")
+
 	// Initialize WebSocket hub for real-time features
 	logrus.Info("🔌 Initializing WebSocket hub...")
 	wsHub := websocket.NewHub(websocket.DefaultConfig())
@@ -428,13 +437,14 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		Monitoring: monitoringService,
 
 		// Business Logic Services
-		Chat:          chatService,
-		Training:      trainingService,
-		Knowledge:     knowledgeService,
-		RAG:           ragService,
-		Concurrent:    concurrentService,
-		Silpana:       silpanaService,
-		AktivitasSiak: aktivitasSiakService,
+		Chat:              chatService,
+		Training:          trainingService,
+		Knowledge:         knowledgeService,
+		RAG:               ragService,
+		Concurrent:        concurrentService,
+		Silpana:           silpanaService,
+		AktivitasSiak:     aktivitasSiakService,
+		DuplicateOperator: duplicateOperatorService,
 
 		// Real-time Services
 		WebSocketHub:       wsHub,

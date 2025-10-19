@@ -2,21 +2,23 @@ package duplicate_operator
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/supabase-community/supabase-go"
 )
 
 // SupabaseAdapter implements DatabaseAdapter using Supabase
 type SupabaseAdapter struct {
-	// TODO: Add Supabase client
-	// client *supabase.Client
+	client *supabase.Client
 }
 
 // NewSupabaseAdapter creates a new Supabase adapter
-func NewSupabaseAdapter() *SupabaseAdapter {
+func NewSupabaseAdapter(client *supabase.Client) *SupabaseAdapter {
 	return &SupabaseAdapter{
-		// TODO: Initialize with Supabase client
+		client: client,
 	}
 }
 
@@ -27,14 +29,29 @@ func (a *SupabaseAdapter) GetRecordByID(ctx context.Context, id string) (*Duplic
 		return nil, fmt.Errorf("invalid ID format: %w", err)
 	}
 
-	// TODO: Implement database query
+	if a.client == nil {
+		return nil, fmt.Errorf("database client not initialized")
+	}
+
+	// Query from duplicate_operator table
+	data, _, err := a.client.From("duplicate_operator").
+		Select("*", "", false).
+		Eq("id", id).
+		Single().
+		Execute()
+
+	if err != nil {
+		if err.Error() == "no rows" {
+			return nil, fmt.Errorf("record not found")
+		}
+		return nil, fmt.Errorf("database query failed: %w", err)
+	}
+
+	// Unmarshal response into DuplicateOperatorData
 	var record DuplicateOperatorData
-	
-	// Example structure:
-	// err := a.client.DB.WithContext(ctx).
-	//     Where("id = ?", id).
-	//     First(&record).
-	//     Error
+	if err := json.Unmarshal(data, &record); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
 
 	return &record, nil
 }
@@ -45,8 +62,84 @@ func (a *SupabaseAdapter) ListRecords(
 	filters map[string]interface{},
 	page, pageSize int,
 ) ([]DuplicateOperatorData, int64, error) {
-	// TODO: Implement list with pagination and filtering
-	return []DuplicateOperatorData{}, 0, nil
+	if a.client == nil {
+		return nil, 0, fmt.Errorf("database client not initialized")
+	}
+
+	// Set defaults
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 {
+		pageSize = 10
+	}
+	if pageSize > 100 {
+		pageSize = 100
+	}
+
+	offset := (page - 1) * pageSize
+
+	// Build base query
+	query := a.client.From("duplicate_operator").
+		Select("*", "", false)
+
+	// Apply status filter if provided
+	if status, ok := filters["status"].(string); ok && status != "all" {
+		isReady := status == "completed"
+		// Convert bool to string for the query
+		statusStr := "false"
+		if isReady {
+			statusStr = "true"
+		}
+		query = query.Eq("is_ready_to_record", statusStr)
+	}
+
+	// Note: Additional filtering (search, date range) would require building the query
+	// with multiple conditions. For simplicity in this initial implementation,
+	// we'll handle them in the service layer with post-processing if needed.
+
+	// Apply pagination
+	query = query.Range(offset, offset+pageSize-1, "exact")
+
+	// Execute query
+	data, _, err := query.Execute()
+	if err != nil {
+		return nil, 0, fmt.Errorf("database query failed: %w", err)
+	}
+
+	// Unmarshal response
+	var records []DuplicateOperatorData
+	if err := json.Unmarshal(data, &records); err != nil {
+		return nil, 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	// Get total count with same filters
+	countQuery := a.client.From("duplicate_operator").
+		Select("count", "exact", false)
+
+	if status, ok := filters["status"].(string); ok && status != "all" {
+		isReady := status == "completed"
+		statusStr := "false"
+		if isReady {
+			statusStr = "true"
+		}
+		countQuery = countQuery.Eq("is_ready_to_record", statusStr)
+	}
+
+	countData, _, err := countQuery.Execute()
+	var total int64 = int64(len(records)) // Fallback to current count
+
+	if err == nil && len(countData) > 0 {
+		// Try to parse count from response
+		var countResult []map[string]interface{}
+		if err := json.Unmarshal(countData, &countResult); err == nil && len(countResult) > 0 {
+			if count, ok := countResult[0]["count"].(float64); ok {
+				total = int64(count)
+			}
+		}
+	}
+
+	return records, total, nil
 }
 
 // CreateRecord inserts a new record
@@ -55,13 +148,55 @@ func (a *SupabaseAdapter) CreateRecord(
 	userID string,
 	req *CreateRequest,
 ) (*DuplicateOperatorData, error) {
-	// TODO: Implement record creation
-	// Should:
-	// 1. Generate UUID
-	// 2. Parse dates
-	// 3. Insert into database
-	// 4. Return created record
-	return nil, nil
+	if a.client == nil {
+		return nil, fmt.Errorf("database client not initialized")
+	}
+
+	id := uuid.New()
+	now := time.Now().UTC()
+
+	// Build the record to insert
+	record := map[string]interface{}{
+		"id":                            id.String(),
+		"user_id":                       userID,
+		"nik_duplicate":                 req.NikDuplicate,
+		"nama_duplicate":                req.NamaDuplicate,
+		"nik_operator":                  req.NikOperator,
+		"nama_operator":                 req.NamaOperator,
+		"tanggal_perekaman":             req.TanggalPerekaman,
+		"tanggal_pengajuan":             req.TanggalPengajuan,
+		"estimasi_tanggal_perekaman":    req.EstimasiTanggalPerekaman,
+		"is_ready_to_record":            req.IsReadyToRecord,
+		"created_at":                    now,
+		"updated_at":                    now,
+	}
+
+	// Convert record to JSON bytes for insertion
+	data, err := json.Marshal([]map[string]interface{}{record})
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal record: %w", err)
+	}
+
+	// Insert into database
+	resultData, _, err := a.client.From("duplicate_operator").
+		Insert(data, true, "", "", "").
+		Execute()
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to create record: %w", err)
+	}
+
+	// Unmarshal the response
+	var createdRecords []DuplicateOperatorData
+	if err := json.Unmarshal(resultData, &createdRecords); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	if len(createdRecords) == 0 {
+		return nil, fmt.Errorf("no record returned from creation")
+	}
+
+	return &createdRecords[0], nil
 }
 
 // UpdateRecord updates an existing record
@@ -70,22 +205,97 @@ func (a *SupabaseAdapter) UpdateRecord(
 	id string,
 	req *UpdateRequest,
 ) (*DuplicateOperatorData, error) {
-	// TODO: Implement record update
-	// Should:
-	// 1. Check record exists
-	// 2. Update only provided fields
-	// 3. Update updated_at timestamp
-	// 4. Return updated record
-	return nil, nil
+	if a.client == nil {
+		return nil, fmt.Errorf("database client not initialized")
+	}
+
+	// Verify record exists first
+	if _, err := a.GetRecordByID(ctx, id); err != nil {
+		return nil, err
+	}
+
+	// Build update map with only provided fields
+	updates := map[string]interface{}{
+		"updated_at": time.Now().UTC(),
+	}
+
+	if req.NikDuplicate != nil {
+		updates["nik_duplicate"] = *req.NikDuplicate
+	}
+	if req.NamaDuplicate != nil {
+		updates["nama_duplicate"] = *req.NamaDuplicate
+	}
+	if req.NikOperator != nil {
+		updates["nik_operator"] = *req.NikOperator
+	}
+	if req.NamaOperator != nil {
+		updates["nama_operator"] = *req.NamaOperator
+	}
+	if req.TanggalPerekaman != nil {
+		updates["tanggal_perekaman"] = *req.TanggalPerekaman
+	}
+	if req.TanggalPengajuan != nil {
+		updates["tanggal_pengajuan"] = *req.TanggalPengajuan
+	}
+	if req.EstimasiTanggalPerekaman != nil {
+		updates["estimasi_tanggal_perekaman"] = *req.EstimasiTanggalPerekaman
+	}
+	if req.IsReadyToRecord != nil {
+		updates["is_ready_to_record"] = *req.IsReadyToRecord
+	}
+
+	// Convert to JSON for update
+	data, err := json.Marshal(updates)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal updates: %w", err)
+	}
+
+	// Update record
+	resultData, _, err := a.client.From("duplicate_operator").
+		Update(data, "", "").
+		Eq("id", id).
+		Execute()
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to update record: %w", err)
+	}
+
+	// Unmarshal the response
+	var updatedRecords []DuplicateOperatorData
+	if err := json.Unmarshal(resultData, &updatedRecords); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	if len(updatedRecords) == 0 {
+		// Fallback to returning the updated version from database
+		return a.GetRecordByID(ctx, id)
+	}
+
+	return &updatedRecords[0], nil
 }
 
 // DeleteRecord deletes a record
 func (a *SupabaseAdapter) DeleteRecord(ctx context.Context, id string) error {
-	// TODO: Implement record deletion
-	// Should:
-	// 1. Check record exists
-	// 2. Delete record (hard or soft delete)
-	// 3. Return error if not found
+	if a.client == nil {
+		return fmt.Errorf("database client not initialized")
+	}
+
+	// Validate UUID format
+	if _, err := uuid.Parse(id); err != nil {
+		return fmt.Errorf("invalid record ID format: %w", err)
+	}
+
+	// Verify record exists first
+	if _, err := a.GetRecordByID(ctx, id); err != nil {
+		return err
+	}
+
+	// Execute delete
+	_, _, err := a.client.From("duplicate_operator").Delete("", "").Eq("id", id).Execute()
+	if err != nil {
+		return fmt.Errorf("failed to delete record: %w", err)
+	}
+
 	return nil
 }
 
@@ -95,10 +305,46 @@ func (a *SupabaseAdapter) SearchRecords(
 	query string,
 	filters map[string]interface{},
 ) ([]DuplicateOperatorData, error) {
-	// TODO: Implement search
-	// Should:
-	// 1. Search across nik_duplicate, nama_duplicate, nik_operator, nama_operator
-	// 2. Apply filters (status, date range)
-	// 3. Return matching records sorted
-	return []DuplicateOperatorData{}, nil
+	if a.client == nil {
+		return nil, fmt.Errorf("database client not initialized")
+	}
+
+	// Build base query
+	dbQuery := a.client.From("duplicate_operator").Select("*", "", false)
+
+	// Apply search - check multiple fields for keyword match
+	if query != "" {
+		// Note: Supabase doesn't have native full-text search in Go client
+		// Search is performed by fetching and filtering in service layer
+		// For now, build query that filters searchable fields
+		dbQuery = dbQuery.Ilike("nik_duplicate", "%"+query+"%").Or("nik_operator", "ilike.%"+query+"%")
+	}
+
+	// Apply filters
+	if filters != nil {
+		if status, ok := filters["is_ready_to_record"].(bool); ok {
+			statusStr := "false"
+			if status {
+				statusStr = "true"
+			}
+			dbQuery = dbQuery.Eq("is_ready_to_record", statusStr)
+		}
+		if userID, ok := filters["user_id"].(string); ok {
+			dbQuery = dbQuery.Eq("user_id", userID)
+		}
+	}
+
+	// Execute query
+	resultData, _, err := dbQuery.Execute()
+	if err != nil {
+		return nil, fmt.Errorf("search query failed: %w", err)
+	}
+
+	// Parse results
+	var records []DuplicateOperatorData
+	if err := json.Unmarshal(resultData, &records); err != nil {
+		return nil, fmt.Errorf("failed to parse search results: %w", err)
+	}
+
+	return records, nil
 }
