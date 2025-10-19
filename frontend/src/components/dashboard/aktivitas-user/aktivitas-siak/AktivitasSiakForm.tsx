@@ -57,10 +57,12 @@ export default function AktivitasSiakForm({
         if (["total_aktivitas_individu", "total_aktivitas_keseluruhan"].includes(name)) {
             if (!value) errors[name] = "Field ini wajib diisi";
             else if (isNaN(Number(value)) || Number(value) < 0) errors[name] = "Harus berupa angka positif";
-        } else if (name === "bulan_rekapitulasi" && !value) {
-            errors[name] = "Bulan rekapitulasi wajib diisi";
-        } else if (value && (isNaN(Number(value)) || Number(value) < 0)) {
-            errors[name] = "Harus berupa angka positif";
+        } else if (name === "bulan_rekapitulasi") {
+            if (!value) errors[name] = "Bulan rekapitulasi wajib diisi";
+            // bulan_rekapitulasi is a month input (format: YYYY-MM), so no numeric validation
+        } else if (value && !["bulan_rekapitulasi"].includes(name)) {
+            // Only validate numeric for non-date fields
+            if (isNaN(Number(value)) || Number(value) < 0) errors[name] = "Harus berupa angka positif";
         }
         return errors;
     };

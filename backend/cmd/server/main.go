@@ -330,11 +330,31 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	logrus.Info("🎫 SILPANA ticketing service initialized successfully")
 
 	// Initialize Aktivitas SIAK service
-	// TODO: Complete PostgreSQL adapter implementation
-	// Currently nil - service registration is in place but implementation pending
-	var aktivitasSiakService aktivitas_siak.Service
-	aktivitasSiakService = nil
-	logrus.Info("ℹ️ Aktivitas SIAK service placeholder initialized (PostgreSQL adapter implementation pending)")
+	// Create database adapter with Supabase client
+	dbAdapter, err := aktivitas_siak.NewSupabaseDatabaseAdapter(dbService.GetClient(), logrus.New())
+	if err != nil {
+		return nil, fmt.Errorf("failed to create database adapter for Aktivitas SIAK: %w", err)
+	}
+
+	// Create cache adapter
+	cacheAdapter := aktivitas_siak.NewCacheAdapterImpl(cacheService)
+
+	// Create monitoring adapter
+	monitoringAdapter := aktivitas_siak.NewMonitoringAdapterImpl(monitoringService)
+
+	// Create the Aktivitas SIAK service
+	aktivitasSiakService, err := aktivitas_siak.NewService(
+		dbAdapter,
+		cacheAdapter,
+		monitoringAdapter,
+		nil, // auditLog - not implemented yet
+		nil, // rateLimiter - not implemented yet
+		logrus.New(),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize Aktivitas SIAK service: %w", err)
+	}
+	logrus.Info("✅ Aktivitas SIAK service initialized successfully")
 
 	// Initialize WebSocket hub for real-time features
 	logrus.Info("🔌 Initializing WebSocket hub...")

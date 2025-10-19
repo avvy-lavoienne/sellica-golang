@@ -10,6 +10,14 @@ import type {
     AktivitasSiakData,
     AktivitasSiakFormData,
 } from "@/types/aktivitas-user/aktivitas-siak";
+import {
+    createRecord,
+    listRecords,
+    getRecord,
+    updateRecord,
+    deleteRecord,
+    checkDuplicate,
+} from "@/lib/api/aktivitas-siak";
 import AktivitasSiakHeader from "@/components/dashboard/aktivitas-user/aktivitas-siak/AktivitasSiakHeader";
 import AktivitasSiakForm from "@/components/dashboard/aktivitas-user/aktivitas-siak/AktivitasSiakForm";
 import AktivitasSiakTable from "@/components/dashboard/aktivitas-user/aktivitas-siak/AktivitasSiakTable";
@@ -41,6 +49,22 @@ interface Profile {
     role: string;
 }
 
+// Helper function to convert month input (YYYY-MM) to Indonesian format (Bulan Tahun)
+function convertMonthToIndonesian(monthInput: string): string {
+    if (!monthInput || !monthInput.includes('-')) return monthInput;
+    
+    const [year, month] = monthInput.split('-');
+    const months = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    
+    const monthIndex = parseInt(month, 10) - 1;
+    if (monthIndex < 0 || monthIndex > 11) return monthInput;
+    
+    return `${months[monthIndex]} ${year}`;
+}
+
 export default function AktivitasSiakPage() {
     const router = useRouter();
 
@@ -48,6 +72,7 @@ export default function AktivitasSiakPage() {
     const [isHydrated, setIsHydrated] = useState(false);
 
     const [user, setUser] = useState<User | null>(null);
+    const [session, setSession] = useState<any>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
     const [formData, setFormData] = useState<AktivitasSiakFormData>({
         total_aktivitas_individu: "",
@@ -151,21 +176,22 @@ export default function AktivitasSiakPage() {
         const fetchUserData = async () => {
             try {
                 const {
-                    data: { session },
+                    data: { session: supabaseSession },
                     error: sessionError,
                 } = await supabase.auth.getSession();
-                if (sessionError || !session) {
+                if (sessionError || !supabaseSession) {
                     toast.error("Sesi tidak ditemukan. Silakan login kembali.");
                     router.push("/");
                     return;
                 }
 
-                setUser(session.user);
+                setUser(supabaseSession.user);
+                setSession(supabaseSession);
 
                 const { data: profileData, error: profileError } = await supabase
                     .from("profiles")
                     .select("name, nik, role")
-                    .eq("id", session.user.id)
+                    .eq("id", supabaseSession.user.id)
                     .single();
 
                 if (profileError) {
@@ -196,7 +222,7 @@ export default function AktivitasSiakPage() {
             endDate: Date | null = null,
             filterField: "created_at" | "bulan_rekapitulasi" = "bulan_rekapitulasi",
         ) => {
-            if (!user) {
+            if (!user || !session) {
                 toast.error("Pengguna tidak ditemukan. Silakan login kembali.");
                 return { totalCount: 0 };
             }
@@ -204,68 +230,16 @@ export default function AktivitasSiakPage() {
             try {
                 setIsTableLoading(true);
                 const rowsPerPage = 5;
-                const start = (page - 1) * rowsPerPage;
-                const end = start + rowsPerPage - 1;
 
-                let query = supabase
-                    .from("aktivitas_siak")
-                    .select(
-                        "id, user_id, total_aktivitas_individu, total_aktivitas_keseluruhan, fix_anomali_data, restore_data_maintenance, restore_data_ktp, daftar_duplikasi, login_user, logout_user, mutasi_elemen_data, bulan_rekapitulasi, created_at",
-                        { count: "exact" },
-                    )
-                    .order("created_at", { ascending: false })
-                    .range(start, end);
-
-                if (userRole === "user") {
-                    query = query.eq("user_id", user.id);
-                }
-
-                if (searchQuery) {
-                    query = query.or(
-                        `total_aktivitas_individu.ilike.%${searchQuery}%,total_aktivitas_keseluruhan.ilike.%${searchQuery}%`,
-                    );
-                }
-
-                if (startDate && endDate) {
-                    const startDateObj = new Date(startDate);
-                    const endDateObj = new Date(endDate);
-
-                    if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
-                        toast.error(
-                            "Tanggal tidak valid. Silakan pilih tanggal yang benar.",
-                        );
-                        return { totalCount: 0 };
-                    }
-
-                    if (endDateObj < startDateObj) {
-                        toast.error("Tanggal akhir tidak boleh sebelum tanggal mulai.");
-                        return { totalCount: 0 };
-                    }
-
-                    if (filterField === "created_at") {
-                        startDateObj.setUTCHours(0, 0, 0, 0);
-                        endDateObj.setUTCHours(23, 59, 59, 999);
-                        const startISO = startDateObj.toISOString();
-                        const endISO = endDateObj.toISOString();
-                        query = query.gte("created_at", startISO).lte("created_at", endISO);
-                    } else if (filterField === "bulan_rekapitulasi") {
-                        const startYearMonth = `${startDateObj.getFullYear()}-${String(startDateObj.getMonth() + 1).padStart(2, "0")}`;
-                        const endYearMonth = `${endDateObj.getFullYear()}-${String(endDateObj.getMonth() + 1).padStart(2, "0")}`;
-                        query = query
-                            .gte("bulan_rekapitulasi", startYearMonth)
-                            .lte("bulan_rekapitulasi", endYearMonth);
-                    }
-                }
-
-                const { data, error, count } = await query;
-
-                if (error) {
-                    throw new Error(`Gagal mengambil data rekap: ${error.message}`);
-                }
+                // Fetch records from Go API with pagination
+                const result = await listRecords(
+                    { page, page_size: rowsPerPage },
+                    session.access_token
+                );
 
                 setLastUpdated(new Date());
-                setAktivitasSiakData(data || []);
-                return { totalCount: count || 0 };
+                setAktivitasSiakData(result.records || []);
+                return { totalCount: result.pagination?.total_records || 0 };
             } catch (error: any) {
                 console.error("Error fetching rekap data:", error);
                 toast.error(
@@ -276,7 +250,7 @@ export default function AktivitasSiakPage() {
                 setIsTableLoading(false);
             }
         },
-        [user, userRole],
+        [user, session],
     );
 
     useEffect(() => {
@@ -303,7 +277,7 @@ export default function AktivitasSiakPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!user || !profile) {
+        if (!user || !profile || !session) {
             toast.error("Data pengguna tidak ditemukan. Silakan login kembali.");
             router.push("/");
             return;
@@ -316,8 +290,10 @@ export default function AktivitasSiakPage() {
                 throw new Error("Bulan Rekapitulasi tidak boleh kosong!");
             }
 
+            // Convert month input (YYYY-MM) to Indonesian format (Bulan Tahun)
+            const indonesianMonth = convertMonthToIndonesian(formData.bulan_rekapitulasi);
+
             const dataToSave = {
-                user_id: user.id,
                 total_aktivitas_individu: formData.total_aktivitas_individu.trim(),
                 total_aktivitas_keseluruhan:
                     formData.total_aktivitas_keseluruhan.trim(),
@@ -328,44 +304,24 @@ export default function AktivitasSiakPage() {
                 login_user: formData.login_user.trim(),
                 logout_user: formData.logout_user.trim(),
                 mutasi_elemen_data: formData.mutasi_elemen_data.trim(),
-                bulan_rekapitulasi: formData.bulan_rekapitulasi,
+                bulan_rekapitulasi: indonesianMonth,
             };
 
             if (isEditing && editId) {
-                const { error } = await supabase
-                    .from("aktivitas_siak")
-                    .update(dataToSave)
-                    .eq("id", editId);
-
-                if (error) {
-                    throw new Error(`Gagal memperbarui data: ${error.message}`);
-                }
+                // Update via API
+                await updateRecord(editId, dataToSave, session.access_token);
                 toast.success("Data berhasil diperbarui!");
             } else {
-                // CHECK FOR DUPLICATE RECORD (Phase 1 Implementation)
-                // Prevent creating multiple records for the same user and month
-                const { data: existingRecord, error: checkError } = await supabase
-                    .from("aktivitas_siak")
-                    .select("id, bulan_rekapitulasi")
-                    .eq("user_id", user.id)
-                    .eq("bulan_rekapitulasi", formData.bulan_rekapitulasi)
-                    .maybeSingle();
+                // Check for duplicate using API
+                const duplicateResult = await checkDuplicate(
+                    indonesianMonth,
+                    session.access_token
+                );
 
-                if (checkError) {
-                    console.error("Error checking for duplicate:", checkError);
-                    // Continue anyway - might be a permission issue
-                }
-
-                if (existingRecord) {
+                if (duplicateResult.isDuplicate) {
                     setLoading(false);
-                    const monthYear = new Date(formData.bulan_rekapitulasi + "-01")
-                        .toLocaleDateString("id-ID", {
-                            month: "long",
-                            year: "numeric",
-                        });
-                    
                     toast.error(
-                        `Sudah ada data untuk periode ${monthYear}. Gunakan tombol Edit untuk mengubah data tersebut.`,
+                        `Sudah ada data untuk periode ${indonesianMonth}. Gunakan tombol Edit untuk mengubah data tersebut.`,
                         {
                             autoClose: 5000,
                         }
@@ -373,12 +329,8 @@ export default function AktivitasSiakPage() {
                     return;
                 }
 
-                const { error } = await supabase
-                    .from("aktivitas_siak")
-                    .insert(dataToSave);
-                if (error) {
-                    throw new Error(`Gagal menyimpan data: ${error.message}`);
-                }
+                // Create via API
+                await createRecord(dataToSave, session.access_token);
                 toast.success("Data berhasil diajukan!");
             }
 
@@ -450,7 +402,7 @@ export default function AktivitasSiakPage() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!user || !profile) {
+        if (!user || !profile || !session) {
             toast.error("Pengguna tidak ditemukan. Silakan login kembali.");
             router.push("/");
             return;
@@ -462,14 +414,7 @@ export default function AktivitasSiakPage() {
         }
 
         try {
-            const { error } = await supabase
-                .from("aktivitas_siak")
-                .delete()
-                .eq("id", id);
-
-            if (error) {
-                throw new Error(`Gagal menghapus data: ${error.message}`);
-            }
+            await deleteRecord(id, session.access_token);
             toast.success("Data berhasil dihapus!");
 
             const rowsPerPage = 5;
