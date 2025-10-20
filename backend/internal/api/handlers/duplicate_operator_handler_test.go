@@ -18,52 +18,52 @@ import (
 
 // MockDuplicateOperatorService implements duplicate_operator.Service for testing
 type MockDuplicateOperatorService struct {
-	createRecordFunc  func(ctx context.Context, userID string, req *duplicate_operator.CreateRequest) (*duplicate_operator.DuplicateOperatorData, error)
-	getRecordFunc     func(ctx context.Context, id string) (*duplicate_operator.DuplicateOperatorData, error)
-	updateRecordFunc  func(ctx context.Context, id string, req *duplicate_operator.UpdateRequest) (*duplicate_operator.DuplicateOperatorData, error)
-	deleteRecordFunc  func(ctx context.Context, id string) error
-	listRecordsFunc   func(ctx context.Context, filters map[string]interface{}, page, pageSize int) (*duplicate_operator.ListResponse, error)
-	searchRecordsFunc func(ctx context.Context, query string, filters map[string]interface{}) ([]duplicate_operator.DuplicateOperatorData, error)
+	CreateRecordFunc  func(ctx context.Context, userID string, req *duplicate_operator.CreateRequest) (*duplicate_operator.DuplicateOperatorData, error)
+	GetRecordFunc     func(ctx context.Context, id string) (*duplicate_operator.DuplicateOperatorData, error)
+	UpdateRecordFunc  func(ctx context.Context, id string, req *duplicate_operator.UpdateRequest) (*duplicate_operator.DuplicateOperatorData, error)
+	DeleteRecordFunc  func(ctx context.Context, id string) error
+	ListRecordsFunc   func(ctx context.Context, filters map[string]interface{}, page, pageSize int) (*duplicate_operator.ListResponse, error)
+	SearchRecordsFunc func(ctx context.Context, query string, filters map[string]interface{}) ([]duplicate_operator.DuplicateOperatorData, error)
 }
 
 func (m *MockDuplicateOperatorService) CreateRecord(ctx context.Context, userID string, req *duplicate_operator.CreateRequest) (*duplicate_operator.DuplicateOperatorData, error) {
-	if m.createRecordFunc != nil {
-		return m.createRecordFunc(ctx, userID, req)
+	if m.CreateRecordFunc != nil {
+		return m.CreateRecordFunc(ctx, userID, req)
 	}
 	return nil, fmt.Errorf("not implemented")
 }
 
 func (m *MockDuplicateOperatorService) GetRecord(ctx context.Context, id string) (*duplicate_operator.DuplicateOperatorData, error) {
-	if m.getRecordFunc != nil {
-		return m.getRecordFunc(ctx, id)
+	if m.GetRecordFunc != nil {
+		return m.GetRecordFunc(ctx, id)
 	}
 	return nil, fmt.Errorf("not implemented")
 }
 
 func (m *MockDuplicateOperatorService) UpdateRecord(ctx context.Context, id string, req *duplicate_operator.UpdateRequest) (*duplicate_operator.DuplicateOperatorData, error) {
-	if m.updateRecordFunc != nil {
-		return m.updateRecordFunc(ctx, id, req)
+	if m.UpdateRecordFunc != nil {
+		return m.UpdateRecordFunc(ctx, id, req)
 	}
 	return nil, fmt.Errorf("not implemented")
 }
 
 func (m *MockDuplicateOperatorService) DeleteRecord(ctx context.Context, id string) error {
-	if m.deleteRecordFunc != nil {
-		return m.deleteRecordFunc(ctx, id)
+	if m.DeleteRecordFunc != nil {
+		return m.DeleteRecordFunc(ctx, id)
 	}
 	return fmt.Errorf("not implemented")
 }
 
 func (m *MockDuplicateOperatorService) ListRecords(ctx context.Context, filters map[string]interface{}, page, pageSize int) (*duplicate_operator.ListResponse, error) {
-	if m.listRecordsFunc != nil {
-		return m.listRecordsFunc(ctx, filters, page, pageSize)
+	if m.ListRecordsFunc != nil {
+		return m.ListRecordsFunc(ctx, filters, page, pageSize)
 	}
 	return nil, fmt.Errorf("not implemented")
 }
 
 func (m *MockDuplicateOperatorService) SearchRecords(ctx context.Context, query string, filters map[string]interface{}) ([]duplicate_operator.DuplicateOperatorData, error) {
-	if m.searchRecordsFunc != nil {
-		return m.searchRecordsFunc(ctx, query, filters)
+	if m.SearchRecordsFunc != nil {
+		return m.SearchRecordsFunc(ctx, query, filters)
 	}
 	return nil, fmt.Errorf("not implemented")
 }
@@ -99,7 +99,7 @@ func createPostContext(method, path string, body interface{}) (*gin.Context, *ht
 // TestListRecordsSuccess tests successful list records endpoint
 func TestListRecordsSuccess(t *testing.T) {
 	mockService := &MockDuplicateOperatorService{
-		listRecordsFunc: func(ctx context.Context, filters map[string]interface{}, page, pageSize int) (*duplicate_operator.ListResponse, error) {
+		ListRecordsFunc: func(ctx context.Context, filters map[string]interface{}, page, pageSize int) (*duplicate_operator.ListResponse, error) {
 			assert.Equal(t, 1, page)
 			assert.Equal(t, 10, pageSize)
 			return &duplicate_operator.ListResponse{
@@ -148,7 +148,7 @@ func TestListRecordsSuccess(t *testing.T) {
 func TestGetRecordSuccess(t *testing.T) {
 	testID := "test-id-123"
 	mockService := &MockDuplicateOperatorService{
-		getRecordFunc: func(ctx context.Context, id string) (*duplicate_operator.DuplicateOperatorData, error) {
+		GetRecordFunc: func(ctx context.Context, id string) (*duplicate_operator.DuplicateOperatorData, error) {
 			assert.Equal(t, testID, id)
 			return &duplicate_operator.DuplicateOperatorData{
 				ID:              [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
@@ -182,7 +182,7 @@ func TestGetRecordSuccess(t *testing.T) {
 // TestCreateRecordSuccess tests successful create record endpoint
 func TestCreateRecordSuccess(t *testing.T) {
 	mockService := &MockDuplicateOperatorService{
-		createRecordFunc: func(ctx context.Context, userID string, req *duplicate_operator.CreateRequest) (*duplicate_operator.DuplicateOperatorData, error) {
+		CreateRecordFunc: func(ctx context.Context, userID string, req *duplicate_operator.CreateRequest) (*duplicate_operator.DuplicateOperatorData, error) {
 			assert.Equal(t, "user-123", userID)
 			assert.Equal(t, "1234567890123456", req.NikDuplicate)
 			return &duplicate_operator.DuplicateOperatorData{
@@ -226,7 +226,7 @@ func TestCreateRecordSuccess(t *testing.T) {
 func TestUpdateRecordSuccess(t *testing.T) {
 	testID := "test-id-123"
 	mockService := &MockDuplicateOperatorService{
-		updateRecordFunc: func(ctx context.Context, id string, req *duplicate_operator.UpdateRequest) (*duplicate_operator.DuplicateOperatorData, error) {
+		UpdateRecordFunc: func(ctx context.Context, id string, req *duplicate_operator.UpdateRequest) (*duplicate_operator.DuplicateOperatorData, error) {
 			assert.Equal(t, testID, id)
 			assert.NotNil(t, req.NamaDuplicate)
 			assert.Equal(t, "Updated Name", *req.NamaDuplicate)
@@ -268,7 +268,7 @@ func TestUpdateRecordSuccess(t *testing.T) {
 func TestDeleteRecordSuccess(t *testing.T) {
 	testID := "test-id-123"
 	mockService := &MockDuplicateOperatorService{
-		deleteRecordFunc: func(ctx context.Context, id string) error {
+		DeleteRecordFunc: func(ctx context.Context, id string) error {
 			assert.Equal(t, testID, id)
 			return nil
 		},
@@ -289,7 +289,7 @@ func TestDeleteRecordSuccess(t *testing.T) {
 // TestSearchRecordsSuccess tests successful search records endpoint
 func TestSearchRecordsSuccess(t *testing.T) {
 	mockService := &MockDuplicateOperatorService{
-		searchRecordsFunc: func(ctx context.Context, query string, filters map[string]interface{}) ([]duplicate_operator.DuplicateOperatorData, error) {
+		SearchRecordsFunc: func(ctx context.Context, query string, filters map[string]interface{}) ([]duplicate_operator.DuplicateOperatorData, error) {
 			assert.Equal(t, "John", query)
 			return []duplicate_operator.DuplicateOperatorData{
 				{
@@ -325,7 +325,7 @@ func TestSearchRecordsSuccess(t *testing.T) {
 // TestCreateRecordValidationError tests validation error on create record
 func TestCreateRecordValidationError(t *testing.T) {
 	mockService := &MockDuplicateOperatorService{
-		createRecordFunc: func(ctx context.Context, userID string, req *duplicate_operator.CreateRequest) (*duplicate_operator.DuplicateOperatorData, error) {
+		CreateRecordFunc: func(ctx context.Context, userID string, req *duplicate_operator.CreateRequest) (*duplicate_operator.DuplicateOperatorData, error) {
 			return nil, fmt.Errorf("validation failed: nik_duplicate is required")
 		},
 	}
@@ -349,7 +349,7 @@ func TestCreateRecordValidationError(t *testing.T) {
 func TestGetRecordNotFound(t *testing.T) {
 	testID := "non-existent-id"
 	mockService := &MockDuplicateOperatorService{
-		getRecordFunc: func(ctx context.Context, id string) (*duplicate_operator.DuplicateOperatorData, error) {
+		GetRecordFunc: func(ctx context.Context, id string) (*duplicate_operator.DuplicateOperatorData, error) {
 			assert.Equal(t, testID, id)
 			return nil, fmt.Errorf("no rows in result set")
 		},
