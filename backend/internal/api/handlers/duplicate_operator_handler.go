@@ -4,8 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"selly-backend/internal/services/duplicate_operator"
+
+	"github.com/gin-gonic/gin"
 )
 
 // DuplicateOperatorHandler handles HTTP requests for duplicate operator operations
