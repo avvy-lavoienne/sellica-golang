@@ -380,3 +380,287 @@ func TestUpdateRecordInvalidJSON(t *testing.T) {
 	json.Unmarshal(w.Body.Bytes(), &response)
 	assert.Equal(t, "error", response["status"])
 }
+
+// TestCreateRecordInvalidJSON tests invalid JSON in create request
+func TestCreateRecordInvalidJSON(t *testing.T) {
+	handler := NewDuplicateOperatorHandler(&MockDuplicateOperatorService{})
+	ctx, w := createPostContext("POST", "/api/v1/duplicate-operators", "invalid json")
+
+	handler.CreateRecord(ctx)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "error", response["status"])
+	assert.Contains(t, response["message"], "invalid request")
+}
+
+// TestCreateRecordMissingUserContext tests missing user context
+func TestCreateRecordMissingUserContext(t *testing.T) {
+	req := duplicate_operator.CreateRequest{
+		NikDuplicate:     "1234567890123456",
+		NamaDuplicate:    "Test Duplicate",
+		NikOperator:      "1234567890123456",
+		NamaOperator:     "Test Operator",
+		TanggalPerekaman: "2024-01-01",
+		TanggalPengajuan: "2024-01-01",
+	}
+
+	handler := NewDuplicateOperatorHandler(&MockDuplicateOperatorService{})
+	ctx, w := createPostContext("POST", "/api/v1/duplicate-operators", req)
+	// Note: Not setting user_id context
+
+	handler.CreateRecord(ctx)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "error", response["status"])
+	assert.Equal(t, "user context not found", response["message"])
+}
+
+// TestCreateRecordServiceError tests service error in create request
+func TestCreateRecordServiceError(t *testing.T) {
+	req := duplicate_operator.CreateRequest{
+		NikDuplicate:     "1234567890123456",
+		NamaDuplicate:    "Test Duplicate",
+		NikOperator:      "1234567890123456",
+		NamaOperator:     "Test Operator",
+		TanggalPerekaman: "2024-01-01",
+		TanggalPengajuan: "2024-01-01",
+	}
+
+	mockService := &MockDuplicateOperatorService{
+		CreateRecordFunc: func(ctx context.Context, userID string, req *duplicate_operator.CreateRequest) (*duplicate_operator.DuplicateOperatorData, error) {
+			return nil, fmt.Errorf("database connection failed")
+		},
+	}
+
+	handler := NewDuplicateOperatorHandler(mockService)
+	ctx, w := createPostContext("POST", "/api/v1/duplicate-operators", req)
+	ctx.Set("user_id", "test-user")
+
+	handler.CreateRecord(ctx)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "error", response["status"])
+	assert.Contains(t, response["message"], "gagal membuat data")
+}
+
+// TestUpdateRecordEmptyID tests empty ID parameter in update request
+func TestUpdateRecordEmptyID(t *testing.T) {
+	updatedName := "Updated Name"
+	req := duplicate_operator.UpdateRequest{
+		NamaDuplicate: &updatedName,
+	}
+	reqBody, _ := json.Marshal(req)
+
+	handler := NewDuplicateOperatorHandler(&MockDuplicateOperatorService{})
+	ctx, w := createPostContext("PUT", "/api/v1/duplicate-operators/", string(reqBody))
+	// Empty ID parameter
+
+	handler.UpdateRecord(ctx)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "error", response["status"])
+	assert.Equal(t, "ID parameter is required", response["message"])
+}
+
+// TestUpdateRecordValidationError tests validation error in update request
+func TestUpdateRecordValidationError(t *testing.T) {
+	// Create invalid update request
+	req := duplicate_operator.UpdateRequest{
+		// Invalid data to trigger validation error
+	}
+
+	reqBody, _ := json.Marshal(req)
+	handler := NewDuplicateOperatorHandler(&MockDuplicateOperatorService{})
+	ctx, w := createPostContext("PUT", "/api/v1/duplicate-operators/test-id", string(reqBody))
+	ctx.Params = []gin.Param{{Key: "id", Value: "test-id"}}
+
+	handler.UpdateRecord(ctx)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "error", response["status"])
+}
+
+// TestUpdateRecordNotFound tests record not found in update request
+func TestUpdateRecordNotFound(t *testing.T) {
+	updatedName := "Updated Name"
+	req := duplicate_operator.UpdateRequest{
+		NamaDuplicate: &updatedName,
+	}
+
+	testID := "non-existent-id"
+	mockService := &MockDuplicateOperatorService{
+		UpdateRecordFunc: func(ctx context.Context, id string, req *duplicate_operator.UpdateRequest) (*duplicate_operator.DuplicateOperatorData, error) {
+			assert.Equal(t, testID, id)
+			return nil, fmt.Errorf("no rows in result set")
+		},
+	}
+
+	handler := NewDuplicateOperatorHandler(mockService)
+	ctx, w := createPostContext("PUT", "/api/v1/duplicate-operators/"+testID, req)
+	ctx.Params = []gin.Param{{Key: "id", Value: testID}}
+
+	handler.UpdateRecord(ctx)
+
+	assert.Equal(t, http.StatusNotFound, w.Code)
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "error", response["status"])
+	assert.Equal(t, "record tidak ditemukan", response["message"])
+}
+
+// TestUpdateRecordServiceError tests service error in update request
+func TestUpdateRecordServiceError(t *testing.T) {
+	updatedName := "Updated Name"
+	req := duplicate_operator.UpdateRequest{
+		NamaDuplicate: &updatedName,
+	}
+
+	testID := "test-id"
+	mockService := &MockDuplicateOperatorService{
+		UpdateRecordFunc: func(ctx context.Context, id string, req *duplicate_operator.UpdateRequest) (*duplicate_operator.DuplicateOperatorData, error) {
+			assert.Equal(t, testID, id)
+			return nil, fmt.Errorf("database timeout")
+		},
+	}
+
+	handler := NewDuplicateOperatorHandler(mockService)
+	ctx, w := createPostContext("PUT", "/api/v1/duplicate-operators/"+testID, req)
+	ctx.Params = []gin.Param{{Key: "id", Value: testID}}
+
+	handler.UpdateRecord(ctx)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "error", response["status"])
+	assert.Contains(t, response["message"], "gagal memperbarui data")
+}
+
+// TestDeleteRecordEmptyID tests empty ID parameter in delete request
+func TestDeleteRecordEmptyID(t *testing.T) {
+	handler := NewDuplicateOperatorHandler(&MockDuplicateOperatorService{})
+	ctx, w := createTestContext()
+	// Empty ID parameter
+
+	handler.DeleteRecord(ctx)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "error", response["status"])
+	assert.Equal(t, "ID parameter is required", response["message"])
+}
+
+// TestDeleteRecordNotFound tests record not found in delete request
+func TestDeleteRecordNotFound(t *testing.T) {
+	testID := "non-existent-id"
+	mockService := &MockDuplicateOperatorService{
+		DeleteRecordFunc: func(ctx context.Context, id string) error {
+			assert.Equal(t, testID, id)
+			return fmt.Errorf("no rows in result set")
+		},
+	}
+
+	handler := NewDuplicateOperatorHandler(mockService)
+	ctx, w := createTestContext()
+	ctx.Params = []gin.Param{{Key: "id", Value: testID}}
+
+	handler.DeleteRecord(ctx)
+
+	assert.Equal(t, http.StatusNotFound, w.Code)
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "error", response["status"])
+	assert.Equal(t, "record tidak ditemukan", response["message"])
+}
+
+// TestDeleteRecordServiceError tests service error in delete request
+func TestDeleteRecordServiceError(t *testing.T) {
+	testID := "test-id"
+	mockService := &MockDuplicateOperatorService{
+		DeleteRecordFunc: func(ctx context.Context, id string) error {
+			assert.Equal(t, testID, id)
+			return fmt.Errorf("database connection error")
+		},
+	}
+
+	handler := NewDuplicateOperatorHandler(mockService)
+	ctx, w := createTestContext()
+	ctx.Params = []gin.Param{{Key: "id", Value: testID}}
+
+	handler.DeleteRecord(ctx)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "error", response["status"])
+	assert.Contains(t, response["message"], "gagal menghapus data")
+}
+
+// TestSearchRecordsEmptyQuery tests empty query parameter in search request
+func TestSearchRecordsEmptyQuery(t *testing.T) {
+	handler := NewDuplicateOperatorHandler(&MockDuplicateOperatorService{})
+	ctx, w := createTestContext()
+	// No query parameter
+
+	handler.SearchRecords(ctx)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "error", response["status"])
+	assert.Equal(t, "search query parameter 'q' is required", response["message"])
+}
+
+// TestSearchRecordsServiceError tests service error in search request
+func TestSearchRecordsServiceError(t *testing.T) {
+	query := "test search"
+	mockService := &MockDuplicateOperatorService{
+		SearchRecordsFunc: func(ctx context.Context, q string, filters map[string]interface{}) ([]duplicate_operator.DuplicateOperatorData, error) {
+			assert.Equal(t, query, q)
+			return nil, fmt.Errorf("search service unavailable")
+		},
+	}
+
+	handler := NewDuplicateOperatorHandler(mockService)
+	ctx, w := createTestContext()
+	ctx.Request.URL.RawQuery = "q=" + query
+
+	handler.SearchRecords(ctx)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "error", response["status"])
+	assert.Contains(t, response["message"], "gagal mencari data")
+}
+
+// TestListRecordsServiceError tests service error in list request
+func TestListRecordsServiceError(t *testing.T) {
+	mockService := &MockDuplicateOperatorService{
+		ListRecordsFunc: func(ctx context.Context, filters map[string]interface{}, page, pageSize int) (*duplicate_operator.ListResponse, error) {
+			return nil, fmt.Errorf("database connection failed")
+		},
+	}
+
+	handler := NewDuplicateOperatorHandler(mockService)
+	ctx, w := createTestContext()
+
+	handler.ListRecords(ctx)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "error", response["status"])
+	assert.Contains(t, response["message"], "gagal mengambil data")
+}

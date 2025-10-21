@@ -1,0 +1,4265 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>handlers: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">selly-backend/internal/api/handlers/auth.go (0.0%)</option>
+				
+				<option value="file1">selly-backend/internal/api/handlers/cache.go (0.0%)</option>
+				
+				<option value="file2">selly-backend/internal/api/handlers/chat.go (57.7%)</option>
+				
+				<option value="file3">selly-backend/internal/api/handlers/concurrent.go (0.0%)</option>
+				
+				<option value="file4">selly-backend/internal/api/handlers/database.go (0.0%)</option>
+				
+				<option value="file5">selly-backend/internal/api/handlers/duplicate_operator_handler.go (57.4%)</option>
+				
+				<option value="file6">selly-backend/internal/api/handlers/health.go (69.2%)</option>
+				
+				<option value="file7">selly-backend/internal/api/handlers/metrics.go (25.3%)</option>
+				
+				<option value="file8">selly-backend/internal/api/handlers/optimized_health.go (0.0%)</option>
+				
+				<option value="file9">selly-backend/internal/api/handlers/performance.go (25.3%)</option>
+				
+				<option value="file10">selly-backend/internal/api/handlers/supabase_analyzer_handler.go (0.0%)</option>
+				
+				<option value="file11">selly-backend/internal/api/handlers/training.go (31.9%)</option>
+				
+				<option value="file12">selly-backend/internal/api/handlers/users.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package handlers
+
+import (
+        "net/http"
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/google/uuid"
+        "github.com/sirupsen/logrus"
+        "golang.org/x/crypto/bcrypt"
+
+        "selly-backend/internal/services/auth"
+        "selly-backend/internal/services/database"
+)
+
+// AuthHandler handles authentication-related HTTP requests
+type AuthHandler struct {
+        authService *auth.Service
+        dbService   *database.Service
+}
+
+// RegisterRequest represents the user registration request payload
+type RegisterRequest struct {
+        Email    string `json:"email" binding:"required,email"`
+        Name     string `json:"name" binding:"required"`
+        Password string `json:"password" binding:"required,min=6"`
+        Position string `json:"position"`
+        NIP      string `json:"nip"`
+        NIK      string `json:"nik"`
+}
+
+// LoginRequest represents the user login request payload
+type LoginRequest struct {
+        Email    string `json:"email" binding:"required,email"`
+        Password string `json:"password" binding:"required"`
+}
+
+// AuthResponse represents the standard authentication response
+type AuthResponse struct {
+        Success bool      `json:"success"`
+        Token   string    `json:"token,omitempty"`
+        User    *UserInfo `json:"user,omitempty"`
+        Error   string    `json:"error,omitempty"`
+        Message string    `json:"message,omitempty"`
+}
+
+// UserInfo represents user information in responses
+type UserInfo struct {
+        ID    string `json:"id"`
+        Email string `json:"email"`
+        Name  string `json:"name"`
+        Role  string `json:"role"`
+}
+
+// NewAuthHandler creates a new authentication handler
+func NewAuthHandler(authService *auth.Service, dbService *database.Service) *AuthHandler <span class="cov0" title="0">{
+        return &amp;AuthHandler{
+                authService: authService,
+                dbService:   dbService,
+        }
+}</span>
+
+// Register handles user registration with Indonesian validation
+func (h *AuthHandler) Register(c *gin.Context) <span class="cov0" title="0">{
+        var req RegisterRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Warn("Invalid registration request")
+                c.JSON(http.StatusBadRequest, AuthResponse{
+                        Success: false,
+                        Error:   "Email, name, and password are required",
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">logrus.WithFields(logrus.Fields{
+                "email": req.Email,
+                "name":  req.Name,
+        }).Info("Processing user registration request")
+
+        // Check if user already exists in pending_users (handle database unavailability)
+        if h.dbService != nil &amp;&amp; h.dbService.IsHealthy() </span><span class="cov0" title="0">{
+                exists, err := h.dbService.CheckPendingUserExists(c.Request.Context(), req.Email)
+                if err != nil </span><span class="cov0" title="0">{
+                        logrus.WithError(err).Error("Failed to check existing pending user")
+                        c.JSON(http.StatusInternalServerError, AuthResponse{
+                                Success: false,
+                                Error:   "Error during registration process",
+                        })
+                        return
+                }</span>
+
+                <span class="cov0" title="0">if exists </span><span class="cov0" title="0">{
+                        logrus.WithField("email", req.Email).Warn("User already exists in pending users")
+                        c.JSON(http.StatusConflict, AuthResponse{
+                                Success: false,
+                                Error:   "Email sudah terdaftar dalam sistem",
+                        })
+                        return
+                }</span>
+        } else<span class="cov0" title="0"> {
+                logrus.Warn("Database not available, skipping duplicate check for migration testing")
+        }</span>
+
+        // Hash password securely
+        <span class="cov0" title="0">hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Error("Failed to hash password")
+                c.JSON(http.StatusInternalServerError, AuthResponse{
+                        Success: false,
+                        Error:   "Error processing registration",
+                })
+                return
+        }</span>
+
+        // Create pending user record (handle database unavailability)
+        <span class="cov0" title="0">pendingUser := &amp;database.PendingUser{
+                ID:        uuid.New().String(),
+                Email:     req.Email,
+                Name:      req.Name,
+                Password:  string(hashedPassword),
+                Position:  req.Position,
+                NIP:       req.NIP,
+                NIK:       req.NIK,
+                Status:    "pending",
+                CreatedAt: time.Now(),
+        }
+
+        if h.dbService != nil &amp;&amp; h.dbService.IsHealthy() </span><span class="cov0" title="0">{
+                err = h.dbService.CreatePendingUser(c.Request.Context(), pendingUser)
+                if err != nil </span><span class="cov0" title="0">{
+                        logrus.WithError(err).Error("Failed to create pending user")
+                        c.JSON(http.StatusInternalServerError, AuthResponse{
+                                Success: false,
+                                Error:   "Error during registration",
+                        })
+                        return
+                }</span>
+
+                <span class="cov0" title="0">logrus.WithFields(logrus.Fields{
+                        "user_id": pendingUser.ID,
+                        "email":   req.Email,
+                }).Info("User registration request submitted successfully")
+
+                c.JSON(http.StatusOK, AuthResponse{
+                        Success: true,
+                        Message: "Registration request submitted successfully",
+                })</span>
+        } else<span class="cov0" title="0"> {
+                // Migration testing mode - simulate successful registration
+                logrus.WithFields(logrus.Fields{
+                        "user_id": pendingUser.ID,
+                        "email":   req.Email,
+                        "mode":    "migration_testing",
+                }).Info("User registration simulated successfully (testing mode)")
+
+                c.JSON(http.StatusOK, AuthResponse{
+                        Success: true,
+                        Message: "Registration successful (testing mode)",
+                })
+        }</span>
+}
+
+// Login handles user authentication with Supabase integration
+func (h *AuthHandler) Login(c *gin.Context) <span class="cov0" title="0">{
+        var req LoginRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Warn("Invalid login request")
+                c.JSON(http.StatusBadRequest, AuthResponse{
+                        Success: false,
+                        Error:   "Email and password are required",
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">logrus.WithField("email", req.Email).Info("Processing user login request")
+
+        // Authenticate user through database
+        user, err := h.authService.AuthenticateUser(c.Request.Context(), req.Email, req.Password)
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).WithField("email", req.Email).Warn("Authentication failed")
+                c.JSON(http.StatusUnauthorized, AuthResponse{
+                        Success: false,
+                        Error:   "Invalid credentials",
+                })
+                return
+        }</span>
+
+        // Generate JWT token
+        <span class="cov0" title="0">token, err := h.authService.GenerateToken(user.ID, user.Email, user.Role)
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Error("Failed to generate authentication token")
+                c.JSON(http.StatusInternalServerError, AuthResponse{
+                        Success: false,
+                        Error:   "Failed to generate authentication token",
+                })
+                return
+        }</span>
+
+        // Update user's last login timestamp
+        <span class="cov0" title="0">if err := h.dbService.UpdateUserLastLogin(c.Request.Context(), user.ID); err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Warn("Failed to update last login timestamp")
+                // Don't fail the login for this
+        }</span>
+
+        <span class="cov0" title="0">logrus.WithFields(logrus.Fields{
+                "user_id": user.ID,
+                "email":   user.Email,
+                "role":    user.Role,
+        }).Info("User login successful")
+
+        c.JSON(http.StatusOK, AuthResponse{
+                Success: true,
+                Token:   token,
+                User: &amp;UserInfo{
+                        ID:    user.ID,
+                        Email: user.Email,
+                        Name:  user.Name,
+                        Role:  user.Role,
+                },
+        })</span>
+}
+
+// Logout handles user logout (JWT blacklisting if needed)
+func (h *AuthHandler) Logout(c *gin.Context) <span class="cov0" title="0">{
+        // For JWT-based auth, logout is typically handled client-side
+        // But we can implement token blacklisting for enhanced security
+        
+        userID, exists := c.Get("user_id")
+        if exists </span><span class="cov0" title="0">{
+                logrus.WithField("user_id", userID).Info("User logout successful")
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, AuthResponse{
+                Success: true,
+                Message: "Logged out successfully",
+        })</span>
+}
+
+// RefreshToken handles JWT token refresh
+func (h *AuthHandler) RefreshToken(c *gin.Context) <span class="cov0" title="0">{
+        // Get current user from context (set by auth middleware)
+        userID, exists := c.Get("user_id")
+        if !exists </span><span class="cov0" title="0">{
+                c.JSON(http.StatusUnauthorized, AuthResponse{
+                        Success: false,
+                        Error:   "Invalid session",
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">userEmail, _ := c.Get("user_email")
+        userRole, _ := c.Get("user_role")
+
+        // Generate new token
+        token, err := h.authService.GenerateToken(
+                userID.(string),
+                userEmail.(string),
+                userRole.(string),
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Error("Failed to refresh token")
+                c.JSON(http.StatusInternalServerError, AuthResponse{
+                        Success: false,
+                        Error:   "Failed to refresh token",
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">logrus.WithField("user_id", userID).Info("Token refreshed successfully")
+
+        c.JSON(http.StatusOK, AuthResponse{
+                Success: true,
+                Token:   token,
+        })</span>
+}
+
+// GetProfile handles user profile retrieval
+func (h *AuthHandler) GetProfile(c *gin.Context) <span class="cov0" title="0">{
+        userID, exists := c.Get("user_id")
+        if !exists </span><span class="cov0" title="0">{
+                c.JSON(http.StatusUnauthorized, AuthResponse{
+                        Success: false,
+                        Error:   "Authentication required",
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">userEmail, emailExists := c.Get("user_email")
+        userRole, roleExists := c.Get("user_role")
+
+        // Handle database unavailability for migration testing
+        if h.dbService == nil || !h.dbService.IsHealthy() </span><span class="cov0" title="0">{
+                logrus.Warn("Database not available, using migration testing mode for profile")
+
+                // Create test user profile from JWT context
+                testUser := UserInfo{
+                        ID:    userID.(string),
+                        Email: "unknown@selly.gov.id",
+                        Name:  "Test User",
+                        Role:  "user",
+                }
+
+                if emailExists </span><span class="cov0" title="0">{
+                        testUser.Email = userEmail.(string)
+                }</span>
+                <span class="cov0" title="0">if roleExists </span><span class="cov0" title="0">{
+                        testUser.Role = userRole.(string)
+                }</span>
+
+                // Set name based on email for better UX
+                <span class="cov0" title="0">if testUser.Email == "admin@selly.gov.id" </span><span class="cov0" title="0">{
+                        testUser.Name = "Admin Test User"
+                        testUser.Role = "admin"
+                }</span>
+
+                <span class="cov0" title="0">logrus.WithFields(logrus.Fields{
+                        "user_id": testUser.ID,
+                        "email":   testUser.Email,
+                        "mode":    "migration_testing",
+                }).Info("User profile retrieved successfully (testing mode)")
+
+                c.JSON(http.StatusOK, gin.H{
+                        "success": true,
+                        "user":    testUser,
+                })
+                return</span>
+        }
+
+        // Normal database-connected mode
+        <span class="cov0" title="0">user, err := h.dbService.GetUserByID(c.Request.Context(), userID.(string))
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Error("Failed to get user profile")
+                c.JSON(http.StatusInternalServerError, AuthResponse{
+                        Success: false,
+                        Error:   "Failed to retrieve user profile",
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">if user == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusNotFound, AuthResponse{
+                        Success: false,
+                        Error:   "User not found",
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{
+                "success": true,
+                "user": UserInfo{
+                        ID:    user.ID,
+                        Email: user.Email,
+                        Name:  user.Name,
+                        Role:  user.Role,
+                },
+        })</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package handlers
+
+import (
+        "fmt"
+        "net/http"
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/sirupsen/logrus"
+
+        "selly-backend/internal/services/cache"
+        "selly-backend/internal/services/monitoring"
+)
+
+// CacheHandler handles cache-related endpoints
+type CacheHandler struct {
+        cache      *cache.Service
+        monitoring *monitoring.Service
+}
+
+// NewCacheHandler creates a new cache handler
+func NewCacheHandler(cache *cache.Service, monitoring *monitoring.Service) *CacheHandler <span class="cov0" title="0">{
+        return &amp;CacheHandler{
+                cache:      cache,
+                monitoring: monitoring,
+        }
+}</span>
+
+// GetCacheHealth performs comprehensive cache health testing
+// GET /cache/health - Cache health check endpoint
+func (h *CacheHandler) GetCacheHealth(c *gin.Context) <span class="cov0" title="0">{
+        startTime := time.Now()
+
+        result := map[string]interface{}{
+                "timestamp": time.Now().UTC(),
+                "service":   "cache-health",
+                "version":   "go-1.0",
+        }
+
+        // Check if cache service is available
+        if h.cache == nil </span><span class="cov0" title="0">{
+                result["status"] = "error"
+                result["error"] = "Cache service not initialized"
+                result["healthy"] = false
+                result["responseTime"] = time.Since(startTime).Milliseconds()
+
+                logrus.Error("🗄️ Cache health check failed: service not initialized")
+                c.JSON(http.StatusServiceUnavailable, result)
+                return
+        }</span>
+
+        // Perform comprehensive cache test
+        <span class="cov0" title="0">testResult := h.cache.TestCache()
+        
+        // Merge test results
+        for k, v := range testResult </span><span class="cov0" title="0">{
+                result[k] = v
+        }</span>
+
+        // Add cache-specific metadata
+        <span class="cov0" title="0">result["cacheType"] = "multi-level"
+        result["levels"] = []string{"memory", "redis"}
+        result["stats"] = h.cache.GetStats()
+
+        // Determine HTTP status based on health
+        httpStatus := http.StatusOK
+        if healthy, exists := result["healthy"].(bool); exists &amp;&amp; !healthy </span><span class="cov0" title="0">{
+                httpStatus = http.StatusServiceUnavailable
+        }</span>
+
+        // Record metrics
+        <span class="cov0" title="0">if h.monitoring != nil </span><span class="cov0" title="0">{
+                h.monitoring.RecordRequest(time.Since(startTime))
+                if httpStatus != http.StatusOK </span><span class="cov0" title="0">{
+                        h.monitoring.RecordError()
+                }</span>
+        }
+
+        <span class="cov0" title="0">responseTime := time.Since(startTime).Milliseconds()
+        result["responseTime"] = responseTime
+
+        logrus.WithFields(logrus.Fields{
+                "healthy":      result["healthy"],
+                "responseTime": responseTime,
+                "cacheType":    "multi-level",
+        }).Info("🗄️ Cache health check completed")
+
+        c.JSON(httpStatus, result)</span>
+}
+
+// GetCacheStats returns detailed cache statistics
+// GET /cache/stats - Cache statistics endpoint
+func (h *CacheHandler) GetCacheStats(c *gin.Context) <span class="cov0" title="0">{
+        startTime := time.Now()
+
+        stats := map[string]interface{}{
+                "timestamp": time.Now().UTC(),
+                "service":   "cache-stats",
+                "version":   "go-1.0",
+        }
+
+        if h.cache == nil </span><span class="cov0" title="0">{
+                stats["status"] = "unavailable"
+                stats["error"] = "Cache service not initialized"
+                c.JSON(http.StatusServiceUnavailable, stats)
+                return
+        }</span>
+
+        // Get comprehensive cache statistics
+        <span class="cov0" title="0">cacheStats := h.cache.GetStats()
+        stats["cache"] = cacheStats
+        stats["healthy"] = h.cache.IsHealthy()
+        stats["cacheType"] = "multi-level"
+
+        // Calculate additional metrics
+        if cacheStatsMap, ok := cacheStats["stats"].(map[string]interface{}); ok </span><span class="cov0" title="0">{
+                memoryHits := int64(0)
+                memoryMisses := int64(0)
+                redisHits := int64(0)
+                redisMisses := int64(0)
+
+                if val, exists := cacheStatsMap["memoryHits"]; exists </span><span class="cov0" title="0">{
+                        if hits, ok := val.(int64); ok </span><span class="cov0" title="0">{
+                                memoryHits = hits
+                        }</span>
+                }
+                <span class="cov0" title="0">if val, exists := cacheStatsMap["memoryMisses"]; exists </span><span class="cov0" title="0">{
+                        if misses, ok := val.(int64); ok </span><span class="cov0" title="0">{
+                                memoryMisses = misses
+                        }</span>
+                }
+                <span class="cov0" title="0">if val, exists := cacheStatsMap["redisHits"]; exists </span><span class="cov0" title="0">{
+                        if hits, ok := val.(int64); ok </span><span class="cov0" title="0">{
+                                redisHits = hits
+                        }</span>
+                }
+                <span class="cov0" title="0">if val, exists := cacheStatsMap["redisMisses"]; exists </span><span class="cov0" title="0">{
+                        if misses, ok := val.(int64); ok </span><span class="cov0" title="0">{
+                                redisMisses = misses
+                        }</span>
+                }
+
+                <span class="cov0" title="0">totalRequests := memoryHits + memoryMisses + redisHits + redisMisses
+                if totalRequests &gt; 0 </span><span class="cov0" title="0">{
+                        stats["performance"] = map[string]interface{}{
+                                "totalRequests":     totalRequests,
+                                "memoryHitRate":     float64(memoryHits) / float64(totalRequests) * 100,
+                                "redisHitRate":      float64(redisHits) / float64(totalRequests) * 100,
+                                "overallHitRate":    float64(memoryHits+redisHits) / float64(totalRequests) * 100,
+                                "memoryEfficiency":  float64(memoryHits) / float64(memoryHits+memoryMisses) * 100,
+                        }
+                }</span>
+        }
+
+        <span class="cov0" title="0">responseTime := time.Since(startTime).Milliseconds()
+        stats["responseTime"] = responseTime
+
+        c.JSON(http.StatusOK, stats)</span>
+}
+
+// TestCachePerformance performs cache performance testing
+// GET /cache/performance - Cache performance test
+func (h *CacheHandler) TestCachePerformance(c *gin.Context) <span class="cov0" title="0">{
+        startTime := time.Now()
+
+        result := map[string]interface{}{
+                "timestamp": time.Now().UTC(),
+                "service":   "cache-performance",
+                "version":   "go-1.0",
+        }
+
+        if h.cache == nil </span><span class="cov0" title="0">{
+                result["status"] = "error"
+                result["error"] = "Cache service not initialized"
+                c.JSON(http.StatusServiceUnavailable, result)
+                return
+        }</span>
+
+        // Performance test parameters
+        <span class="cov0" title="0">const testIterations = 10
+        testData := map[string]interface{}{
+                "test":      true,
+                "timestamp": time.Now().UTC(),
+                "data":      "performance test data",
+                "number":    12345,
+        }
+
+        // Test cache SET operations
+        setTimes := make([]int64, testIterations)
+        setSuccessCount := 0
+
+        for i := 0; i &lt; testIterations; i++ </span><span class="cov0" title="0">{
+                key := fmt.Sprintf("perf_test_set_%d_%d", time.Now().UnixNano(), i)
+                
+                setStart := time.Now()
+                err := h.cache.Set(key, testData, 30*time.Second)
+                setTime := time.Since(setStart).Milliseconds()
+                
+                setTimes[i] = setTime
+                if err == nil </span><span class="cov0" title="0">{
+                        setSuccessCount++
+                }</span>
+        }
+
+        // Test cache GET operations
+        <span class="cov0" title="0">getTimes := make([]int64, testIterations)
+        getSuccessCount := 0
+
+        for i := 0; i &lt; testIterations; i++ </span><span class="cov0" title="0">{
+                key := fmt.Sprintf("perf_test_get_%d_%d", time.Now().UnixNano(), i)
+                
+                // First set the key
+                h.cache.Set(key, testData, 30*time.Second)
+                
+                // Then measure GET performance
+                getStart := time.Now()
+                _, err := h.cache.Get(key)
+                getTime := time.Since(getStart).Milliseconds()
+                
+                getTimes[i] = getTime
+                if err == nil </span><span class="cov0" title="0">{
+                        getSuccessCount++
+                }</span>
+                
+                // Clean up
+                <span class="cov0" title="0">h.cache.Delete(key)</span>
+        }
+
+        // Calculate SET statistics
+        <span class="cov0" title="0">var totalSetTime int64
+        var minSetTime, maxSetTime int64 = setTimes[0], setTimes[0]
+        
+        for _, st := range setTimes </span><span class="cov0" title="0">{
+                totalSetTime += st
+                if st &lt; minSetTime </span><span class="cov0" title="0">{
+                        minSetTime = st
+                }</span>
+                <span class="cov0" title="0">if st &gt; maxSetTime </span><span class="cov0" title="0">{
+                        maxSetTime = st
+                }</span>
+        }
+
+        // Calculate GET statistics
+        <span class="cov0" title="0">var totalGetTime int64
+        var minGetTime, maxGetTime int64 = getTimes[0], getTimes[0]
+        
+        for _, gt := range getTimes </span><span class="cov0" title="0">{
+                totalGetTime += gt
+                if gt &lt; minGetTime </span><span class="cov0" title="0">{
+                        minGetTime = gt
+                }</span>
+                <span class="cov0" title="0">if gt &gt; maxGetTime </span><span class="cov0" title="0">{
+                        maxGetTime = gt
+                }</span>
+        }
+
+        <span class="cov0" title="0">avgSetTime := float64(totalSetTime) / float64(testIterations)
+        avgGetTime := float64(totalGetTime) / float64(testIterations)
+        setSuccessRate := float64(setSuccessCount) / float64(testIterations) * 100
+        getSuccessRate := float64(getSuccessCount) / float64(testIterations) * 100
+
+        result["performance"] = map[string]interface{}{
+                "iterations": testIterations,
+                "set": map[string]interface{}{
+                        "successCount":    setSuccessCount,
+                        "successRate":     setSuccessRate,
+                        "avgResponseTime": avgSetTime,
+                        "minResponseTime": minSetTime,
+                        "maxResponseTime": maxSetTime,
+                },
+                "get": map[string]interface{}{
+                        "successCount":    getSuccessCount,
+                        "successRate":     getSuccessRate,
+                        "avgResponseTime": avgGetTime,
+                        "minResponseTime": minGetTime,
+                        "maxResponseTime": maxGetTime,
+                },
+        }
+
+        result["cacheStats"] = h.cache.GetStats()
+        result["healthy"] = setSuccessRate &gt; 80 &amp;&amp; getSuccessRate &gt; 80
+
+        totalResponseTime := time.Since(startTime).Milliseconds()
+        result["totalTestTime"] = totalResponseTime
+
+        httpStatus := http.StatusOK
+        if setSuccessRate &lt; 50 || getSuccessRate &lt; 50 </span><span class="cov0" title="0">{
+                httpStatus = http.StatusServiceUnavailable
+        }</span>
+
+        <span class="cov0" title="0">logrus.WithFields(logrus.Fields{
+                "setSuccessRate":  setSuccessRate,
+                "getSuccessRate":  getSuccessRate,
+                "avgSetTime":      avgSetTime,
+                "avgGetTime":      avgGetTime,
+                "iterations":      testIterations,
+        }).Info("🗄️ Cache performance test completed")
+
+        c.JSON(httpStatus, result)</span>
+}
+
+// ClearCache clears all cache data (for testing/debugging)
+// DELETE /cache/clear - Clear cache endpoint
+func (h *CacheHandler) ClearCache(c *gin.Context) <span class="cov0" title="0">{
+        startTime := time.Now()
+
+        result := map[string]interface{}{
+                "timestamp": time.Now().UTC(),
+                "service":   "cache-clear",
+                "version":   "go-1.0",
+        }
+
+        if h.cache == nil </span><span class="cov0" title="0">{
+                result["status"] = "error"
+                result["error"] = "Cache service not initialized"
+                c.JSON(http.StatusServiceUnavailable, result)
+                return
+        }</span>
+
+        // Note: This is a simplified implementation
+        // In a real implementation, you'd want to add proper cache clearing methods
+        <span class="cov0" title="0">result["status"] = "success"
+        result["message"] = "Cache clear operation completed"
+        result["note"] = "Individual key deletion implemented - full cache clear requires additional implementation"
+
+        responseTime := time.Since(startTime).Milliseconds()
+        result["responseTime"] = responseTime
+
+        logrus.Info("🗄️ Cache clear operation requested")
+
+        c.JSON(http.StatusOK, result)</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package handlers
+
+import (
+        "net/http"
+        "strconv"
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/sirupsen/logrus"
+
+        "selly-backend/internal/api/middleware"
+        "selly-backend/internal/config"
+        "selly-backend/internal/services/auth"
+        "selly-backend/internal/services/chat"
+        "selly-backend/internal/services/monitoring"
+        "selly-backend/internal/services/persona"
+        "selly-backend/pkg/errors"
+)
+
+// ChatHandler handles chat-related endpoints
+type ChatHandler struct {
+        chatService  *chat.Service
+        monitoring   *monitoring.Service
+        featureFlags *config.FeatureFlags
+        personaService *persona.PersonaService
+}
+
+// NewChatHandler creates a new chat handler
+func NewChatHandler(chatService *chat.Service, monitoring *monitoring.Service) *ChatHandler <span class="cov8" title="1">{
+        return &amp;ChatHandler{
+                chatService:   chatService,
+                monitoring:    monitoring,
+                featureFlags:  config.GetFeatureFlags(),
+                personaService: persona.GetGlobalPersonaService(),
+        }
+}</span>
+
+// ProcessChat handles POST /chat - Core chat processing endpoint
+func (h *ChatHandler) ProcessChat(c *gin.Context) <span class="cov8" title="1">{
+        startTime := time.Now()
+
+        // Get authentication context
+        authContext, exists := middleware.GetAuthContext(c)
+        if !exists </span><span class="cov8" title="1">{
+                // For compatibility, create a guest context if no auth
+                authContext = &amp;auth.AuthContext{
+                        UserID: "guest_" + strconv.FormatInt(time.Now().UnixNano(), 10),
+                        Email:  "",
+                        Role:   "guest",
+                }
+        }</span>
+
+        // Parse request
+        <span class="cov8" title="1">var req chat.ChatRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov8" title="1">{
+                logrus.WithError(err).Warn("🚫 Invalid chat request format")
+                
+                appErr := errors.NewValidationError("Invalid request format", err.Error())
+                c.JSON(appErr.StatusCode, errors.GetErrorResponse(appErr))
+                return
+        }</span>
+
+        // Validate message
+        <span class="cov8" title="1">if req.Message == "" </span><span class="cov0" title="0">{
+                logrus.Warn("🚫 Empty message in chat request")
+                
+                appErr := errors.NewValidationError("Message is required and cannot be empty", "INVALID_MESSAGE")
+                c.JSON(appErr.StatusCode, errors.GetErrorResponse(appErr))
+                return
+        }</span>
+
+        <span class="cov8" title="1">logrus.WithFields(logrus.Fields{
+                "user_id":    authContext.UserID,
+                "session_id": req.SessionID,
+                "message":    req.Message[:min(50, len(req.Message))] + "...",
+                "phase1_enabled": h.featureFlags.IsPhase1Enabled(),
+                "phase2_enabled": h.featureFlags.IsPhase2Enabled(),
+        }).Info("💬 Processing chat request")
+
+        // Process chat message
+        response, err := h.chatService.ProcessChat(c.Request.Context(), &amp;req, authContext)
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Error("❌ Chat processing failed")
+                
+                // Record error metrics
+                if h.monitoring != nil </span><span class="cov0" title="0">{
+                        h.monitoring.RecordError()
+                }</span>
+
+                // Return Indonesian error message for compatibility
+                <span class="cov0" title="0">c.JSON(http.StatusInternalServerError, gin.H{
+                        "error":   "Terjadi kesalahan saat memproses permintaan Anda",
+                        "details": err.Error(),
+                        "code":    "CHAT_PROCESSING_FAILED",
+                        "fallback": gin.H{
+                                "message":    "Maaf, terjadi kesalahan dalam memproses pesan Anda. Silakan coba lagi dalam beberapa saat.",
+                                "type":       "text",
+                                "confidence": 0.1,
+                        },
+                })
+                return</span>
+        }
+
+        // Record metrics
+        <span class="cov8" title="1">if h.monitoring != nil </span><span class="cov8" title="1">{
+                h.monitoring.RecordRequest(time.Since(startTime))
+        }</span>
+
+        // Detect user region from context (IP geolocation, user preferences, etc.)
+        <span class="cov8" title="1">userRegion := h.detectUserRegion(req)
+
+        // Add regional metadata to response data
+        regionalMetadata := map[string]interface{}{
+                "region_detected": userRegion,
+                "regional_enabled": h.featureFlags.IsRegionalAdapterEnabled(),
+        }
+
+        // Apply regional adaptations if enabled (metadata only for now)
+        if h.featureFlags.IsRegionalAdapterEnabled() &amp;&amp; userRegion != "" </span><span class="cov0" title="0">{
+                regionalResponse, err := h.personaService.ProcessRegionalAdaptation(
+                        c.Request.Context(),
+                        "", // Empty query for metadata-only processing
+                        userRegion,
+                        map[string]interface{}{
+                                "user_id":    authContext.UserID,
+                                "session_id": req.SessionID,
+                                "timestamp":  time.Now(),
+                        },
+                )
+
+                if err == nil &amp;&amp; regionalResponse != nil </span><span class="cov0" title="0">{
+                        regionalMetadata["region_applied"] = regionalResponse.RegionApplied
+                        regionalMetadata["cultural_elements"] = regionalResponse.CulturalElements
+                        regionalMetadata["regional_confidence"] = regionalResponse.Confidence
+                        regionalMetadata["regional_processing_time_ms"] = regionalResponse.ProcessingTime.Milliseconds()
+                }</span>
+        }
+
+        // Add Phase 2 feature flag metadata to response
+        <span class="cov8" title="1">featureFlags := map[string]interface{}{
+                "phase1_enabled": h.featureFlags.IsPhase1Enabled(),
+                "phase2_enabled": h.featureFlags.IsPhase2Enabled(),
+                "regional_adapter": h.featureFlags.IsRegionalAdapterEnabled(),
+                "religious_calendar": h.featureFlags.IsReligiousCalendarEnabled(),
+                "face_saving": h.featureFlags.IsFaceSavingEnabled(),
+                "enhanced_fallback": h.featureFlags.IsEnhancedFallbackEnabled(),
+                "low_confidence_handling": h.featureFlags.IsLowConfidenceHandlingEnabled(),
+                // Regional rollout status
+                "jakarta_regional": h.featureFlags.IsJakartaRegionalEnabled(),
+                "jawa_barat_regional": h.featureFlags.IsJawaBaratRegionalEnabled(),
+                "sunda_regional": h.featureFlags.IsSundaRegionalEnabled(),
+                "bali_regional": h.featureFlags.IsBaliRegionalEnabled(),
+                "sumatra_regional": h.featureFlags.IsSumatraRegionalEnabled(),
+                "kalimantan_regional": h.featureFlags.IsKalimantanRegionalEnabled(),
+                "sulawesi_regional": h.featureFlags.IsSulawesiRegionalEnabled(),
+                "papua_regional": h.featureFlags.IsPapuaRegionalEnabled(),
+        }
+
+        // Add feature flags and regional metadata to response Data field
+        if response.Data == nil </span><span class="cov8" title="1">{
+                response.Data = make(map[string]interface{})
+        }</span>
+        <span class="cov8" title="1">response.Data["feature_flags"] = featureFlags
+        response.Data["regional_metadata"] = regionalMetadata
+
+        logrus.WithFields(logrus.Fields{
+                "user_id":         authContext.UserID,
+                "session_id":      response.Metadata.SessionID,
+                "processing_time": response.Metadata.ProcessingTime,
+                "confidence":      response.Metadata.Confidence,
+                "phase1_enabled":  h.featureFlags.IsPhase1Enabled(),
+                "phase2_enabled":  h.featureFlags.IsPhase2Enabled(),
+        }).Info("✅ Chat request processed successfully")
+
+        c.JSON(http.StatusOK, response)</span>
+}
+
+// ProcessSessionChat handles POST /chat/session - Session-aware chat processing
+func (h *ChatHandler) ProcessSessionChat(c *gin.Context) <span class="cov8" title="1">{
+        startTime := time.Now()
+
+        // Get authentication context
+        authContext, exists := middleware.GetAuthContext(c)
+        if !exists </span><span class="cov8" title="1">{
+                authContext = &amp;auth.AuthContext{
+                        UserID: "guest_" + strconv.FormatInt(time.Now().UnixNano(), 10),
+                        Email:  "",
+                        Role:   "guest",
+                }
+        }</span>
+
+        // Parse request
+        <span class="cov8" title="1">var req chat.SessionChatRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Warn("🚫 Invalid session chat request format")
+                
+                appErr := errors.NewValidationError("Invalid request format", err.Error())
+                c.JSON(appErr.StatusCode, errors.GetErrorResponse(appErr))
+                return
+        }</span>
+
+        // Validate message
+        <span class="cov8" title="1">if req.Message == "" </span><span class="cov0" title="0">{
+                logrus.Warn("🚫 Empty message in session chat request")
+                
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "error": "Message is required and cannot be empty",
+                        "code":  "INVALID_MESSAGE",
+                })
+                return
+        }</span>
+
+        <span class="cov8" title="1">logrus.WithFields(logrus.Fields{
+                "user_id":    authContext.UserID,
+                "session_id": req.SessionID,
+                "message":    req.Message[:min(50, len(req.Message))] + "...",
+        }).Info("💬 Processing session-aware chat request")
+
+        // Process session chat message
+        response, err := h.chatService.ProcessSessionChat(c.Request.Context(), &amp;req, authContext)
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Error("❌ Session chat processing failed")
+                
+                // Record error metrics
+                if h.monitoring != nil </span><span class="cov0" title="0">{
+                        h.monitoring.RecordError()
+                }</span>
+
+                <span class="cov0" title="0">c.JSON(http.StatusInternalServerError, gin.H{
+                        "error":   "Failed to process chat message",
+                        "code":    "CHAT_PROCESSING_FAILED",
+                        "message": err.Error(),
+                        "fallback": gin.H{
+                                "message":    "Maaf, terjadi kesalahan dalam memproses pesan Anda. Silakan coba lagi dalam beberapa saat.",
+                                "type":       "text",
+                                "confidence": 0.1,
+                        },
+                })
+                return</span>
+        }
+
+        // Record metrics
+        <span class="cov8" title="1">if h.monitoring != nil </span><span class="cov8" title="1">{
+                h.monitoring.RecordRequest(time.Since(startTime))
+        }</span>
+
+        <span class="cov8" title="1">logrus.WithFields(logrus.Fields{
+                "user_id":           authContext.UserID,
+                "session_id":        response.Data.SessionMetadata.SessionID,
+                "processing_time":   response.Data.ProcessingTime,
+                "conversation_turn": response.Data.SessionMetadata.ConversationTurn,
+        }).Info("✅ Session chat request processed successfully")
+
+        c.JSON(http.StatusOK, response)</span>
+}
+
+// GetChatHistory handles GET /chat/history - Chat history retrieval
+func (h *ChatHandler) GetChatHistory(c *gin.Context) <span class="cov8" title="1">{
+        startTime := time.Now()
+
+        sessionID := c.Query("sessionId")
+        if sessionID == "" </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "error": "Session ID is required",
+                        "code":  "MISSING_SESSION_ID",
+                })
+                return
+        }</span>
+
+        <span class="cov8" title="1">limit, _ := strconv.Atoi(c.DefaultQuery("limit", "50"))
+        offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+        logrus.WithFields(logrus.Fields{
+                "session_id": sessionID,
+                "limit":      limit,
+                "offset":     offset,
+        }).Info("📜 Getting chat history")
+
+        // Get session data
+        session, err := h.chatService.GetSession(c.Request.Context(), sessionID)
+        if err != nil </span><span class="cov8" title="1">{
+                logrus.WithError(err).Warn("Session not found")
+                
+                c.JSON(http.StatusNotFound, gin.H{
+                        "error":     "Session not found",
+                        "code":      "SESSION_NOT_FOUND",
+                        "sessionId": sessionID,
+                })
+                return
+        }</span>
+
+        // Paginate conversation history
+        <span class="cov0" title="0">totalMessages := len(session.ConversationHistory)
+        end := offset + limit
+        if end &gt; totalMessages </span><span class="cov0" title="0">{
+                end = totalMessages
+        }</span>
+
+        <span class="cov0" title="0">var paginatedHistory []map[string]interface{}
+        if offset &lt; totalMessages </span><span class="cov0" title="0">{
+                for _, turn := range session.ConversationHistory[offset:end] </span><span class="cov0" title="0">{
+                        paginatedHistory = append(paginatedHistory, map[string]interface{}{
+                                "id":        turn.ID,
+                                "query":     turn.Query,
+                                "response":  turn.Response,
+                                "timestamp": turn.Timestamp,
+                                "metadata":  turn.Metadata,
+                        })
+                }</span>
+        }
+
+        <span class="cov0" title="0">processingTime := time.Since(startTime).Milliseconds()
+
+        logrus.WithFields(logrus.Fields{
+                "session_id":      sessionID,
+                "total_messages":  totalMessages,
+                "returned_count":  len(paginatedHistory),
+                "processing_time": processingTime,
+        }).Info("✅ Chat history retrieved successfully")
+
+        c.JSON(http.StatusOK, gin.H{
+                "success": true,
+                "data": gin.H{
+                        "sessionId": sessionID,
+                        "sessionInfo": gin.H{
+                                "type":                session.Type,
+                                "userId":              session.UserID,
+                                "createdAt":           session.CreatedAt,
+                                "lastAccessedAt":      session.LastAccessedAt,
+                                "userPreferences":     session.UserPreferences,
+                                "userExpertiseLevel":  session.UserExpertiseLevel,
+                                "conversationStage":   session.ConversationStage,
+                        },
+                        "conversationHistory": paginatedHistory,
+                        "pagination": gin.H{
+                                "total":   totalMessages,
+                                "limit":   limit,
+                                "offset":  offset,
+                                "hasMore": offset+limit &lt; totalMessages,
+                        },
+                        "analytics": gin.H{
+                                "totalQueries":        session.Analytics.TotalQueries,
+                                "averageResponseTime": session.Analytics.AverageResponseTime,
+                                "cacheHitRate":        session.Analytics.CacheHitRate,
+                                "mostUsedServices":    session.Analytics.MostUsedServices,
+                                "sessionDuration":     time.Since(session.CreatedAt).Milliseconds(),
+                        },
+                },
+                "metadata": gin.H{
+                        "processingTime": processingTime,
+                        "timestamp":      time.Now(),
+                },
+        })</span>
+}
+
+// GetChatSessions handles GET /chat/sessions - User session management
+func (h *ChatHandler) GetChatSessions(c *gin.Context) <span class="cov8" title="1">{
+        startTime := time.Now()
+
+        // Get authentication context
+        authContext, exists := middleware.GetAuthContext(c)
+        if !exists </span><span class="cov8" title="1">{
+                c.JSON(http.StatusUnauthorized, gin.H{
+                        "error": "Authentication required",
+                        "code":  "AUTH_REQUIRED",
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">logrus.WithField("user_id", authContext.UserID).Info("📋 Getting user chat sessions")
+
+        // For now, return a placeholder response
+        // In a full implementation, this would query the database for user sessions
+        processingTime := time.Since(startTime).Milliseconds()
+
+        c.JSON(http.StatusOK, gin.H{
+                "success": true,
+                "data": gin.H{
+                        "sessions": []gin.H{}, // Placeholder - would contain actual sessions
+                        "total":    0,
+                },
+                "metadata": gin.H{
+                        "processingTime": processingTime,
+                        "timestamp":      time.Now(),
+                        "userId":         authContext.UserID,
+                },
+        })</span>
+}
+
+// detectUserRegion detects the user's region from request context
+func (h *ChatHandler) detectUserRegion(_ chat.ChatRequest) string <span class="cov8" title="1">{
+        // Default to Jakarta for Phase 2B rollout
+        // In production, this would use IP geolocation, user preferences, etc.
+        return "id_jakarta"
+}</span>
+
+// Helper function
+func min(a, b int) int <span class="cov8" title="1">{
+        if a &lt; b </span><span class="cov0" title="0">{
+                return a
+        }</span>
+        <span class="cov8" title="1">return b</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package handlers
+
+import (
+        "context"
+        "net/http"
+        "time"
+
+        "selly-backend/internal/services/concurrent"
+
+        "github.com/gin-gonic/gin"
+        "github.com/sirupsen/logrus"
+)
+
+// ConcurrentHandler handles concurrent processing API endpoints
+type ConcurrentHandler struct {
+        concurrentService *concurrent.Service
+}
+
+// NewConcurrentHandler creates a new concurrent processing handler
+func NewConcurrentHandler(concurrentService *concurrent.Service) *ConcurrentHandler <span class="cov0" title="0">{
+        return &amp;ConcurrentHandler{
+                concurrentService: concurrentService,
+        }
+}</span>
+
+// GetStatus returns the status of the concurrent processing service
+// GET /api/concurrent/status
+func (h *ConcurrentHandler) GetStatus(c *gin.Context) <span class="cov0" title="0">{
+        status := h.concurrentService.GetStatus()
+
+        c.JSON(http.StatusOK, gin.H{
+                "success": true,
+                "data":    status,
+        })
+}</span>
+
+// GetMetrics returns comprehensive metrics for concurrent processing
+// GET /api/concurrent/metrics
+func (h *ConcurrentHandler) GetMetrics(c *gin.Context) <span class="cov0" title="0">{
+        metrics := h.concurrentService.GetMetrics()
+
+        c.JSON(http.StatusOK, gin.H{
+                "success": true,
+                "data":    metrics,
+        })
+}</span>
+
+// GetHealth returns the health status of concurrent processing components
+// GET /api/concurrent/health
+func (h *ConcurrentHandler) GetHealth(c *gin.Context) <span class="cov0" title="0">{
+        healthy := h.concurrentService.IsHealthy()
+        status := h.concurrentService.GetStatus()
+
+        httpStatus := http.StatusOK
+        if !healthy </span><span class="cov0" title="0">{
+                httpStatus = http.StatusServiceUnavailable
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(httpStatus, gin.H{
+                "success": healthy,
+                "healthy": healthy,
+                "data":    status,
+        })</span>
+}
+
+// GetWorkerPoolStatus returns worker pool specific status
+// GET /api/concurrent/worker-pool/status
+func (h *ConcurrentHandler) GetWorkerPoolStatus(c *gin.Context) <span class="cov0" title="0">{
+        workerPool := h.concurrentService.GetWorkerPool()
+        if workerPool == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusNotFound, gin.H{
+                        "success": false,
+                        "error":   "Worker pool not available",
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">status := workerPool.GetStatus()
+
+        c.JSON(http.StatusOK, gin.H{
+                "success": true,
+                "data":    status,
+        })</span>
+}
+
+// GetWorkerPoolMetrics returns worker pool specific metrics
+// GET /api/concurrent/worker-pool/metrics
+func (h *ConcurrentHandler) GetWorkerPoolMetrics(c *gin.Context) <span class="cov0" title="0">{
+        workerPool := h.concurrentService.GetWorkerPool()
+        if workerPool == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusNotFound, gin.H{
+                        "success": false,
+                        "error":   "Worker pool not available",
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">metrics := workerPool.GetMetrics()
+
+        c.JSON(http.StatusOK, gin.H{
+                "success": true,
+                "data":    metrics,
+        })</span>
+}
+
+// GetRateLimiterStatus returns rate limiter specific status
+// GET /api/concurrent/rate-limiter/status
+func (h *ConcurrentHandler) GetRateLimiterStatus(c *gin.Context) <span class="cov0" title="0">{
+        rateLimiter := h.concurrentService.GetRateLimiter()
+        if rateLimiter == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusNotFound, gin.H{
+                        "success": false,
+                        "error":   "Rate limiter not available",
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">status := rateLimiter.GetStatus()
+
+        c.JSON(http.StatusOK, gin.H{
+                "success": true,
+                "data":    status,
+        })</span>
+}
+
+// UpdateRateLimit updates the rate limiter configuration
+// PUT /api/concurrent/rate-limiter/limit
+func (h *ConcurrentHandler) UpdateRateLimit(c *gin.Context) <span class="cov0" title="0">{
+        rateLimiter := h.concurrentService.GetRateLimiter()
+        if rateLimiter == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusNotFound, gin.H{
+                        "success": false,
+                        "error":   "Rate limiter not available",
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">var req struct {
+                RequestsPerSecond float64 `json:"requestsPerSecond" binding:"required,min=0.1"`
+                BurstCapacity     int     `json:"burstCapacity,omitempty"`
+        }
+
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "success": false,
+                        "error":   "Invalid request format: " + err.Error(),
+                })
+                return
+        }</span>
+
+        // Update rate limit
+        <span class="cov0" title="0">rateLimiter.SetLimit(req.RequestsPerSecond)
+
+        // Update burst capacity if provided
+        if req.BurstCapacity &gt; 0 </span><span class="cov0" title="0">{
+                rateLimiter.SetBurst(req.BurstCapacity)
+        }</span>
+
+        <span class="cov0" title="0">logrus.WithFields(logrus.Fields{
+                "new_rate":  req.RequestsPerSecond,
+                "new_burst": req.BurstCapacity,
+        }).Info("🔄 Rate limiter configuration updated")
+
+        c.JSON(http.StatusOK, gin.H{
+                "success": true,
+                "message": "Rate limiter configuration updated",
+                "data":    rateLimiter.GetStatus(),
+        })</span>
+}
+
+// GetCircuitBreakerStatus returns circuit breaker specific status
+// GET /api/concurrent/circuit-breaker/status
+func (h *ConcurrentHandler) GetCircuitBreakerStatus(c *gin.Context) <span class="cov0" title="0">{
+        circuitBreaker := h.concurrentService.GetCircuitBreaker()
+        if circuitBreaker == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusNotFound, gin.H{
+                        "success": false,
+                        "error":   "Circuit breaker not available",
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">status := circuitBreaker.GetStatus()
+
+        c.JSON(http.StatusOK, gin.H{
+                "success": true,
+                "data":    status,
+        })</span>
+}
+
+// ResetCircuitBreaker manually resets the circuit breaker
+// POST /api/concurrent/circuit-breaker/reset
+func (h *ConcurrentHandler) ResetCircuitBreaker(c *gin.Context) <span class="cov0" title="0">{
+        circuitBreaker := h.concurrentService.GetCircuitBreaker()
+        if circuitBreaker == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusNotFound, gin.H{
+                        "success": false,
+                        "error":   "Circuit breaker not available",
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">circuitBreaker.Reset()
+
+        logrus.Info("🔄 Circuit breaker manually reset")
+
+        c.JSON(http.StatusOK, gin.H{
+                "success": true,
+                "message": "Circuit breaker reset successfully",
+                "data":    circuitBreaker.GetStatus(),
+        })</span>
+}
+
+// GetAIManagerStatus returns AI manager specific status
+// GET /api/concurrent/ai-manager/status
+func (h *ConcurrentHandler) GetAIManagerStatus(c *gin.Context) <span class="cov0" title="0">{
+        aiManager := h.concurrentService.GetAIManager()
+        if aiManager == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusNotFound, gin.H{
+                        "success": false,
+                        "error":   "AI manager not available",
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">status := aiManager.GetStatus()
+
+        c.JSON(http.StatusOK, gin.H{
+                "success": true,
+                "data":    status,
+        })</span>
+}
+
+// GetAIManagerMetrics returns AI manager specific metrics
+// GET /api/concurrent/ai-manager/metrics
+func (h *ConcurrentHandler) GetAIManagerMetrics(c *gin.Context) <span class="cov0" title="0">{
+        aiManager := h.concurrentService.GetAIManager()
+        if aiManager == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusNotFound, gin.H{
+                        "success": false,
+                        "error":   "AI manager not available",
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">metrics := aiManager.GetMetrics()
+
+        c.JSON(http.StatusOK, gin.H{
+                "success": true,
+                "data":    metrics,
+        })</span>
+}
+
+// ProcessConcurrentAIRequests processes multiple AI requests concurrently
+// POST /api/concurrent/ai/process-batch
+func (h *ConcurrentHandler) ProcessConcurrentAIRequests(c *gin.Context) <span class="cov0" title="0">{
+        aiManager := h.concurrentService.GetAIManager()
+        if aiManager == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{
+                        "success": false,
+                        "error":   "Concurrent AI processing not available",
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">var req struct {
+                Requests []concurrent.AIRequest `json:"requests" binding:"required,min=1,max=50"`
+                Timeout  int                    `json:"timeout,omitempty"` // seconds
+        }
+
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "success": false,
+                        "error":   "Invalid request format: " + err.Error(),
+                })
+                return
+        }</span>
+
+        // Convert to pointer slice
+        <span class="cov0" title="0">requests := make([]*concurrent.AIRequest, len(req.Requests))
+        for i := range req.Requests </span><span class="cov0" title="0">{
+                requests[i] = &amp;req.Requests[i]
+        }</span>
+
+        // Set timeout context
+        <span class="cov0" title="0">ctx := c.Request.Context()
+        if req.Timeout &gt; 0 </span><span class="cov0" title="0">{
+                var cancel func()
+                ctx, cancel = context.WithTimeout(ctx, time.Duration(req.Timeout)*time.Second)
+                defer cancel()
+        }</span>
+
+        // Process requests concurrently
+        <span class="cov0" title="0">responses, err := aiManager.ProcessConcurrentRequests(ctx, requests)
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Error("Failed to process concurrent AI requests")
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "success": false,
+                        "error":   "Failed to process requests: " + err.Error(),
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{
+                "success": true,
+                "data": gin.H{
+                        "responses": responses,
+                        "count":     len(responses),
+                },
+        })</span>
+}
+
+// GetDetailedMetrics returns detailed metrics with optional filtering
+// GET /api/concurrent/metrics/detailed
+func (h *ConcurrentHandler) GetDetailedMetrics(c *gin.Context) <span class="cov0" title="0">{
+        // Parse query parameters
+        component := c.Query("component") // worker-pool, rate-limiter, circuit-breaker, ai-manager
+        format := c.DefaultQuery("format", "json")
+
+        var data interface{}
+
+        switch component </span>{
+        case "worker-pool":<span class="cov0" title="0">
+                if wp := h.concurrentService.GetWorkerPool(); wp != nil </span><span class="cov0" title="0">{
+                        data = wp.GetMetrics()
+                }</span>
+        case "rate-limiter":<span class="cov0" title="0">
+                if rl := h.concurrentService.GetRateLimiter(); rl != nil </span><span class="cov0" title="0">{
+                        data = rl.GetMetrics()
+                }</span>
+        case "circuit-breaker":<span class="cov0" title="0">
+                if cb := h.concurrentService.GetCircuitBreaker(); cb != nil </span><span class="cov0" title="0">{
+                        data = cb.GetMetrics()
+                }</span>
+        case "ai-manager":<span class="cov0" title="0">
+                if am := h.concurrentService.GetAIManager(); am != nil </span><span class="cov0" title="0">{
+                        data = am.GetMetrics()
+                }</span>
+        default:<span class="cov0" title="0">
+                data = h.concurrentService.GetMetrics()</span>
+        }
+
+        <span class="cov0" title="0">if data == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusNotFound, gin.H{
+                        "success": false,
+                        "error":   "Component not found or not available",
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">if format == "prometheus" </span><span class="cov0" title="0">{
+                // TODO: Implement Prometheus format
+                c.String(http.StatusNotImplemented, "Prometheus format not yet implemented")
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{
+                "success":   true,
+                "component": component,
+                "data":      data,
+        })</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package handlers
+
+import (
+        "net/http"
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/sirupsen/logrus"
+
+        "selly-backend/internal/services/database"
+        "selly-backend/internal/services/monitoring"
+)
+
+// DatabaseHandler handles database-related endpoints
+type DatabaseHandler struct {
+        db         *database.Service
+        monitoring *monitoring.Service
+}
+
+// NewDatabaseHandler creates a new database handler
+func NewDatabaseHandler(db *database.Service, monitoring *monitoring.Service) *DatabaseHandler <span class="cov0" title="0">{
+        return &amp;DatabaseHandler{
+                db:         db,
+                monitoring: monitoring,
+        }
+}</span>
+
+// TestDatabase performs comprehensive database connectivity testing
+// GET /test-db - Database connectivity test endpoint
+func (h *DatabaseHandler) TestDatabase(c *gin.Context) <span class="cov0" title="0">{
+        startTime := time.Now()
+
+        result := map[string]interface{}{
+                "timestamp": time.Now().UTC(),
+                "service":   "database-test",
+                "version":   "go-1.0",
+        }
+
+        // Check if database service is available
+        if h.db == nil </span><span class="cov0" title="0">{
+                result["status"] = "error"
+                result["error"] = "Database service not initialized"
+                result["healthy"] = false
+                result["responseTime"] = time.Since(startTime).Milliseconds()
+
+                logrus.Error("🗄️ Database test failed: service not initialized")
+                c.JSON(http.StatusServiceUnavailable, result)
+                return
+        }</span>
+
+        // Perform comprehensive database test
+        <span class="cov0" title="0">testResult := h.db.TestConnection()
+        
+        // Merge test results
+        for k, v := range testResult </span><span class="cov0" title="0">{
+                result[k] = v
+        }</span>
+
+        // Add additional metadata
+        <span class="cov0" title="0">result["provider"] = "supabase"
+        result["connectionType"] = "go-client"
+        result["poolStatus"] = h.db.GetPoolStatus()
+
+        // Determine HTTP status based on health
+        httpStatus := http.StatusOK
+        if healthy, exists := result["healthy"].(bool); exists &amp;&amp; !healthy </span><span class="cov0" title="0">{
+                httpStatus = http.StatusServiceUnavailable
+        }</span>
+
+        // Record metrics
+        <span class="cov0" title="0">if h.monitoring != nil </span><span class="cov0" title="0">{
+                h.monitoring.RecordRequest(time.Since(startTime))
+                if httpStatus != http.StatusOK </span><span class="cov0" title="0">{
+                        h.monitoring.RecordError()
+                }</span>
+        }
+
+        <span class="cov0" title="0">responseTime := time.Since(startTime).Milliseconds()
+        result["responseTime"] = responseTime
+
+        logrus.WithFields(logrus.Fields{
+                "healthy":      result["healthy"],
+                "responseTime": responseTime,
+                "provider":     "supabase",
+        }).Info("🗄️ Database test completed")
+
+        c.JSON(httpStatus, result)</span>
+}
+
+// GetDatabaseHealth returns database health status
+// GET /database/health - Database health check
+func (h *DatabaseHandler) GetDatabaseHealth(c *gin.Context) <span class="cov0" title="0">{
+        startTime := time.Now()
+
+        health := map[string]interface{}{
+                "timestamp": time.Now().UTC(),
+                "service":   "database",
+                "provider":  "supabase",
+        }
+
+        if h.db == nil </span><span class="cov0" title="0">{
+                health["status"] = "unavailable"
+                health["error"] = "Database service not initialized"
+                health["healthy"] = false
+                c.JSON(http.StatusServiceUnavailable, health)
+                return
+        }</span>
+
+        // Quick health check
+        <span class="cov0" title="0">err := h.db.Ping()
+        if err != nil </span><span class="cov0" title="0">{
+                health["status"] = "unhealthy"
+                health["error"] = err.Error()
+                health["healthy"] = false
+        }</span> else<span class="cov0" title="0"> {
+                health["status"] = "healthy"
+                health["healthy"] = true
+                health["poolStatus"] = h.db.GetPoolStatus()
+        }</span>
+
+        <span class="cov0" title="0">responseTime := time.Since(startTime).Milliseconds()
+        health["responseTime"] = responseTime
+
+        httpStatus := http.StatusOK
+        if !health["healthy"].(bool) </span><span class="cov0" title="0">{
+                httpStatus = http.StatusServiceUnavailable
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(httpStatus, health)</span>
+}
+
+// GetDatabaseStats returns database statistics and pool information
+// GET /database/stats - Database statistics
+func (h *DatabaseHandler) GetDatabaseStats(c *gin.Context) <span class="cov0" title="0">{
+        startTime := time.Now()
+
+        stats := map[string]interface{}{
+                "timestamp": time.Now().UTC(),
+                "service":   "database",
+                "provider":  "supabase",
+                "version":   "go-1.0",
+        }
+
+        if h.db == nil </span><span class="cov0" title="0">{
+                stats["status"] = "unavailable"
+                stats["error"] = "Database service not initialized"
+                c.JSON(http.StatusServiceUnavailable, stats)
+                return
+        }</span>
+
+        // Get pool status
+        <span class="cov0" title="0">poolStatus := h.db.GetPoolStatus()
+        stats["poolStatus"] = poolStatus
+        stats["healthy"] = h.db.IsHealthy()
+
+        // Calculate pool utilization
+        if poolEnabled, ok := poolStatus["poolEnabled"].(bool); ok &amp;&amp; poolEnabled </span><span class="cov0" title="0">{
+                if total, ok := poolStatus["totalConnections"].(int); ok </span><span class="cov0" title="0">{
+                        if max, ok := poolStatus["maxConnections"].(int); ok &amp;&amp; max &gt; 0 </span><span class="cov0" title="0">{
+                                utilization := float64(total) / float64(max) * 100
+                                stats["poolUtilization"] = utilization
+                        }</span>
+                }
+        }
+
+        <span class="cov0" title="0">responseTime := time.Since(startTime).Milliseconds()
+        stats["responseTime"] = responseTime
+
+        c.JSON(http.StatusOK, stats)</span>
+}
+
+// TestDatabasePerformance performs database performance testing
+// GET /database/performance - Database performance test
+func (h *DatabaseHandler) TestDatabasePerformance(c *gin.Context) <span class="cov0" title="0">{
+        startTime := time.Now()
+
+        result := map[string]interface{}{
+                "timestamp": time.Now().UTC(),
+                "service":   "database-performance",
+                "provider":  "supabase",
+        }
+
+        if h.db == nil </span><span class="cov0" title="0">{
+                result["status"] = "error"
+                result["error"] = "Database service not initialized"
+                c.JSON(http.StatusServiceUnavailable, result)
+                return
+        }</span>
+
+        // Perform multiple connection tests to measure performance
+        <span class="cov0" title="0">const testIterations = 5
+        responseTimes := make([]int64, testIterations)
+        successCount := 0
+
+        for i := 0; i &lt; testIterations; i++ </span><span class="cov0" title="0">{
+                iterationStart := time.Now()
+                
+                // Get pooled connection and test
+                client := h.db.GetPooledClient()
+                err := h.db.Ping()
+                h.db.ReturnPooledClient(client)
+                
+                iterationTime := time.Since(iterationStart).Milliseconds()
+                responseTimes[i] = iterationTime
+                
+                if err == nil </span><span class="cov0" title="0">{
+                        successCount++
+                }</span>
+        }
+
+        // Calculate statistics
+        <span class="cov0" title="0">var totalTime int64
+        var minTime, maxTime int64 = responseTimes[0], responseTimes[0]
+        
+        for _, rt := range responseTimes </span><span class="cov0" title="0">{
+                totalTime += rt
+                if rt &lt; minTime </span><span class="cov0" title="0">{
+                        minTime = rt
+                }</span>
+                <span class="cov0" title="0">if rt &gt; maxTime </span><span class="cov0" title="0">{
+                        maxTime = rt
+                }</span>
+        }
+
+        <span class="cov0" title="0">avgTime := float64(totalTime) / float64(testIterations)
+        successRate := float64(successCount) / float64(testIterations) * 100
+
+        result["performance"] = map[string]interface{}{
+                "iterations":    testIterations,
+                "successCount":  successCount,
+                "successRate":   successRate,
+                "avgResponseTime": avgTime,
+                "minResponseTime": minTime,
+                "maxResponseTime": maxTime,
+                "responseTimes":   responseTimes,
+        }
+
+        result["poolStatus"] = h.db.GetPoolStatus()
+        result["healthy"] = successRate &gt; 80 // Consider healthy if &gt;80% success rate
+
+        totalResponseTime := time.Since(startTime).Milliseconds()
+        result["totalTestTime"] = totalResponseTime
+
+        httpStatus := http.StatusOK
+        if successRate &lt; 50 </span><span class="cov0" title="0">{
+                httpStatus = http.StatusServiceUnavailable
+        }</span>
+
+        <span class="cov0" title="0">logrus.WithFields(logrus.Fields{
+                "successRate":    successRate,
+                "avgResponseTime": avgTime,
+                "iterations":     testIterations,
+        }).Info("🗄️ Database performance test completed")
+
+        c.JSON(httpStatus, result)</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package handlers
+
+import (
+        "net/http"
+        "strconv"
+
+        "selly-backend/internal/services/duplicate_operator"
+
+        "github.com/gin-gonic/gin"
+)
+
+// DuplicateOperatorHandler handles HTTP requests for duplicate operator operations
+type DuplicateOperatorHandler struct {
+        service duplicate_operator.Service
+}
+
+// NewDuplicateOperatorHandler creates a new handler instance
+func NewDuplicateOperatorHandler(service duplicate_operator.Service) *DuplicateOperatorHandler <span class="cov8" title="1">{
+        return &amp;DuplicateOperatorHandler{
+                service: service,
+        }
+}</span>
+
+// ListRecords handles GET /api/v1/duplicate-operators
+func (h *DuplicateOperatorHandler) ListRecords(c *gin.Context) <span class="cov8" title="1">{
+        // Parse pagination parameters
+        page := 1
+        pageSize := 10
+        
+        if p := c.Query("page"); p != "" </span><span class="cov8" title="1">{
+                if parsed, err := strconv.Atoi(p); err == nil &amp;&amp; parsed &gt; 0 </span><span class="cov8" title="1">{
+                        page = parsed
+                }</span>
+        }
+        
+        <span class="cov8" title="1">if ps := c.Query("page_size"); ps != "" </span><span class="cov8" title="1">{
+                if parsed, err := strconv.Atoi(ps); err == nil &amp;&amp; parsed &gt; 0 &amp;&amp; parsed &lt;= 100 </span><span class="cov8" title="1">{
+                        pageSize = parsed
+                }</span>
+        }
+
+        // Build filters
+        <span class="cov8" title="1">filters := make(map[string]interface{})
+        
+        if status := c.Query("status"); status != "" &amp;&amp; status != "all" </span><span class="cov0" title="0">{
+                if status == "ready" </span><span class="cov0" title="0">{
+                        filters["is_ready_to_record"] = true
+                }</span> else<span class="cov0" title="0"> if status == "not_ready" </span><span class="cov0" title="0">{
+                        filters["is_ready_to_record"] = false
+                }</span>
+        }
+
+        // Call service
+        <span class="cov8" title="1">response, err := h.service.ListRecords(c, filters, page, pageSize)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "status":  "error",
+                        "code":    http.StatusInternalServerError,
+                        "message": "gagal mengambil data: " + err.Error(),
+                })
+                return
+        }</span>
+
+        // Return successful response
+        <span class="cov8" title="1">c.JSON(http.StatusOK, gin.H{
+                "status":     "success",
+                "code":       http.StatusOK,
+                "message":    "data berhasil diambil",
+                "data":       response.Data,
+                "pagination": response.Pagination,
+        })</span>
+}
+
+// GetRecord handles GET /api/v1/duplicate-operators/:id
+func (h *DuplicateOperatorHandler) GetRecord(c *gin.Context) <span class="cov8" title="1">{
+        id := c.Param("id")
+        if id == "" </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "status":  "error",
+                        "code":    http.StatusBadRequest,
+                        "message": "ID parameter is required",
+                })
+                return
+        }</span>
+
+        // Call service
+        <span class="cov8" title="1">record, err := h.service.GetRecord(c, id)
+        if err != nil </span><span class="cov8" title="1">{
+                // Check if record not found
+                if err.Error() == "no rows in result set" </span><span class="cov8" title="1">{
+                        c.JSON(http.StatusNotFound, gin.H{
+                                "status":  "error",
+                                "code":    http.StatusNotFound,
+                                "message": "record tidak ditemukan",
+                        })
+                        return
+                }</span>
+
+                <span class="cov0" title="0">c.JSON(http.StatusInternalServerError, gin.H{
+                        "status":  "error",
+                        "code":    http.StatusInternalServerError,
+                        "message": "gagal mengambil data: " + err.Error(),
+                })
+                return</span>
+        }
+
+        // Return successful response
+        <span class="cov8" title="1">c.JSON(http.StatusOK, gin.H{
+                "status":  "success",
+                "code":    http.StatusOK,
+                "message": "data berhasil diambil",
+                "data":    record,
+        })</span>
+}
+
+// CreateRecord handles POST /api/v1/duplicate-operators
+func (h *DuplicateOperatorHandler) CreateRecord(c *gin.Context) <span class="cov8" title="1">{
+        var req duplicate_operator.CreateRequest
+        
+        // Parse request body
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "status":  "error",
+                        "code":    http.StatusBadRequest,
+                        "message": "invalid request: " + err.Error(),
+                })
+                return
+        }</span>
+
+        // Validate request
+        <span class="cov8" title="1">if validationErr := duplicate_operator.ValidateCreateRequest(&amp;req); validationErr != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "status":  "error",
+                        "code":    http.StatusBadRequest,
+                        "message": validationErr.Message,
+                        "details": validationErr.ErrorDetails,
+                })
+                return
+        }</span>
+
+        // Get user ID from context (set by auth middleware)
+        <span class="cov8" title="1">userID, exists := c.Get("user_id")
+        if !exists </span><span class="cov0" title="0">{
+                c.JSON(http.StatusUnauthorized, gin.H{
+                        "status":  "error",
+                        "code":    http.StatusUnauthorized,
+                        "message": "user context not found",
+                })
+                return
+        }</span>
+
+        // Call service
+        <span class="cov8" title="1">record, err := h.service.CreateRecord(c, userID.(string), &amp;req)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "status":  "error",
+                        "code":    http.StatusInternalServerError,
+                        "message": "gagal membuat data: " + err.Error(),
+                })
+                return
+        }</span>
+
+        // Return successful response
+        <span class="cov8" title="1">c.JSON(http.StatusCreated, gin.H{
+                "status":  "success",
+                "code":    http.StatusCreated,
+                "message": "data berhasil dibuat",
+                "data":    record,
+        })</span>
+}
+
+// UpdateRecord handles PUT /api/v1/duplicate-operators/:id
+func (h *DuplicateOperatorHandler) UpdateRecord(c *gin.Context) <span class="cov8" title="1">{
+        id := c.Param("id")
+        if id == "" </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "status":  "error",
+                        "code":    http.StatusBadRequest,
+                        "message": "ID parameter is required",
+                })
+                return
+        }</span>
+
+        <span class="cov8" title="1">var req duplicate_operator.UpdateRequest
+        
+        // Parse request body
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "status":  "error",
+                        "code":    http.StatusBadRequest,
+                        "message": "invalid request: " + err.Error(),
+                })
+                return
+        }</span>
+
+        // Validate request
+        <span class="cov8" title="1">if validationErr := duplicate_operator.ValidateUpdateRequest(&amp;req); validationErr != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "status":  "error",
+                        "code":    http.StatusBadRequest,
+                        "message": validationErr.Message,
+                        "details": validationErr.ErrorDetails,
+                })
+                return
+        }</span>
+
+        // Call service
+        <span class="cov8" title="1">record, err := h.service.UpdateRecord(c, id, &amp;req)
+        if err != nil </span><span class="cov0" title="0">{
+                // Check if record not found
+                if err.Error() == "no rows in result set" </span><span class="cov0" title="0">{
+                        c.JSON(http.StatusNotFound, gin.H{
+                                "status":  "error",
+                                "code":    http.StatusNotFound,
+                                "message": "record tidak ditemukan",
+                        })
+                        return
+                }</span>
+
+                <span class="cov0" title="0">c.JSON(http.StatusInternalServerError, gin.H{
+                        "status":  "error",
+                        "code":    http.StatusInternalServerError,
+                        "message": "gagal memperbarui data: " + err.Error(),
+                })
+                return</span>
+        }
+
+        // Return successful response
+        <span class="cov8" title="1">c.JSON(http.StatusOK, gin.H{
+                "status":  "success",
+                "code":    http.StatusOK,
+                "message": "data berhasil diperbarui",
+                "data":    record,
+        })</span>
+}
+
+// DeleteRecord handles DELETE /api/v1/duplicate-operators/:id
+func (h *DuplicateOperatorHandler) DeleteRecord(c *gin.Context) <span class="cov8" title="1">{
+        id := c.Param("id")
+        if id == "" </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "status":  "error",
+                        "code":    http.StatusBadRequest,
+                        "message": "ID parameter is required",
+                })
+                return
+        }</span>
+
+        // Call service
+        <span class="cov8" title="1">err := h.service.DeleteRecord(c, id)
+        if err != nil </span><span class="cov0" title="0">{
+                // Check if record not found
+                if err.Error() == "no rows in result set" </span><span class="cov0" title="0">{
+                        c.JSON(http.StatusNotFound, gin.H{
+                                "status":  "error",
+                                "code":    http.StatusNotFound,
+                                "message": "record tidak ditemukan",
+                        })
+                        return
+                }</span>
+
+                <span class="cov0" title="0">c.JSON(http.StatusInternalServerError, gin.H{
+                        "status":  "error",
+                        "code":    http.StatusInternalServerError,
+                        "message": "gagal menghapus data: " + err.Error(),
+                })
+                return</span>
+        }
+
+        // Return successful response
+        <span class="cov8" title="1">c.JSON(http.StatusOK, gin.H{
+                "status":  "success",
+                "code":    http.StatusOK,
+                "message": "data berhasil dihapus",
+        })</span>
+}
+
+// SearchRecords handles GET /api/v1/duplicate-operators/search
+func (h *DuplicateOperatorHandler) SearchRecords(c *gin.Context) <span class="cov8" title="1">{
+        query := c.Query("q")
+        if query == "" </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "status":  "error",
+                        "code":    http.StatusBadRequest,
+                        "message": "search query parameter 'q' is required",
+                })
+                return
+        }</span>
+
+        // Build filters
+        <span class="cov8" title="1">filters := make(map[string]interface{})
+        
+        if status := c.Query("status"); status != "" &amp;&amp; status != "all" </span><span class="cov0" title="0">{
+                if status == "ready" </span><span class="cov0" title="0">{
+                        filters["is_ready_to_record"] = true
+                }</span> else<span class="cov0" title="0"> if status == "not_ready" </span><span class="cov0" title="0">{
+                        filters["is_ready_to_record"] = false
+                }</span>
+        }
+
+        // Call service
+        <span class="cov8" title="1">records, err := h.service.SearchRecords(c, query, filters)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "status":  "error",
+                        "code":    http.StatusInternalServerError,
+                        "message": "gagal mencari data: " + err.Error(),
+                })
+                return
+        }</span>
+
+        // Return successful response
+        <span class="cov8" title="1">c.JSON(http.StatusOK, gin.H{
+                "status":  "success",
+                "code":    http.StatusOK,
+                "message": "pencarian berhasil",
+                "data":    records,
+        })</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package handlers
+
+import (
+        "net/http"
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/sirupsen/logrus"
+
+        "selly-backend/internal/services/cache"
+        "selly-backend/internal/services/database"
+        "selly-backend/internal/services/monitoring"
+)
+
+// HealthHandler handles health check endpoints
+type HealthHandler struct {
+        db         *database.Service
+        cache      *cache.Service
+        monitoring *monitoring.Service
+}
+
+// NewHealthHandler creates a new health handler
+func NewHealthHandler(db *database.Service, cache *cache.Service, monitoring *monitoring.Service) *HealthHandler <span class="cov8" title="1">{
+        return &amp;HealthHandler{
+                db:         db,
+                cache:      cache,
+                monitoring: monitoring,
+        }
+}</span>
+
+// GetHealth performs comprehensive health checks with parallel execution
+// GET /health - System health check endpoint
+func (h *HealthHandler) GetHealth(c *gin.Context) <span class="cov8" title="1">{
+        startTime := time.Now()
+
+        // Channel for collecting health check results
+        healthChan := make(chan map[string]interface{}, 4)
+
+        // Parallel health checks for better performance
+        go func() </span><span class="cov8" title="1">{
+                status := "healthy"
+                details := map[string]interface{}{"available": false}
+
+                if h.db != nil </span><span class="cov8" title="1">{
+                        if err := h.db.Ping(); err != nil </span><span class="cov8" title="1">{
+                                status = "unhealthy"
+                                details["error"] = err.Error()
+                        }</span> else<span class="cov0" title="0"> {
+                                status = "healthy"
+                                details = map[string]interface{}{
+                                        "available":  true,
+                                        "poolStatus": h.db.GetPoolStatus(),
+                                }
+                        }</span>
+                } else<span class="cov0" title="0"> {
+                        status = "unavailable"
+                        details["error"] = "Database service not initialized"
+                }</span>
+
+                <span class="cov8" title="1">healthChan &lt;- map[string]interface{}{
+                        "database": map[string]interface{}{
+                                "status":  status,
+                                "details": details,
+                        },
+                }</span>
+        }()
+
+        // Cache health check
+        <span class="cov8" title="1">go func() </span><span class="cov8" title="1">{
+                status := "healthy"
+                details := map[string]interface{}{"available": false}
+
+                if h.cache != nil </span><span class="cov8" title="1">{
+                        if err := h.cache.Ping(); err != nil </span><span class="cov0" title="0">{
+                                status = "unhealthy"
+                                details["error"] = err.Error()
+                        }</span> else<span class="cov8" title="1"> {
+                                status = "healthy"
+                                details = h.cache.GetStats()
+                                details["available"] = true
+                        }</span>
+                } else<span class="cov0" title="0"> {
+                        status = "unavailable"
+                        details["error"] = "Cache service not initialized"
+                }</span>
+
+                <span class="cov8" title="1">healthChan &lt;- map[string]interface{}{
+                        "cache": map[string]interface{}{
+                                "status":  status,
+                                "details": details,
+                        },
+                }</span>
+        }()
+
+        // System metrics check
+        <span class="cov8" title="1">go func() </span><span class="cov8" title="1">{
+                var systemHealth map[string]interface{}
+
+                if h.monitoring != nil </span><span class="cov8" title="1">{
+                        systemHealth = h.monitoring.GetHealthStatus()
+                }</span> else<span class="cov0" title="0"> {
+                        systemHealth = map[string]interface{}{
+                                "status": "unavailable",
+                                "error":  "Monitoring service not initialized",
+                        }
+                }</span>
+
+                <span class="cov8" title="1">healthChan &lt;- map[string]interface{}{
+                        "system": systemHealth,
+                }</span>
+        }()
+
+        // Application info
+        <span class="cov8" title="1">go func() </span><span class="cov8" title="1">{
+                healthChan &lt;- map[string]interface{}{
+                        "application": map[string]interface{}{
+                                "name":    "selly-backend",
+                                "version": "1.0.0",
+                                "status":  "healthy",
+                                "details": map[string]interface{}{
+                                        "language":  "Go",
+                                        "framework": "Gin",
+                                        "startTime": startTime,
+                                },
+                        },
+                }
+        }</span>()
+
+        // Collect all health check results
+        <span class="cov8" title="1">services := make(map[string]interface{})
+        for i := 0; i &lt; 4; i++ </span><span class="cov8" title="1">{
+                result := &lt;-healthChan
+                for k, v := range result </span><span class="cov8" title="1">{
+                        services[k] = v
+                }</span>
+        }
+
+        <span class="cov8" title="1">responseTime := time.Since(startTime).Milliseconds()
+
+        // Determine overall health status
+        overallStatus := "healthy"
+        healthyServices := 0
+        totalServices := 0
+
+        for _, service := range services </span><span class="cov8" title="1">{
+                if serviceMap, ok := service.(map[string]interface{}); ok </span><span class="cov8" title="1">{
+                        totalServices++
+                        if status, exists := serviceMap["status"]; exists </span><span class="cov8" title="1">{
+                                switch status </span>{
+                                case "healthy":<span class="cov8" title="1">
+                                        healthyServices++</span>
+                                case "unhealthy":<span class="cov8" title="1">
+                                        overallStatus = "degraded"</span>
+                                }
+                        }
+                }
+        }
+
+        // If more than half of services are unhealthy, mark as unhealthy
+        <span class="cov8" title="1">if healthyServices &lt; totalServices/2 </span><span class="cov0" title="0">{
+                overallStatus = "unhealthy"
+        }</span>
+
+        // Record metrics
+        <span class="cov8" title="1">if h.monitoring != nil </span><span class="cov8" title="1">{
+                h.monitoring.RecordRequest(time.Since(startTime))
+                if overallStatus == "unhealthy" </span><span class="cov0" title="0">{
+                        h.monitoring.RecordError()
+                }</span>
+        }
+
+        <span class="cov8" title="1">healthResponse := map[string]interface{}{
+                "status":       overallStatus,
+                "timestamp":    time.Now().UTC(),
+                "responseTime": responseTime,
+                "version":      "go-1.0",
+                "services":     services,
+                "summary": map[string]interface{}{
+                        "totalServices":    totalServices,
+                        "healthyServices":  healthyServices,
+                        "degradedServices": totalServices - healthyServices,
+                },
+        }
+
+        // Return appropriate HTTP status based on health
+        var httpStatus int
+        switch overallStatus </span>{
+        case "unhealthy":<span class="cov0" title="0">
+                httpStatus = http.StatusServiceUnavailable</span>
+        case "degraded":<span class="cov8" title="1">
+                httpStatus = http.StatusOK</span> // Still return 200 for degraded but functional
+        default:<span class="cov0" title="0">
+                httpStatus = http.StatusOK</span>
+        }
+
+        <span class="cov8" title="1">logrus.WithFields(logrus.Fields{
+                "status":       overallStatus,
+                "responseTime": responseTime,
+                "services":     totalServices,
+                "healthy":      healthyServices,
+        }).Info("🏥 Health check completed")
+
+        c.JSON(httpStatus, healthResponse)</span>
+}
+
+// GetHealthSimple provides a simple health check for load balancers
+// GET /health/simple - Simple health check endpoint
+func (h *HealthHandler) GetHealthSimple(c *gin.Context) <span class="cov8" title="1">{
+        c.JSON(http.StatusOK, gin.H{
+                "status":    "healthy",
+                "timestamp": time.Now().UTC(),
+                "service":   "selly-backend",
+        })
+}</span>
+
+// GetHealthLive provides liveness probe for Kubernetes
+// GET /health/live - Liveness probe endpoint
+func (h *HealthHandler) GetHealthLive(c *gin.Context) <span class="cov0" title="0">{
+        c.JSON(http.StatusOK, gin.H{
+                "status":    "alive",
+                "timestamp": time.Now().UTC(),
+        })
+}</span>
+
+// GetHealthReady provides readiness probe for Kubernetes
+// GET /health/ready - Readiness probe endpoint
+func (h *HealthHandler) GetHealthReady(c *gin.Context) <span class="cov0" title="0">{
+        ready := true
+        issues := make([]string, 0)
+
+        // Check critical services
+        if h.db != nil </span><span class="cov0" title="0">{
+                if err := h.db.Ping(); err != nil </span><span class="cov0" title="0">{
+                        ready = false
+                        issues = append(issues, "database not ready")
+                }</span>
+        }
+
+        <span class="cov0" title="0">status := http.StatusOK
+        if !ready </span><span class="cov0" title="0">{
+                status = http.StatusServiceUnavailable
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(status, gin.H{
+                "status":    map[string]bool{"ready": ready},
+                "issues":    issues,
+                "timestamp": time.Now().UTC(),
+        })</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package handlers
+
+import (
+        "fmt"
+        "net/http"
+        "strings"
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/sirupsen/logrus"
+
+        "selly-backend/internal/services/cache"
+        "selly-backend/internal/services/database"
+        "selly-backend/internal/services/monitoring"
+)
+
+// MetricsHandler handles metrics endpoints
+type MetricsHandler struct {
+        monitoring *monitoring.Service
+        db         *database.Service
+        cache      *cache.Service
+}
+
+// NewMetricsHandler creates a new metrics handler
+func NewMetricsHandler(monitoring *monitoring.Service, db *database.Service, cache *cache.Service) *MetricsHandler <span class="cov8" title="1">{
+        return &amp;MetricsHandler{
+                monitoring: monitoring,
+                db:         db,
+                cache:      cache,
+        }
+}</span>
+
+// GetMetrics returns comprehensive performance metrics
+// GET /metrics - Performance metrics endpoint
+func (h *MetricsHandler) GetMetrics(c *gin.Context) <span class="cov8" title="1">{
+        startTime := time.Now()
+        format := c.Query("format") // Support for different formats (json, prometheus)
+
+        // Collect metrics from all services
+        metricsData := h.collectAllMetrics()
+
+        responseTime := time.Since(startTime).Milliseconds()
+        metricsData["meta"] = map[string]interface{}{
+                "generatedAt":      time.Now().UTC(),
+                "responseTime":     responseTime,
+                "format":           format,
+                "version":          "go-1.0",
+                "metricsCollector": "selly-backend",
+        }
+
+        // Record this metrics request
+        if h.monitoring != nil </span><span class="cov8" title="1">{
+                h.monitoring.RecordRequest(time.Since(startTime))
+        }</span>
+
+        // Handle different response formats
+        <span class="cov8" title="1">if format == "prometheus" </span><span class="cov0" title="0">{
+                prometheusMetrics := h.convertToPrometheusFormat(metricsData)
+                c.Header("Content-Type", "text/plain")
+                c.String(http.StatusOK, prometheusMetrics)
+                return
+        }</span>
+
+        <span class="cov8" title="1">logrus.WithFields(logrus.Fields{
+                "responseTime": responseTime,
+                "format":       format,
+        }).Info("📊 Metrics request completed")
+
+        c.JSON(http.StatusOK, metricsData)</span>
+}
+
+// collectAllMetrics gathers metrics from all services
+func (h *MetricsHandler) collectAllMetrics() map[string]interface{} <span class="cov8" title="1">{
+        metrics := make(map[string]interface{})
+
+        // Application metrics
+        if h.monitoring != nil </span><span class="cov8" title="1">{
+                metrics["application"] = h.monitoring.GetMetrics()
+                metrics["health"] = h.monitoring.GetHealthStatus()
+        }</span> else<span class="cov0" title="0"> {
+                metrics["application"] = map[string]interface{}{
+                        "error": "Monitoring service not available",
+                }
+        }</span>
+
+        // Database metrics
+        <span class="cov8" title="1">if h.db != nil &amp;&amp; h.db.IsHealthy() </span><span class="cov0" title="0">{
+                metrics["database"] = map[string]interface{}{
+                        "status":     "healthy",
+                        "poolStatus": h.db.GetPoolStatus(),
+                        "provider":   "supabase",
+                }
+        }</span> else<span class="cov8" title="1"> {
+                metrics["database"] = map[string]interface{}{
+                        "status": "unavailable",
+                        "error":  "Database service not healthy",
+                }
+        }</span>
+
+        // Cache metrics
+        <span class="cov8" title="1">if h.cache != nil &amp;&amp; h.cache.IsHealthy() </span><span class="cov8" title="1">{
+                metrics["cache"] = h.cache.GetStats()
+                metrics["cache"].(map[string]interface{})["status"] = "healthy"
+        }</span> else<span class="cov0" title="0"> {
+                metrics["cache"] = map[string]interface{}{
+                        "status": "unavailable",
+                        "error":  "Cache service not healthy",
+                }
+        }</span>
+
+        // System metrics
+        <span class="cov8" title="1">if h.monitoring != nil </span><span class="cov8" title="1">{
+                systemMetrics := h.monitoring.GetSystemMetrics()
+                metrics["system"] = systemMetrics
+        }</span>
+
+        <span class="cov8" title="1">return metrics</span>
+}
+
+// convertToPrometheusFormat converts metrics to Prometheus format
+func (h *MetricsHandler) convertToPrometheusFormat(metrics map[string]interface{}) string <span class="cov0" title="0">{
+        var builder strings.Builder
+        timestamp := time.Now().Unix()
+
+        // Helper function to write metric
+        writeMetric := func(name, help, metricType string, value interface{}, labels map[string]string) </span><span class="cov0" title="0">{
+                builder.WriteString(fmt.Sprintf("# HELP %s %s\n", name, help))
+                builder.WriteString(fmt.Sprintf("# TYPE %s %s\n", name, metricType))
+                
+                labelStr := ""
+                if len(labels) &gt; 0 </span><span class="cov0" title="0">{
+                        var labelPairs []string
+                        for k, v := range labels </span><span class="cov0" title="0">{
+                                labelPairs = append(labelPairs, fmt.Sprintf(`%s="%s"`, k, v))
+                        }</span>
+                        <span class="cov0" title="0">labelStr = "{" + strings.Join(labelPairs, ",") + "}"</span>
+                }
+                
+                <span class="cov0" title="0">builder.WriteString(fmt.Sprintf("%s%s %v %d\n", name, labelStr, value, timestamp))</span>
+        }
+
+        // Application metrics
+        <span class="cov0" title="0">if appMetrics, ok := metrics["application"].(map[string]interface{}); ok </span><span class="cov0" title="0">{
+                if requestCount, exists := appMetrics["requestCount"]; exists </span><span class="cov0" title="0">{
+                        writeMetric("selly_requests_total", "Total number of requests", "counter", requestCount, map[string]string{"service": "selly-backend"})
+                }</span>
+                <span class="cov0" title="0">if errorCount, exists := appMetrics["errorCount"]; exists </span><span class="cov0" title="0">{
+                        writeMetric("selly_errors_total", "Total number of errors", "counter", errorCount, map[string]string{"service": "selly-backend"})
+                }</span>
+                <span class="cov0" title="0">if avgResponseTime, exists := appMetrics["avgResponseTime"]; exists </span><span class="cov0" title="0">{
+                        writeMetric("selly_response_time_avg_ms", "Average response time in milliseconds", "gauge", avgResponseTime, map[string]string{"service": "selly-backend"})
+                }</span>
+                <span class="cov0" title="0">if uptime, exists := appMetrics["uptime"]; exists </span><span class="cov0" title="0">{
+                        writeMetric("selly_uptime_seconds", "Service uptime in seconds", "gauge", uptime, map[string]string{"service": "selly-backend"})
+                }</span>
+        }
+
+        // System metrics
+        <span class="cov0" title="0">if systemMetrics, ok := metrics["system"].(map[string]interface{}); ok </span><span class="cov0" title="0">{
+                if memUsage, ok := systemMetrics["MemoryUsage"].(map[string]interface{}); ok </span><span class="cov0" title="0">{
+                        if allocMB, exists := memUsage["allocMB"]; exists </span><span class="cov0" title="0">{
+                                writeMetric("selly_memory_alloc_mb", "Allocated memory in MB", "gauge", allocMB, map[string]string{"service": "selly-backend"})
+                        }</span>
+                        <span class="cov0" title="0">if sysMB, exists := memUsage["sysMB"]; exists </span><span class="cov0" title="0">{
+                                writeMetric("selly_memory_sys_mb", "System memory in MB", "gauge", sysMB, map[string]string{"service": "selly-backend"})
+                        }</span>
+                }
+                <span class="cov0" title="0">if goroutines, exists := systemMetrics["GoroutineCount"]; exists </span><span class="cov0" title="0">{
+                        writeMetric("selly_goroutines", "Number of goroutines", "gauge", goroutines, map[string]string{"service": "selly-backend"})
+                }</span>
+        }
+
+        // Cache metrics
+        <span class="cov0" title="0">if cacheMetrics, ok := metrics["cache"].(map[string]interface{}); ok </span><span class="cov0" title="0">{
+                if hitRatio, exists := cacheMetrics["hitRatio"]; exists </span><span class="cov0" title="0">{
+                        writeMetric("selly_cache_hit_ratio", "Cache hit ratio percentage", "gauge", hitRatio, map[string]string{"service": "selly-backend"})
+                }</span>
+                <span class="cov0" title="0">if stats, ok := cacheMetrics["stats"].(map[string]interface{}); ok </span><span class="cov0" title="0">{
+                        if memoryHits, exists := stats["memoryHits"]; exists </span><span class="cov0" title="0">{
+                                writeMetric("selly_cache_memory_hits_total", "Total memory cache hits", "counter", memoryHits, map[string]string{"service": "selly-backend", "cache_type": "memory"})
+                        }</span>
+                        <span class="cov0" title="0">if redisHits, exists := stats["redisHits"]; exists </span><span class="cov0" title="0">{
+                                writeMetric("selly_cache_redis_hits_total", "Total Redis cache hits", "counter", redisHits, map[string]string{"service": "selly-backend", "cache_type": "redis"})
+                        }</span>
+                }
+        }
+
+        <span class="cov0" title="0">return builder.String()</span>
+}
+
+// GetMetricsHealth returns metrics service health
+// GET /metrics/health - Metrics service health check
+func (h *MetricsHandler) GetMetricsHealth(c *gin.Context) <span class="cov0" title="0">{
+        startTime := time.Now()
+
+        health := map[string]interface{}{
+                "status":    "healthy",
+                "timestamp": time.Now().UTC(),
+                "services": map[string]interface{}{
+                        "monitoring": h.monitoring != nil,
+                        "database":   h.db != nil &amp;&amp; h.db.IsHealthy(),
+                        "cache":      h.cache != nil &amp;&amp; h.cache.IsHealthy(),
+                },
+        }
+
+        // Check if we can collect metrics
+        canCollectMetrics := h.monitoring != nil
+        if !canCollectMetrics </span><span class="cov0" title="0">{
+                health["status"] = "degraded"
+                health["issues"] = []string{"Monitoring service not available"}
+        }</span>
+
+        <span class="cov0" title="0">responseTime := time.Since(startTime).Milliseconds()
+        health["responseTime"] = responseTime
+
+        httpStatus := http.StatusOK
+        if health["status"] == "degraded" </span><span class="cov0" title="0">{
+                httpStatus = http.StatusServiceUnavailable
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(httpStatus, health)</span>
+}
+
+// GetMetricsSummary returns a summary of key metrics
+// GET /metrics/summary - Key metrics summary
+func (h *MetricsHandler) GetMetricsSummary(c *gin.Context) <span class="cov0" title="0">{
+        startTime := time.Now()
+
+        summary := map[string]interface{}{
+                "timestamp": time.Now().UTC(),
+                "service":   "selly-backend",
+                "version":   "go-1.0",
+        }
+
+        if h.monitoring != nil </span><span class="cov0" title="0">{
+                metrics := h.monitoring.GetMetrics()
+                summary["requests"] = metrics["requestCount"]
+                summary["errors"] = metrics["errorCount"]
+                summary["errorRate"] = metrics["errorRate"]
+                summary["avgResponseTime"] = metrics["avgResponseTime"]
+                summary["uptime"] = metrics["uptime"]
+                
+                if systemMetrics, ok := metrics["systemMetrics"]; ok </span><span class="cov0" title="0">{
+                        summary["memoryMB"] = systemMetrics
+                }</span>
+        }
+
+        <span class="cov0" title="0">responseTime := time.Since(startTime).Milliseconds()
+        summary["responseTime"] = responseTime
+
+        c.JSON(http.StatusOK, summary)</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package handlers
+
+import (
+        "sync"
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/sirupsen/logrus"
+)
+
+// OptimizedHealthHandler provides high-performance health checks with caching
+type OptimizedHealthHandler struct {
+        cache    HealthCache
+        services []HealthService
+        timeout  time.Duration
+        cacheTTL time.Duration
+}
+
+// HealthCache stores cached health check results to avoid repeated expensive operations
+type HealthCache struct {
+        mutex   sync.RWMutex
+        results map[string]*CachedHealthResult
+        enabled bool
+}
+
+// CachedHealthResult stores health check results with timestamp
+type CachedHealthResult struct {
+        Status       string                 `json:"status"`
+        Details      map[string]interface{} `json:"details"`
+        Timestamp    time.Time              `json:"timestamp"`
+        ResponseTime time.Duration          `json:"response_time"`
+}
+
+// HealthService interface for checking individual service health
+type HealthService interface {
+        Name() string
+        Check() (string, map[string]interface{}, error)
+        Critical() bool
+}
+
+// NewOptimizedHealthHandler creates an optimized health handler
+func NewOptimizedHealthHandler() *OptimizedHealthHandler <span class="cov0" title="0">{
+        return &amp;OptimizedHealthHandler{
+                cache: HealthCache{
+                        results: make(map[string]*CachedHealthResult),
+                        enabled: true,
+                },
+                timeout:  5 * time.Second,  // Timeout for individual checks
+                cacheTTL: 30 * time.Second, // Cache results for 30 seconds
+        }
+}</span>
+
+// GetHealthFast provides ultra-fast health check with caching
+func (h *OptimizedHealthHandler) GetHealthFast(c *gin.Context) <span class="cov0" title="0">{
+        startTime := time.Now()
+
+        // Try cache first
+        if cached := h.getCachedHealth(); cached != nil </span><span class="cov0" title="0">{
+                logrus.WithFields(logrus.Fields{
+                        "response_time": time.Since(startTime),
+                        "cache_hit":     true,
+                }).Debug("⚡ Fast health check - cache hit")
+
+                c.JSON(200, gin.H{
+                        "status":        cached.Status,
+                        "details":       cached.Details,
+                        "cached":        true,
+                        "cache_age":     time.Since(cached.Timestamp),
+                        "response_time": time.Since(startTime),
+                })
+                return
+        }</span>
+
+        // Perform lightweight health check
+        <span class="cov0" title="0">status := "healthy"
+        issues := []string{}
+
+        // Basic system checks (very fast)
+        systemCheck := h.performBasicSystemCheck()
+        if !systemCheck.Healthy </span><span class="cov0" title="0">{
+                status = "degraded"
+                issues = append(issues, systemCheck.Issues...)
+        }</span>
+
+        <span class="cov0" title="0">result := &amp;CachedHealthResult{
+                Status: status,
+                Details: map[string]interface{}{
+                        "system":     systemCheck,
+                        "issues":     issues,
+                        "timestamp":  time.Now(),
+                        "fast_check": true,
+                },
+                Timestamp:    time.Now(),
+                ResponseTime: time.Since(startTime),
+        }
+
+        // Cache the result
+        h.setCachedHealth(result)
+
+        logrus.WithFields(logrus.Fields{
+                "response_time": time.Since(startTime),
+                "status":        status,
+                "cache_hit":     false,
+        }).Debug("⚡ Fast health check completed")
+
+        c.JSON(200, gin.H{
+                "status":        status,
+                "details":       result.Details,
+                "cached":        false,
+                "response_time": time.Since(startTime),
+        })</span>
+}
+
+// GetHealthReady provides optimized readiness check
+func (h *OptimizedHealthHandler) GetHealthReady(c *gin.Context) <span class="cov0" title="0">{
+        startTime := time.Now()
+
+        // Simple ready check - just verify core services are initialized
+        ready := true
+        issues := []string{}
+
+        // Very basic checks only
+        if !h.isServiceReady("core") </span><span class="cov0" title="0">{
+                ready = false
+                issues = append(issues, "core service not ready")
+        }</span>
+
+        <span class="cov0" title="0">responseTime := time.Since(startTime)
+
+        logrus.WithFields(logrus.Fields{
+                "ready":         ready,
+                "response_time": responseTime,
+                "issues_count":  len(issues),
+        }).Debug("⚡ Optimized readiness check")
+
+        status := 200
+        if !ready </span><span class="cov0" title="0">{
+                status = 503
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(status, gin.H{
+                "ready":         ready,
+                "status":        map[string]bool{"ready": ready},
+                "issues":        issues,
+                "response_time": responseTime.Milliseconds(),
+                "timestamp":     time.Now(),
+        })</span>
+}
+
+// getCachedHealth retrieves cached health results if still valid
+func (h *OptimizedHealthHandler) getCachedHealth() *CachedHealthResult <span class="cov0" title="0">{
+        if !h.cache.enabled </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+
+        <span class="cov0" title="0">h.cache.mutex.RLock()
+        defer h.cache.mutex.RUnlock()
+
+        cached, exists := h.cache.results["health"]
+        if !exists </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+
+        // Check if cache is still valid
+        <span class="cov0" title="0">if time.Since(cached.Timestamp) &gt; h.cacheTTL </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+
+        <span class="cov0" title="0">return cached</span>
+}
+
+// setCachedHealth stores health check results in cache
+func (h *OptimizedHealthHandler) setCachedHealth(result *CachedHealthResult) <span class="cov0" title="0">{
+        if !h.cache.enabled </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov0" title="0">h.cache.mutex.Lock()
+        defer h.cache.mutex.Unlock()
+
+        h.cache.results["health"] = result</span>
+}
+
+// BasicSystemCheck represents basic system health information
+type BasicSystemCheck struct {
+        Healthy  bool          `json:"healthy"`
+        Issues   []string      `json:"issues"`
+        Uptime   time.Duration `json:"uptime"`
+        MemoryMB int           `json:"memory_mb"`
+}
+
+// performBasicSystemCheck performs minimal system checks for speed
+func (h *OptimizedHealthHandler) performBasicSystemCheck() BasicSystemCheck <span class="cov0" title="0">{
+        // Ultra-lightweight system check
+        return BasicSystemCheck{
+                Healthy:  true,
+                Issues:   []string{},
+                Uptime:   time.Since(time.Now().Add(-5 * time.Minute)), // Placeholder
+                MemoryMB: 25,                                           // Placeholder - would use runtime.ReadMemStats() in production
+        }
+}</span>
+
+// isServiceReady checks if a core service is ready (very fast check)
+func (h *OptimizedHealthHandler) isServiceReady(serviceName string) bool <span class="cov0" title="0">{
+        // Ultra-fast readiness check - just verify initialization
+        // In real implementation, this would check service registry
+        return true // Placeholder - services are considered ready
+}</span>
+
+// GetCacheStats returns health check cache statistics
+func (h *OptimizedHealthHandler) GetCacheStats() map[string]interface{} <span class="cov0" title="0">{
+        h.cache.mutex.RLock()
+        defer h.cache.mutex.RUnlock()
+
+        return map[string]interface{}{
+                "cache_enabled":     h.cache.enabled,
+                "cached_results":    len(h.cache.results),
+                "cache_ttl_seconds": h.cacheTTL.Seconds(),
+                "timeout_seconds":   h.timeout.Seconds(),
+        }
+}</span>
+
+// ClearHealthCache clears the health check cache
+func (h *OptimizedHealthHandler) ClearHealthCache() <span class="cov0" title="0">{
+        h.cache.mutex.Lock()
+        defer h.cache.mutex.Unlock()
+
+        h.cache.results = make(map[string]*CachedHealthResult)
+
+        logrus.Info("🧹 Health check cache cleared")
+}</span>
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package handlers
+
+import (
+        "net/http"
+        "strconv"
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/sirupsen/logrus"
+
+        "selly-backend/internal/services/chat"
+        "selly-backend/internal/services/monitoring"
+)
+
+// PerformanceHandler handles performance monitoring endpoints
+type PerformanceHandler struct {
+        chatService *chat.Service
+        monitoring  *monitoring.Service
+}
+
+// NewPerformanceHandler creates a new performance handler
+func NewPerformanceHandler(chatService *chat.Service, monitoring *monitoring.Service) *PerformanceHandler <span class="cov0" title="0">{
+        return &amp;PerformanceHandler{
+                chatService: chatService,
+                monitoring:  monitoring,
+        }
+}</span>
+
+// GetHighPerformanceMetrics handles GET /api/performance/metrics - High-performance AI metrics
+func (h *PerformanceHandler) GetHighPerformanceMetrics(c *gin.Context) <span class="cov0" title="0">{
+        startTime := time.Now()
+
+        logrus.Info("📊 Getting high-performance AI metrics")
+
+        // Get high-performance metrics from chat service
+        metrics := h.chatService.GetHighPerformanceMetrics()
+        if metrics == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{
+                        "error":   "High-performance metrics not available",
+                        "code":    "METRICS_UNAVAILABLE",
+                        "message": "High-performance AI engine may not be initialized",
+                })
+                return
+        }</span>
+
+        // Add system-level metrics
+        <span class="cov0" title="0">systemMetrics := h.getSystemMetrics()
+
+        // Combine metrics
+        response := gin.H{
+                "success": true,
+                "data": gin.H{
+                        "high_performance": metrics,
+                        "system":           systemMetrics,
+                        "timestamp":        time.Now(),
+                },
+                "metadata": gin.H{
+                        "processingTime": time.Since(startTime).Milliseconds(),
+                        "endpoint":       "/api/performance/metrics",
+                },
+        }
+
+        c.JSON(http.StatusOK, response)</span>
+}
+
+// GetPerformanceHealth handles GET /api/performance/health - Performance health check
+func (h *PerformanceHandler) GetPerformanceHealth(c *gin.Context) <span class="cov0" title="0">{
+        startTime := time.Now()
+
+        logrus.Info("🏥 Checking high-performance AI health")
+
+        // Get health status from chat service
+        health := h.chatService.GetHighPerformanceHealth()
+
+        // Determine overall health status
+        overallHealthy := true
+        statusCode := http.StatusOK
+
+        if health == nil </span><span class="cov0" title="0">{
+                overallHealthy = false
+                statusCode = http.StatusServiceUnavailable
+                health = map[string]interface{}{
+                        "integration_healthy":      false,
+                        "high_performance_enabled": false,
+                        "error":                    "High-performance engine not available",
+                }
+        }</span> else<span class="cov0" title="0"> {
+                if integrationHealthy, exists := health["integration_healthy"]; exists </span><span class="cov0" title="0">{
+                        if healthy, ok := integrationHealthy.(bool); ok &amp;&amp; !healthy </span><span class="cov0" title="0">{
+                                overallHealthy = false
+                                statusCode = http.StatusServiceUnavailable
+                        }</span>
+                }
+        }
+
+        <span class="cov0" title="0">response := gin.H{
+                "success": overallHealthy,
+                "data": gin.H{
+                        "overall_healthy":  overallHealthy,
+                        "high_performance": health,
+                        "system_health":    h.getSystemHealth(),
+                        "timestamp":        time.Now(),
+                },
+                "metadata": gin.H{
+                        "processingTime": time.Since(startTime).Milliseconds(),
+                        "endpoint":       "/api/performance/health",
+                },
+        }
+
+        c.JSON(statusCode, response)</span>
+}
+
+// GetPerformanceStats handles GET /api/performance/stats - Performance statistics
+func (h *PerformanceHandler) GetPerformanceStats(c *gin.Context) <span class="cov8" title="1">{
+        startTime := time.Now()
+
+        logrus.Info("📈 Getting performance statistics")
+
+        // Get performance statistics
+        stats := h.getPerformanceStatistics()
+
+        response := gin.H{
+                "success": true,
+                "data": gin.H{
+                        "statistics": stats,
+                        "timestamp":  time.Now(),
+                },
+                "metadata": gin.H{
+                        "processingTime": time.Since(startTime).Milliseconds(),
+                        "endpoint":       "/api/performance/stats",
+                },
+        }
+
+        c.JSON(http.StatusOK, response)
+}</span>
+
+// GetPerformanceMetrics handles GET /performance - Documented performance endpoint
+func (h *PerformanceHandler) GetPerformanceMetrics(c *gin.Context) <span class="cov8" title="1">{
+        startTime := time.Now()
+
+        logrus.Info("📊 Getting documented performance metrics")
+
+        // Get performance statistics
+        stats := h.getPerformanceStatistics()
+
+        // Calculate performance grade
+        grade := h.calculatePerformanceGrade(stats)
+
+        // Generate recommendations
+        recommendations := h.generatePerformanceRecommendations(stats)
+
+        response := gin.H{
+                "success": true,
+                "data": gin.H{
+                        "current_performance": gin.H{
+                                "response_time":  h.extractResponseTime(stats),
+                                "throughput":     h.extractThroughput(stats),
+                                "error_rate":     h.calculateErrorRate(stats),
+                                "cache_hit_rate": h.extractCacheHitRate(stats),
+                        },
+                        "targets": gin.H{
+                                "response_time":  200.0,
+                                "throughput":     50.0,
+                                "error_rate":     5.0,
+                                "cache_hit_rate": 85.0,
+                        },
+                        "performance_grade": grade,
+                        "recommendations":   recommendations,
+                },
+                "meta": gin.H{
+                        "request_id":      c.GetString("request_id"),
+                        "timestamp":       time.Now().UTC(),
+                        "processing_time": time.Since(startTime).Milliseconds(),
+                        "version":         "1.0",
+                },
+        }
+
+        c.JSON(http.StatusOK, response)
+}</span>
+
+// PostPerformanceTest handles POST /api/performance/test - Performance test endpoint
+func (h *PerformanceHandler) PostPerformanceTest(c *gin.Context) <span class="cov0" title="0">{
+        startTime := time.Now()
+
+        // Parse test request
+        var testReq PerformanceTestRequest
+        if err := c.ShouldBindJSON(&amp;testReq); err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Warn("🚫 Invalid performance test request")
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "error":   "Invalid request format",
+                        "code":    "INVALID_REQUEST",
+                        "message": err.Error(),
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">logrus.WithFields(logrus.Fields{
+                "test_type":   testReq.TestType,
+                "query_count": testReq.QueryCount,
+                "concurrent":  testReq.Concurrent,
+        }).Info("🧪 Running performance test")
+
+        // Run performance test
+        testResults, err := h.runPerformanceTest(&amp;testReq)
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Error("❌ Performance test failed")
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "error":   "Performance test failed",
+                        "code":    "TEST_FAILED",
+                        "message": err.Error(),
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">response := gin.H{
+                "success": true,
+                "data": gin.H{
+                        "test_results": testResults,
+                        "test_config":  testReq,
+                        "timestamp":    time.Now(),
+                },
+                "metadata": gin.H{
+                        "processingTime": time.Since(startTime).Milliseconds(),
+                        "endpoint":       "/api/performance/test",
+                },
+        }
+
+        c.JSON(http.StatusOK, response)</span>
+}
+
+// PerformanceTestRequest represents a performance test request
+type PerformanceTestRequest struct {
+        TestType   string `json:"test_type" binding:"required"` // "simple", "complex", "indonesian", "concurrent"
+        QueryCount int    `json:"query_count"`                  // Number of queries to test (default: 10)
+        Concurrent bool   `json:"concurrent"`                   // Whether to run queries concurrently
+        TestQuery  string `json:"test_query,omitempty"`         // Custom test query
+        UserID     string `json:"user_id,omitempty"`            // Test user ID
+        SessionID  string `json:"session_id,omitempty"`         // Test session ID
+}
+
+// PerformanceTestResults represents performance test results
+type PerformanceTestResults struct {
+        TestType            string         `json:"test_type"`
+        TotalQueries        int            `json:"total_queries"`
+        SuccessfulQueries   int            `json:"successful_queries"`
+        FailedQueries       int            `json:"failed_queries"`
+        AverageResponseTime time.Duration  `json:"average_response_time"`
+        MinResponseTime     time.Duration  `json:"min_response_time"`
+        MaxResponseTime     time.Duration  `json:"max_response_time"`
+        TotalTestTime       time.Duration  `json:"total_test_time"`
+        QueriesPerSecond    float64        `json:"queries_per_second"`
+        SuccessRate         float64        `json:"success_rate"`
+        HighPerformanceUsed bool           `json:"high_performance_used"`
+        WorkerTypeStats     map[string]int `json:"worker_type_stats"`
+        Errors              []string       `json:"errors,omitempty"`
+}
+
+// getSystemMetrics returns system-level performance metrics
+func (h *PerformanceHandler) getSystemMetrics() map[string]interface{} <span class="cov0" title="0">{
+        return map[string]interface{}{
+                "timestamp":    time.Now(),
+                "uptime":       time.Since(time.Now().Add(-24 * time.Hour)), // Placeholder
+                "memory_usage": "256MB",                                     // Placeholder
+                "cpu_usage":    "15%",                                       // Placeholder
+                "goroutines":   100,                                         // Placeholder
+        }
+}</span>
+
+// getSystemHealth returns system health information
+func (h *PerformanceHandler) getSystemHealth() map[string]interface{} <span class="cov0" title="0">{
+        return map[string]interface{}{
+                "memory_healthy":     true,
+                "cpu_healthy":        true,
+                "goroutines_healthy": true,
+                "database_healthy":   true,
+                "cache_healthy":      true,
+        }
+}</span>
+
+// getPerformanceStatistics returns performance statistics
+func (h *PerformanceHandler) getPerformanceStatistics() map[string]interface{} <span class="cov8" title="1">{
+        return map[string]interface{}{
+                "total_requests":         1000,   // Placeholder
+                "average_response_time":  "85ms", // Placeholder
+                "success_rate":           99.5,   // Placeholder
+                "cache_hit_rate":         75.2,   // Placeholder
+                "high_performance_usage": 85.0,   // Placeholder
+                "worker_distribution": map[string]interface{}{
+                        "simple":   45.0,
+                        "complex":  25.0,
+                        "nlp":      20.0,
+                        "learning": 10.0,
+                },
+                "performance_improvement": map[string]interface{}{
+                        "vs_standard":   "20.5x faster",
+                        "response_time": "289x improvement",
+                        "throughput":    "25x increase",
+                },
+        }
+}</span>
+
+// runPerformanceTest runs a performance test
+func (h *PerformanceHandler) runPerformanceTest(req *PerformanceTestRequest) (*PerformanceTestResults, error) <span class="cov0" title="0">{
+        // Set defaults
+        if req.QueryCount == 0 </span><span class="cov0" title="0">{
+                req.QueryCount = 10
+        }</span>
+        <span class="cov0" title="0">if req.UserID == "" </span><span class="cov0" title="0">{
+                req.UserID = "performance-test-user"
+        }</span>
+        <span class="cov0" title="0">if req.SessionID == "" </span><span class="cov0" title="0">{
+                req.SessionID = "performance-test-session"
+        }</span>
+
+        // Determine test query based on test type
+        <span class="cov0" title="0">testQuery := req.TestQuery
+        if testQuery == "" </span><span class="cov0" title="0">{
+                switch req.TestType </span>{
+                case "simple":<span class="cov0" title="0">
+                        testQuery = "Hello, how are you?"</span>
+                case "complex":<span class="cov0" title="0">
+                        testQuery = "Please provide a comprehensive analysis of Indonesian government services and how to obtain civil documents."</span>
+                case "indonesian":<span class="cov0" title="0">
+                        testQuery = "Bagaimana cara mengurus KTP yang hilang di Dukcapil?"</span>
+                case "concurrent":<span class="cov0" title="0">
+                        testQuery = "Test concurrent processing capabilities"</span>
+                default:<span class="cov0" title="0">
+                        testQuery = "Default performance test query"</span>
+                }
+        }
+
+        <span class="cov0" title="0">results := &amp;PerformanceTestResults{
+                TestType:        req.TestType,
+                TotalQueries:    req.QueryCount,
+                WorkerTypeStats: make(map[string]int),
+                Errors:          make([]string, 0),
+        }
+
+        startTime := time.Now()
+        var responseTimes []time.Duration
+
+        // Run test queries
+        if req.Concurrent </span><span class="cov0" title="0">{
+                // Concurrent execution
+                responseTimes = h.runConcurrentTest(testQuery, req.QueryCount, req.UserID, req.SessionID, results)
+        }</span> else<span class="cov0" title="0"> {
+                // Sequential execution
+                responseTimes = h.runSequentialTest(testQuery, req.QueryCount, req.UserID, req.SessionID, results)
+        }</span>
+
+        <span class="cov0" title="0">results.TotalTestTime = time.Since(startTime)
+
+        // Calculate statistics
+        if len(responseTimes) &gt; 0 </span><span class="cov0" title="0">{
+                var total time.Duration
+                results.MinResponseTime = responseTimes[0]
+                results.MaxResponseTime = responseTimes[0]
+
+                for _, rt := range responseTimes </span><span class="cov0" title="0">{
+                        total += rt
+                        if rt &lt; results.MinResponseTime </span><span class="cov0" title="0">{
+                                results.MinResponseTime = rt
+                        }</span>
+                        <span class="cov0" title="0">if rt &gt; results.MaxResponseTime </span><span class="cov0" title="0">{
+                                results.MaxResponseTime = rt
+                        }</span>
+                }
+
+                <span class="cov0" title="0">results.AverageResponseTime = total / time.Duration(len(responseTimes))
+                results.QueriesPerSecond = float64(results.SuccessfulQueries) / results.TotalTestTime.Seconds()
+                results.SuccessRate = float64(results.SuccessfulQueries) / float64(results.TotalQueries) * 100</span>
+        }
+
+        <span class="cov0" title="0">return results, nil</span>
+}
+
+// runSequentialTest runs queries sequentially
+func (h *PerformanceHandler) runSequentialTest(query string, count int, userID, sessionID string, results *PerformanceTestResults) []time.Duration <span class="cov0" title="0">{
+        responseTimes := make([]time.Duration, 0, count)
+
+        for i := 0; i &lt; count; i++ </span><span class="cov0" title="0">{
+                responseTime, success, workerType := h.executeTestQuery(query, userID, sessionID)
+                responseTimes = append(responseTimes, responseTime)
+
+                if success </span><span class="cov0" title="0">{
+                        results.SuccessfulQueries++
+                        if workerType != "" </span><span class="cov0" title="0">{
+                                results.WorkerTypeStats[workerType]++
+                        }</span>
+                } else<span class="cov0" title="0"> {
+                        results.FailedQueries++
+                }</span>
+        }
+
+        <span class="cov0" title="0">return responseTimes</span>
+}
+
+// runConcurrentTest runs queries concurrently
+func (h *PerformanceHandler) runConcurrentTest(query string, count int, userID, sessionID string, results *PerformanceTestResults) []time.Duration <span class="cov0" title="0">{
+        responseTimes := make([]time.Duration, count)
+        done := make(chan bool, count)
+
+        for i := 0; i &lt; count; i++ </span><span class="cov0" title="0">{
+                go func(index int) </span><span class="cov0" title="0">{
+                        defer func() </span><span class="cov0" title="0">{ done &lt;- true }</span>()
+                        <span class="cov0" title="0">responseTime, success, workerType := h.executeTestQuery(query, userID, sessionID)
+                        responseTimes[index] = responseTime
+
+                        if success </span><span class="cov0" title="0">{
+                                results.SuccessfulQueries++
+                                if workerType != "" </span><span class="cov0" title="0">{
+                                        results.WorkerTypeStats[workerType]++
+                                }</span>
+                        } else<span class="cov0" title="0"> {
+                                results.FailedQueries++
+                        }</span>
+                }(i)
+        }
+
+        // Wait for all queries to complete
+        <span class="cov0" title="0">for i := 0; i &lt; count; i++ </span><span class="cov0" title="0">{
+                &lt;-done
+        }</span>
+
+        <span class="cov0" title="0">return responseTimes</span>
+}
+
+// executeTestQuery executes a single test query
+func (h *PerformanceHandler) executeTestQuery(query, userID, sessionID string) (time.Duration, bool, string) <span class="cov0" title="0">{
+        startTime := time.Now()
+
+        // This would call the actual chat service
+        // For now, simulate a response based on query characteristics
+        processingTime := 50 * time.Millisecond // Base processing time
+
+        // Adjust processing time based on query length (simulate complexity)
+        if len(query) &gt; 100 </span><span class="cov0" title="0">{
+                processingTime += 25 * time.Millisecond
+        }</span>
+        <span class="cov0" title="0">if len(query) &gt; 200 </span><span class="cov0" title="0">{
+                processingTime += 25 * time.Millisecond
+        }</span>
+
+        // Simulate different worker types based on query content
+        <span class="cov0" title="0">workerType := "simple"
+        if len(query) &gt; 200 </span><span class="cov0" title="0">{
+                workerType = "complex"
+                processingTime += 50 * time.Millisecond
+        }</span>
+
+        // Check for Indonesian keywords
+        <span class="cov0" title="0">indonesianKeywords := []string{"bagaimana", "dimana", "ktp", "dukcapil"}
+        for _, keyword := range indonesianKeywords </span><span class="cov0" title="0">{
+                if len(query) &gt;= len(keyword) &amp;&amp; query[:len(keyword)] == keyword </span><span class="cov0" title="0">{
+                        workerType = "nlp"
+                        processingTime += 25 * time.Millisecond
+                        break</span>
+                }
+        }
+
+        <span class="cov0" title="0">time.Sleep(processingTime) // Simulate actual processing
+
+        responseTime := time.Since(startTime)
+        success := true // Simulate success for testing
+
+        // Use userID and sessionID for logging (to avoid unused parameter warnings)
+        if len(userID) &gt; 0 &amp;&amp; len(sessionID) &gt; 0 </span>{<span class="cov0" title="0">
+                // Parameters used for potential logging or metrics
+        }</span>
+
+        <span class="cov0" title="0">return responseTime, success, workerType</span>
+}
+
+// calculatePerformanceGrade calculates performance grade based on metrics
+func (h *PerformanceHandler) calculatePerformanceGrade(stats map[string]interface{}) string <span class="cov8" title="1">{
+        // Extract key metrics
+        responseTime := h.extractResponseTime(stats)
+        cacheHitRate := h.extractCacheHitRate(stats)
+        errorRate := h.calculateErrorRate(stats)
+
+        // Calculate grade based on thresholds
+        score := 0
+
+        if responseTime &lt;= 200 </span><span class="cov8" title="1">{
+                score += 40
+        }</span> else<span class="cov0" title="0"> if responseTime &lt;= 500 </span><span class="cov0" title="0">{
+                score += 20
+        }</span>
+
+        <span class="cov8" title="1">if cacheHitRate &gt;= 85 </span><span class="cov0" title="0">{
+                score += 30
+        }</span> else<span class="cov8" title="1"> if cacheHitRate &gt;= 70 </span><span class="cov8" title="1">{
+                score += 15
+        }</span>
+
+        <span class="cov8" title="1">if errorRate &lt;= 5 </span><span class="cov8" title="1">{
+                score += 30
+        }</span> else<span class="cov0" title="0"> if errorRate &lt;= 10 </span><span class="cov0" title="0">{
+                score += 15
+        }</span>
+
+        // Return grade based on score
+        <span class="cov8" title="1">switch </span>{
+        case score &gt;= 90:<span class="cov0" title="0">
+                return "A"</span>
+        case score &gt;= 75:<span class="cov8" title="1">
+                return "B"</span>
+        case score &gt;= 60:<span class="cov0" title="0">
+                return "C"</span>
+        case score &gt;= 45:<span class="cov0" title="0">
+                return "D"</span>
+        default:<span class="cov0" title="0">
+                return "F"</span>
+        }
+}
+
+// generatePerformanceRecommendations generates performance recommendations
+func (h *PerformanceHandler) generatePerformanceRecommendations(stats map[string]interface{}) []string <span class="cov8" title="1">{
+        recommendations := []string{}
+        responseTime := h.extractResponseTime(stats)
+        cacheHitRate := h.extractCacheHitRate(stats)
+        errorRate := h.calculateErrorRate(stats)
+
+        if responseTime &gt; 200 </span><span class="cov0" title="0">{
+                recommendations = append(recommendations, "Response time exceeds target. Consider optimizing database queries or implementing caching.")
+        }</span> else<span class="cov8" title="1"> {
+                recommendations = append(recommendations, "Response time within target. Excellent performance maintained.")
+        }</span>
+
+        <span class="cov8" title="1">if cacheHitRate &lt; 85 </span><span class="cov8" title="1">{
+                recommendations = append(recommendations, "Cache hit rate below target. Consider increasing cache TTL or implementing more aggressive caching.")
+        }</span> else<span class="cov0" title="0"> {
+                recommendations = append(recommendations, "Cache hit rate is excellent. Continue monitoring for optimal performance.")
+        }</span>
+
+        <span class="cov8" title="1">if errorRate &gt; 5 </span><span class="cov0" title="0">{
+                recommendations = append(recommendations, "Error rate above target. Investigate error sources and implement error recovery mechanisms.")
+        }</span> else<span class="cov8" title="1"> {
+                recommendations = append(recommendations, "Error rate within acceptable limits. System stability maintained.")
+        }</span>
+
+        <span class="cov8" title="1">return recommendations</span>
+}
+
+// extractResponseTime extracts response time from stats
+func (h *PerformanceHandler) extractResponseTime(stats map[string]interface{}) float64 <span class="cov8" title="1">{
+        if avgResponseTime, ok := stats["average_response_time"].(string); ok </span><span class="cov8" title="1">{
+                // Parse "85ms" format
+                if len(avgResponseTime) &gt; 2 &amp;&amp; avgResponseTime[len(avgResponseTime)-2:] == "ms" </span><span class="cov8" title="1">{
+                        if val, err := strconv.ParseFloat(avgResponseTime[:len(avgResponseTime)-2], 64); err == nil </span><span class="cov8" title="1">{
+                                return val
+                        }</span>
+                }
+        }
+        <span class="cov0" title="0">return 85.0</span> // Default fallback
+}
+
+// extractThroughput extracts throughput from stats
+func (h *PerformanceHandler) extractThroughput(stats map[string]interface{}) float64 <span class="cov8" title="1">{
+        if totalRequests, ok := stats["total_requests"].(int); ok </span><span class="cov8" title="1">{
+                return float64(totalRequests)
+        }</span>
+        <span class="cov0" title="0">return 1000.0</span> // Default fallback
+}
+
+// calculateErrorRate calculates error rate from stats
+func (h *PerformanceHandler) calculateErrorRate(stats map[string]interface{}) float64 <span class="cov8" title="1">{
+        if successRate, ok := stats["success_rate"].(float64); ok </span><span class="cov8" title="1">{
+                return 100.0 - successRate
+        }</span>
+        <span class="cov0" title="0">return 0.5</span> // Default fallback (0.5% error rate)
+}
+
+// extractCacheHitRate extracts cache hit rate from stats
+func (h *PerformanceHandler) extractCacheHitRate(stats map[string]interface{}) float64 <span class="cov8" title="1">{
+        if cacheHitRate, ok := stats["cache_hit_rate"].(float64); ok </span><span class="cov8" title="1">{
+                return cacheHitRate
+        }</span>
+        <span class="cov0" title="0">return 75.2</span> // Default fallback
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package handlers
+
+import (
+        "context"
+        "net/http"
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/sirupsen/logrus"
+
+        "selly-backend/internal/services/monitoring"
+        "selly-backend/internal/services/supabase_analyzer"
+)
+
+// SupabaseAnalyzerHandler handles Supabase project analysis endpoints
+type SupabaseAnalyzerHandler struct {
+        analyzer   *supabase_analyzer.Service
+        monitoring *monitoring.Service
+}
+
+// NewSupabaseAnalyzerHandler creates a new Supabase analyzer handler
+func NewSupabaseAnalyzerHandler(analyzer *supabase_analyzer.Service, monitoring *monitoring.Service) *SupabaseAnalyzerHandler <span class="cov0" title="0">{
+        return &amp;SupabaseAnalyzerHandler{
+                analyzer:   analyzer,
+                monitoring: monitoring,
+        }
+}</span>
+
+// AnalyzeProject analyzes the entire Supabase project
+// GET /api/v1/supabase/analyze
+func (h *SupabaseAnalyzerHandler) AnalyzeProject(c *gin.Context) <span class="cov0" title="0">{
+        ctx := c.Request.Context()
+        
+        // Add a 30-second timeout for the full analysis
+        ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+        defer cancel()
+
+        // Get query parameters
+        includeTables := c.DefaultQuery("tables", "true") == "true"
+        includeBuckets := c.DefaultQuery("buckets", "true") == "true"
+        includeColumns := c.DefaultQuery("columns", "true") == "true"
+
+        filter := supabase_analyzer.AnalysisFilter{
+                IncludeTables:   includeTables,
+                IncludeBuckets:  includeBuckets,
+                IncludeColumns:  includeColumns,
+                SchemaName:      "public",
+                MaxTableResults: 0, // No limit
+        }
+
+        // Perform analysis
+        analysis, err := h.analyzer.AnalyzeProject(ctx, filter)
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.Errorf("Failed to analyze Supabase project: %v", err)
+                h.monitoring.RecordError()
+
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "error":   "Failed to analyze Supabase project",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">h.monitoring.RecordMetric("supabase_project_analyzed", 1, map[string]string{
+                "action": "analyze_project",
+        })
+
+        c.JSON(http.StatusOK, analysis)</span>
+}
+
+// GetTableStats gets statistics for a specific table
+// GET /api/v1/supabase/tables/:name
+func (h *SupabaseAnalyzerHandler) GetTableStats(c *gin.Context) <span class="cov0" title="0">{
+        ctx := c.Request.Context()
+        tableName := c.Param("name")
+
+        if tableName == "" </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "error": "Table name is required",
+                })
+                return
+        }</span>
+
+        // Get table statistics
+        <span class="cov0" title="0">tableInfo, err := h.analyzer.GetTableStats(ctx, tableName)
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.Errorf("Failed to get table stats for %s: %v", tableName, err)
+                h.monitoring.RecordError()
+
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "error":   "Failed to get table statistics",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">h.monitoring.RecordMetric("supabase_table_stats_retrieved", 1, map[string]string{
+                "table": tableName,
+        })
+
+        c.JSON(http.StatusOK, tableInfo)</span>
+}
+
+// ListBuckets lists all storage buckets
+// GET /api/v1/supabase/buckets
+func (h *SupabaseAnalyzerHandler) ListBuckets(c *gin.Context) <span class="cov0" title="0">{
+        ctx := c.Request.Context()
+
+        // List buckets
+        buckets, err := h.analyzer.ListBuckets(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.Errorf("Failed to list buckets: %v", err)
+                h.monitoring.RecordError()
+
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "error":   "Failed to list buckets",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">h.monitoring.RecordMetric("supabase_buckets_listed", 1, map[string]string{
+                "action": "list_buckets",
+        })
+
+        c.JSON(http.StatusOK, gin.H{
+                "buckets": buckets,
+                "count":   len(buckets),
+        })</span>
+}
+
+// GetProjectOverview gets a quick overview of the project
+// GET /api/v1/supabase/overview
+func (h *SupabaseAnalyzerHandler) GetProjectOverview(c *gin.Context) <span class="cov0" title="0">{
+        ctx := c.Request.Context()
+        
+        // Add a 10-second timeout for quick overview
+        ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+        defer cancel()
+
+        // Quick analysis without heavy data
+        filter := supabase_analyzer.AnalysisFilter{
+                IncludeTables:   true,
+                IncludeBuckets:  true,
+                IncludeColumns:  false, // Skip detailed columns for overview
+                SchemaName:      "public",
+                MaxTableResults: 50, // Limit to first 50 tables for speed
+        }
+
+        analysis, err := h.analyzer.AnalyzeProject(ctx, filter)
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.Errorf("Failed to get project overview: %v", err)
+                h.monitoring.RecordError()
+
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "error":   "Failed to get project overview",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        // Return overview summary
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{
+                "project_url":    analysis.ProjectURL,
+                "timestamp":      analysis.Timestamp,
+                "table_count":    analysis.TableCount,
+                "bucket_count":   analysis.BucketCount,
+                "total_records":  analysis.TotalRecords,
+                "total_size_gb":  analysis.TotalSizeGB,
+                "tables":         analysis.Tables,
+                "buckets":        analysis.Buckets,
+        })</span>
+}
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">package handlers
+
+import (
+        "net/http"
+        "strconv"
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/sirupsen/logrus"
+
+        "selly-backend/internal/services/training"
+)
+
+// TrainingHandler handles training data API endpoints
+type TrainingHandler struct {
+        trainingService *training.Service
+}
+
+// NewTrainingHandler creates a new training handler
+func NewTrainingHandler(trainingService *training.Service) *TrainingHandler <span class="cov8" title="1">{
+        return &amp;TrainingHandler{
+                trainingService: trainingService,
+        }
+}</span>
+
+// RegisterRoutes registers training data routes
+func (h *TrainingHandler) RegisterRoutes(r *gin.RouterGroup) <span class="cov0" title="0">{
+        trainingGroup := r.Group("/training-data")
+        </span><span class="cov0" title="0">{
+                trainingGroup.POST("", h.SubmitTrainingData)                // Submit training data
+                trainingGroup.GET("", h.GetTrainingData)                    // Retrieve training data
+                trainingGroup.POST("/enhanced", h.SubmitEnhancedData)       // Submit enhanced training data
+                trainingGroup.GET("/enhanced", h.GetEnhancedData)           // Retrieve enhanced training data
+                trainingGroup.GET("/stats", h.GetTrainingStats)             // Training statistics
+                trainingGroup.GET("/suggestions", h.GetTrainingSuggestions) // Training suggestions
+        }</span>
+}
+
+// SubmitTrainingData handles POST /training-data
+func (h *TrainingHandler) SubmitTrainingData(c *gin.Context) <span class="cov8" title="1">{
+        var req training.TrainingData
+
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov8" title="1">{
+                logrus.WithError(err).Error("Failed to bind training data request")
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "success": false,
+                        "error":   "Invalid request format",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        // Extract user ID from context (set by auth middleware)
+        <span class="cov8" title="1">userID, exists := c.Get("user_id")
+        if exists </span><span class="cov0" title="0">{
+                if uid, ok := userID.(string); ok </span><span class="cov0" title="0">{
+                        req.UserID = uid
+                }</span>
+        }
+
+        // Submit training data
+        <span class="cov8" title="1">if err := h.trainingService.SubmitTrainingData(c.Request.Context(), &amp;req); err != nil </span><span class="cov8" title="1">{
+                logrus.WithError(err).Error("Failed to submit training data")
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "success": false,
+                        "error":   "Failed to submit training data",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{
+                "success": true,
+                "message": "Training data submitted successfully",
+                "data": gin.H{
+                        "id":        req.ID,
+                        "status":    req.Status,
+                        "timestamp": req.Timestamp,
+                },
+        })</span>
+}
+
+// GetTrainingData handles GET /training-data
+func (h *TrainingHandler) GetTrainingData(c *gin.Context) <span class="cov8" title="1">{
+        // Parse query parameters
+        req := &amp;training.TrainingDataRequest{}
+
+        // Extract user ID from context
+        userID, exists := c.Get("user_id")
+        if exists </span><span class="cov0" title="0">{
+                if uid, ok := userID.(string); ok </span><span class="cov0" title="0">{
+                        req.UserID = uid
+                }</span>
+        }
+
+        // Parse optional parameters
+        <span class="cov8" title="1">if sessionID := c.Query("session_id"); sessionID != "" </span><span class="cov0" title="0">{
+                req.SessionID = sessionID
+        }</span>
+        <span class="cov8" title="1">if serviceType := c.Query("service_type"); serviceType != "" </span><span class="cov0" title="0">{
+                req.ServiceType = serviceType
+        }</span>
+        <span class="cov8" title="1">if status := c.Query("status"); status != "" </span><span class="cov0" title="0">{
+                req.Status = training.TrainingStatus(status)
+        }</span>
+
+        // Parse date parameters
+        <span class="cov8" title="1">if startDate := c.Query("start_date"); startDate != "" </span><span class="cov0" title="0">{
+                if parsed, err := time.Parse("2006-01-02", startDate); err == nil </span><span class="cov0" title="0">{
+                        req.StartDate = &amp;parsed
+                }</span>
+        }
+        <span class="cov8" title="1">if endDate := c.Query("end_date"); endDate != "" </span><span class="cov0" title="0">{
+                if parsed, err := time.Parse("2006-01-02", endDate); err == nil </span><span class="cov0" title="0">{
+                        req.EndDate = &amp;parsed
+                }</span>
+        }
+
+        // Parse pagination parameters
+        <span class="cov8" title="1">if limit := c.Query("limit"); limit != "" </span><span class="cov8" title="1">{
+                if parsed, err := strconv.Atoi(limit); err == nil &amp;&amp; parsed &gt; 0 </span><span class="cov8" title="1">{
+                        req.Limit = parsed
+                }</span>
+        }
+        <span class="cov8" title="1">if req.Limit == 0 </span><span class="cov0" title="0">{
+                req.Limit = 50 // default limit
+        }</span>
+
+        <span class="cov8" title="1">if offset := c.Query("offset"); offset != "" </span><span class="cov0" title="0">{
+                if parsed, err := strconv.Atoi(offset); err == nil &amp;&amp; parsed &gt;= 0 </span><span class="cov0" title="0">{
+                        req.Offset = parsed
+                }</span>
+        }
+
+        // Parse quality filter
+        <span class="cov8" title="1">if minQuality := c.Query("min_quality"); minQuality != "" </span><span class="cov0" title="0">{
+                if parsed, err := strconv.ParseFloat(minQuality, 64); err == nil </span><span class="cov0" title="0">{
+                        req.MinQuality = parsed
+                }</span>
+        }
+
+        // Get training data
+        <span class="cov8" title="1">response, err := h.trainingService.GetTrainingData(c.Request.Context(), req)
+        if err != nil </span><span class="cov8" title="1">{
+                logrus.WithError(err).Error("Failed to get training data")
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "success": false,
+                        "error":   "Failed to retrieve training data",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{
+                "success": true,
+                "data":    response.Data,
+                "pagination": gin.H{
+                        "total":     response.Total,
+                        "page":      response.Page,
+                        "page_size": response.PageSize,
+                        "has_more":  response.HasMore,
+                },
+        })</span>
+}
+
+// SubmitEnhancedData handles POST /training-data/enhanced
+func (h *TrainingHandler) SubmitEnhancedData(c *gin.Context) <span class="cov0" title="0">{
+        var req training.TrainingData
+
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Error("Failed to bind enhanced training data request")
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "success": false,
+                        "error":   "Invalid request format",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        // Extract user ID from context
+        <span class="cov0" title="0">userID, exists := c.Get("user_id")
+        if exists </span><span class="cov0" title="0">{
+                if uid, ok := userID.(string); ok </span><span class="cov0" title="0">{
+                        req.UserID = uid
+                }</span>
+        }
+
+        // Mark as enhanced mode in metadata
+        <span class="cov0" title="0">if !req.Metadata.EnhancementMode </span><span class="cov0" title="0">{
+                req.Metadata.EnhancementMode = true
+        }</span>
+
+        // Submit enhanced training data
+        <span class="cov0" title="0">if err := h.trainingService.SubmitTrainingData(c.Request.Context(), &amp;req); err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Error("Failed to submit enhanced training data")
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "success": false,
+                        "error":   "Failed to submit enhanced training data",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{
+                "success": true,
+                "message": "Enhanced training data submitted successfully",
+                "data": gin.H{
+                        "id":               req.ID,
+                        "status":           req.Status,
+                        "timestamp":        req.Timestamp,
+                        "enhancement_mode": true,
+                },
+        })</span>
+}
+
+// GetEnhancedData handles GET /training-data/enhanced
+func (h *TrainingHandler) GetEnhancedData(c *gin.Context) <span class="cov0" title="0">{
+        // Parse query parameters similar to GetTrainingData
+        req := &amp;training.TrainingDataRequest{}
+
+        // Extract user ID from context
+        userID, exists := c.Get("user_id")
+        if exists </span><span class="cov0" title="0">{
+                if uid, ok := userID.(string); ok </span><span class="cov0" title="0">{
+                        req.UserID = uid
+                }</span>
+        }
+
+        // Parse parameters (similar to GetTrainingData)
+        <span class="cov0" title="0">if sessionID := c.Query("session_id"); sessionID != "" </span><span class="cov0" title="0">{
+                req.SessionID = sessionID
+        }</span>
+        <span class="cov0" title="0">if serviceType := c.Query("service_type"); serviceType != "" </span><span class="cov0" title="0">{
+                req.ServiceType = serviceType
+        }</span>
+
+        // Parse pagination
+        <span class="cov0" title="0">if limit := c.Query("limit"); limit != "" </span><span class="cov0" title="0">{
+                if parsed, err := strconv.Atoi(limit); err == nil &amp;&amp; parsed &gt; 0 </span><span class="cov0" title="0">{
+                        req.Limit = parsed
+                }</span>
+        }
+        <span class="cov0" title="0">if req.Limit == 0 </span><span class="cov0" title="0">{
+                req.Limit = 50
+        }</span>
+
+        <span class="cov0" title="0">if offset := c.Query("offset"); offset != "" </span><span class="cov0" title="0">{
+                if parsed, err := strconv.Atoi(offset); err == nil &amp;&amp; parsed &gt;= 0 </span><span class="cov0" title="0">{
+                        req.Offset = parsed
+                }</span>
+        }
+
+        // Get enhanced training data
+        <span class="cov0" title="0">response, err := h.trainingService.GetTrainingData(c.Request.Context(), req)
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Error("Failed to get enhanced training data")
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "success": false,
+                        "error":   "Failed to retrieve enhanced training data",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        // Filter for enhanced data only
+        <span class="cov0" title="0">enhancedData := make([]training.TrainingData, 0)
+        for _, item := range response.Data </span><span class="cov0" title="0">{
+                if item.Metadata.EnhancementMode </span><span class="cov0" title="0">{
+                        enhancedData = append(enhancedData, item)
+                }</span>
+        }
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{
+                "success": true,
+                "data":    enhancedData,
+                "pagination": gin.H{
+                        "total":     len(enhancedData),
+                        "page":      response.Page,
+                        "page_size": response.PageSize,
+                        "has_more":  len(enhancedData) == response.PageSize,
+                },
+        })</span>
+}
+
+// GetTrainingStats handles GET /training-data/stats
+func (h *TrainingHandler) GetTrainingStats(c *gin.Context) <span class="cov8" title="1">{
+        stats, err := h.trainingService.GetTrainingStats(c.Request.Context())
+        if err != nil </span><span class="cov8" title="1">{
+                logrus.WithError(err).Error("Failed to get training stats")
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "success": false,
+                        "error":   "Failed to retrieve training statistics",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        // Add service performance stats
+        <span class="cov0" title="0">serviceStats := h.trainingService.GetServiceStats()
+
+        c.JSON(http.StatusOK, gin.H{
+                "success": true,
+                "data":    stats,
+                "service_performance": gin.H{
+                        "total_submissions":       serviceStats.TotalSubmissions,
+                        "successful_inserts":      serviceStats.SuccessfulInserts,
+                        "failed_inserts":          serviceStats.FailedInserts,
+                        "cache_hits":              serviceStats.CacheHits,
+                        "cache_misses":            serviceStats.CacheMisses,
+                        "average_processing_time": serviceStats.AverageProcessingTime,
+                        "last_updated":            serviceStats.LastUpdated,
+                },
+        })</span>
+}
+
+// GetTrainingSuggestions handles GET /training-data/suggestions
+func (h *TrainingHandler) GetTrainingSuggestions(c *gin.Context) <span class="cov0" title="0">{
+        suggestions, err := h.trainingService.GetTrainingSuggestions(c.Request.Context())
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Error("Failed to get training suggestions")
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "success": false,
+                        "error":   "Failed to retrieve training suggestions",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{
+                "success": true,
+                "data":    suggestions.Suggestions,
+                "meta": gin.H{
+                        "total":     suggestions.Total,
+                        "generated": suggestions.Generated,
+                },
+        })</span>
+}
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package handlers
+
+import (
+        "net/http"
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/sirupsen/logrus"
+
+        "selly-backend/internal/services/database"
+        "selly-backend/internal/services/eventbus"
+)
+
+// UserHandler handles user-related endpoints with event-driven architecture
+type UserHandler struct {
+        database *database.Service
+        eventBus eventbus.EventBusInterface
+}
+
+// NewUserHandler creates a new user handler with event bus integration
+func NewUserHandler(database *database.Service, eventBus eventbus.EventBusInterface) *UserHandler <span class="cov0" title="0">{
+        return &amp;UserHandler{
+                database: database,
+                eventBus: eventBus,
+        }
+}</span>
+
+// CreateUser handles POST /users - Create a new user with event publishing
+func (h *UserHandler) CreateUser(c *gin.Context) <span class="cov0" title="0">{
+        startTime := time.Now()
+
+        // Parse request
+        var req CreateUserRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Warn("🚫 Invalid user creation request format")
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "error":   "Invalid request format",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        // Validate required fields
+        <span class="cov0" title="0">if req.Email == "" || req.Name == "" </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "error": "Email and name are required",
+                })
+                return
+        }</span>
+
+        // Create user in database
+        <span class="cov0" title="0">user := &amp;database.User{
+                ID:        generateUserID(),
+                Email:     req.Email,
+                Name:      req.Name,
+                Role:      "user",
+                CreatedAt: time.Now(),
+                UpdatedAt: time.Now(),
+        }
+
+        // Store in database (this would be real Supabase integration)
+        err := h.database.CreateUser(user)
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Error("❌ Failed to create user in database")
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "error": "Failed to create user",
+                })
+                return
+        }</span>
+
+        // Publish user creation event
+        <span class="cov0" title="0">event := eventbus.NewEvent(eventbus.EventTypeDataCreated, map[string]interface{}{
+                "entity_type": "user",
+                "entity_id":   user.ID,
+                "data":        user,
+                "operation":   "create",
+                "timestamp":   time.Now(),
+        })
+
+        if err := h.eventBus.Publish(c.Request.Context(), event); err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Warn("⚠️ Failed to publish user creation event")
+                // Don't fail the request, just log the warning
+        }</span>
+
+        // Log performance metrics
+        <span class="cov0" title="0">duration := time.Since(startTime)
+        logrus.WithFields(logrus.Fields{
+                "user_id":   user.ID,
+                "email":     user.Email,
+                "duration":  duration,
+                "operation": "create_user",
+        }).Info("✅ User created successfully")
+
+        c.JSON(http.StatusCreated, gin.H{
+                "message": "User created successfully",
+                "user": gin.H{
+                        "id":    user.ID,
+                        "email": user.Email,
+                        "name":  user.Name,
+                        "role":  user.Role,
+                },
+        })</span>
+}
+
+// UpdateUser handles PUT /users/:id - Update user with event publishing
+func (h *UserHandler) UpdateUser(c *gin.Context) <span class="cov0" title="0">{
+        startTime := time.Now()
+        userID := c.Param("id")
+
+        if userID == "" </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "error": "User ID is required",
+                })
+                return
+        }</span>
+
+        // Parse request
+        <span class="cov0" title="0">var req UpdateUserRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Warn("🚫 Invalid user update request format")
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "error":   "Invalid request format",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        // Get existing user
+        <span class="cov0" title="0">existingUser, err := h.database.GetUser(userID)
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Error("❌ Failed to get user from database")
+                c.JSON(http.StatusNotFound, gin.H{
+                        "error": "User not found",
+                })
+                return
+        }</span>
+
+        // Store original for change tracking
+        <span class="cov0" title="0">originalUser := *existingUser
+
+        // Update user fields
+        changes := make(map[string]interface{})
+        if req.Name != "" &amp;&amp; req.Name != existingUser.Name </span><span class="cov0" title="0">{
+                changes["name"] = map[string]interface{}{
+                        "old": existingUser.Name,
+                        "new": req.Name,
+                }
+                existingUser.Name = req.Name
+        }</span>
+        
+        <span class="cov0" title="0">if req.Email != "" &amp;&amp; req.Email != existingUser.Email </span><span class="cov0" title="0">{
+                changes["email"] = map[string]interface{}{
+                        "old": existingUser.Email,
+                        "new": req.Email,
+                }
+                existingUser.Email = req.Email
+        }</span>
+
+        <span class="cov0" title="0">existingUser.UpdatedAt = time.Now()
+
+        // Update in database
+        err = h.database.UpdateUser(existingUser)
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Error("❌ Failed to update user in database")
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "error": "Failed to update user",
+                })
+                return
+        }</span>
+
+        // Publish user update event
+        <span class="cov0" title="0">event := eventbus.NewEvent(eventbus.EventTypeDataUpdated, map[string]interface{}{
+                "entity_type": "user",
+                "entity_id":   userID,
+                "changes":     changes,
+                "data":        existingUser,
+                "original":    originalUser,
+                "operation":   "update",
+                "timestamp":   time.Now(),
+        })
+
+        if err := h.eventBus.Publish(c.Request.Context(), event); err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Warn("⚠️ Failed to publish user update event")
+        }</span>
+
+        // Log performance metrics
+        <span class="cov0" title="0">duration := time.Since(startTime)
+        logrus.WithFields(logrus.Fields{
+                "user_id":     userID,
+                "changes":     len(changes),
+                "duration":    duration,
+                "operation":   "update_user",
+        }).Info("✅ User updated successfully")
+
+        c.JSON(http.StatusOK, gin.H{
+                "message": "User updated successfully",
+                "user": gin.H{
+                        "id":    existingUser.ID,
+                        "email": existingUser.Email,
+                        "name":  existingUser.Name,
+                        "role":  existingUser.Role,
+                },
+                "changes": changes,
+        })</span>
+}
+
+// GetUser handles GET /users/:id - Get user by ID
+func (h *UserHandler) GetUser(c *gin.Context) <span class="cov0" title="0">{
+        userID := c.Param("id")
+
+        if userID == "" </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "error": "User ID is required",
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">user, err := h.database.GetUser(userID)
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.WithError(err).Error("❌ Failed to get user from database")
+                c.JSON(http.StatusNotFound, gin.H{
+                        "error": "User not found",
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{
+                "user": gin.H{
+                        "id":         user.ID,
+                        "email":      user.Email,
+                        "name":       user.Name,
+                        "role":       user.Role,
+                        "created_at": user.CreatedAt,
+                        "updated_at": user.UpdatedAt,
+                },
+        })</span>
+}
+
+// Request/Response types
+type CreateUserRequest struct {
+        Email string `json:"email" binding:"required"`
+        Name  string `json:"name" binding:"required"`
+}
+
+type UpdateUserRequest struct {
+        Email string `json:"email"`
+        Name  string `json:"name"`
+}
+
+// generateUserID generates a unique user ID
+func generateUserID() string <span class="cov0" title="0">{
+        return "user_" + time.Now().Format("20060102150405") + "_" + generateShortID()
+}</span>
+
+// generateShortID generates a short random ID
+func generateShortID() string <span class="cov0" title="0">{
+        const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+        b := make([]byte, 8)
+        for i := range b </span><span class="cov0" title="0">{
+                b[i] = charset[time.Now().UnixNano()%int64(len(charset))]
+        }</span>
+        <span class="cov0" title="0">return string(b)</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
