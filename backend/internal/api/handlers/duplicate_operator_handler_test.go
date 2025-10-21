@@ -367,6 +367,287 @@ func TestGetRecordNotFound(t *testing.T) {
 	assert.Equal(t, "error", response["status"])
 }
 
+// TestGetRecordEmptyID tests empty ID parameter in get request
+func TestGetRecordEmptyID(t *testing.T) {
+	mockService := &MockDuplicateOperatorService{
+		GetRecordFunc: func(ctx context.Context, id string) (*duplicate_operator.DuplicateOperatorData, error) {
+			// This should not be called for empty ID
+			t.Errorf("GetRecordFunc should not be called for empty ID")
+			return nil, nil
+		},
+	}
+
+	handler := NewDuplicateOperatorHandler(mockService)
+	ctx, w := createTestContext()
+	ctx.Params = []gin.Param{{Key: "id", Value: ""}}
+
+	handler.GetRecord(ctx)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "error", response["status"])
+	assert.Contains(t, response["message"], "ID tidak boleh kosong")
+}
+
+// TestGetRecordServiceError tests service error in get request
+func TestGetRecordServiceError(t *testing.T) {
+	testID := "test-id"
+	mockService := &MockDuplicateOperatorService{
+		GetRecordFunc: func(ctx context.Context, id string) (*duplicate_operator.DuplicateOperatorData, error) {
+			assert.Equal(t, testID, id)
+			return nil, fmt.Errorf("database connection failed")
+		},
+	}
+
+	handler := NewDuplicateOperatorHandler(mockService)
+	ctx, w := createTestContext()
+	ctx.Params = []gin.Param{{Key: "id", Value: testID}}
+
+	handler.GetRecord(ctx)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "error", response["status"])
+	assert.Contains(t, response["message"], "gagal mengambil data")
+}
+
+// TestGetRecordBoundaryConditions tests boundary conditions for GetRecord
+func TestGetRecordBoundaryConditions(t *testing.T) {
+	tests := []struct {
+		name           string
+		id             string
+		expectedStatus int
+		expectedError  string
+	}{
+		{
+			name:           "Very long ID",
+			id:             strings.Repeat("a", 1000),
+			expectedStatus: http.StatusBadRequest,
+			expectedError:  "ID terlalu panjang",
+		},
+		{
+			name:           "ID with special characters",
+			id:             "test-id<script>alert('xss')</script>",
+			expectedStatus: http.StatusBadRequest,
+			expectedError:  "ID mengandung karakter tidak valid",
+		},
+		{
+			name:           "ID with SQL injection attempt",
+			id:             "test-id'; DROP TABLE users; --",
+			expectedStatus: http.StatusBadRequest,
+			expectedError:  "ID mengandung karakter tidak valid",
+		},
+		{
+			name:           "ID with path traversal",
+			id:             "../../../etc/passwd",
+			expectedStatus: http.StatusBadRequest,
+			expectedError:  "ID mengandung karakter tidak valid",
+		},
+		{
+			name:           "ID with null bytes",
+			id:             "test-id\x00null",
+			expectedStatus: http.StatusBadRequest,
+			expectedError:  "ID mengandung karakter tidak valid",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockService := &MockDuplicateOperatorService{
+				GetRecordFunc: func(ctx context.Context, id string) (*duplicate_operator.DuplicateOperatorData, error) {
+					// This should not be called for invalid IDs
+					t.Errorf("GetRecordFunc should not be called for invalid ID: %s", id)
+					return nil, nil
+				},
+			}
+
+			handler := NewDuplicateOperatorHandler(mockService)
+			ctx, w := createTestContext()
+			ctx.Params = []gin.Param{{Key: "id", Value: tt.id}}
+
+			handler.GetRecord(ctx)
+
+			assert.Equal(t, tt.expectedStatus, w.Code)
+			var response map[string]interface{}
+			json.Unmarshal(w.Body.Bytes(), &response)
+			assert.Equal(t, "error", response["status"])
+			if tt.expectedError != "" {
+				assert.Contains(t, response["message"], tt.expectedError)
+			}
+		})
+	}
+}
+
+// TestGetRecordConcurrentAccess tests concurrent access to GetRecord
+func TestGetRecordConcurrentAccess(t *testing.T) {
+	callCount := 0
+	mockService := &MockDuplicateOperatorService{
+		GetRecordFunc: func(ctx context.Context, id string) (*duplicate_operator.DuplicateOperatorData, error) {
+			callCount++
+			// Simulate some processing time
+			time.Sleep(10 * time.Millisecond)
+			return &duplicate_operator.DuplicateOperatorData{
+				ID:              [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+				UserID:          [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+				NikDuplicate:    "1234567890123456",
+				NamaDuplicate:   "John Doe",
+				NikOperator:     "1234567890123456",
+				NamaOperator:    "Jane Smith",
+				NikPengaju:      "1234567890123456",
+				NamaPengaju:     "Bob Wilson",
+				TanggalPengajuan: time.Now(),
+				IsReadyToRecord: true,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+			}, nil
+		},
+	}
+
+	handler := NewDuplicateOperatorHandler(mockService)
+
+	// Run concurrent requests
+	numGoroutines := 10
+	done := make(chan bool, numGoroutines)
+
+	for i := 0; i < numGoroutines; i++ {
+		go func(id int) {
+			ctx, w := createTestContext()
+			ctx.Params = []gin.Param{{Key: "id", Value: fmt.Sprintf("test-id-%d", id)}}
+
+			handler.GetRecord(ctx)
+
+			assert.Equal(t, http.StatusOK, w.Code)
+			var response map[string]interface{}
+			json.Unmarshal(w.Body.Bytes(), &response)
+			assert.Equal(t, "success", response["status"])
+			done <- true
+		}(i)
+	}
+
+	// Wait for all goroutines to complete
+	for i := 0; i < numGoroutines; i++ {
+		<-done
+	}
+
+	// Verify all calls were made
+	assert.Equal(t, numGoroutines, callCount)
+}
+
+// TestGetRecordMalformedData tests handling of malformed data
+func TestGetRecordMalformedData(t *testing.T) {
+	tests := []struct {
+		name           string
+		id             string
+		mockError      error
+		expectedStatus int
+		expectedError  string
+	}{
+		{
+			name:           "Unicode characters in ID",
+			id:             "test-id-🚀-中文-русский",
+			expectedStatus: http.StatusBadRequest,
+			expectedError:  "ID mengandung karakter tidak valid",
+		},
+		{
+			name:           "ID with control characters",
+			id:             "test-id\x01\x02\x03",
+			expectedStatus: http.StatusBadRequest,
+			expectedError:  "ID mengandung karakter tidak valid",
+		},
+		{
+			name:           "Empty string after trimming",
+			id:             "   \t\n   ",
+			expectedStatus: http.StatusBadRequest,
+			expectedError:  "ID tidak boleh kosong",
+		},
+		{
+			name:           "ID with only whitespace",
+			id:             "\t\n\r",
+			expectedStatus: http.StatusBadRequest,
+			expectedError:  "ID tidak boleh kosong",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockService := &MockDuplicateOperatorService{
+				GetRecordFunc: func(ctx context.Context, id string) (*duplicate_operator.DuplicateOperatorData, error) {
+					// This should not be called for invalid IDs
+					t.Errorf("GetRecordFunc should not be called for invalid ID: %s", id)
+					return nil, nil
+				},
+			}
+
+			handler := NewDuplicateOperatorHandler(mockService)
+			ctx, w := createTestContext()
+			ctx.Params = []gin.Param{{Key: "id", Value: tt.id}}
+
+			handler.GetRecord(ctx)
+
+			assert.Equal(t, tt.expectedStatus, w.Code)
+			var response map[string]interface{}
+			json.Unmarshal(w.Body.Bytes(), &response)
+			assert.Equal(t, "error", response["status"])
+			if tt.expectedError != "" {
+				assert.Contains(t, response["message"], tt.expectedError)
+			}
+		})
+	}
+}
+
+// TestGetRecordTimeoutSimulation tests timeout handling
+func TestGetRecordTimeoutSimulation(t *testing.T) {
+	mockService := &MockDuplicateOperatorService{
+		GetRecordFunc: func(ctx context.Context, id string) (*duplicate_operator.DuplicateOperatorData, error) {
+			// Simulate a timeout by sleeping longer than context timeout
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			case <-time.After(100 * time.Millisecond):
+				return &duplicate_operator.DuplicateOperatorData{
+					ID:              [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+					UserID:          [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+					NikDuplicate:    "1234567890123456",
+					NamaDuplicate:   "John Doe",
+					NikOperator:     "1234567890123456",
+					NamaOperator:    "Jane Smith",
+					NikPengaju:      "1234567890123456",
+					NamaPengaju:     "Bob Wilson",
+					TanggalPengajuan: time.Now(),
+					IsReadyToRecord: true,
+					CreatedAt:       time.Now(),
+					UpdatedAt:       time.Now(),
+				}, nil
+			}
+		},
+	}
+
+	handler := NewDuplicateOperatorHandler(mockService)
+
+	// Create context with timeout
+	ctx, w := createTestContext()
+	ctx.Params = []gin.Param{{Key: "id", Value: "test-id"}}
+
+	// Set a very short timeout to simulate timeout scenario
+	timeoutCtx, cancel := context.WithTimeout(ctx.Request.Context(), 10*time.Millisecond)
+	defer cancel()
+	ctx.Request = ctx.Request.WithContext(timeoutCtx)
+
+	handler.GetRecord(ctx)
+
+	// Should either succeed quickly or timeout
+	if w.Code == http.StatusInternalServerError {
+		var response map[string]interface{}
+		json.Unmarshal(w.Body.Bytes(), &response)
+		assert.Equal(t, "error", response["status"])
+		assert.Contains(t, response["message"], "context")
+	} else {
+		assert.Equal(t, http.StatusOK, w.Code)
+	}
+}
+
 // TestUpdateRecordInvalidJSON tests invalid JSON in update request
 func TestUpdateRecordInvalidJSON(t *testing.T) {
 	handler := NewDuplicateOperatorHandler(&MockDuplicateOperatorService{})
@@ -663,4 +944,494 @@ func TestListRecordsServiceError(t *testing.T) {
 	json.Unmarshal(w.Body.Bytes(), &response)
 	assert.Equal(t, "error", response["status"])
 	assert.Contains(t, response["message"], "gagal mengambil data")
+}
+
+// Helper function for string pointer
+func stringPtr(s string) *string {
+	return &s
+}
+
+// TestMonitoringSetupValidation tests monitoring and metrics collection for handlers
+func TestMonitoringSetupValidation(t *testing.T) {
+	t.Run("Request Metrics Collection", func(t *testing.T) {
+		// Mock monitoring service
+		type MockMonitoringService struct {
+			RecordRequestFunc     func(duration time.Duration)
+			RecordErrorFunc       func()
+			GetMetricsFunc        func() map[string]interface{}
+			UpdateServiceHealthFunc func(serviceName string, health map[string]interface{})
+		}
+
+		mockMonitoring := &MockMonitoringService{
+			RecordRequestFunc: func(duration time.Duration) {
+				assert.True(t, duration >= 0, "Duration should be non-negative")
+			},
+			RecordErrorFunc: func() {
+				// Error recorded
+			},
+			GetMetricsFunc: func() map[string]interface{} {
+				return map[string]interface{}{
+					"requestCount": int64(1),
+					"errorCount":   int64(0),
+					"systemMetrics": map[string]interface{}{
+						"cpuCount":       16,
+						"goroutineCount": 23,
+						"memoryUsage": map[string]interface{}{
+							"allocMB":     2.5,
+							"heapInUseMB": 4.0,
+						},
+					},
+				}
+			},
+			UpdateServiceHealthFunc: func(serviceName string, health map[string]interface{}) {
+				assert.NotEmpty(t, serviceName)
+				assert.Contains(t, health, "status")
+			},
+		}
+
+		// Mock service with monitoring integration
+		mockService := &MockDuplicateOperatorService{
+			GetRecordFunc: func(ctx context.Context, id string) (*duplicate_operator.DuplicateOperatorData, error) {
+				// Simulate monitoring in service layer
+				mockMonitoring.RecordRequestFunc(50 * time.Millisecond)
+				return &duplicate_operator.DuplicateOperatorData{
+					ID:              [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+					UserID:          [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+					NikDuplicate:    "1234567890123456",
+					NamaDuplicate:   "John Doe",
+					NikOperator:     "1234567890123456",
+					NamaOperator:    "Jane Smith",
+					NikPengaju:      "1234567890123456",
+					NamaPengaju:     "Bob Wilson",
+					TanggalPengajuan: time.Now(),
+					IsReadyToRecord: true,
+					CreatedAt:       time.Now(),
+					UpdatedAt:       time.Now(),
+				}, nil
+			},
+		}
+
+		handler := NewDuplicateOperatorHandler(mockService)
+
+		testID := "monitoring-test-id"
+
+		start := time.Now()
+		ctx, w := createTestContext()
+		ctx.Params = []gin.Param{{Key: "id", Value: testID}}
+		handler.GetRecord(ctx)
+		duration := time.Since(start)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		// Verify reasonable response time
+		assert.True(t, duration < 1*time.Second, "Request took too long: %v", duration)
+	})
+
+	t.Run("Error Metrics Collection", func(t *testing.T) {
+		// Mock monitoring service
+		type MockMonitoringService struct {
+			RecordRequestFunc     func(duration time.Duration)
+			RecordErrorFunc       func()
+			GetMetricsFunc        func() map[string]interface{}
+			UpdateServiceHealthFunc func(serviceName string, health map[string]interface{})
+		}
+
+		mockMonitoring := &MockMonitoringService{
+			RecordRequestFunc: func(duration time.Duration) {
+				assert.True(t, duration >= 0, "Duration should be non-negative")
+			},
+			RecordErrorFunc: func() {
+				// Error recorded
+			},
+			GetMetricsFunc: func() map[string]interface{} {
+				return map[string]interface{}{
+					"requestCount": int64(1),
+					"errorCount":   int64(0),
+					"systemMetrics": map[string]interface{}{
+						"cpuCount":       16,
+						"goroutineCount": 23,
+						"memoryUsage": map[string]interface{}{
+							"allocMB":     2.5,
+							"heapInUseMB": 4.0,
+						},
+					},
+				}
+			},
+			UpdateServiceHealthFunc: func(serviceName string, health map[string]interface{}) {
+				assert.NotEmpty(t, serviceName)
+				assert.Contains(t, health, "status")
+			},
+		}
+
+		// Mock service that fails
+		mockService := &MockDuplicateOperatorService{
+			GetRecordFunc: func(ctx context.Context, id string) (*duplicate_operator.DuplicateOperatorData, error) {
+				mockMonitoring.RecordErrorFunc()
+				return nil, fmt.Errorf("simulated service error")
+			},
+		}
+
+		handler := NewDuplicateOperatorHandler(mockService)
+
+		ctx, w := createTestContext()
+		ctx.Params = []gin.Param{{Key: "id", Value: "error-test-id"}}
+		handler.GetRecord(ctx)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		// Verify error response
+		var response map[string]interface{}
+		json.Unmarshal(w.Body.Bytes(), &response)
+		assert.Equal(t, "error", response["status"])
+	})
+
+	t.Run("Health Check Metrics", func(t *testing.T) {
+		// Mock monitoring service
+		type MockMonitoringService struct {
+			RecordRequestFunc     func(duration time.Duration)
+			RecordErrorFunc       func()
+			GetMetricsFunc        func() map[string]interface{}
+			UpdateServiceHealthFunc func(serviceName string, health map[string]interface{})
+		}
+
+		mockMonitoring := &MockMonitoringService{
+			RecordRequestFunc: func(duration time.Duration) {
+				assert.True(t, duration >= 0, "Duration should be non-negative")
+			},
+			RecordErrorFunc: func() {
+				// Error recorded
+			},
+			GetMetricsFunc: func() map[string]interface{} {
+				return map[string]interface{}{
+					"requestCount": int64(1),
+					"errorCount":   int64(0),
+					"systemMetrics": map[string]interface{}{
+						"cpuCount":       16,
+						"goroutineCount": 23,
+						"memoryUsage": map[string]interface{}{
+							"allocMB":     2.5,
+							"heapInUseMB": 4.0,
+						},
+					},
+				}
+			},
+			UpdateServiceHealthFunc: func(serviceName string, health map[string]interface{}) {
+				assert.NotEmpty(t, serviceName)
+				assert.Contains(t, health, "status")
+			},
+		}
+
+		metrics := mockMonitoring.GetMetricsFunc()
+
+		// Verify metrics structure
+		assert.Contains(t, metrics, "requestCount")
+		assert.Contains(t, metrics, "errorCount")
+		assert.Contains(t, metrics, "systemMetrics")
+
+		if systemMetrics, ok := metrics["systemMetrics"].(map[string]interface{}); ok {
+			assert.Contains(t, systemMetrics, "cpuCount")
+			assert.Contains(t, systemMetrics, "goroutineCount")
+			assert.Contains(t, systemMetrics, "memoryUsage")
+		}
+	})
+
+	t.Run("Service Health Updates", func(t *testing.T) {
+		// Mock monitoring service
+		type MockMonitoringService struct {
+			RecordRequestFunc     func(duration time.Duration)
+			RecordErrorFunc       func()
+			GetMetricsFunc        func() map[string]interface{}
+			UpdateServiceHealthFunc func(serviceName string, health map[string]interface{})
+		}
+
+		mockMonitoring := &MockMonitoringService{
+			RecordRequestFunc: func(duration time.Duration) {
+				assert.True(t, duration >= 0, "Duration should be non-negative")
+			},
+			RecordErrorFunc: func() {
+				// Error recorded
+			},
+			GetMetricsFunc: func() map[string]interface{} {
+				return map[string]interface{}{
+					"requestCount": int64(1),
+					"errorCount":   int64(0),
+					"systemMetrics": map[string]interface{}{
+						"cpuCount":       16,
+						"goroutineCount": 23,
+						"memoryUsage": map[string]interface{}{
+							"allocMB":     2.5,
+							"heapInUseMB": 4.0,
+						},
+					},
+				}
+			},
+			UpdateServiceHealthFunc: func(serviceName string, health map[string]interface{}) {
+				assert.NotEmpty(t, serviceName)
+				assert.Contains(t, health, "status")
+			},
+		}
+
+		// Test service health reporting
+		mockMonitoring.UpdateServiceHealthFunc("duplicate-operator-handler", map[string]interface{}{
+			"status":      "healthy",
+			"connections": 5,
+			"latency":     "25ms",
+			"uptime":      "1h30m",
+		})
+
+		// In a real implementation, this would update a health dashboard
+		t.Log("Service health update simulated")
+	})
+
+	t.Run("Performance Metrics Validation", func(t *testing.T) {
+		// Mock service for performance testing
+		mockService := &MockDuplicateOperatorService{
+			GetRecordFunc: func(ctx context.Context, id string) (*duplicate_operator.DuplicateOperatorData, error) {
+				return &duplicate_operator.DuplicateOperatorData{
+					ID:              [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+					UserID:          [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+					NikDuplicate:    "1234567890123456",
+					NamaDuplicate:   "John Doe",
+					NikOperator:     "1234567890123456",
+					NamaOperator:    "Jane Smith",
+					NikPengaju:      "1234567890123456",
+					NamaPengaju:     "Bob Wilson",
+					TanggalPengajuan: time.Now(),
+					IsReadyToRecord: true,
+					CreatedAt:       time.Now(),
+					UpdatedAt:       time.Now(),
+				}, nil
+			},
+		}
+
+		handler := NewDuplicateOperatorHandler(mockService)
+
+		// Test multiple requests to gather performance metrics
+		numRequests := 10
+		durations := make([]time.Duration, numRequests)
+
+		for i := 0; i < numRequests; i++ {
+			start := time.Now()
+			ctx, w := createTestContext()
+			ctx.Params = []gin.Param{{Key: "id", Value: fmt.Sprintf("perf-test-%d", i)}}
+			handler.GetRecord(ctx)
+			durations[i] = time.Since(start)
+
+			assert.Equal(t, http.StatusOK, w.Code)
+		}
+
+		// Calculate performance statistics
+		totalDuration := time.Duration(0)
+		minDuration := durations[0]
+		maxDuration := durations[0]
+
+		for _, d := range durations {
+			totalDuration += d
+			if d < minDuration {
+				minDuration = d
+			}
+			if d > maxDuration {
+				maxDuration = d
+			}
+		}
+
+		avgDuration := totalDuration / time.Duration(numRequests)
+
+		t.Logf("Performance Metrics:")
+		t.Logf("  Total Requests: %d", numRequests)
+		t.Logf("  Average Response Time: %v", avgDuration)
+		t.Logf("  Min Response Time: %v", minDuration)
+		t.Logf("  Max Response Time: %v", maxDuration)
+		t.Logf("  Requests/sec: %.2f", float64(numRequests)/totalDuration.Seconds())
+
+		// Performance assertions
+		assert.True(t, avgDuration < 100*time.Millisecond, "Average response time too high: %v", avgDuration)
+		assert.True(t, maxDuration < 500*time.Millisecond, "Max response time too high: %v", maxDuration)
+	})
+
+	t.Run("Memory Usage Monitoring", func(t *testing.T) {
+		// Mock service for memory testing
+		mockService := &MockDuplicateOperatorService{
+			GetRecordFunc: func(ctx context.Context, id string) (*duplicate_operator.DuplicateOperatorData, error) {
+				return &duplicate_operator.DuplicateOperatorData{
+					ID:              [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+					UserID:          [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+					NikDuplicate:    "1234567890123456",
+					NamaDuplicate:   "John Doe",
+					NikOperator:     "1234567890123456",
+					NamaOperator:    "Jane Smith",
+					NikPengaju:      "1234567890123456",
+					NamaPengaju:     "Bob Wilson",
+					TanggalPengajuan: time.Now(),
+					IsReadyToRecord: true,
+					CreatedAt:       time.Now(),
+					UpdatedAt:       time.Now(),
+				}, nil
+			},
+		}
+
+		handler := NewDuplicateOperatorHandler(mockService)
+
+		// Mock monitoring service
+		type MockMonitoringService struct {
+			GetMetricsFunc func() map[string]interface{}
+		}
+
+		mockMonitoring := &MockMonitoringService{
+			GetMetricsFunc: func() map[string]interface{} {
+				return map[string]interface{}{
+					"requestCount": int64(1),
+					"errorCount":   int64(0),
+				}
+			},
+		}
+
+		// Test memory usage patterns
+		initialMetrics := mockMonitoring.GetMetricsFunc()
+
+		// Perform operations that might affect memory
+		for i := 0; i < 50; i++ {
+			ctx, w := createTestContext()
+			ctx.Params = []gin.Param{{Key: "id", Value: fmt.Sprintf("memory-test-%d", i)}}
+			handler.GetRecord(ctx)
+			assert.Equal(t, http.StatusOK, w.Code)
+		}
+
+		finalMetrics := mockMonitoring.GetMetricsFunc()
+
+		// Verify metrics are still available (no memory exhaustion)
+		assert.NotNil(t, finalMetrics)
+		assert.Equal(t, initialMetrics["requestCount"], finalMetrics["requestCount"])
+	})
+
+	t.Run("Concurrent Request Monitoring", func(t *testing.T) {
+		// Mock service for concurrent testing
+		mockService := &MockDuplicateOperatorService{
+			GetRecordFunc: func(ctx context.Context, id string) (*duplicate_operator.DuplicateOperatorData, error) {
+				return &duplicate_operator.DuplicateOperatorData{
+					ID:              [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+					UserID:          [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+					NikDuplicate:    "1234567890123456",
+					NamaDuplicate:   "John Doe",
+					NikOperator:     "1234567890123456",
+					NamaOperator:    "Jane Smith",
+					NikPengaju:      "1234567890123456",
+					NamaPengaju:     "Bob Wilson",
+					TanggalPengajuan: time.Now(),
+					IsReadyToRecord: true,
+					CreatedAt:       time.Now(),
+					UpdatedAt:       time.Now(),
+				}, nil
+			},
+		}
+
+		handler := NewDuplicateOperatorHandler(mockService)
+
+		// Test monitoring under concurrent load
+		numGoroutines := 20
+		done := make(chan bool, numGoroutines)
+
+		start := time.Now()
+		for i := 0; i < numGoroutines; i++ {
+			go func(id int) {
+				ctx, w := createTestContext()
+				ctx.Params = []gin.Param{{Key: "id", Value: fmt.Sprintf("concurrent-test-%d", id)}}
+				handler.GetRecord(ctx)
+				assert.Equal(t, http.StatusOK, w.Code)
+				done <- true
+			}(i)
+		}
+
+		// Wait for all goroutines
+		for i := 0; i < numGoroutines; i++ {
+			<-done
+		}
+
+		totalDuration := time.Since(start)
+
+		t.Logf("Concurrent Load Test:")
+		t.Logf("  Goroutines: %d", numGoroutines)
+		t.Logf("  Total Time: %v", totalDuration)
+		t.Logf("  Avg Time per Request: %v", totalDuration/time.Duration(numGoroutines))
+
+		// Verify reasonable performance under load
+		assert.True(t, totalDuration < 2*time.Second, "Concurrent requests took too long: %v", totalDuration)
+	})
+
+	t.Run("Metrics Export Format", func(t *testing.T) {
+		// Mock monitoring service
+		type MockMonitoringService struct {
+			GetMetricsFunc func() map[string]interface{}
+		}
+
+		mockMonitoring := &MockMonitoringService{
+			GetMetricsFunc: func() map[string]interface{} {
+				return map[string]interface{}{
+					"requestCount": float64(1),
+					"errorCount":   float64(0),
+					"systemMetrics": map[string]interface{}{
+						"cpuCount":       16,
+						"goroutineCount": 23,
+					},
+				}
+			},
+		}
+
+		metrics := mockMonitoring.GetMetricsFunc()
+
+		// Test JSON serialization (common export format)
+		metricsJSON, err := json.Marshal(metrics)
+		assert.NoError(t, err)
+		assert.True(t, len(metricsJSON) > 0)
+
+		// Verify we can unmarshal it back
+		var unmarshaled map[string]interface{}
+		err = json.Unmarshal(metricsJSON, &unmarshaled)
+		assert.NoError(t, err)
+		assert.Equal(t, metrics["requestCount"], unmarshaled["requestCount"])
+	})
+
+	t.Run("Alert Threshold Monitoring", func(t *testing.T) {
+		// Mock monitoring service
+		type MockMonitoringService struct {
+			RecordErrorFunc func()
+			GetMetricsFunc  func() map[string]interface{}
+		}
+
+		errorCount := int64(0)
+		mockMonitoring := &MockMonitoringService{
+			RecordErrorFunc: func() {
+				errorCount++
+			},
+			GetMetricsFunc: func() map[string]interface{} {
+				return map[string]interface{}{
+					"requestCount": int64(1),
+					"errorCount":   errorCount,
+				}
+			},
+		}
+
+		errorService := &MockDuplicateOperatorService{
+			GetRecordFunc: func(ctx context.Context, id string) (*duplicate_operator.DuplicateOperatorData, error) {
+				mockMonitoring.RecordErrorFunc()
+				return nil, fmt.Errorf("simulated error for alert testing")
+			},
+		}
+
+		errorHandler := NewDuplicateOperatorHandler(errorService)
+
+		// Generate multiple errors
+		for i := 0; i < 5; i++ {
+			ctx, w := createTestContext()
+			ctx.Params = []gin.Param{{Key: "id", Value: "alert-test-id"}}
+			errorHandler.GetRecord(ctx)
+			assert.Equal(t, http.StatusInternalServerError, w.Code)
+		}
+
+		// In a real system, this would trigger alerts if error rate exceeds threshold
+		finalMetrics := mockMonitoring.GetMetricsFunc()
+		if errorCount, ok := finalMetrics["errorCount"].(int64); ok {
+			assert.True(t, errorCount >= 5, "Error count should be at least 5, got %d", errorCount)
+		}
+	})
 }

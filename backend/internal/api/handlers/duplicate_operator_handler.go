@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"selly-backend/internal/services/duplicate_operator"
 
@@ -78,9 +79,43 @@ func (h *DuplicateOperatorHandler) GetRecord(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"code":    http.StatusBadRequest,
-			"message": "ID parameter is required",
+			"message": "ID tidak boleh kosong",
 		})
 		return
+	}
+
+	// Trim whitespace and check if empty after trimming
+	id = strings.TrimSpace(id)
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "error",
+			"code":    http.StatusBadRequest,
+			"message": "ID tidak boleh kosong",
+		})
+		return
+	}
+
+	// Validate ID length (reasonable upper bound to prevent DoS)
+	if len(id) > 255 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "error",
+			"code":    http.StatusBadRequest,
+			"message": "ID terlalu panjang",
+		})
+		return
+	}
+
+	// Validate ID contains only safe characters (alphanumeric, hyphens, underscores)
+	// Reject potential injection attacks and control characters
+	for _, r := range id {
+		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '-' || r == '_') {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "error",
+				"code":    http.StatusBadRequest,
+				"message": "ID mengandung karakter tidak valid",
+			})
+			return
+		}
 	}
 
 	// Call service
