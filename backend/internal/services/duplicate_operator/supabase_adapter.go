@@ -115,6 +115,26 @@ func (a *SupabaseAdapter) ListRecords(
 		records = append(records, record)
 	}
 
+	// Apply search filter in-memory if search query provided
+	var searchedRecords []DuplicateOperatorData
+	if searchQuery, ok := filters["search"].(string); ok && searchQuery != "" {
+		trimmedQuery := strings.ToLower(strings.TrimSpace(searchQuery))
+		searchedRecords = make([]DuplicateOperatorData, 0)
+		
+		for _, record := range records {
+			// Check if search term matches any searchable field (case-insensitive)
+			if strings.Contains(strings.ToLower(record.NikDuplicate), trimmedQuery) ||
+				strings.Contains(strings.ToLower(record.NikOperator), trimmedQuery) ||
+				strings.Contains(strings.ToLower(record.NamaDuplicate), trimmedQuery) ||
+				strings.Contains(strings.ToLower(record.NamaOperator), trimmedQuery) ||
+				strings.Contains(strings.ToLower(record.NikPengaju), trimmedQuery) ||
+				strings.Contains(strings.ToLower(record.NamaPengaju), trimmedQuery) {
+				searchedRecords = append(searchedRecords, record)
+			}
+		}
+		records = searchedRecords
+	}
+
 	// Get total count with same filters
 	countQuery := a.client.From("duplicate_operator").
 		Select("*", "exact", false)

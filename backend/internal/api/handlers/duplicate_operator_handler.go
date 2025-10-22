@@ -40,6 +40,9 @@ func (h *DuplicateOperatorHandler) ListRecords(c *gin.Context) {
 		}
 	}
 
+	// Get search query
+	search := c.Query("search")
+
 	// Build filters
 	filters := make(map[string]interface{})
 	
@@ -49,6 +52,11 @@ func (h *DuplicateOperatorHandler) ListRecords(c *gin.Context) {
 		} else if status == "not_ready" {
 			filters["is_ready_to_record"] = false
 		}
+	}
+
+	// Pass search query to service
+	if search != "" {
+		filters["search"] = search
 	}
 
 	// Call service
