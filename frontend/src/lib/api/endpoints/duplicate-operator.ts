@@ -58,7 +58,7 @@ class DuplicateOperatorAPI {
       if (params.date_from) queryString.append("date_from", params.date_from);
       if (params.date_to) queryString.append("date_to", params.date_to);
 
-      const url = `${API_PREFIX}/duplicate-operator${
+      const url = `${API_PREFIX}/duplicate-operators${
         queryString.toString() ? `?${queryString.toString()}` : ""
       }`;
 
@@ -80,7 +80,7 @@ class DuplicateOperatorAPI {
     try {
       const response = await axios.get<{
         data: DuplicateOperatorResponse;
-      }>(`${API_PREFIX}/duplicate-operator/${id}`, {
+      }>(`${API_PREFIX}/duplicate-operators/${id}`, {
         headers: this.getHeaders(),
         timeout: 30000,
       });
@@ -100,7 +100,7 @@ class DuplicateOperatorAPI {
     try {
       const response = await axios.post<{
         data: DuplicateOperatorResponse;
-      }>(`${API_PREFIX}/duplicate-operator`, data, {
+      }>(`${API_PREFIX}/duplicate-operators`, data, {
         headers: this.getHeaders(),
         timeout: 30000,
       });
@@ -121,7 +121,7 @@ class DuplicateOperatorAPI {
     try {
       const response = await axios.put<{
         data: DuplicateOperatorResponse;
-      }>(`${API_PREFIX}/duplicate-operator/${id}`, data, {
+      }>(`${API_PREFIX}/duplicate-operators/${id}`, data, {
         headers: this.getHeaders(),
         timeout: 30000,
       });
@@ -137,7 +137,7 @@ class DuplicateOperatorAPI {
    */
   async delete(id: string): Promise<void> {
     try {
-      await axios.delete(`${API_PREFIX}/duplicate-operator/${id}`, {
+      await axios.delete(`${API_PREFIX}/duplicate-operators/${id}`, {
         headers: this.getHeaders(),
         timeout: 30000,
       });
@@ -152,7 +152,7 @@ class DuplicateOperatorAPI {
   async search(query: string): Promise<DuplicateOperatorResponse[]> {
     try {
       const response = await axios.get<DuplicateOperatorListResponse>(
-        `${API_PREFIX}/duplicate-operator?search=${encodeURIComponent(query)}`,
+        `${API_PREFIX}/duplicate-operators/search?q=${encodeURIComponent(query)}`,
         {
           headers: this.getHeaders(),
           timeout: 30000,
