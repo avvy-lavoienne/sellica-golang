@@ -251,6 +251,7 @@ export default function DuplicateOperatorPage() {
       manager.setSearch(query);
       manager.setStatus(filter as "all" | "completed" | "pending");
       manager.setPage(1);
+      await manager.refetch();
     },
     [manager],
   );
@@ -265,6 +266,7 @@ export default function DuplicateOperatorPage() {
   const handlePageChange = useCallback(
     async (page: number) => {
       manager.setPage(page);
+      await manager.refetch();
     },
     [manager],
   );
