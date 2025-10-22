@@ -20,6 +20,11 @@ import EmptyState from "@/components/dashboard/data-rekam/duplicate-operator/Emp
 import LoadingState from "@/components/dashboard/data-rekam/duplicate-operator/LoadingState";
 import ErrorState from "@/components/dashboard/data-rekam/duplicate-operator/ErrorState";
 import Link from "next/link";
+import { useDuplicateOperatorManager } from "@/hooks/useDuplicateOperator";
+import type {
+  CreateDuplicateOperatorRequest,
+  UpdateDuplicateOperatorRequest,
+} from "@/lib/api/types/duplicate-operator";
 
 interface User {
   id: string;
@@ -52,16 +57,11 @@ export default function DuplicateOperatorPage() {
     estimasi_tanggal_perekaman: "",
     is_ready_to_record: false,
   });
-  const [rekapData, setRekapData] = useState<DuplicateOperatorData[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [isTableLoading, setIsTableLoading] = useState(false);
   const [userRole, setUserRole] = useState<string>("user");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isFetchingUser, setIsFetchingUser] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+
+  // Use the new API manager hook
+  const manager = useDuplicateOperatorManager(1, 5);
 
   const validateNIK = useMemo(() => {
     return (nik: string) => nik.length === 16 && /^\d{16}$/.test(nik);
@@ -71,7 +71,6 @@ export default function DuplicateOperatorPage() {
     const fetchUserData = async () => {
       try {
         setIsFetchingUser(true);
-        setError(null);
 
         const {
           data: { session },
@@ -116,9 +115,6 @@ export default function DuplicateOperatorPage() {
         setUserRole(profileData.role || "user");
       } catch (error: any) {
         console.error("Error fetching user:", error);
-        setError(
-          error.message || "Gagal memuat data pengguna. Silakan coba lagi.",
-        );
         toast.error(
           error.message || "Gagal memuat data pengguna. Silakan coba lagi.",
         );
@@ -129,78 +125,6 @@ export default function DuplicateOperatorPage() {
 
     fetchUserData();
   }, [router, validateNIK]);
-
-  const fetchRekapData = useCallback(
-    async (page = 1, query = "", statusFilter = "all") => {
-      if (!user) {
-        toast.error("Pengguna tidak ditemukan. Silakan login kembali.");
-        return { totalCount: 0 };
-      }
-
-      try {
-        setIsTableLoading(true);
-        setError(null);
-
-        const rowsPerPage = 5;
-        const start = (page - 1) * rowsPerPage;
-        const end = start + rowsPerPage - 1;
-
-        let queryBuilder = supabase
-          .from("duplicate_operator")
-          .select("*", { count: "exact" })
-          .order("created_at", { ascending: false })
-          .range(start, end);
-
-        if (statusFilter !== "all") {
-          const isReady = statusFilter === "completed";
-          queryBuilder = queryBuilder.eq("is_ready_to_record", isReady);
-        }
-
-        if (query) {
-          const dateRangeMatch = query.match(
-            /created_at >= '([^']+)' AND created_at <= '([^']+)'/,
-          );
-          if (dateRangeMatch) {
-            const [, startDate, endDate] = dateRangeMatch;
-            queryBuilder = queryBuilder
-              .gte("created_at", startDate)
-              .lte("created_at", endDate);
-          } else {
-            queryBuilder = queryBuilder.or(
-              `nik_duplicate.ilike.%${query}%,nama_duplicate.ilike.%${query}%,nik_operator.ilike.%${query}%,nama_operator.ilike.%${query}%`,
-            );
-          }
-        }
-
-        const { data, error, count } = await queryBuilder;
-
-        if (error) {
-          throw new Error(`Gagal mengambil data rekap: ${error.message}`);
-        }
-
-        const updatedData =
-          data?.map((item) => ({
-            ...item,
-            created_at: item.created_at || new Date().toISOString(),
-          })) || [];
-
-        setRekapData(updatedData);
-        return { totalCount: count || 0 };
-      } catch (error: any) {
-        console.error("Error fetching rekap data:", error);
-        setError(
-          error.message || "Gagal mengambil data rekap. Silakan coba lagi.",
-        );
-        toast.error(
-          error.message || "Gagal mengambil data rekap. Silakan coba lagi.",
-        );
-        return { totalCount: 0 };
-      } finally {
-        setIsTableLoading(false);
-      }
-    },
-    [user],
-  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -215,62 +139,40 @@ export default function DuplicateOperatorPage() {
       return;
     }
 
-    setLoading(true);
-    setError(null);
-
     try {
-      const dataToSave = {
-        user_id: user.id,
+      const dataToSave: CreateDuplicateOperatorRequest | UpdateDuplicateOperatorRequest = {
         nik_duplicate: formData.nik_duplicate.trim(),
         nama_duplicate: formData.nama_duplicate.trim(),
         nik_operator: formData.nik_operator.trim(),
         nama_operator: formData.nama_operator.trim(),
-        nik_pengaju: formData.nik_pengaju,
-        nama_pengaju: formData.nama_pengaju,
-        tanggal_perekaman: formData.tanggal_perekaman,
+        tanggal_perekaman: formData.tanggal_perekaman || undefined,
         tanggal_pengajuan: formData.tanggal_pengajuan,
-        estimasi_tanggal_perekaman: formData.estimasi_tanggal_perekaman || null,
+        estimasi_tanggal_perekaman: formData.estimasi_tanggal_perekaman || undefined,
         is_ready_to_record: formData.is_ready_to_record || false,
       };
 
       if (isEditing && editId) {
-        const { error } = await supabase
-          .from("duplicate_operator")
-          .update(dataToSave)
-          .eq("id", editId);
-
-        if (error) {
-          throw new Error(`Gagal memperbarui data: ${error.message}`);
+        const result = await manager.update(
+          editId,
+          dataToSave as UpdateDuplicateOperatorRequest
+        );
+        if (result) {
+          toast.success("Data berhasil diperbarui!");
         }
-
-        toast.success("Data berhasil diperbarui!");
       } else {
-        const { error } = await supabase
-          .from("duplicate_operator")
-          .insert(dataToSave);
-
-        if (error) {
-          throw new Error(`Gagal menyimpan data: ${error.message}`);
+        const result = await manager.create(
+          dataToSave as CreateDuplicateOperatorRequest
+        );
+        if (result) {
+          toast.success("Data berhasil diajukan!");
         }
-
-        toast.success("Data berhasil diajukan!");
       }
 
       resetForm();
       setViewState("table");
-
-      const { totalCount } = await fetchRekapData(
-        currentPage,
-        searchQuery,
-        statusFilter,
-      );
-      setTotalCount(totalCount);
     } catch (error: any) {
       console.error("Error submitting data:", error);
-      setError(error.message || "Gagal menyimpan data. Silakan coba lagi.");
       toast.error(error.message || "Gagal menyimpan data. Silakan coba lagi.");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -334,79 +236,37 @@ export default function DuplicateOperatorPage() {
     if (!confirm("Apakah Anda yakin ingin menghapus pengajuan ini?")) return;
 
     try {
-      setError(null);
-
-      const { data, error } = await supabase
-        .from("duplicate_operator")
-        .delete()
-        .eq("id", id)
-        .select()
-        .maybeSingle();
-
-      if (error) {
-        throw new Error(`Gagal menghapus data: ${error.message}`);
-      }
-
-      toast.success("Data berhasil dihapus!");
-
-      const { totalCount } = await fetchRekapData(
-        currentPage,
-        searchQuery,
-        statusFilter,
-      );
-      setTotalCount(totalCount);
-
-      if (rekapData.length === 1 && currentPage > 1) {
-        setCurrentPage(currentPage - 1);
+      const result = await manager.delete(id);
+      if (result) {
+        toast.success("Data berhasil dihapus!");
       }
     } catch (error: any) {
       console.error("Error deleting data:", error);
-      setError(error.message || "Gagal menghapus data. Silakan coba lagi.");
       toast.error(error.message || "Gagal menghapus data. Silakan coba lagi.");
     }
   };
 
   const handleSearch = useCallback(
     async (query: string, filter: string = "all") => {
-      setSearchQuery(query);
-      setStatusFilter(filter);
-      setCurrentPage(1);
-      const { totalCount } = await fetchRekapData(1, query, filter);
-      setTotalCount(totalCount);
+      manager.setSearch(query);
+      manager.setStatus(filter as "all" | "completed" | "pending");
+      manager.setPage(1);
     },
-    [fetchRekapData],
+    [manager],
   );
 
-  // Full refresh - resets everything to initial state
   const handleRefresh = useCallback(async () => {
-    setCurrentPage(1);
-    setSearchQuery("");
-    setStatusFilter("all");
-    const { totalCount } = await fetchRekapData(1, "", "all");
-    setTotalCount(totalCount);
-  }, [fetchRekapData]);
-
-  // Refresh current data without resetting pagination/filters
-  const handleDataRefresh = useCallback(async () => {
-    const { totalCount } = await fetchRekapData(
-      currentPage,
-      searchQuery,
-      statusFilter,
-    );
-    setTotalCount(totalCount);
-  }, [fetchRekapData, currentPage, searchQuery, statusFilter]);
+    manager.setPage(1);
+    manager.setSearch("");
+    manager.setStatus("all");
+    await manager.refetch();
+  }, [manager]);
 
   const handlePageChange = useCallback(
     async (page: number) => {
-      setCurrentPage(page);
-      const { totalCount } = await fetchRekapData(
-        page,
-        searchQuery,
-        statusFilter,
-      );
-      setTotalCount(totalCount);
+      manager.setPage(page);
     },
-    [searchQuery, statusFilter, fetchRekapData],
+    [manager],
   );
 
   const handleCancel = () => {
@@ -459,6 +319,26 @@ export default function DuplicateOperatorPage() {
     );
   }
 
+  // Map API response data to component data format
+  const rekapData: DuplicateOperatorData[] = (manager.list?.data || []).map((item) => ({
+    id: item.id,
+    user_id: item.user_id,
+    nik_duplicate: item.nik_duplicate,
+    nama_duplicate: item.nama_duplicate,
+    nik_operator: item.nik_operator,
+    nama_operator: item.nama_operator,
+    nik_pengaju: item.nik_pengaju,
+    nama_pengaju: item.nama_pengaju,
+    tanggal_perekaman: item.tanggal_perekaman || "",
+    tanggal_pengajuan: item.tanggal_pengajuan,
+    estimasi_tanggal_perekaman: item.estimasi_tanggal_perekaman || undefined,
+    is_ready_to_record: item.is_ready_to_record,
+    created_at: item.created_at,
+    updated_at: item.updated_at,
+  }));
+
+  const totalCount = manager.list?.pagination?.total || 0;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 px-4 py-10 dark:from-gray-900 dark:to-gray-800 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
@@ -471,19 +351,15 @@ export default function DuplicateOperatorPage() {
                 resetForm();
                 setViewState("form");
               }}
-              onRekapitulasi={async () => {
+              onRekapitulasi={() => {
                 setViewState("table");
-                const { totalCount } = await fetchRekapData(
-                  currentPage,
-                  searchQuery,
-                  statusFilter,
-                );
-                setTotalCount(totalCount);
               }}
               activeMode={viewState}
             />
 
-            {error && <ErrorState message={error} onRetry={handleRefresh} />}
+            {manager.listError && (
+              <ErrorState message={manager.listError} onRetry={handleRefresh} />
+            )}
 
             <div className="mt-8">
               <AnimatePresence mode="wait">
@@ -500,7 +376,7 @@ export default function DuplicateOperatorPage() {
                       setFormData={setFormData}
                       onSubmit={handleSubmit}
                       onCancel={handleCancel}
-                      loading={loading}
+                      loading={manager.createLoading || manager.updateLoading}
                       isEditing={isEditing}
                       editData={
                         editId
@@ -520,19 +396,19 @@ export default function DuplicateOperatorPage() {
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
                   >
-                    {rekapData.length > 0 || isTableLoading ? (
+                    {rekapData.length > 0 || manager.listLoading ? (
                       <DuplicateOperatorTable
                         rekapData={rekapData}
                         totalCount={totalCount}
-                        currentPage={currentPage}
+                        currentPage={manager.page}
                         onPageChange={handlePageChange}
                         onSearch={handleSearch}
                         onRefresh={handleRefresh}
-                        onDataRefresh={handleDataRefresh}
+                        onDataRefresh={manager.refetch}
                         onEdit={handleEdit}
                         onDelete={handleDelete}
                         userRole={userRole}
-                        loading={isTableLoading}
+                        loading={manager.listLoading}
                       />
                     ) : (
                       <EmptyState
