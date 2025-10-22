@@ -60,8 +60,8 @@ export default function DuplicateOperatorPage() {
   const [userRole, setUserRole] = useState<string>("user");
   const [isFetchingUser, setIsFetchingUser] = useState(true);
 
-  // Use the new API manager hook
-  const manager = useDuplicateOperatorManager(1, 5);
+  // Use the new API manager hook - Initialize with default page 1 and pageSize 10
+  const manager = useDuplicateOperatorManager(1, 10);
 
   const validateNIK = useMemo(() => {
     return (nik: string) => nik.length === 16 && /^\d{16}$/.test(nik);

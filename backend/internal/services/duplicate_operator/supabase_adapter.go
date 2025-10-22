@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -116,12 +117,15 @@ func (a *SupabaseAdapter) ListRecords(
 
 	// Get total count with same filters
 	countQuery := a.client.From("duplicate_operator").
-		Select("*", "count", false)
+		Select("*", "exact", false)
 
 	if isReady, ok := filters["is_ready_to_record"].(bool); ok {
 		countQuery = countQuery.Eq("is_ready_to_record", strconv.FormatBool(isReady))
 	}
 
+	// Apply range with empty string to get the count header
+	countQuery = countQuery.Range(0, 0, "")
+	
 	countData, count, err := countQuery.Execute()
 	var total int64 = int64(len(records)) // Fallback to current count
 
@@ -308,25 +312,14 @@ func (a *SupabaseAdapter) SearchRecords(
 		return nil, fmt.Errorf("database client not initialized")
 	}
 
-	// Build base query
+	// Build base query - fetch all records, then filter in memory for search
 	dbQuery := a.client.From("duplicate_operator").Select("*", "", false)
 
-	// Apply search - check multiple fields for keyword match
-	if query != "" {
-		// Note: Supabase doesn't have native full-text search in Go client
-		// Search is performed by fetching and filtering in service layer
-		// For now, build query that filters searchable fields
-		dbQuery = dbQuery.Ilike("nik_duplicate", "%"+query+"%").Or("nik_operator", "ilike.%"+query+"%")
-	}
-
-	// Apply filters
+	// Apply only filter conditions to database query
+	// Search will be done in-memory for better control
 	if filters != nil {
 		if status, ok := filters["is_ready_to_record"].(bool); ok {
-			statusStr := "false"
-			if status {
-				statusStr = "true"
-			}
-			dbQuery = dbQuery.Eq("is_ready_to_record", statusStr)
+			dbQuery = dbQuery.Eq("is_ready_to_record", strconv.FormatBool(status))
 		}
 		if userID, ok := filters["user_id"].(string); ok {
 			dbQuery = dbQuery.Eq("user_id", userID)
@@ -343,6 +336,25 @@ func (a *SupabaseAdapter) SearchRecords(
 	var records []DuplicateOperatorData
 	if err := json.Unmarshal(resultData, &records); err != nil {
 		return nil, fmt.Errorf("failed to parse search results: %w", err)
+	}
+
+	// Apply search filter in-memory if query provided
+	if query != "" {
+		trimmedQuery := strings.ToLower(strings.TrimSpace(query))
+		filteredRecords := make([]DuplicateOperatorData, 0)
+		
+		for _, record := range records {
+			// Check if search term matches any searchable field (case-insensitive)
+			if strings.Contains(strings.ToLower(record.NikDuplicate), trimmedQuery) ||
+				strings.Contains(strings.ToLower(record.NikOperator), trimmedQuery) ||
+				strings.Contains(strings.ToLower(record.NamaDuplicate), trimmedQuery) ||
+				strings.Contains(strings.ToLower(record.NamaOperator), trimmedQuery) ||
+				strings.Contains(strings.ToLower(record.NikPengaju), trimmedQuery) ||
+				strings.Contains(strings.ToLower(record.NamaPengaju), trimmedQuery) {
+				filteredRecords = append(filteredRecords, record)
+			}
+		}
+		records = filteredRecords
 	}
 
 	return records, nil
