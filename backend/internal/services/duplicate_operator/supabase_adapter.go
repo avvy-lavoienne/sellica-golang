@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -79,27 +81,17 @@ func (a *SupabaseAdapter) ListRecords(
 
 	offset := (page - 1) * pageSize
 
-	// Build base query
+	// Build base query for getting records
 	query := a.client.From("duplicate_operator").
 		Select("*", "", false)
 
 	// Apply status filter if provided
-	if status, ok := filters["status"].(string); ok && status != "all" {
-		isReady := status == "completed"
-		// Convert bool to string for the query
-		statusStr := "false"
-		if isReady {
-			statusStr = "true"
-		}
-		query = query.Eq("is_ready_to_record", statusStr)
+	if isReady, ok := filters["is_ready_to_record"].(bool); ok {
+		query = query.Eq("is_ready_to_record", strconv.FormatBool(isReady))
 	}
 
-	// Note: Additional filtering (search, date range) would require building the query
-	// with multiple conditions. For simplicity in this initial implementation,
-	// we'll handle them in the service layer with post-processing if needed.
-
-	// Apply pagination
-	query = query.Range(offset, offset+pageSize-1, "exact")
+	// Apply pagination using Range
+	query = query.Range(offset, offset+pageSize-1, "")
 
 	// Execute query
 	data, _, err := query.Execute()
@@ -107,34 +99,45 @@ func (a *SupabaseAdapter) ListRecords(
 		return nil, 0, fmt.Errorf("database query failed: %w", err)
 	}
 
-	// Unmarshal response
-	var records []DuplicateOperatorData
-	if err := json.Unmarshal(data, &records); err != nil {
+	// Unmarshal response - first parse as raw data, then convert with custom parsing
+	var rawRecords []json.RawMessage
+	if err := json.Unmarshal(data, &rawRecords); err != nil {
 		return nil, 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	// Convert each raw record
+	records := make([]DuplicateOperatorData, 0, len(rawRecords))
+	for _, rawRecord := range rawRecords {
+		var record DuplicateOperatorData
+		if err := json.Unmarshal(rawRecord, &record); err != nil {
+			return nil, 0, fmt.Errorf("failed to parse record: %w", err)
+		}
+		records = append(records, record)
 	}
 
 	// Get total count with same filters
 	countQuery := a.client.From("duplicate_operator").
-		Select("count", "exact", false)
+		Select("*", "exact", false)
 
-	if status, ok := filters["status"].(string); ok && status != "all" {
-		isReady := status == "completed"
-		statusStr := "false"
-		if isReady {
-			statusStr = "true"
-		}
-		countQuery = countQuery.Eq("is_ready_to_record", statusStr)
+	if isReady, ok := filters["is_ready_to_record"].(bool); ok {
+		countQuery = countQuery.Eq("is_ready_to_record", strconv.FormatBool(isReady))
 	}
 
-	countData, _, err := countQuery.Execute()
+	// Apply range with empty string to get the count header
+	countQuery = countQuery.Range(0, 0, "")
+	
+	countData, count, err := countQuery.Execute()
 	var total int64 = int64(len(records)) // Fallback to current count
 
-	if err == nil && len(countData) > 0 {
-		// Try to parse count from response
+	// The count value should be returned in the second return value
+	if count >= 0 {
+		total = int64(count)
+	} else if err == nil && len(countData) > 0 {
+		// Try to parse count from response as fallback
 		var countResult []map[string]interface{}
 		if err := json.Unmarshal(countData, &countResult); err == nil && len(countResult) > 0 {
-			if count, ok := countResult[0]["count"].(float64); ok {
-				total = int64(count)
+			if cnt, ok := countResult[0]["count"].(float64); ok {
+				total = int64(cnt)
 			}
 		}
 	}
@@ -309,25 +312,14 @@ func (a *SupabaseAdapter) SearchRecords(
 		return nil, fmt.Errorf("database client not initialized")
 	}
 
-	// Build base query
+	// Build base query - fetch all records, then filter in memory for search
 	dbQuery := a.client.From("duplicate_operator").Select("*", "", false)
 
-	// Apply search - check multiple fields for keyword match
-	if query != "" {
-		// Note: Supabase doesn't have native full-text search in Go client
-		// Search is performed by fetching and filtering in service layer
-		// For now, build query that filters searchable fields
-		dbQuery = dbQuery.Ilike("nik_duplicate", "%"+query+"%").Or("nik_operator", "ilike.%"+query+"%")
-	}
-
-	// Apply filters
+	// Apply only filter conditions to database query
+	// Search will be done in-memory for better control
 	if filters != nil {
 		if status, ok := filters["is_ready_to_record"].(bool); ok {
-			statusStr := "false"
-			if status {
-				statusStr = "true"
-			}
-			dbQuery = dbQuery.Eq("is_ready_to_record", statusStr)
+			dbQuery = dbQuery.Eq("is_ready_to_record", strconv.FormatBool(status))
 		}
 		if userID, ok := filters["user_id"].(string); ok {
 			dbQuery = dbQuery.Eq("user_id", userID)
@@ -344,6 +336,25 @@ func (a *SupabaseAdapter) SearchRecords(
 	var records []DuplicateOperatorData
 	if err := json.Unmarshal(resultData, &records); err != nil {
 		return nil, fmt.Errorf("failed to parse search results: %w", err)
+	}
+
+	// Apply search filter in-memory if query provided
+	if query != "" {
+		trimmedQuery := strings.ToLower(strings.TrimSpace(query))
+		filteredRecords := make([]DuplicateOperatorData, 0)
+		
+		for _, record := range records {
+			// Check if search term matches any searchable field (case-insensitive)
+			if strings.Contains(strings.ToLower(record.NikDuplicate), trimmedQuery) ||
+				strings.Contains(strings.ToLower(record.NikOperator), trimmedQuery) ||
+				strings.Contains(strings.ToLower(record.NamaDuplicate), trimmedQuery) ||
+				strings.Contains(strings.ToLower(record.NamaOperator), trimmedQuery) ||
+				strings.Contains(strings.ToLower(record.NikPengaju), trimmedQuery) ||
+				strings.Contains(strings.ToLower(record.NamaPengaju), trimmedQuery) {
+				filteredRecords = append(filteredRecords, record)
+			}
+		}
+		records = filteredRecords
 	}
 
 	return records, nil
