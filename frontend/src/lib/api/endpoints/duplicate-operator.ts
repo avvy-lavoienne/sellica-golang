@@ -171,8 +171,30 @@ class DuplicateOperatorAPI {
   private handleError(error: unknown): APIError {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<APIError>;
+      
+      // If response has data, return it
       if (axiosError.response?.data) {
         return axiosError.response.data;
+      }
+      
+      // If response status is known but no data, create error from status
+      if (axiosError.response?.status) {
+        return {
+          status: "error",
+          code: axiosError.response.status,
+          message: `API Error: ${axiosError.response.status} ${axiosError.response.statusText || 'Unknown Error'}`,
+          timestamp: new Date().toISOString(),
+        };
+      }
+      
+      // If no response but error exists (network error)
+      if (axiosError.message) {
+        return {
+          status: "error",
+          code: 0,
+          message: axiosError.message,
+          timestamp: new Date().toISOString(),
+        };
       }
     }
 

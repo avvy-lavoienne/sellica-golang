@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -79,27 +80,17 @@ func (a *SupabaseAdapter) ListRecords(
 
 	offset := (page - 1) * pageSize
 
-	// Build base query
+	// Build base query for getting records
 	query := a.client.From("duplicate_operator").
 		Select("*", "", false)
 
 	// Apply status filter if provided
-	if status, ok := filters["status"].(string); ok && status != "all" {
-		isReady := status == "completed"
-		// Convert bool to string for the query
-		statusStr := "false"
-		if isReady {
-			statusStr = "true"
-		}
-		query = query.Eq("is_ready_to_record", statusStr)
+	if isReady, ok := filters["is_ready_to_record"].(bool); ok {
+		query = query.Eq("is_ready_to_record", strconv.FormatBool(isReady))
 	}
 
-	// Note: Additional filtering (search, date range) would require building the query
-	// with multiple conditions. For simplicity in this initial implementation,
-	// we'll handle them in the service layer with post-processing if needed.
-
-	// Apply pagination
-	query = query.Range(offset, offset+pageSize-1, "exact")
+	// Apply pagination using Range
+	query = query.Range(offset, offset+pageSize-1, "")
 
 	// Execute query
 	data, _, err := query.Execute()
@@ -107,34 +98,42 @@ func (a *SupabaseAdapter) ListRecords(
 		return nil, 0, fmt.Errorf("database query failed: %w", err)
 	}
 
-	// Unmarshal response
-	var records []DuplicateOperatorData
-	if err := json.Unmarshal(data, &records); err != nil {
+	// Unmarshal response - first parse as raw data, then convert with custom parsing
+	var rawRecords []json.RawMessage
+	if err := json.Unmarshal(data, &rawRecords); err != nil {
 		return nil, 0, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	// Convert each raw record
+	records := make([]DuplicateOperatorData, 0, len(rawRecords))
+	for _, rawRecord := range rawRecords {
+		var record DuplicateOperatorData
+		if err := json.Unmarshal(rawRecord, &record); err != nil {
+			return nil, 0, fmt.Errorf("failed to parse record: %w", err)
+		}
+		records = append(records, record)
 	}
 
 	// Get total count with same filters
 	countQuery := a.client.From("duplicate_operator").
-		Select("count", "exact", false)
+		Select("*", "count", false)
 
-	if status, ok := filters["status"].(string); ok && status != "all" {
-		isReady := status == "completed"
-		statusStr := "false"
-		if isReady {
-			statusStr = "true"
-		}
-		countQuery = countQuery.Eq("is_ready_to_record", statusStr)
+	if isReady, ok := filters["is_ready_to_record"].(bool); ok {
+		countQuery = countQuery.Eq("is_ready_to_record", strconv.FormatBool(isReady))
 	}
 
-	countData, _, err := countQuery.Execute()
+	countData, count, err := countQuery.Execute()
 	var total int64 = int64(len(records)) // Fallback to current count
 
-	if err == nil && len(countData) > 0 {
-		// Try to parse count from response
+	// The count value should be returned in the second return value
+	if count >= 0 {
+		total = int64(count)
+	} else if err == nil && len(countData) > 0 {
+		// Try to parse count from response as fallback
 		var countResult []map[string]interface{}
 		if err := json.Unmarshal(countData, &countResult); err == nil && len(countResult) > 0 {
-			if count, ok := countResult[0]["count"].(float64); ok {
-				total = int64(count)
+			if cnt, ok := countResult[0]["count"].(float64); ok {
+				total = int64(cnt)
 			}
 		}
 	}

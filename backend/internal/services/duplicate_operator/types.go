@@ -1,6 +1,7 @@
 package duplicate_operator
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -58,6 +59,99 @@ type DuplicateOperatorData struct {
 	IsReadyToRecord          bool       `db:"is_ready_to_record" json:"is_ready_to_record"`
 	CreatedAt                time.Time  `db:"created_at" json:"created_at"`
 	UpdatedAt                time.Time  `db:"updated_at" json:"updated_at"`
+}
+
+// UnmarshalJSON handles custom JSON unmarshaling to support multiple date formats
+func (d *DuplicateOperatorData) UnmarshalJSON(data []byte) error {
+	type Alias DuplicateOperatorData
+	aux := &struct {
+		ID                       string `json:"id"`
+		UserID                   string `json:"user_id"`
+		TanggalPerekaman         *string `json:"tanggal_perekaman"`
+		TanggalPengajuan         string `json:"tanggal_pengajuan"`
+		EstimasiTanggalPerekaman *string `json:"estimasi_tanggal_perekaman"`
+		CreatedAt                string `json:"created_at"`
+		UpdatedAt                string `json:"updated_at"`
+		*Alias
+	}{
+		Alias: (*Alias)(d),
+	}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	// Parse ID
+	if aux.ID != "" {
+		id, err := uuid.Parse(aux.ID)
+		if err == nil {
+			d.ID = id
+		}
+	}
+
+	// Parse UserID
+	if aux.UserID != "" {
+		id, err := uuid.Parse(aux.UserID)
+		if err == nil {
+			d.UserID = id
+		}
+	}
+
+	// Helper function to parse dates with multiple formats
+	parseDate := func(dateStr string) (*time.Time, error) {
+		if dateStr == "" {
+			return nil, nil
+		}
+
+		// Try different date formats
+		formats := []string{
+			"2006-01-02T15:04:05Z07:00", // ISO 8601 with timezone
+			"2006-01-02T15:04:05Z",      // ISO 8601 UTC
+			"2006-01-02T15:04:05",       // ISO 8601 without timezone
+			"2006-01-02",                // Date only (YYYY-MM-DD)
+		}
+
+		for _, format := range formats {
+			if t, err := time.Parse(format, dateStr); err == nil {
+				return &t, nil
+			}
+		}
+
+		return nil, nil // Return nil for unparseable dates
+	}
+
+	// Parse date fields
+	if aux.TanggalPerekaman != nil {
+		if t, _ := parseDate(*aux.TanggalPerekaman); t != nil {
+			d.TanggalPerekaman = t
+		}
+	}
+
+	if aux.TanggalPengajuan != "" {
+		if t, _ := parseDate(aux.TanggalPengajuan); t != nil {
+			d.TanggalPengajuan = *t
+		}
+	}
+
+	if aux.EstimasiTanggalPerekaman != nil {
+		if t, _ := parseDate(*aux.EstimasiTanggalPerekaman); t != nil {
+			d.EstimasiTanggalPerekaman = t
+		}
+	}
+
+	if aux.CreatedAt != "" {
+		if t, _ := parseDate(aux.CreatedAt); t != nil {
+			d.CreatedAt = *t
+		}
+	}
+
+	if aux.UpdatedAt != "" {
+		if t, _ := parseDate(aux.UpdatedAt); t != nil {
+			d.UpdatedAt = *t
+		}
+	}
+
+	return nil
 }
 
 // PaginationMeta contains pagination information
