@@ -47,7 +47,7 @@ export function useDuplicateOperators(
       setData(response);
     } catch (err: any) {
       const errorMessage =
-        err?.message || "ตัวการขอข้อมูลล้มเหลว กรุณาลองอีกครั้ง";
+        err?.message || "Gagal mengambil data. Silakan coba lagi.";
       setError(errorMessage);
       console.error("Error fetching duplicate operators:", err);
     } finally {
@@ -91,7 +91,7 @@ export function useDuplicateOperatorById(id: string | null) {
       const response = await duplicateOperatorAPI.getById(id);
       setData(response);
     } catch (err: any) {
-      const errorMessage = err?.message || "ไม่พบข้อมูล";
+      const errorMessage = err?.message || "Data tidak ditemukan.";
       setError(errorMessage);
       console.error("Error fetching duplicate operator:", err);
     } finally {
@@ -128,11 +128,11 @@ export function useCreateDuplicateOperator() {
         setError(null);
 
         const response = await duplicateOperatorAPI.create(data);
-        toast.success("เรกคอร์ดสร้างสำเร็จ");
+        toast.success("Catatan berhasil dibuat");
         return response;
       } catch (err: any) {
         const errorMessage =
-          err?.message || "ไม่สามารถสร้างเรกคอร์ด กรุณาลองอีกครั้ง";
+          err?.message || "Gagal membuat catatan. Silakan coba lagi.";
         setError(errorMessage);
         toast.error(errorMessage);
         console.error("Error creating duplicate operator:", err);
@@ -169,11 +169,11 @@ export function useUpdateDuplicateOperator() {
         setError(null);
 
         const response = await duplicateOperatorAPI.update(id, data);
-        toast.success("อัพเดตเรกคอร์ดสำเร็จ");
+        toast.success("Catatan berhasil diperbarui");
         return response;
       } catch (err: any) {
         const errorMessage =
-          err?.message || "ไม่สามารถอัพเดตเรกคอร์ด กรุณาลองอีกครั้ง";
+          err?.message || "Gagal memperbarui catatan. Silakan coba lagi.";
         setError(errorMessage);
         toast.error(errorMessage);
         console.error("Error updating duplicate operator:", err);
@@ -207,11 +207,11 @@ export function useDeleteDuplicateOperator() {
         setError(null);
 
         await duplicateOperatorAPI.delete(id);
-        toast.success("ลบเรกคอร์ดสำเร็จ");
+        toast.success("Catatan berhasil dihapus");
         return true;
       } catch (err: any) {
         const errorMessage =
-          err?.message || "ไม่สามารถลบเรกคอร์ด กรุณาลองอีกครั้ง";
+          err?.message || "Gagal menghapus catatan. Silakan coba lagi.";
         setError(errorMessage);
         toast.error(errorMessage);
         console.error("Error deleting duplicate operator:", err);
@@ -253,7 +253,7 @@ export function useSearchDuplicateOperators(query: string = "") {
       const response = await duplicateOperatorAPI.search(searchQuery);
       setData(response);
     } catch (err: any) {
-      const errorMessage = err?.message || "การค้นหาล้มเหลว";
+      const errorMessage = err?.message || "Pencarian gagal.";
       setError(errorMessage);
       console.error("Error searching duplicate operators:", err);
     } finally {
