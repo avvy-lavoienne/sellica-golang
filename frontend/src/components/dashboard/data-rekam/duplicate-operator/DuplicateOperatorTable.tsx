@@ -172,20 +172,25 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
   const debouncedStartDate = useDebounce(startDate, 300);
   const debouncedEndDate = useDebounce(endDate, 300);
 
+  // Store onSearch callback in a ref to avoid recreating effects
+  const onSearchRef = useRef(onSearch);
+  useEffect(() => {
+    onSearchRef.current = onSearch;
+  }, [onSearch]);
+
   useEffect(() => {
     if (searchQuery === "" && (!startDate || !endDate)) {
-      onSearch("", statusFilter);
+      onSearchRef.current("", statusFilter);
       return;
     }
 
     const timeout = setTimeout(() => {
-      onSearch(debouncedSearchQuery, statusFilter);
+      onSearchRef.current(debouncedSearchQuery, statusFilter);
     }, 500);
     return () => clearTimeout(timeout);
   }, [
     debouncedSearchQuery,
     statusFilter,
-    onSearch,
     endDate,
     searchQuery,
     startDate,

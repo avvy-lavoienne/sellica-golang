@@ -42,7 +42,7 @@ export default function DuplicateOperatorPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [viewState, setViewState] = useState<"form" | "table" | "none">("none");
+  const [viewState, setViewState] = useState<"form" | "table" | "none">("table");
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [formData, setFormData] = useState<DuplicateOperatorFormData>({
