@@ -1,9 +1,9 @@
-# Infinite API Calls Fix - React Query Query Key Invalidation
+# Infinite API Calls Fix - Root Cause & Resolution
 
-**Document**: Infinite API Calls Issue - Root Cause Analysis & Fix
+**Document**: Infinite API Calls Issue - Root Cause Analysis & Multiple Fixes
 **Project Date**: 2025-10-23
 **Created**: 2025-10-23
-**Version**: 1.0
+**Version**: 2.0 (Updated with second fix)
 **Status**: ✅ Complete
 **Priority**: 🧠 Critical
 **Language**: English
@@ -12,7 +12,11 @@
 
 ## Executive Summary
 
-Successfully identified and fixed critical infinite API call issue in duplicate operator table. Root cause was React Query's prefix-based query key invalidation causing multiple simultaneous refetches instead of a single targeted refetch. Fix implemented using exact query key matching with proper state dependencies, reducing API calls from 9 per 3 seconds to 1 per refetch action.
+Successfully identified and fixed critical infinite API call issue in duplicate operator table. **Root cause was TWO-PART**:
+1. React Query using prefix-based invalidation (fixed with `exact: true`)
+2. Manager hook not being memoized, causing new instances on each page re-render (fixed with `useMemo`)
+
+Together, these fixes reduce API calls from 16+ per 2 seconds to 1 per action with proper 5-minute caching.
 
 ## The Problem
 
@@ -219,10 +223,12 @@ When any dependency changes, a new `refetch` function is created with updated qu
 
 ```
 frontend/src/hooks/useDuplicateOperator.ts
-  - Line 285-291: Updated refetch function
-  - Added exact: true flag
-  - Added state variables to query key tuple
-  - Added state variables to dependency array
+  - Line 285-291: Updated refetch function (exact query key matching)
+  - Line 13: Added useMemo import
+  - Line 309-370: Memoized return value with dependency array
+
+frontend/src/app/(protected)/data-rekam/duplicate-operator/page.tsx
+  - No changes needed (manager hook fix handles the issue)
 ```
 
 ## Verification Checklist
@@ -260,6 +266,53 @@ This fix resolves:
    - Verify zero error rate
 
 3. **Production**: Deploy fix to production after load testing confirms stability
+
+## SECOND FIX: Manager Hook Memoization (Critical - Even After First Fix)
+
+### The Problem (After Applying First Fix)
+
+Even after fixing the React Query query key invalidation, **the infinite calls persisted**! 16+ identical requests in 2 seconds.
+
+**Root cause**: The `useDuplicateOperatorManager` hook was returning a new object on every render, causing infinite re-render cycles.
+
+### Code Analysis
+
+**File**: `frontend/src/app/(protected)/data-rekam/duplicate-operator/page.tsx` line 64
+
+```typescript
+// ❌ PROBLEM: Creates new manager object on EVERY page render
+const manager = useDuplicateOperatorManager(1, 10);
+
+// Each render = new manager object reference
+// New reference = child sees "new" prop = child re-renders
+// Child re-renders = parent re-renders = new manager = infinite loop!
+```
+
+### The Solution
+
+**File**: `frontend/src/hooks/useDuplicateOperator.ts` line 309-370
+
+```typescript
+// ✅ CORRECT - Memoize return value with dependency array
+return useMemo(() => ({
+  list: listQuery.data,
+  listLoading: listQuery.isLoading,
+  // ... all other properties
+}), [
+  listQuery.data,
+  listQuery.isLoading,
+  // ... include all dependencies
+]);
+```
+
+### Why Both Fixes Were Needed
+
+1. **First fix**: Prevents multiple queries from being invalidated at once
+2. **Second fix**: Prevents infinite re-render cycles from new manager objects
+
+**Together**: Stable manager + targeted invalidation = working system ✅
+
+---
 
 ## Lessons Learned
 
