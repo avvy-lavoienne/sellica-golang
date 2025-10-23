@@ -23,11 +23,35 @@ const API_PREFIX = `${API_BASE_URL}/api/v1`;
 class DuplicateOperatorAPI {
   /**
    * Get authentication token from storage
+   * Uses Supabase session token for backend API authentication
    */
   private getAuthToken(): string | null {
-    // TODO: Get from localStorage, sessionStorage, or cookies
-    // return localStorage.getItem("auth_token");
-    return null;
+    // Check if running in browser
+    if (typeof window === "undefined") {
+      return null;
+    }
+
+    try {
+      // Try to get Supabase session from localStorage
+      const supabaseAuthKey = Object.keys(localStorage).find(
+        (key) => key.startsWith("sb-") && key.endsWith("-auth-token")
+      );
+
+      if (supabaseAuthKey) {
+        const authData = localStorage.getItem(supabaseAuthKey);
+        if (authData) {
+          const parsed = JSON.parse(authData);
+          // Return access token from Supabase session
+          return parsed?.access_token || null;
+        }
+      }
+
+      // Fallback: check for custom auth token
+      return localStorage.getItem("auth_token");
+    } catch (error) {
+      console.error("Error retrieving auth token:", error);
+      return null;
+    }
   }
 
   /**
