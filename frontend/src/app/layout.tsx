@@ -13,12 +13,11 @@ import {
 } from "./metadata";
 import "@/css/global.css";
 
-// Phase 3: React Query for Advanced Caching
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-
 // Phase 3: Server-side initialization for Cache Warming Optimization
 import { initializeServerForNextJS } from "@/lib/startup/ServerInitializer";
+
+// Phase 3: React Query for Advanced Caching
+import { QueryProvider } from "@/components/QueryProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -49,33 +48,6 @@ export default async function RootLayout({
 }) {
   // Initialize server-side services for Phase 3 Cache Warming Optimization
   await initializeServerForNextJS();
-
-  // Phase 3: React Query Client Configuration
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
-        retry: (failureCount, error: any) => {
-          // Don't retry on 4xx errors (client errors)
-          if (error?.status >= 400 && error?.status < 500) {
-            return false;
-          }
-          // Retry up to 3 times for other errors
-          return failureCount < 3;
-        },
-        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: true,
-      },
-      mutations: {
-        retry: false, // Don't retry mutations by default
-        onError: (error: any) => {
-          console.error('Mutation error:', error);
-        },
-      },
-    },
-  });
 
   return (
     <html lang="id" suppressHydrationWarning>
@@ -115,7 +87,7 @@ export default async function RootLayout({
         className={`${inter.variable} font-sans antialiased`}
         suppressHydrationWarning={true}
       >
-        <QueryClientProvider client={queryClient}>
+        <QueryProvider>
           <ThemeProvider defaultTheme="system">
             <NextTopLoader
               color="hsl(var(--primary))"
@@ -139,8 +111,7 @@ export default async function RootLayout({
               pauseOnHover
             />
           </ThemeProvider>
-          <ReactQueryDevtools initialIsOpen={false} />
-        </QueryClientProvider>
+        </QueryProvider>
       </body>
     </html>
   );
