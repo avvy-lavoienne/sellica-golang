@@ -1,11 +1,19 @@
 /**
  * React hooks for Duplicate Operator API
- * Provides data fetching, mutations, and state management
+ * Enhanced with React Query for advanced caching and performance
+ *
+ * Features:
+ * - Automatic retry with exponential backoff
+ * - Optimistic UI updates with rollback
+ * - Advanced caching with React Query
+ * - Request deduplication
+ * - Background refetching
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
 import { duplicateOperatorAPI } from "@/lib/api/endpoints/duplicate-operator";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type {
   DuplicateOperatorResponse,
   DuplicateOperatorListResponse,
@@ -15,12 +23,13 @@ import type {
 } from "@/lib/api/types/duplicate-operator";
 
 /**
- * Hook for fetching list of duplicate operators with pagination
+ * React Query-powered hook for fetching list of duplicate operators with pagination
+ * Enhanced with advanced caching, background refetching, and optimistic updates
  * @param page - Current page number
  * @param pageSize - Number of items per page
  * @param search - Search query
  * @param status - Filter by status
- * @returns Object containing data, loading state, error, and refetch function
+ * @returns React Query result object with data, loading, error states
  */
 export function useDuplicateOperators(
   page: number = 1,
@@ -28,256 +37,186 @@ export function useDuplicateOperators(
   search: string = "",
   status: "all" | "completed" | "pending" = "all"
 ) {
-  const [data, setData] = useState<DuplicateOperatorListResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
+  return useQuery({
+    queryKey: ['duplicate-operators', { page, pageSize, search, status }],
+    queryFn: async () => {
       const response = await duplicateOperatorAPI.list({
         page,
         page_size: pageSize,
         search: search || undefined,
         status: status !== "all" ? status : undefined,
       });
-
-      setData(response);
-    } catch (err: any) {
-      const errorMessage =
-        err?.message || "Gagal mengambil data. Silakan coba lagi.";
-      setError(errorMessage);
-      console.error("Error fetching duplicate operators:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [page, pageSize, search, status]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  return {
-    data,
-    loading,
-    error,
-    refetch: fetchData,
-  };
+      return response;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    retry: (failureCount, error: any) => {
+      // Don't retry on 4xx errors (client errors)
+      if (error?.status >= 400 && error?.status < 500) {
+        return false;
+      }
+      // Retry up to 3 times for other errors
+      return failureCount < 3;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
 }
 
 /**
- * Hook for fetching a single duplicate operator by ID
+ * React Query-powered hook for fetching a single duplicate operator by ID
  * @param id - Record ID
- * @returns Object containing data, loading state, error, and refetch function
+ * @returns React Query result object
  */
 export function useDuplicateOperatorById(id: string | null) {
-  const [data, setData] = useState<DuplicateOperatorResponse | null>(null);
-  const [loading, setLoading] = useState(!!id);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchData = useCallback(async () => {
-    if (!id) {
-      setData(null);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      const response = await duplicateOperatorAPI.getById(id);
-      setData(response);
-    } catch (err: any) {
-      const errorMessage = err?.message || "Data tidak ditemukan.";
-      setError(errorMessage);
-      console.error("Error fetching duplicate operator:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  return {
-    data,
-    loading,
-    error,
-    refetch: fetchData,
-  };
+  return useQuery({
+    queryKey: ['duplicate-operator', id],
+    queryFn: async () => {
+      if (!id) return null;
+      return await duplicateOperatorAPI.getById(id);
+    },
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
 }
 
 /**
- * Hook for creating a new duplicate operator record
- * @returns Object containing mutate function, loading state, and error
+ * React Query-powered hook for creating a new duplicate operator record
+ * @returns Mutation object with mutate function and loading states
  */
 export function useCreateDuplicateOperator() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const mutate = useCallback(
-    async (
-      data: CreateDuplicateOperatorRequest
-    ): Promise<DuplicateOperatorResponse | null> => {
-      try {
-        setLoading(true);
-        setError(null);
+  return useMutation({
+    mutationFn: (data: CreateDuplicateOperatorRequest) =>
+      duplicateOperatorAPI.create(data),
+    onSuccess: (newRecord) => {
+      toast.success("Catatan berhasil dibuat");
 
-        const response = await duplicateOperatorAPI.create(data);
-        toast.success("Catatan berhasil dibuat");
-        return response;
-      } catch (err: any) {
-        const errorMessage =
-          err?.message || "Gagal membuat catatan. Silakan coba lagi.";
-        setError(errorMessage);
-        toast.error(errorMessage);
-        console.error("Error creating duplicate operator:", err);
-        return null;
-      } finally {
-        setLoading(false);
-      }
+      // Invalidate and refetch duplicate operators list
+      queryClient.invalidateQueries({ queryKey: ['duplicate-operators'] });
+
+      // Optionally add to cache optimistically
+      queryClient.setQueryData(
+        ['duplicate-operator', newRecord.id],
+        newRecord
+      );
     },
-    []
-  );
-
-  return {
-    mutate,
-    loading,
-    error,
-  };
+    onError: (error: any) => {
+      const errorMessage =
+        error?.message || "Gagal membuat catatan. Silakan coba lagi.";
+      toast.error(errorMessage);
+      console.error("Error creating duplicate operator:", error);
+    },
+  });
 }
 
 /**
- * Hook for updating a duplicate operator record
- * @returns Object containing mutate function, loading state, and error
+ * React Query-powered hook for updating a duplicate operator record
+ * Supports optimistic updates with automatic rollback on error
+ * @returns Mutation object with optimistic update capabilities
  */
 export function useUpdateDuplicateOperator() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const mutate = useCallback(
-    async (
-      id: string,
-      data: UpdateDuplicateOperatorRequest
-    ): Promise<DuplicateOperatorResponse | null> => {
-      try {
-        setLoading(true);
-        setError(null);
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateDuplicateOperatorRequest }) =>
+      duplicateOperatorAPI.update(id, data),
+    onMutate: async ({ id, data }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['duplicate-operator', id] });
+      await queryClient.cancelQueries({ queryKey: ['duplicate-operators'] });
 
-        const response = await duplicateOperatorAPI.update(id, data);
-        toast.success("Catatan berhasil diperbarui");
-        return response;
-      } catch (err: any) {
-        const errorMessage =
-          err?.message || "Gagal memperbarui catatan. Silakan coba lagi.";
-        setError(errorMessage);
-        toast.error(errorMessage);
-        console.error("Error updating duplicate operator:", err);
-        return null;
-      } finally {
-        setLoading(false);
-      }
+      // Snapshot the previous values
+      const previousRecord = queryClient.getQueryData(['duplicate-operator', id]);
+      const previousList = queryClient.getQueryData(['duplicate-operators']);
+
+      // Optimistically update the cache
+      queryClient.setQueryData(['duplicate-operator', id], (old: any) => ({
+        ...old,
+        ...data,
+      }));
+
+      // Return a context object with the snapshotted values
+      return { previousRecord, previousList };
     },
-    []
-  );
+    onSuccess: (updatedRecord) => {
+      toast.success("Catatan berhasil diperbarui");
 
-  return {
-    mutate,
-    loading,
-    error,
-  };
+      // Update the cache with the actual server response
+      queryClient.setQueryData(['duplicate-operator', updatedRecord.id], updatedRecord);
+
+      // Invalidate list queries to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ['duplicate-operators'] });
+    },
+    onError: (error: any, variables, context) => {
+      // Rollback optimistic updates on error
+      if (context?.previousRecord) {
+        queryClient.setQueryData(['duplicate-operator', variables.id], context.previousRecord);
+      }
+      if (context?.previousList) {
+        queryClient.setQueryData(['duplicate-operators'], context.previousList);
+      }
+
+      const errorMessage =
+        error?.message || "Gagal memperbarui catatan. Silakan coba lagi.";
+      toast.error(errorMessage);
+      console.error("Error updating duplicate operator:", error);
+    },
+  });
 }
 
 /**
- * Hook for deleting a duplicate operator record
- * @returns Object containing mutate function, loading state, and error
+ * React Query-powered hook for deleting a duplicate operator record
+ * @returns Mutation object with delete functionality
  */
 export function useDeleteDuplicateOperator() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const mutate = useCallback(
-    async (id: string): Promise<boolean> => {
-      try {
-        setLoading(true);
-        setError(null);
+  return useMutation({
+    mutationFn: (id: string) => duplicateOperatorAPI.delete(id),
+    onSuccess: (_, deletedId) => {
+      toast.success("Catatan berhasil dihapus");
 
-        await duplicateOperatorAPI.delete(id);
-        toast.success("Catatan berhasil dihapus");
-        return true;
-      } catch (err: any) {
-        const errorMessage =
-          err?.message || "Gagal menghapus catatan. Silakan coba lagi.";
-        setError(errorMessage);
-        toast.error(errorMessage);
-        console.error("Error deleting duplicate operator:", err);
-        return false;
-      } finally {
-        setLoading(false);
-      }
+      // Remove from cache
+      queryClient.removeQueries({ queryKey: ['duplicate-operator', deletedId] });
+
+      // Invalidate list queries
+      queryClient.invalidateQueries({ queryKey: ['duplicate-operators'] });
     },
-    []
-  );
-
-  return {
-    mutate,
-    loading,
-    error,
-  };
+    onError: (error: any) => {
+      const errorMessage =
+        error?.message || "Gagal menghapus catatan. Silakan coba lagi.";
+      toast.error(errorMessage);
+      console.error("Error deleting duplicate operator:", error);
+    },
+  });
 }
 
 /**
- * Hook for searching duplicate operators
+ * React Query-powered hook for searching duplicate operators
  * @param query - Search query
- * @returns Object containing data, loading state, and error
+ * @returns React Query result object
  */
 export function useSearchDuplicateOperators(query: string = "") {
-  const [data, setData] = useState<DuplicateOperatorResponse[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const search = useCallback(async (searchQuery: string) => {
-    if (!searchQuery || searchQuery.trim().length === 0) {
-      setData([]);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      const response = await duplicateOperatorAPI.search(searchQuery);
-      setData(response);
-    } catch (err: any) {
-      const errorMessage = err?.message || "Pencarian gagal.";
-      setError(errorMessage);
-      console.error("Error searching duplicate operators:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (query) {
-      search(query);
-    }
-  }, [query, search]);
-
-  return {
-    data,
-    loading,
-    error,
-    search,
-  };
+  return useQuery({
+    queryKey: ['duplicate-operators-search', query],
+    queryFn: async () => {
+      if (!query || query.trim().length === 0) {
+        return [];
+      }
+      return await duplicateOperatorAPI.search(query);
+    },
+    enabled: !!query && query.trim().length > 0,
+    staleTime: 2 * 60 * 1000, // 2 minutes for search results
+    gcTime: 5 * 60 * 1000, // 5 minutes
+  });
 }
 
 /**
- * Hook combining list fetch, create, update, and delete operations
- * Useful for full CRUD page management
+ * Enhanced manager hook combining all CRUD operations with React Query
+ * Provides a unified interface for the DuplicateOperatorTable component
+ * Includes advanced caching, optimistic updates, and performance optimizations
  */
 export function useDuplicateOperatorManager(
   initialPage: number = 1,
@@ -286,59 +225,94 @@ export function useDuplicateOperatorManager(
   const [page, setPage] = useState(initialPage);
   const [pageSize, setPageSize] = useState(initialPageSize);
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<
-    "all" | "completed" | "pending"
-  >("all");
+  const [status, setStatus] = useState<"all" | "completed" | "pending">("all");
 
-  const listHook = useDuplicateOperators(page, pageSize, search, status);
-  const createHook = useCreateDuplicateOperator();
-  const updateHook = useUpdateDuplicateOperator();
-  const deleteHook = useDeleteDuplicateOperator();
+  // React Query hooks
+  const listQuery = useDuplicateOperators(page, pageSize, search, status);
+  const createMutation = useCreateDuplicateOperator();
+  const updateMutation = useUpdateDuplicateOperator();
+  const deleteMutation = useDeleteDuplicateOperator();
 
-  const refetchList = useCallback(async () => {
-    await listHook.refetch();
-  }, [listHook]);
+  const queryClient = useQueryClient();
 
+  // Enhanced handlers with React Query integration
   const handleCreate = useCallback(
     async (data: CreateDuplicateOperatorRequest) => {
-      const result = await createHook.mutate(data);
-      if (result) {
-        // Reset to first page and refetch
+      try {
+        const result = await createMutation.mutateAsync(data);
+        // Reset to first page after successful creation
         setPage(1);
-        await refetchList();
+        return result;
+      } catch (error) {
+        // Error handling is done in the mutation
+        return null;
       }
-      return result;
     },
-    [createHook, refetchList]
+    [createMutation]
   );
 
   const handleUpdate = useCallback(
     async (id: string, data: UpdateDuplicateOperatorRequest) => {
-      const result = await updateHook.mutate(id, data);
-      if (result) {
-        await refetchList();
+      try {
+        const result = await updateMutation.mutateAsync({ id, data });
+        return result;
+      } catch (error) {
+        // Error handling is done in the mutation
+        return null;
       }
-      return result;
     },
-    [updateHook, refetchList]
+    [updateMutation]
   );
 
   const handleDelete = useCallback(
     async (id: string) => {
-      const result = await deleteHook.mutate(id);
-      if (result) {
-        await refetchList();
+      try {
+        await deleteMutation.mutateAsync(id);
+        return true;
+      } catch (error) {
+        // Error handling is done in the mutation
+        return false;
       }
-      return result;
     },
-    [deleteHook, refetchList]
+    [deleteMutation]
   );
 
-  return {
-    // Data
-    list: listHook.data,
-    listLoading: listHook.loading,
-    listError: listHook.error,
+  // Manual refetch function
+  const refetch = useCallback(async () => {
+    await queryClient.invalidateQueries({ 
+      queryKey: ['duplicate-operators', { page, pageSize, search, status }],
+      exact: true 
+    });
+  }, [queryClient, page, pageSize, search, status]);
+
+  // Prefetch adjacent pages for better UX
+  const prefetchPage = useCallback(
+    (targetPage: number) => {
+      queryClient.prefetchQuery({
+        queryKey: ['duplicate-operators', { page: targetPage, pageSize, search, status }],
+        queryFn: async () => {
+          const response = await duplicateOperatorAPI.list({
+            page: targetPage,
+            page_size: pageSize,
+            search: search || undefined,
+            status: status !== "all" ? status : undefined,
+          });
+          return response;
+        },
+        staleTime: 5 * 60 * 1000,
+      });
+    },
+    [queryClient, pageSize, search, status]
+  );
+
+  // Memoize return value to prevent unnecessary re-renders of consuming components
+  return useMemo(() => ({
+    // Data & Loading States
+    list: listQuery.data,
+    listLoading: listQuery.isLoading,
+    listError: listQuery.error,
+    isFetching: listQuery.isFetching,
+    isRefetching: listQuery.isRefetching,
 
     // Pagination
     page,
@@ -356,11 +330,40 @@ export function useDuplicateOperatorManager(
     create: handleCreate,
     update: handleUpdate,
     delete: handleDelete,
-    createLoading: createHook.loading,
-    updateLoading: updateHook.loading,
-    deleteLoading: deleteHook.loading,
 
-    // Refetch
-    refetch: refetchList,
-  };
+    // Mutation States
+    createLoading: createMutation.isPending,
+    updateLoading: updateMutation.isPending,
+    deleteLoading: deleteMutation.isPending,
+
+    // Actions
+    refetch,
+    prefetchPage,
+
+    // React Query specific
+    queryClient,
+  }), [
+    listQuery.data,
+    listQuery.isLoading,
+    listQuery.error,
+    listQuery.isFetching,
+    listQuery.isRefetching,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
+    search,
+    setSearch,
+    status,
+    setStatus,
+    handleCreate,
+    handleUpdate,
+    handleDelete,
+    createMutation.isPending,
+    updateMutation.isPending,
+    deleteMutation.isPending,
+    refetch,
+    prefetchPage,
+    queryClient,
+  ]);
 }

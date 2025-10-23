@@ -27,13 +27,13 @@ func (h *DuplicateOperatorHandler) ListRecords(c *gin.Context) {
 	// Parse pagination parameters
 	page := 1
 	pageSize := 10
-	
+
 	if p := c.Query("page"); p != "" {
 		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
 			page = parsed
 		}
 	}
-	
+
 	if ps := c.Query("page_size"); ps != "" {
 		if parsed, err := strconv.Atoi(ps); err == nil && parsed > 0 && parsed <= 100 {
 			pageSize = parsed
@@ -45,7 +45,7 @@ func (h *DuplicateOperatorHandler) ListRecords(c *gin.Context) {
 
 	// Build filters
 	filters := make(map[string]interface{})
-	
+
 	if status := c.Query("status"); status != "" && status != "all" {
 		if status == "ready" {
 			filters["is_ready_to_record"] = true
@@ -159,13 +159,13 @@ func (h *DuplicateOperatorHandler) GetRecord(c *gin.Context) {
 // CreateRecord handles POST /api/v1/duplicate-operators
 func (h *DuplicateOperatorHandler) CreateRecord(c *gin.Context) {
 	var req duplicate_operator.CreateRequest
-	
+
 	// Parse request body
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"code":    http.StatusBadRequest,
-			"message": "invalid request: " + err.Error(),
+			"message": "format request tidak valid: " + err.Error(),
 		})
 		return
 	}
@@ -187,7 +187,7 @@ func (h *DuplicateOperatorHandler) CreateRecord(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"status":  "error",
 			"code":    http.StatusUnauthorized,
-			"message": "user context not found",
+			"message": "konteks pengguna tidak ditemukan",
 		})
 		return
 	}
@@ -219,19 +219,19 @@ func (h *DuplicateOperatorHandler) UpdateRecord(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"code":    http.StatusBadRequest,
-			"message": "ID parameter is required",
+			"message": "ID parameter wajib diisi",
 		})
 		return
 	}
 
 	var req duplicate_operator.UpdateRequest
-	
+
 	// Parse request body
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"code":    http.StatusBadRequest,
-			"message": "invalid request: " + err.Error(),
+			"message": "format request tidak valid: " + err.Error(),
 		})
 		return
 	}
@@ -284,7 +284,7 @@ func (h *DuplicateOperatorHandler) DeleteRecord(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"code":    http.StatusBadRequest,
-			"message": "ID parameter is required",
+			"message": "ID parameter wajib diisi",
 		})
 		return
 	}
@@ -325,14 +325,30 @@ func (h *DuplicateOperatorHandler) SearchRecords(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"code":    http.StatusBadRequest,
-			"message": "search query parameter 'q' is required",
+			"message": "parameter pencarian 'q' wajib diisi",
 		})
 		return
 	}
 
+	// Parse pagination parameters
+	page := 1
+	pageSize := 50
+
+	if p := c.Query("page"); p != "" {
+		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
+			page = parsed
+		}
+	}
+
+	if ps := c.Query("page_size"); ps != "" {
+		if parsed, err := strconv.Atoi(ps); err == nil && parsed > 0 && parsed <= 100 {
+			pageSize = parsed
+		}
+	}
+
 	// Build filters
 	filters := make(map[string]interface{})
-	
+
 	if status := c.Query("status"); status != "" && status != "all" {
 		if status == "ready" {
 			filters["is_ready_to_record"] = true
@@ -340,6 +356,10 @@ func (h *DuplicateOperatorHandler) SearchRecords(c *gin.Context) {
 			filters["is_ready_to_record"] = false
 		}
 	}
+
+	// Add pagination to filters
+	filters["page"] = page
+	filters["page_size"] = pageSize
 
 	// Call service
 	records, err := h.service.SearchRecords(c, query, filters)

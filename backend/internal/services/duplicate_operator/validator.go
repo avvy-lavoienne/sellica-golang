@@ -10,9 +10,9 @@ import (
 func ValidateCreateRequest(req *CreateRequest) *ErrorResponse {
 	if req == nil {
 		return &ErrorResponse{
-			Status: "error",
-			Code:   400,
-			Message: "request body cannot be empty",
+			Status:  "error",
+			Code:    400,
+			Message: "request body tidak boleh kosong",
 		}
 	}
 
@@ -30,12 +30,12 @@ func ValidateCreateRequest(req *CreateRequest) *ErrorResponse {
 	if req.NamaDuplicate == "" {
 		errors = append(errors, ErrorDetail{
 			Field:   "nama_duplicate",
-			Message: "nama_duplicate is required",
+			Message: "nama_duplicate tidak boleh kosong",
 		})
 	} else if len(req.NamaDuplicate) > 255 {
 		errors = append(errors, ErrorDetail{
 			Field:   "nama_duplicate",
-			Message: "nama_duplicate must not exceed 255 characters",
+			Message: "nama_duplicate harus tidak melebihi 255 karakter",
 		})
 	}
 
@@ -51,12 +51,12 @@ func ValidateCreateRequest(req *CreateRequest) *ErrorResponse {
 	if req.NamaOperator == "" {
 		errors = append(errors, ErrorDetail{
 			Field:   "nama_operator",
-			Message: "nama_operator is required",
+			Message: "nama_operator tidak boleh kosong",
 		})
 	} else if len(req.NamaOperator) > 255 {
 		errors = append(errors, ErrorDetail{
 			Field:   "nama_operator",
-			Message: "nama_operator must not exceed 255 characters",
+			Message: "nama_operator harus tidak melebihi 255 karakter",
 		})
 	}
 
@@ -90,7 +90,7 @@ func ValidateCreateRequest(req *CreateRequest) *ErrorResponse {
 		return &ErrorResponse{
 			Status:       "error",
 			Code:         400,
-			Message:      "validation failed",
+			Message:      "validasi gagal",
 			ErrorDetails: errors,
 		}
 	}
@@ -110,8 +110,8 @@ func ValidateUpdateRequest(req *UpdateRequest) *ErrorResponse {
 
 	errors := []ErrorDetail{}
 
-	// Validate NikDuplicate if provided
-	if req.NikDuplicate != nil {
+	// Validate NikDuplicate if provided (not empty string)
+	if req.NikDuplicate != nil && *req.NikDuplicate != "" {
 		if err := validateNIK(*req.NikDuplicate); err != nil {
 			errors = append(errors, ErrorDetail{
 				Field:   "nik_duplicate",
@@ -120,18 +120,24 @@ func ValidateUpdateRequest(req *UpdateRequest) *ErrorResponse {
 		}
 	}
 
-	// Validate NamaDuplicate if provided
-	if req.NamaDuplicate != nil {
+	// Validate NamaDuplicate if provided (not empty string)
+	if req.NamaDuplicate != nil && *req.NamaDuplicate != "" {
 		if len(*req.NamaDuplicate) > 255 {
 			errors = append(errors, ErrorDetail{
 				Field:   "nama_duplicate",
-				Message: "nama_duplicate must not exceed 255 characters",
+				Message: "nama_duplicate harus tidak melebihi 255 karakter",
+			})
+		}
+		if len(*req.NamaDuplicate) == 0 {
+			errors = append(errors, ErrorDetail{
+				Field:   "nama_duplicate",
+				Message: "nama_duplicate tidak boleh kosong",
 			})
 		}
 	}
 
-	// Validate NikOperator if provided
-	if req.NikOperator != nil {
+	// Validate NikOperator if provided (not empty string)
+	if req.NikOperator != nil && *req.NikOperator != "" {
 		if err := validateNIK(*req.NikOperator); err != nil {
 			errors = append(errors, ErrorDetail{
 				Field:   "nik_operator",
@@ -140,18 +146,24 @@ func ValidateUpdateRequest(req *UpdateRequest) *ErrorResponse {
 		}
 	}
 
-	// Validate NamaOperator if provided
-	if req.NamaOperator != nil {
+	// Validate NamaOperator if provided (not empty string)
+	if req.NamaOperator != nil && *req.NamaOperator != "" {
 		if len(*req.NamaOperator) > 255 {
 			errors = append(errors, ErrorDetail{
 				Field:   "nama_operator",
-				Message: "nama_operator must not exceed 255 characters",
+				Message: "nama_operator harus tidak melebihi 255 karakter",
+			})
+		}
+		if len(*req.NamaOperator) == 0 {
+			errors = append(errors, ErrorDetail{
+				Field:   "nama_operator",
+				Message: "nama_operator tidak boleh kosong",
 			})
 		}
 	}
 
-	// Validate TanggalPerekaman if provided
-	if req.TanggalPerekaman != nil {
+	// Validate TanggalPerekaman if provided (not empty string)
+	if req.TanggalPerekaman != nil && *req.TanggalPerekaman != "" {
 		if err := validateDateFormat(*req.TanggalPerekaman); err != nil {
 			errors = append(errors, ErrorDetail{
 				Field:   "tanggal_perekaman",
@@ -160,8 +172,8 @@ func ValidateUpdateRequest(req *UpdateRequest) *ErrorResponse {
 		}
 	}
 
-	// Validate TanggalPengajuan if provided
-	if req.TanggalPengajuan != nil {
+	// Validate TanggalPengajuan if provided (not empty string)
+	if req.TanggalPengajuan != nil && *req.TanggalPengajuan != "" {
 		if err := validateDateFormat(*req.TanggalPengajuan); err != nil {
 			errors = append(errors, ErrorDetail{
 				Field:   "tanggal_pengajuan",
@@ -170,8 +182,8 @@ func ValidateUpdateRequest(req *UpdateRequest) *ErrorResponse {
 		}
 	}
 
-	// Validate EstimasiTanggalPerekaman if provided
-	if req.EstimasiTanggalPerekaman != nil {
+	// Validate EstimasiTanggalPerekaman if provided (not empty string)
+	if req.EstimasiTanggalPerekaman != nil && *req.EstimasiTanggalPerekaman != "" {
 		if err := validateDateFormat(*req.EstimasiTanggalPerekaman); err != nil {
 			errors = append(errors, ErrorDetail{
 				Field:   "estimasi_tanggal_perekaman",
@@ -184,7 +196,7 @@ func ValidateUpdateRequest(req *UpdateRequest) *ErrorResponse {
 		return &ErrorResponse{
 			Status:       "error",
 			Code:         400,
-			Message:      "validation failed",
+			Message:      "validasi gagal",
 			ErrorDetails: errors,
 		}
 	}
@@ -195,18 +207,18 @@ func ValidateUpdateRequest(req *UpdateRequest) *ErrorResponse {
 // validateNIK validates NIK format (16 digits, numeric only)
 func validateNIK(nik string) error {
 	if nik == "" {
-		return fmt.Errorf("NIK is required")
+		return fmt.Errorf("NIK tidak boleh kosong")
 	}
 
 	// Check length
 	if len(nik) != 16 {
-		return fmt.Errorf("NIK must be exactly 16 characters")
+		return fmt.Errorf("NIK harus tepat 16 karakter")
 	}
 
 	// Check if numeric
 	matched, err := regexp.MatchString(`^\d+$`, nik)
 	if err != nil || !matched {
-		return fmt.Errorf("NIK must contain only numeric characters")
+		return fmt.Errorf("NIK harus berisi hanya karakter numerik")
 	}
 
 	return nil
@@ -215,13 +227,13 @@ func validateNIK(nik string) error {
 // validateDateFormat validates date format (YYYY-MM-DD)
 func validateDateFormat(dateStr string) error {
 	if dateStr == "" {
-		return fmt.Errorf("date is required")
+		return fmt.Errorf("tanggal tidak boleh kosong")
 	}
 
 	// Check format
 	_, err := time.Parse("2006-01-02", dateStr)
 	if err != nil {
-		return fmt.Errorf("invalid date format, expected YYYY-MM-DD")
+		return fmt.Errorf("format tanggal tidak valid, gunakan YYYY-MM-DD")
 	}
 
 	return nil

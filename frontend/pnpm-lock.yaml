@@ -86,6 +86,12 @@ importers:
       '@tailwindcss/typography':
         specifier: ^0.5.16
         version: 0.5.16(tailwindcss@3.4.0(ts-node@10.9.2(@types/node@24.1.0)(typescript@5.9.2)))
+      '@tanstack/react-query':
+        specifier: ^5.90.5
+        version: 5.90.5(react@19.1.0)
+      '@tanstack/react-query-devtools':
+        specifier: ^5.90.2
+        version: 5.90.2(@tanstack/react-query@5.90.5(react@19.1.0))(react@19.1.0)
       '@tensorflow/tfjs':
         specifier: ^4.22.0
         version: 4.22.0(seedrandom@3.0.5)
@@ -100,7 +106,7 @@ importers:
         version: 10.4.21(postcss@8.5.6)
       axios:
         specifier: ^1.11.0
-        version: 1.11.0(debug@4.4.1)
+        version: 1.11.0
       browser-image-compression:
         specifier: ^2.0.2
         version: 2.0.2
@@ -2863,6 +2869,23 @@ packages:
     resolution: {integrity: sha512-0wDLwCVF5V3x3b1SGXPCDcdsbDHMBe+lkFzBRaHeLvNi+nrrnZ1lA18u+OTWO8iSWU2GxUOCvlXtDuqftc1oiA==}
     peerDependencies:
       tailwindcss: '>=3.0.0 || insiders || >=4.0.0-alpha.20 || >=4.0.0-beta.1'
+
+  '@tanstack/query-core@5.90.5':
+    resolution: {integrity: sha512-wLamYp7FaDq6ZnNehypKI5fNvxHPfTYylE0m/ZpuuzJfJqhR5Pxg9gvGBHZx4n7J+V5Rg5mZxHHTlv25Zt5u+w==}
+
+  '@tanstack/query-devtools@5.90.1':
+    resolution: {integrity: sha512-GtINOPjPUH0OegJExZ70UahT9ykmAhmtNVcmtdnOZbxLwT7R5OmRztR5Ahe3/Cu7LArEmR6/588tAycuaWb1xQ==}
+
+  '@tanstack/react-query-devtools@5.90.2':
+    resolution: {integrity: sha512-vAXJzZuBXtCQtrY3F/yUNJCV4obT/A/n81kb3+YqLbro5Z2+phdAbceO+deU3ywPw8B42oyJlp4FhO0SoivDFQ==}
+    peerDependencies:
+      '@tanstack/react-query': ^5.90.2
+      react: ^18 || ^19
+
+  '@tanstack/react-query@5.90.5':
+    resolution: {integrity: sha512-pN+8UWpxZkEJ/Rnnj2v2Sxpx1WFlaa9L6a4UO89p6tTQbeo+m0MS8oYDjbggrR8QcTyjKoYWKS3xJQGr3ExT8Q==}
+    peerDependencies:
+      react: ^18 || ^19
 
   '@tanstack/react-virtual@3.13.12':
     resolution: {integrity: sha512-Gd13QdxPSukP8ZrkbgS2RwoZseTTbQPLnQEn7HY/rqtM+8Zt95f7xKC7N0EsKs7aoz0WzZ+fditZux+F8EzYxA==}
@@ -7922,7 +7945,7 @@ snapshots:
     dependencies:
       async: 2.6.4
       cheerio: 1.1.2
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.3(supports-color@8.1.1)
       deep-for-each: 3.0.0
       espree: 9.6.1
       jsonpath-plus: 10.3.0
@@ -7942,7 +7965,7 @@ snapshots:
       cheerio: 1.1.2
       cookie-parser: 1.4.7
       csv-parse: 4.16.3
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.3(supports-color@8.1.1)
       decompress-response: 6.0.0
       deep-for-each: 3.0.0
       driftless: 2.0.3
@@ -8604,7 +8627,7 @@ snapshots:
       '@babel/traverse': 7.28.3
       '@babel/types': 7.28.2
       convert-source-map: 2.0.0
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.1
       gensync: 1.0.0-beta.2
       json5: 2.2.3
       semver: 6.3.1
@@ -8763,7 +8786,7 @@ snapshots:
       '@babel/parser': 7.28.3
       '@babel/template': 7.27.2
       '@babel/types': 7.28.2
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.1
     transitivePeerDependencies:
       - supports-color
 
@@ -8995,7 +9018,7 @@ snapshots:
   '@eslint/config-array@0.21.0':
     dependencies:
       '@eslint/object-schema': 2.1.6
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.1
       minimatch: 3.1.2
     transitivePeerDependencies:
       - supports-color
@@ -9009,7 +9032,7 @@ snapshots:
   '@eslint/eslintrc@3.3.1':
     dependencies:
       ajv: 6.12.6
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.1
       espree: 10.4.0
       globals: 14.0.0
       ignore: 5.3.2
@@ -9902,7 +9925,7 @@ snapshots:
       ansis: 3.17.0
       clean-stack: 3.0.1
       cli-spinners: 2.9.2
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.3(supports-color@8.1.1)
       ejs: 3.1.10
       get-package-type: 0.1.0
       indent-string: 4.0.0
@@ -10222,7 +10245,7 @@ snapshots:
 
   '@pm2/pm2-version-check@1.0.4':
     dependencies:
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -11179,6 +11202,21 @@ snapshots:
       postcss-selector-parser: 6.0.10
       tailwindcss: 3.4.0(ts-node@10.9.2(@types/node@24.1.0)(typescript@5.9.2))
 
+  '@tanstack/query-core@5.90.5': {}
+
+  '@tanstack/query-devtools@5.90.1': {}
+
+  '@tanstack/react-query-devtools@5.90.2(@tanstack/react-query@5.90.5(react@19.1.0))(react@19.1.0)':
+    dependencies:
+      '@tanstack/query-devtools': 5.90.1
+      '@tanstack/react-query': 5.90.5(react@19.1.0)
+      react: 19.1.0
+
+  '@tanstack/react-query@5.90.5(react@19.1.0)':
+    dependencies:
+      '@tanstack/query-core': 5.90.5
+      react: 19.1.0
+
   '@tanstack/react-virtual@3.13.12(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
       '@tanstack/virtual-core': 3.13.12
@@ -11521,7 +11559,7 @@ snapshots:
       '@typescript-eslint/types': 8.39.1
       '@typescript-eslint/typescript-estree': 8.39.1(typescript@5.9.2)
       '@typescript-eslint/visitor-keys': 8.39.1
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.1
       eslint: 9.33.0(jiti@1.21.7)
       typescript: 5.9.2
     transitivePeerDependencies:
@@ -11531,7 +11569,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/tsconfig-utils': 8.39.1(typescript@5.9.2)
       '@typescript-eslint/types': 8.39.1
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.1
       typescript: 5.9.2
     transitivePeerDependencies:
       - supports-color
@@ -11550,7 +11588,7 @@ snapshots:
       '@typescript-eslint/types': 8.39.1
       '@typescript-eslint/typescript-estree': 8.39.1(typescript@5.9.2)
       '@typescript-eslint/utils': 8.39.1(eslint@9.33.0(jiti@1.21.7))(typescript@5.9.2)
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.1
       eslint: 9.33.0(jiti@1.21.7)
       ts-api-utils: 2.1.0(typescript@5.9.2)
       typescript: 5.9.2
@@ -11567,7 +11605,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 5.62.0
       '@typescript-eslint/visitor-keys': 5.62.0
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.3(supports-color@8.1.1)
       globby: 11.1.0
       is-glob: 4.0.3
       semver: 7.7.2
@@ -11581,7 +11619,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 8.26.0
       '@typescript-eslint/visitor-keys': 8.26.0
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.1
       fast-glob: 3.3.3
       is-glob: 4.0.3
       minimatch: 9.0.5
@@ -11597,7 +11635,7 @@ snapshots:
       '@typescript-eslint/tsconfig-utils': 8.39.1(typescript@5.9.2)
       '@typescript-eslint/types': 8.39.1
       '@typescript-eslint/visitor-keys': 8.39.1
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.1
       fast-glob: 3.3.3
       is-glob: 4.0.3
       minimatch: 9.0.5
@@ -11722,7 +11760,7 @@ snapshots:
 
   agent-base@6.0.2:
     dependencies:
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -11922,7 +11960,7 @@ snapshots:
 
   arrivals@2.1.2:
     dependencies:
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.3(supports-color@8.1.1)
       nanotimer: 0.3.14
     transitivePeerDependencies:
       - supports-color
@@ -11931,7 +11969,7 @@ snapshots:
     dependencies:
       '@playwright/browser-chromium': 1.54.2
       '@playwright/test': 1.54.2
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.3(supports-color@8.1.1)
       playwright: 1.54.2
     transitivePeerDependencies:
       - supports-color
@@ -11941,7 +11979,7 @@ snapshots:
   artillery-plugin-ensure@1.18.0:
     dependencies:
       chalk: 2.4.2
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.3(supports-color@8.1.1)
       filtrex: 2.2.3
     transitivePeerDependencies:
       - supports-color
@@ -11949,7 +11987,7 @@ snapshots:
   artillery-plugin-expect@2.18.0:
     dependencies:
       chalk: 4.1.2
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.3(supports-color@8.1.1)
       jmespath: 0.16.0
       lodash: 4.17.21
     transitivePeerDependencies:
@@ -11961,7 +11999,7 @@ snapshots:
 
   artillery-plugin-metrics-by-endpoint@1.18.0:
     dependencies:
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -11983,7 +12021,7 @@ snapshots:
       '@opentelemetry/semantic-conventions': 1.36.0
       async: 2.6.4
       datadog-metrics: 0.9.3
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.3(supports-color@8.1.1)
       dogapi: 2.8.4
       hot-shots: 6.8.7
       mixpanel: 0.13.0
@@ -11997,7 +12035,7 @@ snapshots:
 
   artillery-plugin-slack@1.13.0:
     dependencies:
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.3(supports-color@8.1.1)
       got: 11.8.6
     transitivePeerDependencies:
       - supports-color
@@ -12031,7 +12069,7 @@ snapshots:
       cli-table3: 0.6.5
       cross-spawn: 7.0.6
       csv-parse: 4.16.3
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.1
       dependency-tree: 10.0.9
       detective-es6: 4.0.1
       dotenv: 16.6.1
@@ -12113,6 +12151,14 @@ snapshots:
       xml2js: 0.6.2
 
   axe-core@4.10.3: {}
+
+  axios@1.11.0:
+    dependencies:
+      follow-redirects: 1.15.11(debug@4.3.7)
+      form-data: 4.0.4
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
 
   axios@1.11.0(debug@4.4.1):
     dependencies:
@@ -12763,15 +12809,15 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
-  debug@4.4.1(supports-color@8.1.1):
+  debug@4.4.1:
+    dependencies:
+      ms: 2.1.3
+
+  debug@4.4.3(supports-color@8.1.1):
     dependencies:
       ms: 2.1.3
     optionalDependencies:
       supports-color: 8.1.1
-
-  debug@4.4.3:
-    dependencies:
-      ms: 2.1.3
 
   decamelize@1.2.0: {}
 
@@ -13225,7 +13271,7 @@ snapshots:
   eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@9.33.0(jiti@1.21.7)):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.1
       eslint: 9.33.0(jiti@1.21.7)
       get-tsconfig: 4.10.1
       is-bun-module: 2.0.0
@@ -13349,7 +13395,7 @@ snapshots:
       ajv: 6.12.6
       chalk: 4.1.2
       cross-spawn: 7.0.6
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.1
       escape-string-regexp: 4.0.0
       eslint-scope: 8.4.0
       eslint-visitor-keys: 4.2.1
@@ -13612,7 +13658,7 @@ snapshots:
 
   follow-redirects@1.15.11(debug@4.4.1):
     optionalDependencies:
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.1
 
   for-each@0.3.5:
     dependencies:
@@ -13735,7 +13781,7 @@ snapshots:
     dependencies:
       basic-ftp: 5.0.5
       data-uri-to-buffer: 6.0.2
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -13916,7 +13962,7 @@ snapshots:
   http-proxy-agent@7.0.2:
     dependencies:
       agent-base: 7.1.4
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.1
     transitivePeerDependencies:
       - supports-color
 
@@ -13928,21 +13974,21 @@ snapshots:
   https-proxy-agent@5.0.0:
     dependencies:
       agent-base: 6.0.2
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
   https-proxy-agent@5.0.1:
     dependencies:
       agent-base: 6.0.2
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
   https-proxy-agent@7.0.6:
     dependencies:
       agent-base: 7.1.4
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.1
     transitivePeerDependencies:
       - supports-color
 
@@ -14229,7 +14275,7 @@ snapshots:
   istanbul-lib-source-maps@5.0.6:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.30
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.1
       istanbul-lib-coverage: 3.2.2
     transitivePeerDependencies:
       - supports-color
@@ -15105,7 +15151,7 @@ snapshots:
   micromark@4.0.2:
     dependencies:
       '@types/debug': 4.1.12
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.1
       decode-named-character-reference: 1.2.0
       devlop: 1.1.0
       micromark-core-commonmark: 2.0.3
@@ -15459,7 +15505,7 @@ snapshots:
     dependencies:
       '@tootallnate/quickjs-emscripten': 0.23.0
       agent-base: 7.1.4
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@8.1.1)
       get-uri: 6.0.5
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.6
@@ -15566,7 +15612,7 @@ snapshots:
 
   pm2-axon-rpc@0.7.1:
     dependencies:
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -15574,7 +15620,7 @@ snapshots:
     dependencies:
       amp: 0.3.1
       amp-message: 0.1.2
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@8.1.1)
       escape-string-regexp: 4.0.0
     transitivePeerDependencies:
       - supports-color
@@ -15591,7 +15637,7 @@ snapshots:
   pm2-sysmonit@1.2.8:
     dependencies:
       async: 3.2.6
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@8.1.1)
       pidusage: 2.0.21
       systeminformation: 5.27.11
       tx2: 1.0.5
@@ -15613,7 +15659,7 @@ snapshots:
       commander: 2.15.1
       croner: 4.1.97
       dayjs: 1.11.15
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@8.1.1)
       enquirer: 2.3.6
       eventemitter2: 5.0.1
       fclone: 1.0.11
@@ -15795,7 +15841,7 @@ snapshots:
   proxy-agent@6.4.0:
     dependencies:
       agent-base: 7.1.4
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@8.1.1)
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.6
       lru-cache: 7.18.3
@@ -16061,7 +16107,7 @@ snapshots:
 
   require-in-the-middle@5.2.0:
     dependencies:
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@8.1.1)
       module-details-from-path: 1.0.4
       resolve: 1.22.10
     transitivePeerDependencies:
@@ -16336,7 +16382,7 @@ snapshots:
   socks-proxy-agent@8.0.5:
     dependencies:
       agent-base: 7.1.4
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@8.1.1)
       socks: 2.8.7
     transitivePeerDependencies:
       - supports-color
@@ -16371,7 +16417,7 @@ snapshots:
   sqs-consumer@5.8.0(aws-sdk@2.1692.0):
     dependencies:
       aws-sdk: 2.1692.0
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
