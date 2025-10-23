@@ -10,7 +10,7 @@
  * - Background refetching
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
 import { duplicateOperatorAPI } from "@/lib/api/endpoints/duplicate-operator";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -305,7 +305,8 @@ export function useDuplicateOperatorManager(
     [queryClient, pageSize, search, status]
   );
 
-  return {
+  // Memoize return value to prevent unnecessary re-renders of consuming components
+  return useMemo(() => ({
     // Data & Loading States
     list: listQuery.data,
     listLoading: listQuery.isLoading,
@@ -341,5 +342,28 @@ export function useDuplicateOperatorManager(
 
     // React Query specific
     queryClient,
-  };
+  }), [
+    listQuery.data,
+    listQuery.isLoading,
+    listQuery.error,
+    listQuery.isFetching,
+    listQuery.isRefetching,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
+    search,
+    setSearch,
+    status,
+    setStatus,
+    handleCreate,
+    handleUpdate,
+    handleDelete,
+    createMutation.isPending,
+    updateMutation.isPending,
+    deleteMutation.isPending,
+    refetch,
+    prefetchPage,
+    queryClient,
+  ]);
 }
