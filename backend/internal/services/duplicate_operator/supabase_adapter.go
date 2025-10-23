@@ -26,10 +26,13 @@ func NewSupabaseAdapter(client *supabase.Client) *SupabaseAdapter {
 
 // GetRecordByID fetches a single record by ID
 func (a *SupabaseAdapter) GetRecordByID(ctx context.Context, id string) (*DuplicateOperatorData, error) {
-	// Validate UUID format
-	if _, err := uuid.Parse(id); err != nil {
-		return nil, fmt.Errorf("invalid ID format: %w", err)
+	// Validate ID is not empty
+	if id == "" {
+		return nil, fmt.Errorf("ID cannot be empty")
 	}
+
+	// Note: ID format validation is done at handler level
+	// Adapter accepts any non-empty string ID for flexibility
 
 	if a.client == nil {
 		return nil, fmt.Errorf("database client not initialized")
@@ -125,7 +128,7 @@ func (a *SupabaseAdapter) ListRecords(
 
 	// Apply range with empty string to get the count header
 	countQuery = countQuery.Range(0, 0, "")
-	
+
 	countData, count, err := countQuery.Execute()
 	var total int64 = int64(len(records)) // Fallback to current count
 
@@ -160,18 +163,18 @@ func (a *SupabaseAdapter) CreateRecord(
 
 	// Build the record to insert
 	record := map[string]interface{}{
-		"id":                            id.String(),
-		"user_id":                       userID,
-		"nik_duplicate":                 req.NikDuplicate,
-		"nama_duplicate":                req.NamaDuplicate,
-		"nik_operator":                  req.NikOperator,
-		"nama_operator":                 req.NamaOperator,
-		"tanggal_perekaman":             req.TanggalPerekaman,
-		"tanggal_pengajuan":             req.TanggalPengajuan,
-		"estimasi_tanggal_perekaman":    req.EstimasiTanggalPerekaman,
-		"is_ready_to_record":            req.IsReadyToRecord,
-		"created_at":                    now,
-		"updated_at":                    now,
+		"id":                         id.String(),
+		"user_id":                    userID,
+		"nik_duplicate":              req.NikDuplicate,
+		"nama_duplicate":             req.NamaDuplicate,
+		"nik_operator":               req.NikOperator,
+		"nama_operator":              req.NamaOperator,
+		"tanggal_perekaman":          req.TanggalPerekaman,
+		"tanggal_pengajuan":          req.TanggalPengajuan,
+		"estimasi_tanggal_perekaman": req.EstimasiTanggalPerekaman,
+		"is_ready_to_record":         req.IsReadyToRecord,
+		"created_at":                 now,
+		"updated_at":                 now,
 	}
 
 	// Convert record to JSON bytes for insertion
@@ -302,7 +305,7 @@ func (a *SupabaseAdapter) DeleteRecord(ctx context.Context, id string) error {
 	return nil
 }
 
-// SearchRecords performs full-text search
+// SearchRecords performs full-text search with pagination
 func (a *SupabaseAdapter) SearchRecords(
 	ctx context.Context,
 	query string,
@@ -312,7 +315,20 @@ func (a *SupabaseAdapter) SearchRecords(
 		return nil, fmt.Errorf("database client not initialized")
 	}
 
-	// Build base query - fetch all records, then filter in memory for search
+	// Extract pagination parameters from filters (with defaults)
+	page := 1
+	pageSize := 50 // Default page size for search
+
+	if p, ok := filters["page"].(int); ok && p > 0 {
+		page = p
+	}
+	if ps, ok := filters["page_size"].(int); ok && ps > 0 && ps <= 100 {
+		pageSize = ps
+	}
+
+	offset := (page - 1) * pageSize
+
+	// Build base query - start with pagination
 	dbQuery := a.client.From("duplicate_operator").Select("*", "", false)
 
 	// Apply only filter conditions to database query
@@ -325,6 +341,9 @@ func (a *SupabaseAdapter) SearchRecords(
 			dbQuery = dbQuery.Eq("user_id", userID)
 		}
 	}
+
+	// Apply pagination to database query
+	dbQuery = dbQuery.Range(offset, offset+pageSize-1, "")
 
 	// Execute query
 	resultData, _, err := dbQuery.Execute()
@@ -342,7 +361,7 @@ func (a *SupabaseAdapter) SearchRecords(
 	if query != "" {
 		trimmedQuery := strings.ToLower(strings.TrimSpace(query))
 		filteredRecords := make([]DuplicateOperatorData, 0)
-		
+
 		for _, record := range records {
 			// Check if search term matches any searchable field (case-insensitive)
 			if strings.Contains(strings.ToLower(record.NikDuplicate), trimmedQuery) ||
