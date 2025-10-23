@@ -93,7 +93,18 @@ func (a *SupabaseAdapter) ListRecords(
 		query = query.Eq("is_ready_to_record", strconv.FormatBool(isReady))
 	}
 
-	// Apply pagination using Range
+	// Apply search filter BEFORE pagination if search query provided
+	if searchQuery, ok := filters["search"].(string); ok && searchQuery != "" {
+		trimmedQuery := strings.ToLower(strings.TrimSpace(searchQuery))
+
+		// Use Or with proper condition format for multiple fields
+		query = query.Or(fmt.Sprintf(
+			"nik_duplicate.ilike.%%25%s%%25,nik_operator.ilike.%%25%s%%25,nama_duplicate.ilike.%%25%s%%25,nama_operator.ilike.%%25%s%%25,nik_pengaju.ilike.%%25%s%%25,nama_pengaju.ilike.%%25%s%%25",
+			trimmedQuery, trimmedQuery, trimmedQuery, trimmedQuery, trimmedQuery, trimmedQuery,
+		), "")
+	}
+
+	// Apply pagination using Range AFTER filters
 	query = query.Range(offset, offset+pageSize-1, "")
 
 	// Execute query
@@ -118,32 +129,21 @@ func (a *SupabaseAdapter) ListRecords(
 		records = append(records, record)
 	}
 
-	// Apply search filter in-memory if search query provided
-	var searchedRecords []DuplicateOperatorData
-	if searchQuery, ok := filters["search"].(string); ok && searchQuery != "" {
-		trimmedQuery := strings.ToLower(strings.TrimSpace(searchQuery))
-		searchedRecords = make([]DuplicateOperatorData, 0)
-		
-		for _, record := range records {
-			// Check if search term matches any searchable field (case-insensitive)
-			if strings.Contains(strings.ToLower(record.NikDuplicate), trimmedQuery) ||
-				strings.Contains(strings.ToLower(record.NikOperator), trimmedQuery) ||
-				strings.Contains(strings.ToLower(record.NamaDuplicate), trimmedQuery) ||
-				strings.Contains(strings.ToLower(record.NamaOperator), trimmedQuery) ||
-				strings.Contains(strings.ToLower(record.NikPengaju), trimmedQuery) ||
-				strings.Contains(strings.ToLower(record.NamaPengaju), trimmedQuery) {
-				searchedRecords = append(searchedRecords, record)
-			}
-		}
-		records = searchedRecords
-	}
-
-	// Get total count with same filters
+	// Get total count with same filters (including search)
 	countQuery := a.client.From("duplicate_operator").
 		Select("*", "exact", false)
 
 	if isReady, ok := filters["is_ready_to_record"].(bool); ok {
 		countQuery = countQuery.Eq("is_ready_to_record", strconv.FormatBool(isReady))
+	}
+
+	// Apply same search filter to count query
+	if searchQuery, ok := filters["search"].(string); ok && searchQuery != "" {
+		trimmedQuery := strings.ToLower(strings.TrimSpace(searchQuery))
+		countQuery = countQuery.Or(fmt.Sprintf(
+			"nik_duplicate.ilike.%%25%s%%25,nik_operator.ilike.%%25%s%%25,nama_duplicate.ilike.%%25%s%%25,nama_operator.ilike.%%25%s%%25,nik_pengaju.ilike.%%25%s%%25,nama_pengaju.ilike.%%25%s%%25",
+			trimmedQuery, trimmedQuery, trimmedQuery, trimmedQuery, trimmedQuery, trimmedQuery,
+		), "")
 	}
 
 	// Apply range with empty string to get the count header
