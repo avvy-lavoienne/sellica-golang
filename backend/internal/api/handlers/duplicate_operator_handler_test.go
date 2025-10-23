@@ -1,4 +1,4 @@
-﻿package handlers
+package handlers
 
 import (
 	"context"
@@ -105,18 +105,19 @@ func TestListRecordsSuccess(t *testing.T) {
 			return &duplicate_operator.ListResponse{
 				Data: []duplicate_operator.DuplicateOperatorData{
 					{
-						ID:              [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
-						UserID:          [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
-						NikDuplicate:    "1234567890123456",
-						NamaDuplicate:   "John Doe",
-						NikOperator:     "1234567890123456",
-						NamaOperator:    "Jane Smith",
-						NikPengaju:      "1234567890123456",
-						NamaPengaju:     "Bob Wilson",
-						TanggalPengajuan: time.Now(),
-						IsReadyToRecord: true,
-						CreatedAt:       time.Now(),
-						UpdatedAt:       time.Now(),
+						ID:                       [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+						UserID:                   [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+						NikDuplicate:             "1234567890123456",
+						NamaDuplicate:            "John Doe",
+						NikOperator:              "1234567890123456",
+						NamaOperator:             "Jane Smith",
+						NikPengaju:               "1234567890123456",
+						NamaPengaju:              "Bob Wilson",
+						TanggalPerekaman:         time.Now(),
+						TanggalPengajuan:         time.Now(),
+						EstimasiTanggalPerekaman: nil,
+						IsReadyToRecord:          &[]bool{true}[0],
+						CreatedAt:                &[]time.Time{time.Now()}[0],
 					},
 				},
 				Pagination: duplicate_operator.PaginationMeta{
@@ -160,9 +161,9 @@ func TestGetRecordSuccess(t *testing.T) {
 				NikPengaju:      "1234567890123456",
 				NamaPengaju:     "Bob Wilson",
 				TanggalPengajuan: time.Now(),
-				IsReadyToRecord: true,
-				CreatedAt:       time.Now(),
-				UpdatedAt:       time.Now(),
+				IsReadyToRecord: &[]bool{true}[0],
+				CreatedAt: &[]time.Time{time.Now()}[0],
+				
 			}, nil
 		},
 	}
@@ -195,9 +196,9 @@ func TestCreateRecordSuccess(t *testing.T) {
 				NikPengaju:      "1234567890123456",
 				NamaPengaju:     "Bob Wilson",
 				TanggalPengajuan: time.Now(),
-				IsReadyToRecord: false,
-				CreatedAt:       time.Now(),
-				UpdatedAt:       time.Now(),
+				IsReadyToRecord: &[]bool{false}[0],
+				CreatedAt: &[]time.Time{time.Now()}[0],
+				
 			}, nil
 		},
 	}
@@ -240,9 +241,9 @@ func TestUpdateRecordSuccess(t *testing.T) {
 				NikPengaju:      "1234567890123456",
 				NamaPengaju:     "Bob Wilson",
 				TanggalPengajuan: time.Now(),
-				IsReadyToRecord: true,
-				CreatedAt:       time.Now(),
-				UpdatedAt:       time.Now(),
+				IsReadyToRecord: &[]bool{true}[0],
+				CreatedAt: &[]time.Time{time.Now()}[0],
+				
 			}, nil
 		},
 	}
@@ -302,9 +303,9 @@ func TestSearchRecordsSuccess(t *testing.T) {
 					NikPengaju:      "1234567890123456",
 					NamaPengaju:     "Bob Wilson",
 					TanggalPengajuan: time.Now(),
-					IsReadyToRecord: true,
-					CreatedAt:       time.Now(),
-					UpdatedAt:       time.Now(),
+					IsReadyToRecord: &[]bool{true}[0],
+					CreatedAt: &[]time.Time{time.Now()}[0],
+					
 				},
 			}, nil
 		},
@@ -498,9 +499,9 @@ func TestGetRecordConcurrentAccess(t *testing.T) {
 				NikPengaju:      "1234567890123456",
 				NamaPengaju:     "Bob Wilson",
 				TanggalPengajuan: time.Now(),
-				IsReadyToRecord: true,
-				CreatedAt:       time.Now(),
-				UpdatedAt:       time.Now(),
+				IsReadyToRecord: &[]bool{true}[0],
+				CreatedAt: &[]time.Time{time.Now()}[0],
+				
 			}, nil
 		},
 	}
@@ -546,7 +547,7 @@ func TestGetRecordMalformedData(t *testing.T) {
 	}{
 		{
 			name:           "Unicode characters in ID",
-			id:             "test-id-🚀-中文-русский",
+			id:             "test-id-??-??-???????",
 			expectedStatus: http.StatusBadRequest,
 			expectedError:  "ID mengandung karakter tidak valid",
 		},
@@ -616,9 +617,9 @@ func TestGetRecordTimeoutSimulation(t *testing.T) {
 					NikPengaju:      "1234567890123456",
 					NamaPengaju:     "Bob Wilson",
 					TanggalPengajuan: time.Now(),
-					IsReadyToRecord: true,
-					CreatedAt:       time.Now(),
-					UpdatedAt:       time.Now(),
+					IsReadyToRecord: &[]bool{true}[0],
+					CreatedAt: &[]time.Time{time.Now()}[0],
+					
 				}, nil
 			}
 		},
@@ -1004,9 +1005,9 @@ func TestMonitoringSetupValidation(t *testing.T) {
 					NikPengaju:      "1234567890123456",
 					NamaPengaju:     "Bob Wilson",
 					TanggalPengajuan: time.Now(),
-					IsReadyToRecord: true,
-					CreatedAt:       time.Now(),
-					UpdatedAt:       time.Now(),
+					IsReadyToRecord: &[]bool{true}[0],
+					CreatedAt: &[]time.Time{time.Now()}[0],
+					
 				}, nil
 			},
 		}
@@ -1197,9 +1198,9 @@ func TestMonitoringSetupValidation(t *testing.T) {
 					NikPengaju:      "1234567890123456",
 					NamaPengaju:     "Bob Wilson",
 					TanggalPengajuan: time.Now(),
-					IsReadyToRecord: true,
-					CreatedAt:       time.Now(),
-					UpdatedAt:       time.Now(),
+					IsReadyToRecord: &[]bool{true}[0],
+					CreatedAt: &[]time.Time{time.Now()}[0],
+					
 				}, nil
 			},
 		}
@@ -1263,9 +1264,9 @@ func TestMonitoringSetupValidation(t *testing.T) {
 					NikPengaju:      "1234567890123456",
 					NamaPengaju:     "Bob Wilson",
 					TanggalPengajuan: time.Now(),
-					IsReadyToRecord: true,
-					CreatedAt:       time.Now(),
-					UpdatedAt:       time.Now(),
+					IsReadyToRecord: &[]bool{true}[0],
+					CreatedAt: &[]time.Time{time.Now()}[0],
+					
 				}, nil
 			},
 		}
@@ -1318,9 +1319,9 @@ func TestMonitoringSetupValidation(t *testing.T) {
 					NikPengaju:      "1234567890123456",
 					NamaPengaju:     "Bob Wilson",
 					TanggalPengajuan: time.Now(),
-					IsReadyToRecord: true,
-					CreatedAt:       time.Now(),
-					UpdatedAt:       time.Now(),
+					IsReadyToRecord: &[]bool{true}[0],
+					CreatedAt: &[]time.Time{time.Now()}[0],
+					
 				}, nil
 			},
 		}

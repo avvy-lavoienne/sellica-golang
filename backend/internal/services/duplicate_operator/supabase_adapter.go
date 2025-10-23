@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -93,15 +94,46 @@ func (a *SupabaseAdapter) ListRecords(
 		query = query.Eq("is_ready_to_record", strconv.FormatBool(isReady))
 	}
 
-	// Apply search filter BEFORE pagination if search query provided
+	// Apply search and date filters BEFORE pagination
 	if searchQuery, ok := filters["search"].(string); ok && searchQuery != "" {
-		trimmedQuery := strings.ToLower(strings.TrimSpace(searchQuery))
+		// Split the combined query string by commas
+		parts := strings.Split(searchQuery, ",")
+		var textQueries []string
+		var orConditions []string
 
-		// Use Or with proper condition format for multiple fields
-		query = query.Or(fmt.Sprintf(
-			"nik_duplicate.ilike.%%25%s%%25,nik_operator.ilike.%%25%s%%25,nama_duplicate.ilike.%%25%s%%25,nama_operator.ilike.%%25%s%%25,nik_pengaju.ilike.%%25%s%%25,nama_pengaju.ilike.%%25%s%%25",
-			trimmedQuery, trimmedQuery, trimmedQuery, trimmedQuery, trimmedQuery, trimmedQuery,
-		), "")
+		for _, part := range parts {
+			trimmedPart := strings.TrimSpace(part)
+			if trimmedPart == "" {
+				continue
+			}
+
+			// Check for date filters (e.g., "created_at.gte.2023-01-01T00:00:00Z")
+			if strings.HasPrefix(trimmedPart, "created_at.gte.") {
+				dateStr := strings.TrimPrefix(trimmedPart, "created_at.gte.")
+				query = query.Gte("created_at", dateStr)
+			} else if strings.HasPrefix(trimmedPart, "created_at.lte.") {
+				dateStr := strings.TrimPrefix(trimmedPart, "created_at.lte.")
+				query = query.Lte("created_at", dateStr)
+			} else {
+				// Assume it's a text search term.
+				// The term is URL-encoded to handle special characters safely.
+				textQueries = append(textQueries, url.QueryEscape(trimmedPart))
+			}
+		}
+
+		// Combine all text search terms into a single OR condition.
+		// This uses the correct `ilike` format with `*` as wildcards for Supabase.
+		if len(textQueries) > 0 {
+			for _, tq := range textQueries {
+				orConditions = append(orConditions, fmt.Sprintf("nik_duplicate.ilike.*%s*", tq))
+				orConditions = append(orConditions, fmt.Sprintf("nik_operator.ilike.*%s*", tq))
+				orConditions = append(orConditions, fmt.Sprintf("nama_duplicate.ilike.*%s*", tq))
+				orConditions = append(orConditions, fmt.Sprintf("nama_operator.ilike.*%s*", tq))
+				orConditions = append(orConditions, fmt.Sprintf("nik_pengaju.ilike.*%s*", tq))
+				orConditions = append(orConditions, fmt.Sprintf("nama_pengaju.ilike.*%s*", tq))
+			}
+			query = query.Or(strings.Join(orConditions, ","), "")
+		}
 	}
 
 	// Apply pagination using Range AFTER filters
@@ -124,7 +156,9 @@ func (a *SupabaseAdapter) ListRecords(
 	for _, rawRecord := range rawRecords {
 		var record DuplicateOperatorData
 		if err := json.Unmarshal(rawRecord, &record); err != nil {
-			return nil, 0, fmt.Errorf("failed to parse record: %w", err)
+			// Log the problematic record for debugging without failing the whole request
+			// logrus.WithError(err).Warnf("Failed to parse a record: %s", string(rawRecord))
+			continue // Skip records that can't be parsed
 		}
 		records = append(records, record)
 	}
@@ -137,13 +171,40 @@ func (a *SupabaseAdapter) ListRecords(
 		countQuery = countQuery.Eq("is_ready_to_record", strconv.FormatBool(isReady))
 	}
 
-	// Apply same search filter to count query
+	// Apply same search and date filter logic to count query
 	if searchQuery, ok := filters["search"].(string); ok && searchQuery != "" {
-		trimmedQuery := strings.ToLower(strings.TrimSpace(searchQuery))
-		countQuery = countQuery.Or(fmt.Sprintf(
-			"nik_duplicate.ilike.%%25%s%%25,nik_operator.ilike.%%25%s%%25,nama_duplicate.ilike.%%25%s%%25,nama_operator.ilike.%%25%s%%25,nik_pengaju.ilike.%%25%s%%25,nama_pengaju.ilike.%%25%s%%25",
-			trimmedQuery, trimmedQuery, trimmedQuery, trimmedQuery, trimmedQuery, trimmedQuery,
-		), "")
+		parts := strings.Split(searchQuery, ",")
+		var textQueries []string
+		var orConditions []string
+
+		for _, part := range parts {
+			trimmedPart := strings.TrimSpace(part)
+			if trimmedPart == "" {
+				continue
+			}
+
+			if strings.HasPrefix(trimmedPart, "created_at.gte.") {
+				dateStr := strings.TrimPrefix(trimmedPart, "created_at.gte.")
+				countQuery = countQuery.Gte("created_at", dateStr)
+			} else if strings.HasPrefix(trimmedPart, "created_at.lte.") {
+				dateStr := strings.TrimPrefix(trimmedPart, "created_at.lte.")
+				countQuery = countQuery.Lte("created_at", dateStr)
+			} else {
+				textQueries = append(textQueries, url.QueryEscape(trimmedPart))
+			}
+		}
+
+		if len(textQueries) > 0 {
+			for _, tq := range textQueries {
+				orConditions = append(orConditions, fmt.Sprintf("nik_duplicate.ilike.*%s*", tq))
+				orConditions = append(orConditions, fmt.Sprintf("nik_operator.ilike.*%s*", tq))
+				orConditions = append(orConditions, fmt.Sprintf("nama_duplicate.ilike.*%s*", tq))
+				orConditions = append(orConditions, fmt.Sprintf("nama_operator.ilike.*%s*", tq))
+				orConditions = append(orConditions, fmt.Sprintf("nik_pengaju.ilike.*%s*", tq))
+				orConditions = append(orConditions, fmt.Sprintf("nama_pengaju.ilike.*%s*", tq))
+			}
+			countQuery = countQuery.Or(strings.Join(orConditions, ","), "")
+		}
 	}
 
 	// Apply range with empty string to get the count header
@@ -194,7 +255,6 @@ func (a *SupabaseAdapter) CreateRecord(
 		"estimasi_tanggal_perekaman": req.EstimasiTanggalPerekaman,
 		"is_ready_to_record":         req.IsReadyToRecord,
 		"created_at":                 now,
-		"updated_at":                 now,
 	}
 
 	// Convert record to JSON bytes for insertion
@@ -241,9 +301,7 @@ func (a *SupabaseAdapter) UpdateRecord(
 	}
 
 	// Build update map with only provided fields
-	updates := map[string]interface{}{
-		"updated_at": time.Now().UTC(),
-	}
+	updates := map[string]interface{}{}
 
 	if req.NikDuplicate != nil {
 		updates["nik_duplicate"] = *req.NikDuplicate
@@ -325,76 +383,34 @@ func (a *SupabaseAdapter) DeleteRecord(ctx context.Context, id string) error {
 	return nil
 }
 
-// SearchRecords performs full-text search with pagination
+// SearchRecords is deprecated and should not be used.
+// All search logic is now consolidated in ListRecords.
 func (a *SupabaseAdapter) SearchRecords(
 	ctx context.Context,
 	query string,
 	filters map[string]interface{},
 ) ([]DuplicateOperatorData, error) {
-	if a.client == nil {
-		return nil, fmt.Errorf("database client not initialized")
+	// This function is deprecated.
+	// For new implementations, use ListRecords which has unified search.
+	// To maintain backward compatibility for any potential old calls,
+	// it now redirects to ListRecords.
+	
+	// Combine query into filters
+	if filters == nil {
+		filters = make(map[string]interface{})
 	}
+	filters["search"] = query
 
-	// Extract pagination parameters from filters (with defaults)
+	// Extract page and pageSize for ListRecords
 	page := 1
-	pageSize := 50 // Default page size for search
-
-	if p, ok := filters["page"].(int); ok && p > 0 {
+	if p, ok := filters["page"].(int); ok {
 		page = p
 	}
-	if ps, ok := filters["page_size"].(int); ok && ps > 0 && ps <= 100 {
+	pageSize := 50 // A reasonable default
+	if ps, ok := filters["page_size"].(int); ok {
 		pageSize = ps
 	}
 
-	offset := (page - 1) * pageSize
-
-	// Build base query - start with pagination
-	dbQuery := a.client.From("duplicate_operator").Select("*", "", false)
-
-	// Apply only filter conditions to database query
-	// Search will be done in-memory for better control
-	if filters != nil {
-		if status, ok := filters["is_ready_to_record"].(bool); ok {
-			dbQuery = dbQuery.Eq("is_ready_to_record", strconv.FormatBool(status))
-		}
-		if userID, ok := filters["user_id"].(string); ok {
-			dbQuery = dbQuery.Eq("user_id", userID)
-		}
-	}
-
-	// Apply pagination to database query
-	dbQuery = dbQuery.Range(offset, offset+pageSize-1, "")
-
-	// Execute query
-	resultData, _, err := dbQuery.Execute()
-	if err != nil {
-		return nil, fmt.Errorf("search query failed: %w", err)
-	}
-
-	// Parse results
-	var records []DuplicateOperatorData
-	if err := json.Unmarshal(resultData, &records); err != nil {
-		return nil, fmt.Errorf("failed to parse search results: %w", err)
-	}
-
-	// Apply search filter in-memory if query provided
-	if query != "" {
-		trimmedQuery := strings.ToLower(strings.TrimSpace(query))
-		filteredRecords := make([]DuplicateOperatorData, 0)
-
-		for _, record := range records {
-			// Check if search term matches any searchable field (case-insensitive)
-			if strings.Contains(strings.ToLower(record.NikDuplicate), trimmedQuery) ||
-				strings.Contains(strings.ToLower(record.NikOperator), trimmedQuery) ||
-				strings.Contains(strings.ToLower(record.NamaDuplicate), trimmedQuery) ||
-				strings.Contains(strings.ToLower(record.NamaOperator), trimmedQuery) ||
-				strings.Contains(strings.ToLower(record.NikPengaju), trimmedQuery) ||
-				strings.Contains(strings.ToLower(record.NamaPengaju), trimmedQuery) {
-				filteredRecords = append(filteredRecords, record)
-			}
-		}
-		records = filteredRecords
-	}
-
-	return records, nil
+	records, _, err := a.ListRecords(ctx, filters, page, pageSize)
+	return records, err
 }

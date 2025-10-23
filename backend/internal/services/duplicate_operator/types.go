@@ -2,6 +2,7 @@ package duplicate_operator
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -53,12 +54,11 @@ type DuplicateOperatorData struct {
 	NamaOperator             string     `db:"nama_operator" json:"nama_operator"`
 	NikPengaju               string     `db:"nik_pengaju" json:"nik_pengaju"`
 	NamaPengaju              string     `db:"nama_pengaju" json:"nama_pengaju"`
-	TanggalPerekaman         *time.Time `db:"tanggal_perekaman" json:"tanggal_perekaman"`
+	TanggalPerekaman         time.Time  `db:"tanggal_perekaman" json:"tanggal_perekaman"`
 	TanggalPengajuan         time.Time  `db:"tanggal_pengajuan" json:"tanggal_pengajuan"`
 	EstimasiTanggalPerekaman *time.Time `db:"estimasi_tanggal_perekaman" json:"estimasi_tanggal_perekaman"`
-	IsReadyToRecord          bool       `db:"is_ready_to_record" json:"is_ready_to_record"`
-	CreatedAt                time.Time  `db:"created_at" json:"created_at"`
-	UpdatedAt                time.Time  `db:"updated_at" json:"updated_at"`
+	IsReadyToRecord          *bool      `db:"is_ready_to_record" json:"is_ready_to_record"`
+	CreatedAt                *time.Time `db:"created_at" json:"created_at"`
 }
 
 // UnmarshalJSON handles custom JSON unmarshaling to support multiple date formats
@@ -67,11 +67,10 @@ func (d *DuplicateOperatorData) UnmarshalJSON(data []byte) error {
 	aux := &struct {
 		ID                       string `json:"id"`
 		UserID                   string `json:"user_id"`
-		TanggalPerekaman         *string `json:"tanggal_perekaman"`
+		TanggalPerekaman         string `json:"tanggal_perekaman"`
 		TanggalPengajuan         string `json:"tanggal_pengajuan"`
 		EstimasiTanggalPerekaman *string `json:"estimasi_tanggal_perekaman"`
-		CreatedAt                string `json:"created_at"`
-		UpdatedAt                string `json:"updated_at"`
+		CreatedAt                *string `json:"created_at"`
 		*Alias
 	}{
 		Alias: (*Alias)(d),
@@ -98,9 +97,9 @@ func (d *DuplicateOperatorData) UnmarshalJSON(data []byte) error {
 	}
 
 	// Helper function to parse dates with multiple formats
-	parseDate := func(dateStr string) (*time.Time, error) {
+	parseDate := func(dateStr string) (time.Time, error) {
 		if dateStr == "" {
-			return nil, nil
+			return time.Time{}, fmt.Errorf("empty date string")
 		}
 
 		// Try different date formats
@@ -113,41 +112,35 @@ func (d *DuplicateOperatorData) UnmarshalJSON(data []byte) error {
 
 		for _, format := range formats {
 			if t, err := time.Parse(format, dateStr); err == nil {
-				return &t, nil
+				return t, nil
 			}
 		}
 
-		return nil, nil // Return nil for unparseable dates
+		return time.Time{}, fmt.Errorf("unable to parse date: %s", dateStr)
 	}
 
 	// Parse date fields
-	if aux.TanggalPerekaman != nil {
-		if t, _ := parseDate(*aux.TanggalPerekaman); t != nil {
+	if aux.TanggalPerekaman != "" {
+		if t, err := parseDate(aux.TanggalPerekaman); err == nil {
 			d.TanggalPerekaman = t
 		}
 	}
 
 	if aux.TanggalPengajuan != "" {
-		if t, _ := parseDate(aux.TanggalPengajuan); t != nil {
-			d.TanggalPengajuan = *t
+		if t, err := parseDate(aux.TanggalPengajuan); err == nil {
+			d.TanggalPengajuan = t
 		}
 	}
 
 	if aux.EstimasiTanggalPerekaman != nil {
-		if t, _ := parseDate(*aux.EstimasiTanggalPerekaman); t != nil {
-			d.EstimasiTanggalPerekaman = t
+		if t, err := parseDate(*aux.EstimasiTanggalPerekaman); err == nil {
+			d.EstimasiTanggalPerekaman = &t
 		}
 	}
 
-	if aux.CreatedAt != "" {
-		if t, _ := parseDate(aux.CreatedAt); t != nil {
-			d.CreatedAt = *t
-		}
-	}
-
-	if aux.UpdatedAt != "" {
-		if t, _ := parseDate(aux.UpdatedAt); t != nil {
-			d.UpdatedAt = *t
+	if aux.CreatedAt != nil {
+		if t, err := parseDate(*aux.CreatedAt); err == nil {
+			d.CreatedAt = &t
 		}
 	}
 

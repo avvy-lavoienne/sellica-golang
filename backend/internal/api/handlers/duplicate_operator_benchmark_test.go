@@ -29,12 +29,11 @@ func BenchmarkDuplicateOperatorCreateRecord(b *testing.B) {
 				NamaOperator:             req.NamaOperator,
 				NikPengaju:               "1234567890123456",
 				NamaPengaju:              "Test Pengaju",
-				TanggalPerekaman:         &now,
+				TanggalPerekaman:         now,
 				TanggalPengajuan:         now,
 				EstimasiTanggalPerekaman: &now,
-				IsReadyToRecord:          req.IsReadyToRecord,
-				CreatedAt:                now,
-				UpdatedAt:                now,
+				IsReadyToRecord:          &req.IsReadyToRecord,
+				CreatedAt:                &now,
 			}, nil
 		},
 	}
@@ -81,12 +80,11 @@ func BenchmarkDuplicateOperatorGetRecord(b *testing.B) {
 				NamaOperator:             "Test Operator",
 				NikPengaju:               "1234567890123456",
 				NamaPengaju:              "Test Pengaju",
-				TanggalPerekaman:         &now,
+				TanggalPerekaman:         now,
 				TanggalPengajuan:         now,
 				EstimasiTanggalPerekaman: &now,
-				IsReadyToRecord:          true,
-				CreatedAt:                now,
-				UpdatedAt:                now,
+				IsReadyToRecord:          &[]bool{true}[0],
+				CreatedAt:                &now,
 			}, nil
 		},
 	}
@@ -122,12 +120,11 @@ func BenchmarkDuplicateOperatorConcurrentOperations(b *testing.B) {
 				NamaOperator:             req.NamaOperator,
 				NikPengaju:               "1234567890123456",
 				NamaPengaju:              "Test Pengaju",
-				TanggalPerekaman:         &now,
+				TanggalPerekaman:         now,
 				TanggalPengajuan:         now,
 				EstimasiTanggalPerekaman: &now,
-				IsReadyToRecord:          req.IsReadyToRecord,
-				CreatedAt:                now,
-				UpdatedAt:                now,
+				IsReadyToRecord:          &req.IsReadyToRecord,
+				CreatedAt:                &now,
 			}, nil
 		},
 		GetRecordFunc: func(ctx context.Context, id string) (*duplicate_operator.DuplicateOperatorData, error) {
@@ -142,12 +139,11 @@ func BenchmarkDuplicateOperatorConcurrentOperations(b *testing.B) {
 				NamaOperator:             "Concurrent Test Operator",
 				NikPengaju:               "1234567890123456",
 				NamaPengaju:              "Test Pengaju",
-				TanggalPerekaman:         &now,
+				TanggalPerekaman:         now,
 				TanggalPengajuan:         now,
 				EstimasiTanggalPerekaman: &now,
-				IsReadyToRecord:          true,
-				CreatedAt:                now,
-				UpdatedAt:                now,
+				IsReadyToRecord:          &[]bool{true}[0],
+				CreatedAt:                &now,
 			}, nil
 		},
 	}

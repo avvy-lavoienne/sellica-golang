@@ -21,6 +21,7 @@ import LoadingState from "@/components/dashboard/data-rekam/duplicate-operator/L
 import ErrorState from "@/components/dashboard/data-rekam/duplicate-operator/ErrorState";
 import Link from "next/link";
 import { useDuplicateOperatorManager } from "@/hooks/useDuplicateOperator";
+import { useDuplicateOperatorManagerV2 } from "@/hooks/useDuplicateOperatorV2";
 import type {
   CreateDuplicateOperatorRequest,
   UpdateDuplicateOperatorRequest,
@@ -61,7 +62,7 @@ export default function DuplicateOperatorPage() {
   const [isFetchingUser, setIsFetchingUser] = useState(true);
 
   // Use the new API manager hook - Initialize with default page 1 and pageSize 10
-  const manager = useDuplicateOperatorManager(1, 10);
+  const manager = useDuplicateOperatorManagerV2(1, 10);
 
   const validateNIK = useMemo(() => {
     return (nik: string) => nik.length === 16 && /^\d{16}$/.test(nik);
@@ -247,24 +248,27 @@ export default function DuplicateOperatorPage() {
   };
 
   const handleSearch = useCallback(
-    async (query: string, filter: string = "all") => {
-      manager.setSearch(query);
-      manager.setStatus(filter as "all" | "completed" | "pending");
-      manager.setPage(1);
+    (query: string, filter?: string) => {
+      const newStatus = (filter as "all" | "completed" | "pending") || "all";
+      
+      // ✅ Defensive: Only call if values changed
+      if (query === manager.search && newStatus === manager.status) {
+        return;
+      }
+
+      // ✅ Use the single, unified handler from the hook
+      manager.onSearch(query, newStatus);
     },
     [manager],
   );
 
   const handleRefresh = useCallback(async () => {
-    manager.setPage(1);
-    manager.setSearch("");
-    manager.setStatus("all");
-    await manager.refetch();
+    await manager.onRefresh();
   }, [manager]);
 
   const handlePageChange = useCallback(
-    async (page: number) => {
-      manager.setPage(page);
+    (page: number) => {
+      manager.onPaginationChange(page);
     },
     [manager],
   );
@@ -396,28 +400,21 @@ export default function DuplicateOperatorPage() {
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
                   >
-                    {rekapData.length > 0 || manager.listLoading ? (
-                      <DuplicateOperatorTable
-                        rekapData={rekapData}
-                        totalCount={totalCount}
-                        currentPage={manager.page}
-                        onPageChange={handlePageChange}
-                        onSearch={handleSearch}
-                        onRefresh={handleRefresh}
-                        onDataRefresh={manager.refetch}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                        userRole={userRole}
-                        loading={manager.listLoading}
-                      />
-                    ) : (
-                      <EmptyState
-                        onAddNew={() => {
-                          resetForm();
-                          setViewState("form");
-                        }}
-                      />
-                    )}
+                    <DuplicateOperatorTable
+                      rekapData={rekapData}
+                      totalCount={totalCount}
+                      currentPage={manager.currentPage}
+                      pageSize={manager.pageSize}
+                      onPageChange={handlePageChange}
+                      onSearch={handleSearch}
+                      onRefresh={handleRefresh}
+                      onDataRefresh={manager.refetch}
+                      onEdit={handleEdit}
+                      onUpdate={manager.update}
+                      onDelete={handleDelete}
+                      userRole={userRole}
+                      loading={manager.listLoading}
+                    />
                   </motion.div>
                 )}
 

@@ -7,11 +7,11 @@ import React, {
   useMemo,
   useRef,
 } from "react";
-import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/conn/utils";
 import type { DuplicateOperatorData } from "@/types/data-rekam/duplicate-operator";
+import type { UpdateDuplicateOperatorRequest } from "@/lib/api/types/duplicate-operator";
 import TableSkeleton from "@/components/dashboard/data-rekam/duplicate-operator/TableSkeleton";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -74,6 +74,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import EmptyState from "@/components/dashboard/data-rekam/duplicate-operator/EmptyState";
 
 // Enhanced interface with enterprise-grade features
 interface DuplicateOperatorTableProps {
@@ -83,6 +84,8 @@ interface DuplicateOperatorTableProps {
   totalCount: number;
   /** Current page number */
   currentPage: number;
+  /** Number of items per page */
+  pageSize: number;
   /** Page change handler */
   onPageChange: (page: number) => void;
   /** Search handler */
@@ -93,6 +96,8 @@ interface DuplicateOperatorTableProps {
   onDataRefresh?: () => void;
   /** Edit handler */
   onEdit: (data: DuplicateOperatorData) => void;
+  /** Update handler for inline updates */
+  onUpdate?: (id: string, data: UpdateDuplicateOperatorRequest) => Promise<any>;
   /** Delete handler */
   onDelete: (id: string) => void;
   /** User role for permissions */
@@ -113,11 +118,13 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
   rekapData,
   totalCount,
   currentPage,
+  pageSize,
   onPageChange,
   onSearch,
   onRefresh,
   onDataRefresh,
   onEdit,
+  onUpdate,
   onDelete,
   userRole,
   loading,
@@ -138,7 +145,14 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
   const [sortConfig, setSortConfig] = useState<{
     key: string;
     direction: "asc" | "desc";
-  } | null>(null);
+  } | null>({
+    key: "tanggal_pengajuan",
+    direction: "desc"
+  });
+
+  // ✅ ADD THESE LINES: Tracking refs for defensive checks
+  const previousSearchRef = useRef<string>("");
+  const previousStatusRef = useRef<string>("all");
   const tableRef = useRef<HTMLDivElement>(null);
 
   // Theme and accessibility
@@ -168,9 +182,9 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
     [],
   );
 
-  const debouncedSearchQuery = useDebounce(searchQuery, 300);
-  const debouncedStartDate = useDebounce(startDate, 300);
-  const debouncedEndDate = useDebounce(endDate, 300);
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const debouncedStartDate = useDebounce(startDate, 500);
+  const debouncedEndDate = useDebounce(endDate, 500);
 
   // Store onSearch callback in a ref to avoid recreating effects
   const onSearchRef = useRef(onSearch);
@@ -178,76 +192,57 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
     onSearchRef.current = onSearch;
   }, [onSearch]);
 
+  // ✅ UNIFIED SEARCH & FILTER EFFECT
   useEffect(() => {
-    if (searchQuery === "" && (!startDate || !endDate)) {
-      onSearchRef.current("", statusFilter);
-      return;
-    }
+    // Construct the text-based search part of the query
+    const textQuery = debouncedSearchQuery.trim();
 
-    const timeout = setTimeout(() => {
-      onSearchRef.current(debouncedSearchQuery, statusFilter);
-    }, 500);
-    return () => clearTimeout(timeout);
-  }, [
-    debouncedSearchQuery,
-    statusFilter,
-    endDate,
-    searchQuery,
-    startDate,
-  ]);
-
-  const handleDateFilter = useCallback(() => {
+    // Construct the date-based part of the query
+    let dateQuery = "";
     if (debouncedStartDate && debouncedEndDate) {
       try {
+        // Validate dates
         if (
-          !(
-            debouncedStartDate instanceof Date &&
-            !isNaN(debouncedStartDate.getTime())
-          ) ||
-          !(
-            debouncedEndDate instanceof Date &&
-            !isNaN(debouncedEndDate.getTime())
-          )
+          !(debouncedStartDate instanceof Date && !isNaN(debouncedStartDate.getTime())) ||
+          !(debouncedEndDate instanceof Date && !isNaN(debouncedEndDate.getTime()))
         ) {
-          return;
+          // Invalid date objects, do nothing
+        } else {
+          const formattedStartDate = new Date(debouncedStartDate);
+          formattedStartDate.setUTCHours(0, 0, 0, 0);
+
+          const formattedEndDate = new Date(debouncedEndDate);
+          formattedEndDate.setUTCHours(23, 59, 59, 999);
+          
+          // Final validation on year to prevent malformed ISO strings
+          const startYear = formattedStartDate.getUTCFullYear();
+          const endYear = formattedEndDate.getUTCFullYear();
+
+          if (startYear > 999 && startYear < 10000 && endYear > 999 && endYear < 10000) {
+            const startISO = formattedStartDate.toISOString();
+            const endISO = formattedEndDate.toISOString();
+            dateQuery = `created_at.gte.${startISO},created_at.lte.${endISO}`;
+          }
         }
-
-        const formattedStartDate = new Date(debouncedStartDate);
-        formattedStartDate.setUTCHours(0, 0, 0, 0);
-
-        const formattedEndDate = new Date(debouncedEndDate);
-        formattedEndDate.setUTCHours(23, 59, 59, 999);
-
-        const startYear = formattedStartDate.getUTCFullYear();
-        const endYear = formattedEndDate.getUTCFullYear();
-
-        if (
-          startYear < 1000 ||
-          startYear > 9999 ||
-          endYear < 1000 ||
-          endYear > 9999
-        ) {
-          return;
-        }
-
-        const startISO = formattedStartDate.toISOString();
-        const endISO = formattedEndDate.toISOString();
-
-        onSearch(
-          `created_at >= '${startISO}' AND created_at <= '${endISO}'`,
-          statusFilter,
-        );
       } catch (error) {
-        onSearch("", statusFilter);
+        console.error("Error formatting date query:", error);
+        // Don't add a date query if formatting fails
       }
-    } else {
-      onSearch("", statusFilter);
     }
-  }, [debouncedStartDate, debouncedEndDate, statusFilter, onSearch]);
 
-  useEffect(() => {
-    handleDateFilter();
-  }, [debouncedStartDate, debouncedEndDate, handleDateFilter]);
+    // Combine queries
+    const combinedQuery = [textQuery, dateQuery].filter(Boolean).join(",");
+
+    // DEFENSIVE CHECK: Only call onSearch if the query or filter has actually changed
+    const hasQueryChanged = combinedQuery !== previousSearchRef.current;
+    const hasStatusChanged = statusFilter !== previousStatusRef.current;
+
+    if (hasQueryChanged || hasStatusChanged) {
+      onSearchRef.current(combinedQuery, statusFilter);
+      previousSearchRef.current = combinedQuery;
+      previousStatusRef.current = statusFilter;
+    }
+  }, [debouncedSearchQuery, debouncedStartDate, debouncedEndDate, statusFilter]);
 
   const rowsPerPage = 5;
   const totalPages = Math.ceil(totalCount / rowsPerPage);
@@ -260,14 +255,11 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
 
     try {
       const newStatus = !currentStatus;
-      const { error } = await supabase
-        .from("duplicate_operator")
-        .update({ is_ready_to_record: newStatus })
-        .eq("id", id);
-
-      if (error) {
-        console.error("Error updating status:", error);
-        throw new Error(`Gagal mengubah status: ${error.message}`);
+      if (onUpdate) {
+        await onUpdate(id, { is_ready_to_record: newStatus });
+      } else {
+        console.error("onUpdate handler is not provided");
+        toast.error("Gagal memperbarui status: fungsi tidak tersedia.");
       }
 
       toast.success("Status berhasil diubah!");
@@ -302,12 +294,12 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
     setSaving((prev) => ({ ...prev, [id]: true }));
 
     try {
-      const { error } = await supabase
-        .from("duplicate_operator")
-        .update({ estimasi_tanggal_perekaman: newDate })
-        .eq("id", id);
-
-      if (error) throw new Error(`Gagal menyimpan tanggal: ${error.message}`);
+      if (onUpdate) {
+        await onUpdate(id, { estimasi_tanggal_perekaman: newDate });
+      } else {
+        console.error("onUpdate handler is not provided");
+        toast.error("Gagal menyimpan tanggal: fungsi tidak tersedia.");
+      }
 
       toast.success("Tanggal berhasil disimpan!");
       // Use onDataRefresh to preserve pagination/filters, fallback to onRefresh
@@ -343,8 +335,99 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
       : "Tanggal tidak valid";
   };
 
+  const sortedData = useMemo(() => {
+    if (!sortConfig) return rekapData;
+
+    return [...rekapData].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      switch (sortConfig.key) {
+        case "tanggal_pengajuan":
+          aValue = new Date(a.tanggal_pengajuan).getTime();
+          bValue = new Date(b.tanggal_pengajuan).getTime();
+          break;
+        case "tanggal_perekaman":
+          aValue = new Date(a.tanggal_perekaman).getTime();
+          bValue = new Date(b.tanggal_perekaman).getTime();
+          break;
+        case "nama_duplicate":
+          aValue = a.nama_duplicate.toLowerCase();
+          bValue = b.nama_duplicate.toLowerCase();
+          break;
+        case "nama_operator":
+          aValue = a.nama_operator.toLowerCase();
+          bValue = b.nama_operator.toLowerCase();
+          break;
+        case "nik_duplicate":
+          aValue = a.nik_duplicate;
+          bValue = b.nik_duplicate;
+          break;
+        case "nik_operator":
+          aValue = a.nik_operator;
+          bValue = b.nik_operator;
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === "asc" ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === "asc" ? 1 : -1;
+      }
+      return 0;
+    });
+  }, [rekapData, sortConfig]);
+
+  // Sort handler
+  const handleSort = useCallback((key: string) => {
+    setSortConfig(current => {
+      if (current?.key === key) {
+        // Toggle direction if same key
+        return {
+          key,
+          direction: current.direction === "asc" ? "desc" : "asc"
+        };
+      } else {
+        // New key, default to asc except for tanggal_pengajuan which defaults to desc
+        return {
+          key,
+          direction: key === "tanggal_pengajuan" ? "desc" : "asc"
+        };
+      }
+    });
+  }, []);
+
+  // Sort indicator component
+  const SortIndicator = ({ columnKey }: { columnKey: string }) => {
+    if (sortConfig?.key !== columnKey) {
+      return <ChevronDown className="ml-1 h-4 w-4 opacity-30" />;
+    }
+    return sortConfig.direction === "asc" ? 
+      <ChevronUp className="ml-1 h-4 w-4" /> : 
+      <ChevronDown className="ml-1 h-4 w-4" />;
+  };
+
+  // Accessibility attributes
+  const accessibilityProps = {
+    role: "table",
+    "aria-label": ariaLabel || "Tabel data duplicate operator",
+    "aria-describedby": "table-description",
+  };
+
   if (loading) {
     return <TableSkeleton />;
+  }
+
+  // Show empty state when there's no data and not loading
+  if (rekapData.length === 0 && !loading) {
+    return (
+      <div className="space-y-6">
+        <EmptyState onAddNew={() => {}} />
+      </div>
+    );
   }
 
   // Animation variants for enterprise-grade micro-interactions
@@ -401,17 +484,6 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
       },
     },
   };
-
-  // Accessibility attributes
-  const accessibilityProps = {
-    role: "table",
-    "aria-label": ariaLabel || "Tabel data duplicate operator",
-    "aria-describedby": "table-description",
-  };
-
-  if (loading) {
-    return <TableSkeleton />;
-  }
 
   return (
     <TooltipProvider>
@@ -618,9 +690,33 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
                     <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                       <tr>
                         <th scope="col" className="px-6 py-3">No</th>
-                        <th scope="col" className="px-6 py-3">Tanggal Pengajuan</th>
-                        <th scope="col" className="px-6 py-3">NIK / Nama Duplikat</th>
-                        <th scope="col" className="px-6 py-3">NIK / Nama Operator</th>
+                        <th scope="col" className="px-6 py-3">
+                          <button
+                            onClick={() => handleSort("tanggal_pengajuan")}
+                            className="flex items-center hover:text-gray-900 dark:hover:text-white transition-colors"
+                          >
+                            Tanggal Pengajuan
+                            <SortIndicator columnKey="tanggal_pengajuan" />
+                          </button>
+                        </th>
+                        <th scope="col" className="px-6 py-3">
+                          <button
+                            onClick={() => handleSort("nama_duplicate")}
+                            className="flex items-center hover:text-gray-900 dark:hover:text-white transition-colors"
+                          >
+                            NIK / Nama Duplikat
+                            <SortIndicator columnKey="nama_duplicate" />
+                          </button>
+                        </th>
+                        <th scope="col" className="px-6 py-3">
+                          <button
+                            onClick={() => handleSort("nama_operator")}
+                            className="flex items-center hover:text-gray-900 dark:hover:text-white transition-colors"
+                          >
+                            NIK / Nama Operator
+                            <SortIndicator columnKey="nama_operator" />
+                          </button>
+                        </th>
                         <th scope="col" className="px-6 py-3">Status</th>
                         <th scope="col" className="px-6 py-3 text-right">Aksi</th>
                       </tr>
@@ -648,8 +744,8 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
                           </td>
                         </tr>
                       ) : (
-                          rekapData.map((item, index) => {
-                            const rowNumber = (currentPage - 1) * 5 + index + 1;
+                          sortedData.map((item, index) => {
+                            const rowNumber = (currentPage - 1) * pageSize + index + 1;
                             const isExpanded = expandedRow === item.id;
 
                             return (
@@ -941,7 +1037,7 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
                     })}
 
                     <button
-                      onClick={() => onPageChange(Math.min(Math.ceil(totalCount / 5), currentPage + 1))}
+                      onClick={() => onPageChange(Math.min(Math.ceil(totalCount / pageSize), currentPage + 1))}
                       disabled={currentPage === Math.ceil(totalCount / 5)}
                       className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                     >

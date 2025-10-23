@@ -38,18 +38,19 @@ func TestDuplicateOperatorEndToEndWorkflow(t *testing.T) {
 			userUUID, _ := uuid.NewRandom()
 
 			record := &duplicate_operator.DuplicateOperatorData{
-				ID:              newUUID,
-				UserID:          userUUID,
-				NikDuplicate:    req.NikDuplicate,
-				NamaDuplicate:   req.NamaDuplicate,
-				NikOperator:     req.NikOperator,
-				NamaOperator:    req.NamaOperator,
-				NikPengaju:      "1234567890123456",
-				NamaPengaju:     "Test Pengaju",
-				TanggalPengajuan: time.Now(),
-				IsReadyToRecord: req.IsReadyToRecord,
-				CreatedAt:       time.Now(),
-				UpdatedAt:       time.Now(),
+				ID:                       newUUID,
+				UserID:                   userUUID,
+				NikDuplicate:             req.NikDuplicate,
+				NamaDuplicate:            req.NamaDuplicate,
+				NikOperator:              req.NikOperator,
+				NamaOperator:             req.NamaOperator,
+				NikPengaju:               "1234567890123456",
+				NamaPengaju:              "Test Pengaju",
+				TanggalPerekaman:         time.Now(),
+				TanggalPengajuan:         time.Now(),
+				EstimasiTanggalPerekaman: nil,
+				IsReadyToRecord:          &req.IsReadyToRecord,
+				CreatedAt:                &[]time.Time{time.Now()}[0],
 			}
 			storedRecords[recordID] = record
 			return record, nil
@@ -70,9 +71,8 @@ func TestDuplicateOperatorEndToEndWorkflow(t *testing.T) {
 					record.NamaDuplicate = *req.NamaDuplicate
 				}
 				if req.IsReadyToRecord != nil {
-					record.IsReadyToRecord = *req.IsReadyToRecord
+					record.IsReadyToRecord = req.IsReadyToRecord
 				}
-				record.UpdatedAt = time.Now()
 				return record, nil
 			}
 			return nil, fmt.Errorf("record not found")

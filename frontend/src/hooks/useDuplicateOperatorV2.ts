@@ -388,7 +388,7 @@ export function useDuplicateOperatorManagerV2(
     // Use these instead of raw setters
     onPaginationChange: handlePaginationChange,
     onFilterChange: handleFilterChange,
-    onSearch: handleSearch,
+    onSearch: handleFilterChange, // ✅ CORRECTED: Use the handler that accepts both search and status
     onStatusChange: handleStatusChange,
     onRefresh: handleRefresh,
 
