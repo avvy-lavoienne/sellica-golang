@@ -279,8 +279,11 @@ export function useDuplicateOperatorManager(
 
   // Manual refetch function
   const refetch = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: ['duplicate-operators'] });
-  }, [queryClient]);
+    await queryClient.invalidateQueries({ 
+      queryKey: ['duplicate-operators', { page, pageSize, search, status }],
+      exact: true 
+    });
+  }, [queryClient, page, pageSize, search, status]);
 
   // Prefetch adjacent pages for better UX
   const prefetchPage = useCallback(
