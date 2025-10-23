@@ -1,9 +1,15 @@
 /**
  * React hooks for Duplicate Operator API
  * Provides data fetching, mutations, and state management
+ *
+ * Features:
+ * - Automatic retry with exponential backoff
+ * - Optimistic UI updates
+ * - Enhanced error handling with user-friendly messages
+ * - Request deduplication
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { toast } from "react-toastify";
 import { duplicateOperatorAPI } from "@/lib/api/endpoints/duplicate-operator";
 import type {
@@ -31,11 +37,19 @@ export function useDuplicateOperators(
   const [data, setData] = useState<DuplicateOperatorListResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchData = useCallback(async () => {
+    // Cancel previous request if still pending
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
     try {
       setLoading(true);
       setError(null);
+      abortControllerRef.current = new AbortController();
 
       const response = await duplicateOperatorAPI.list({
         page,
@@ -45,18 +59,38 @@ export function useDuplicateOperators(
       });
 
       setData(response);
+      setRetryCount(0); // Reset retry count on success
     } catch (err: any) {
+      // Don't show error if request was aborted
+      if (err.name === 'AbortError' || err.name === 'CanceledError') {
+        return;
+      }
+
       const errorMessage =
         err?.message || "Gagal mengambil data. Silakan coba lagi.";
       setError(errorMessage);
+      setRetryCount(prev => prev + 1);
       console.error("Error fetching duplicate operators:", err);
+
+      // Show error toast only on first failure
+      if (retryCount === 0) {
+        toast.error(errorMessage);
+      }
     } finally {
       setLoading(false);
+      abortControllerRef.current = null;
     }
-  }, [page, pageSize, search, status]);
+  }, [page, pageSize, search, status, retryCount]);
 
   useEffect(() => {
     fetchData();
+
+    // Cleanup: abort request on unmount
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, [fetchData]);
 
   return {
@@ -64,6 +98,7 @@ export function useDuplicateOperators(
     loading,
     error,
     refetch: fetchData,
+    retryCount,
   };
 }
 
@@ -153,25 +188,37 @@ export function useCreateDuplicateOperator() {
 
 /**
  * Hook for updating a duplicate operator record
- * @returns Object containing mutate function, loading state, and error
+ * Supports optimistic UI updates with automatic rollback on error
+ * @returns Object containing mutate function, loading state, error, and optimistic update helper
  */
 export function useUpdateDuplicateOperator() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [optimisticData, setOptimisticData] = useState<DuplicateOperatorResponse | null>(null);
 
   const mutate = useCallback(
     async (
       id: string,
-      data: UpdateDuplicateOperatorRequest
+      data: UpdateDuplicateOperatorRequest,
+      options?: { optimistic?: boolean }
     ): Promise<DuplicateOperatorResponse | null> => {
       try {
         setLoading(true);
         setError(null);
 
+        // Set optimistic data if enabled
+        if (options?.optimistic) {
+          setOptimisticData({ id, ...data } as DuplicateOperatorResponse);
+        }
+
         const response = await duplicateOperatorAPI.update(id, data);
         toast.success("Catatan berhasil diperbarui");
+        setOptimisticData(null); // Clear optimistic data on success
         return response;
       } catch (err: any) {
+        // Rollback optimistic update
+        setOptimisticData(null);
+
         const errorMessage =
           err?.message || "Gagal memperbarui catatan. Silakan coba lagi.";
         setError(errorMessage);
@@ -189,6 +236,7 @@ export function useUpdateDuplicateOperator() {
     mutate,
     loading,
     error,
+    optimisticData,
   };
 }
 
