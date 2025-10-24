@@ -3,6 +3,7 @@
 import {
   PlusIcon,
   ChartBarIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 
 // Flowbite Pro component interfaces (simplified for this implementation)
@@ -54,12 +55,14 @@ const Button: React.FC<ButtonProps> = ({
 interface DuplicateOperatorActionsProps {
   onAjukan: () => void;
   onRekapitulasi: () => void;
+  onRefresh: () => void;
   activeMode: "form" | "table" | "none";
 }
 
 const DuplicateOperatorActions: React.FC<DuplicateOperatorActionsProps> = ({
   onAjukan,
   onRekapitulasi,
+  onRefresh,
   activeMode,
 }) => {
   return (
@@ -78,6 +81,18 @@ const DuplicateOperatorActions: React.FC<DuplicateOperatorActionsProps> = ({
         {/* Flowbite Heroicon integration for add/create action */}
         <PlusIcon className="h-5 w-5 mr-2" />
         Ajukan Data
+      </Button>
+
+      {/* Refresh Button - New feature to reload data */}
+      <Button
+        onClick={onRefresh}
+        color="green"
+        size="lg"
+        className="w-full sm:w-auto transition-all duration-200 hover:ring-2 hover:ring-green-400 hover:ring-offset-2 dark:hover:ring-offset-gray-800"
+      >
+        {/* Refresh icon for reloading data */}
+        <ArrowPathIcon className="h-5 w-5 mr-2" />
+        Refresh
       </Button>
 
       {/* Rekapitulasi Button - Flowbite Button with Heroicon */}

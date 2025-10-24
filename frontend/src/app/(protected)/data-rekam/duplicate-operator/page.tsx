@@ -378,6 +378,7 @@ export default function DuplicateOperatorPage() {
               onRekapitulasi={() => {
                 setViewState("table");
               }}
+              onRefresh={handleRefresh}
               activeMode={viewState}
             />
 
