@@ -164,9 +164,27 @@ class DuplicateOperatorAPI {
           queryString.toString() ? `?${queryString.toString()}` : ""
         }`;
 
+        console.log("📡 [DuplicateOperatorAPI.list] Requesting:", {
+          url,
+          params: {
+            page: params.page,
+            page_size: params.page_size,
+            search: params.search,
+            status: params.status,
+            date_from: params.date_from,
+            date_to: params.date_to,
+          },
+        });
+
         const response = await axios.get<DuplicateOperatorListResponse>(url, {
           headers: this.getHeaders(),
           timeout: 30000,
+        });
+
+        console.log("✅ [DuplicateOperatorAPI.list] Response received:", {
+          itemCount: response.data.data?.length,
+          total: response.data.pagination?.total,
+          page: response.data.pagination?.page,
         });
 
         return response.data;

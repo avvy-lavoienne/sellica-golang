@@ -180,35 +180,63 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
     [],
   );
 
-  const debouncedSearchQuery = useDebounce(searchQuery, 500);
-  const debouncedStartDate = useDebounce(startDate, 500);
-  const debouncedEndDate = useDebounce(endDate, 500);
-
   // Store onSearch callback in a ref to avoid recreating effects
   const onSearchRef = useRef(onSearch);
   useEffect(() => {
     onSearchRef.current = onSearch;
   }, [onSearch]);
 
-  // ✅ SIMPLIFIED SEARCH & FILTER EFFECT - Send separate parameters
+  // ✅ COMBINED FILTERS STATE - Debounce all filters together to avoid split requests
+  const combinedFilters = useMemo(() => ({
+    query: searchQuery.trim(),
+    status: statusFilter,
+    startDate: startDate,
+    endDate: endDate,
+  }), [searchQuery, statusFilter, startDate, endDate]);
+
+  const debouncedFilters = useDebounce(combinedFilters, 500);
+
+  // ✅ UNIFIED SEARCH & FILTER EFFECT - Fire once with all params together
   useEffect(() => {
-    const textQuery = debouncedSearchQuery.trim();
-
-    // DEFENSIVE CHECK: Only call onSearch if values have actually changed
-    const hasQueryChanged = textQuery !== previousSearchRef.current;
-    const hasStatusChanged = statusFilter !== previousStatusRef.current;
-    const hasStartDateChanged = debouncedStartDate !== previousStartDateRef.current;
-    const hasEndDateChanged = debouncedEndDate !== previousEndDateRef.current;
-
-    if (hasQueryChanged || hasStatusChanged || hasStartDateChanged || hasEndDateChanged) {
-      // Pass all filters separately (no complex formatting)
-      onSearchRef.current(textQuery, statusFilter, debouncedStartDate, debouncedEndDate);
-      previousSearchRef.current = textQuery;
-      previousStatusRef.current = statusFilter;
-      previousStartDateRef.current = debouncedStartDate;
-      previousEndDateRef.current = debouncedEndDate;
+    console.log('[Table Effect] Debounced filters received:', debouncedFilters);
+    
+    // VALIDATION: If user started date filtering (has startDate), require BOTH dates
+    // This prevents split requests like date_from without date_to
+    const hasStartDate = debouncedFilters.startDate.trim().length > 0;
+    const hasEndDate = debouncedFilters.endDate.trim().length > 0;
+    
+    // If user entered start date, wait for end date (and vice versa)
+    if (hasStartDate && !hasEndDate) {
+      console.log('[Table Effect] Waiting for end date input...');
+      return; // Don't fire search yet
     }
-  }, [debouncedSearchQuery, statusFilter, debouncedStartDate, debouncedEndDate]);
+    if (hasEndDate && !hasStartDate) {
+      console.log('[Table Effect] Waiting for start date input...');
+      return; // Don't fire search yet
+    }
+    
+    // DEFENSIVE CHECK: Only call onSearch if filters have actually changed
+    const hasChanged = 
+      debouncedFilters.query !== previousSearchRef.current ||
+      debouncedFilters.status !== previousStatusRef.current ||
+      debouncedFilters.startDate !== previousStartDateRef.current ||
+      debouncedFilters.endDate !== previousEndDateRef.current;
+
+    if (hasChanged) {
+      console.log('[Table Effect] Filters changed, calling onSearch with:', debouncedFilters);
+      // Pass all filters together in one API call
+      onSearchRef.current(
+        debouncedFilters.query,
+        debouncedFilters.status,
+        debouncedFilters.startDate,
+        debouncedFilters.endDate
+      );
+      previousSearchRef.current = debouncedFilters.query;
+      previousStatusRef.current = debouncedFilters.status;
+      previousStartDateRef.current = debouncedFilters.startDate;
+      previousEndDateRef.current = debouncedFilters.endDate;
+    }
+  }, [debouncedFilters]);
 
   const rowsPerPage = 5;
   const totalPages = Math.ceil(totalCount / rowsPerPage);
@@ -919,14 +947,14 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
         </motion.div>
 
         {/* Enhanced Pagination */}
-        {Math.ceil(totalCount / 5) > 0 && (
+        {Math.ceil(totalCount / pageSize) > 0 && (
           <div className="flex justify-center">
             <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
               <div className="px-6 py-4">
                 <nav className="flex items-center justify-between" aria-label="Pagination">
                   <div className="text-sm text-gray-700 dark:text-gray-400">
                     Halaman <span className="font-semibold text-gray-900 dark:text-white">{currentPage}</span> dari{" "}
-                    <span className="font-semibold text-gray-900 dark:text-white">{Math.ceil(totalCount / 5)}</span>
+                    <span className="font-semibold text-gray-900 dark:text-white">{Math.ceil(totalCount / pageSize)}</span>
                   </div>
 
                   <div className="flex items-center space-x-2">
@@ -938,8 +966,8 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
                       <ChevronLeft className="w-5 h-5" />
                     </button>
 
-                    {Array.from({ length: Math.ceil(totalCount / 5) }, (_, i) => i + 1).map((page) => {
-                      const totalPages = Math.ceil(totalCount / 5);
+                    {Array.from({ length: Math.ceil(totalCount / pageSize) }, (_, i) => i + 1).map((page) => {
+                      const totalPages = Math.ceil(totalCount / pageSize);
                       const shouldShow = page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1) || (currentPage === 1 && page <= 3) || (currentPage === totalPages && page >= totalPages - 2);
 
                       if (!shouldShow && page === currentPage - 2) {
@@ -970,7 +998,7 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
 
                     <button
                       onClick={() => onPageChange(Math.min(Math.ceil(totalCount / pageSize), currentPage + 1))}
-                      disabled={currentPage === Math.ceil(totalCount / 5)}
+                      disabled={currentPage === Math.ceil(totalCount / pageSize)}
                       className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                     >
                       <ChevronRight className="w-5 h-5" />

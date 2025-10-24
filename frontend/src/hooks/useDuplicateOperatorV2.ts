@@ -207,6 +207,13 @@ export function useDuplicateOperatorManagerV2(
       newStartDate?: string,
       newEndDate?: string
     ) => {
+      console.log("🔍 [V2.handleFilterChange] Called with:", {
+        newSearch,
+        newStatus,
+        newStartDate: newStartDate || "(empty)",
+        newEndDate: newEndDate || "(empty)",
+      });
+
       // Defensive: Only update if values actually changed
       if (
         newSearch === search &&
@@ -214,8 +221,17 @@ export function useDuplicateOperatorManagerV2(
         newStartDate === startDate &&
         newEndDate === endDate
       ) {
+        console.log("⏭️ [V2.handleFilterChange] No changes detected, skipping update:", {
+          current: { search, status, startDate, endDate },
+          incoming: { newSearch, newStatus, newStartDate, newEndDate }
+        });
         return;
       }
+
+      console.log("✅ [V2.handleFilterChange] STATE WILL UPDATE:", {
+        from: { search, status, startDate: startDate || "(empty)", endDate: endDate || "(empty)" },
+        to: { newSearch, newStatus, newStartDate: newStartDate || "(empty)", newEndDate: newEndDate || "(empty)" },
+      });
 
       // Update filters
       setSearch(newSearch);
@@ -227,6 +243,7 @@ export function useDuplicateOperatorManagerV2(
       setFilterPage(1);
       
       // ✅ Never touch currentPage
+      console.log("✅ [V2.handleFilterChange] State setter calls completed");
     },
     [search, status, startDate, endDate]
   );

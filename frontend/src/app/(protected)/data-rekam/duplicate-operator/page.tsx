@@ -251,6 +251,14 @@ export default function DuplicateOperatorPage() {
     (query: string, filter?: string, startDate?: string, endDate?: string) => {
       const newStatus = (filter as "all" | "completed" | "pending") || "all";
       
+      console.log("🔎 [Page.handleSearch] Received:", {
+        query,
+        filter,
+        startDate: startDate || "(empty)",
+        endDate: endDate || "(empty)",
+        newStatus,
+      });
+      
       // ✅ Defensive: Only call if values changed
       if (
         query === manager.search &&
@@ -258,8 +266,16 @@ export default function DuplicateOperatorPage() {
         startDate === manager.startDate &&
         endDate === manager.endDate
       ) {
+        console.log("⏭️ [Page.handleSearch] Skipping - values unchanged");
         return;
       }
+
+      console.log("✅ [Page.handleSearch] Calling manager.onSearch with:", {
+        query,
+        newStatus,
+        startDate: startDate || "(empty)",
+        endDate: endDate || "(empty)",
+      });
 
       // ✅ Pass all filters to manager
       manager.onSearch(query, newStatus, startDate, endDate);
@@ -343,7 +359,6 @@ export default function DuplicateOperatorPage() {
     estimasi_tanggal_perekaman: item.estimasi_tanggal_perekaman || undefined,
     is_ready_to_record: item.is_ready_to_record,
     created_at: item.created_at,
-    updated_at: item.updated_at,
   }));
 
   const totalCount = manager.list?.pagination?.total || 0;
@@ -367,7 +382,14 @@ export default function DuplicateOperatorPage() {
             />
 
             {manager.listError && (
-              <ErrorState message={manager.listError} onRetry={handleRefresh} />
+              <ErrorState 
+                message={
+                  typeof manager.listError === 'object' 
+                    ? (manager.listError as any).message || JSON.stringify(manager.listError)
+                    : String(manager.listError)
+                } 
+                onRetry={handleRefresh} 
+              />
             )}
 
             <div className="mt-8">

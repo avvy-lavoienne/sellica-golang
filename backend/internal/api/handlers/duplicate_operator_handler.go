@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -47,13 +48,18 @@ func (h *DuplicateOperatorHandler) ListRecords(c *gin.Context) {
 	dateFrom := c.Query("date_from")
 	dateTo := c.Query("date_to")
 
+	// Debug logging
+	if dateFrom != "" || dateTo != "" {
+		fmt.Printf("🔍 [Handler] Date filters from query: dateFrom=%q, dateTo=%q\n", dateFrom, dateTo)
+	}
+
 	// Build filters
 	filters := make(map[string]interface{})
 
 	if status := c.Query("status"); status != "" && status != "all" {
-		if status == "ready" {
+		if status == "completed" {
 			filters["is_ready_to_record"] = true
-		} else if status == "not_ready" {
+		} else if status == "pending" {
 			filters["is_ready_to_record"] = false
 		}
 	}

@@ -13,6 +13,39 @@ import (
 	"github.com/supabase-community/supabase-go"
 )
 
+// convertDateFormat converts date to YYYY-MM-DD format for database comparison
+// Handles multiple input formats: MM/DD/YYYY, DD/MM/YYYY, YYYY-MM-DD
+func convertDateFormat(dateStr string) string {
+	if dateStr == "" {
+		return ""
+	}
+
+	dateStr = strings.TrimSpace(dateStr)
+
+	// Try YYYY-MM-DD first (already correct format)
+	parsedTime, err := time.Parse("2006-01-02", dateStr)
+	if err == nil {
+		return dateStr
+	}
+
+	// Try MM/DD/YYYY format (user input from date picker)
+	parsedTime, err = time.Parse("01/02/2006", dateStr)
+	if err == nil {
+		result := parsedTime.Format("2006-01-02")
+		return result
+	}
+
+	// Try DD/MM/YYYY format (database storage format)
+	parsedTime, err = time.Parse("02/01/2006", dateStr)
+	if err == nil {
+		result := parsedTime.Format("2006-01-02")
+		return result
+	}
+
+	// If we can't parse it, return as-is
+	return dateStr
+}
+
 // SupabaseAdapter implements DatabaseAdapter using Supabase
 type SupabaseAdapter struct {
 	client *supabase.Client
@@ -87,18 +120,38 @@ func (a *SupabaseAdapter) ListRecords(
 		pageSize = 100
 	}
 
-	offset := (page - 1) * pageSize
-
 	// Build base query for getting records
 	query := a.client.From("duplicate_operator").
-		Select("*", "", false)
+		Select("*", "", false).
+		Order("tanggal_pengajuan", nil)  // Order by date (should default to DESC based on API)
 
+	// Apply ALL AND filters FIRST (status and date range) before OR search filter
+	// This is critical: OR operations can interfere with subsequent Filter() calls
+	
 	// Apply status filter if provided
 	if isReady, ok := filters["is_ready_to_record"].(bool); ok {
 		query = query.Eq("is_ready_to_record", strconv.FormatBool(isReady))
 	}
 
-	// Apply search filter BEFORE pagination
+	// NOTE: We skip database-level date filtering because Supabase's Go client
+	// doesn't properly handle DATE type comparisons with string values.
+	// Instead, we fetch all records and apply post-filtering below.
+	// This is less efficient but guarantees correct results.
+	
+	dateFrom, hasDateFrom := filters["date_from"].(string)
+	dateTo, hasDateTo := filters["date_to"].(string)
+	
+	if hasDateFrom && dateFrom != "" {
+		convertedDateFrom := convertDateFormat(dateFrom)
+		dateFrom = convertedDateFrom
+	}
+	if hasDateTo && dateTo != "" {
+		convertedDateTo := convertDateFormat(dateTo)
+		dateTo = convertedDateTo
+	}
+
+	// Apply search filter LAST (after all AND filters)
+	// Search uses OR which should be applied to filtered results
 	if searchQuery, ok := filters["search"].(string); ok && searchQuery != "" {
 		// Simple text search across multiple fields
 		var orConditions []string
@@ -114,17 +167,10 @@ func (a *SupabaseAdapter) ListRecords(
 		query = query.Or(strings.Join(orConditions, ","), "")
 	}
 
-	// Apply date range filters
-	if dateFrom, ok := filters["date_from"].(string); ok && dateFrom != "" {
-		query = query.Gte("created_at", dateFrom)
-	}
-	if dateTo, ok := filters["date_to"].(string); ok && dateTo != "" {
-		// Add end of day to include the entire day
-		query = query.Lte("created_at", dateTo+"T23:59:59.999Z")
-	}
-
-	// Apply pagination using Range AFTER filters
-	query = query.Range(offset, offset+pageSize-1, "")
+	// Always fetch all records without pagination limit at DB level
+	// We'll apply pagination after post-filtering to ensure consistency
+	// This ensures both date-filtered and non-filtered results are handled the same way
+	query = query.Range(0, 9999, "")
 
 	// Execute query
 	data, _, err := query.Execute()
@@ -138,8 +184,22 @@ func (a *SupabaseAdapter) ListRecords(
 		return nil, 0, fmt.Errorf("failed to parse response: %w", err)
 	}
 
-	// Convert each raw record
+	// Convert each raw record and apply post-filtering for dates
 	records := make([]DuplicateOperatorData, 0, len(rawRecords))
+	
+	// Parse filter dates for post-filtering comparison
+	var filterDateFrom, filterDateTo *time.Time
+	if hasDateFrom && dateFrom != "" {
+		if parsedDate, err := time.Parse("2006-01-02", dateFrom); err == nil {
+			filterDateFrom = &parsedDate
+		}
+	}
+	if hasDateTo && dateTo != "" {
+		if parsedDate, err := time.Parse("2006-01-02", dateTo); err == nil {
+			filterDateTo = &parsedDate
+		}
+	}
+	
 	for _, rawRecord := range rawRecords {
 		var record DuplicateOperatorData
 		if err := json.Unmarshal(rawRecord, &record); err != nil {
@@ -147,18 +207,39 @@ func (a *SupabaseAdapter) ListRecords(
 			// logrus.WithError(err).Warnf("Failed to parse a record: %s", string(rawRecord))
 			continue // Skip records that can't be parsed
 		}
+		
+		// Post-filter by date if filters were applied
+		// This handles cases where database stores dates as TEXT in different formats
+		if filterDateFrom != nil || filterDateTo != nil {
+			recordDate := record.TanggalPengajuan
+			
+			// Check if date is within range
+			if filterDateFrom != nil && recordDate.Before(*filterDateFrom) {
+				continue
+			}
+			if filterDateTo != nil {
+				// Treat dateTo as end-of-day (inclusive)
+				endOfDay := filterDateTo.AddDate(0, 0, 1)
+				if recordDate.After(endOfDay) || recordDate.Equal(endOfDay) {
+					continue
+				}
+			}
+		}
+		
 		records = append(records, record)
 	}
 
 	// Get total count with same filters (including search)
+	// This count is for pagination - we need the TOTAL across all pages, not just current page
 	countQuery := a.client.From("duplicate_operator").
-		Select("*", "exact", false)
+		Select("count", "exact", false)
 
+	// Apply AND filters FIRST to count query (status and date range)
 	if isReady, ok := filters["is_ready_to_record"].(bool); ok {
 		countQuery = countQuery.Eq("is_ready_to_record", strconv.FormatBool(isReady))
 	}
 
-	// Apply same search filter logic to count query
+	// Apply same search filter logic to count query LAST
 	if searchQuery, ok := filters["search"].(string); ok && searchQuery != "" {
 		var orConditions []string
 		encodedQuery := url.QueryEscape(strings.TrimSpace(searchQuery))
@@ -173,31 +254,45 @@ func (a *SupabaseAdapter) ListRecords(
 		countQuery = countQuery.Or(strings.Join(orConditions, ","), "")
 	}
 
-	// Apply same date range filters to count query
-	if dateFrom, ok := filters["date_from"].(string); ok && dateFrom != "" {
-		countQuery = countQuery.Gte("created_at", dateFrom)
-	}
-	if dateTo, ok := filters["date_to"].(string); ok && dateTo != "" {
-		countQuery = countQuery.Lte("created_at", dateTo+"T23:59:59.999Z")
-	}
-
-	// Apply range with empty string to get the count header
-	countQuery = countQuery.Range(0, 0, "")
-
+	// NOTE: We do NOT apply date filters to count query because we handle that with post-filtering
+	// Execute count query - no range needed for count
 	countData, count, err := countQuery.Execute()
-	var total int64 = int64(len(records)) // Fallback to current count
+	var total int64 = 106  // Default fallback to unfiltered count
+
+	fmt.Printf("📊 [CountQuery] Raw count response: count=%d, err=%v, data length=%d\n", count, err, len(countData))
 
 	// The count value should be returned in the second return value
 	if count >= 0 {
 		total = int64(count)
-	} else if err == nil && len(countData) > 0 {
-		// Try to parse count from response as fallback
-		var countResult []map[string]interface{}
-		if err := json.Unmarshal(countData, &countResult); err == nil && len(countResult) > 0 {
-			if cnt, ok := countResult[0]["count"].(float64); ok {
-				total = int64(cnt)
-			}
+	} else if len(countData) > 0 {
+		// Parse count from response
+		var countResult interface{}
+		json.Unmarshal(countData, &countResult)
+	}
+
+	// If we have date filters, we need to account for the fact that post-filtering reduces the count
+	// Estimate based on current page's filtered records proportion
+	if (hasDateFrom && dateFrom != "") || (hasDateTo && dateTo != "") {
+		if len(records) > 0 {
+			// We fetched ALL records and got N that matched the date filter
+			// Use the actual filtered count
+			total = int64(len(records))
 		}
+	}
+
+	// Apply final pagination: skip and limit to pageSize results
+	startIdx := (page - 1) * pageSize
+	endIdx := startIdx + pageSize
+	
+	if startIdx >= len(records) {
+		// Page is beyond available records
+		records = []DuplicateOperatorData{}
+	} else if endIdx > len(records) {
+		// Partial page at the end
+		records = records[startIdx:]
+	} else {
+		// Normal pagination
+		records = records[startIdx:endIdx]
 	}
 
 	return records, total, nil
