@@ -55,6 +55,9 @@ func (m *SimpleMockService) ListRecords(ctx context.Context, filters map[string]
 }
 
 func (m *SimpleMockService) CreateRecord(ctx context.Context, userID string, req *duplicate_operator.CreateRequest) (*duplicate_operator.DuplicateOperatorData, error) {
+	now := time.Now()
+	isReady := req.IsReadyToRecord
+	
 	record := &duplicate_operator.DuplicateOperatorData{
 		ID:                       uuid.New(),
 		UserID:                   uuid.MustParse(userID),
@@ -62,10 +65,11 @@ func (m *SimpleMockService) CreateRecord(ctx context.Context, userID string, req
 		NamaDuplicate:            req.NamaDuplicate,
 		NikOperator:              req.NikOperator,
 		NamaOperator:             req.NamaOperator,
-		TanggalPengajuan:         time.Now(),
-		IsReadyToRecord:          req.IsReadyToRecord,
-		CreatedAt:                time.Now(),
-		UpdatedAt:                time.Now(),
+		NikPengaju:               req.NikPengaju,
+		NamaPengaju:              req.NamaPengaju,
+		TanggalPengajuan:         now,
+		IsReadyToRecord:          &isReady,
+		CreatedAt:                &now,
 	}
 	m.records[record.ID.String()] = record
 	return record, nil
@@ -81,10 +85,9 @@ func (m *SimpleMockService) UpdateRecord(ctx context.Context, id string, req *du
 		record.NamaDuplicate = *req.NamaDuplicate
 	}
 	if req.IsReadyToRecord != nil {
-		record.IsReadyToRecord = *req.IsReadyToRecord
+		record.IsReadyToRecord = req.IsReadyToRecord
 	}
 
-	record.UpdatedAt = time.Now()
 	m.records[id] = record
 
 	return record, nil
@@ -121,7 +124,8 @@ func TestCreateRecordSuccess(t *testing.T) {
 	assert.Equal(t, userID, record.UserID)
 	assert.Equal(t, "1234567890123456", record.NikDuplicate)
 	assert.Equal(t, "Test Duplicate User", record.NamaDuplicate)
-	assert.False(t, record.IsReadyToRecord)
+	assert.NotNil(t, record.IsReadyToRecord)
+	assert.False(t, *record.IsReadyToRecord)
 }
 
 // TestReadRecordSuccess tests successful record retrieval

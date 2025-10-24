@@ -34,16 +34,18 @@ func (m *MockDatabaseAdapter) GetRecordByID(ctx context.Context, id uuid.UUID) (
 func (m *MockDatabaseAdapter) CreateRecord(ctx context.Context, req *CreateRequest) (*DuplicateOperatorData, error) {
 	id := uuid.New()
 	now := time.Now().UTC()
+	isReady := req.IsReadyToRecord
 	
 	record := &DuplicateOperatorData{
-		ID:                     id,
-		NikDuplicate:           req.NikDuplicate,
-		NamaDuplicate:          req.NamaDuplicate,
-		NikOperator:            req.NikOperator,
-		NamaOperator:           req.NamaOperator,
-		IsReadyToRecord:        req.IsReadyToRecord,
-		CreatedAt:              now,
-		UpdatedAt:              now,
+		ID:                       id,
+		NikDuplicate:             req.NikDuplicate,
+		NamaDuplicate:            req.NamaDuplicate,
+		NikOperator:              req.NikOperator,
+		NamaOperator:             req.NamaOperator,
+		NikPengaju:               req.NikPengaju,
+		NamaPengaju:              req.NamaPengaju,
+		IsReadyToRecord:          &isReady,
+		CreatedAt:                &now,
 	}
 	m.records[id] = record
 	return record, nil
@@ -60,9 +62,8 @@ func (m *MockDatabaseAdapter) UpdateRecord(ctx context.Context, id uuid.UUID, re
 		record.NamaDuplicate = *req.NamaDuplicate
 	}
 	if req.IsReadyToRecord != nil {
-		record.IsReadyToRecord = *req.IsReadyToRecord
+		record.IsReadyToRecord = req.IsReadyToRecord
 	}
-	record.UpdatedAt = time.Now().UTC()
 
 	return record, nil
 }
@@ -205,7 +206,8 @@ func TestMockUpdateRecord(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, newName, updated.NamaDuplicate)
-	assert.Equal(t, false, updated.IsReadyToRecord)
+	assert.NotNil(t, updated.IsReadyToRecord)
+	assert.Equal(t, false, *updated.IsReadyToRecord)
 
 	// Verify unchanged fields remain the same
 	assert.Equal(t, "1234567890123456", updated.NikDuplicate)

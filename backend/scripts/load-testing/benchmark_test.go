@@ -88,6 +88,9 @@ func setupTestServer() *gin.Engine {
 		concurrentService,
 		silpanaService,
 		silpanaBroadcaster,
+		nil, // supabaseAnalyzer - not needed for benchmark
+		nil, // aktivitasSiak - not needed for benchmark
+		nil, // duplicateOperator - not needed for benchmark
 	)
 
 	router := gin.New()
