@@ -248,12 +248,15 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
     }
 
     try {
+      console.log("[DuplicateOperatorTable] handleToggleChange called:", { id, currentStatus });
       const newStatus = !currentStatus;
       if (onUpdate) {
+        console.log("[DuplicateOperatorTable] Calling onUpdate with:", { id, newStatus });
         await onUpdate(id, { is_ready_to_record: newStatus });
       } else {
         console.error("onUpdate handler is not provided");
         toast.error("Gagal memperbarui status: fungsi tidak tersedia.");
+        return;
       }
 
       toast.success("Status berhasil diubah!");
@@ -288,11 +291,15 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
     setSaving((prev) => ({ ...prev, [id]: true }));
 
     try {
+      console.log("[DuplicateOperatorTable] handleSaveDate called:", { id, newDate });
       if (onUpdate) {
+        console.log("[DuplicateOperatorTable] Calling onUpdate with:", { id, newDate });
         await onUpdate(id, { estimasi_tanggal_perekaman: newDate });
       } else {
         console.error("onUpdate handler is not provided");
         toast.error("Gagal menyimpan tanggal: fungsi tidak tersedia.");
+        setSaving((prev) => ({ ...prev, [id]: false }));
+        return;
       }
 
       toast.success("Tanggal berhasil disimpan!");
@@ -309,9 +316,7 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
       });
     } catch (error: any) {
       console.error("Error saving date:", error);
-      toast.error(
-        error.message || "Gagal menyimpan tanggal. Silakan coba lagi.",
-      );
+      toast.error(error.message || "Gagal menyimpan tanggal. Silakan coba lagi.");
     } finally {
       setSaving((prev) => ({ ...prev, [id]: false }));
     }

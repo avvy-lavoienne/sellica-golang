@@ -195,6 +195,7 @@ export default function DuplicateOperatorPage() {
   };
 
   const handleEdit = (data: DuplicateOperatorData) => {
+    console.log("[Page] handleEdit called with:", data);
     if (!data.id) {
       toast.error("ID tidak valid. Silakan coba lagi.");
       return;
@@ -215,10 +216,12 @@ export default function DuplicateOperatorPage() {
     });
     setEditId(data.id);
     setIsEditing(true);
+    console.log("[Page] Setting viewState to form");
     setViewState("form");
   };
 
   const handleDelete = async (id: string) => {
+    console.log("[Page] handleDelete called with id:", id);
     if (!user) {
       toast.error("Pengguna tidak ditemukan. Silakan login kembali.");
       return;
@@ -234,12 +237,17 @@ export default function DuplicateOperatorPage() {
       return;
     }
 
-    if (!confirm("Apakah Anda yakin ingin menghapus pengajuan ini?")) return;
+    if (!confirm("Apakah Anda yakin ingin menghapus pengajuan ini?")) {
+      console.log("[Page] Delete cancelled by user");
+      return;
+    }
 
     try {
+      console.log("[Page] Calling manager.delete with id:", id);
       const result = await manager.delete(id);
       if (result) {
         toast.success("Data berhasil dihapus!");
+        console.log("[Page] Delete successful");
       }
     } catch (error: any) {
       console.error("Error deleting data:", error);
