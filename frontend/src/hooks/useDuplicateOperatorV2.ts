@@ -54,6 +54,8 @@ export function useDuplicateOperatorManagerV2(
   // Controls search and status filtering
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<"all" | "completed" | "pending">("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   
   // ===== FILTER RESULTS PAGE =====
   // Separate tracking for pagination within filtered results
@@ -62,13 +64,22 @@ export function useDuplicateOperatorManagerV2(
 
   // React Query hooks
   const listQuery = useQuery({
-    queryKey: ['duplicate-operators', { page: currentPage, pageSize, search, status }],
+    queryKey: ['duplicate-operators', { 
+      page: currentPage, 
+      pageSize, 
+      search, 
+      status,
+      startDate,
+      endDate
+    }],
     queryFn: async () => {
       const response = await duplicateOperatorAPI.list({
         page: currentPage,
         page_size: pageSize,
         search: search || undefined,
         status: status !== "all" ? status : undefined,
+        date_from: startDate || undefined,
+        date_to: endDate || undefined,
       });
       return response;
     },
@@ -186,26 +197,38 @@ export function useDuplicateOperatorManagerV2(
   );
 
   /**
-   * Handle search AND status change together
+   * Handle search AND status change together with dates
    * This is the main filter change handler
    */
   const handleFilterChange = useCallback(
-    (newSearch: string, newStatus: "all" | "completed" | "pending") => {
+    (
+      newSearch: string,
+      newStatus: "all" | "completed" | "pending",
+      newStartDate?: string,
+      newEndDate?: string
+    ) => {
       // Defensive: Only update if values actually changed
-      if (newSearch === search && newStatus === status) {
+      if (
+        newSearch === search &&
+        newStatus === status &&
+        newStartDate === startDate &&
+        newEndDate === endDate
+      ) {
         return;
       }
 
       // Update filters
       setSearch(newSearch);
       setStatus(newStatus);
+      setStartDate(newStartDate || "");
+      setEndDate(newEndDate || "");
       
       // Reset filter page (for pagination within filtered results)
       setFilterPage(1);
       
       // ✅ Never touch currentPage
     },
-    [search, status]
+    [search, status, startDate, endDate]
   );
 
   /**
@@ -371,6 +394,8 @@ export function useDuplicateOperatorManagerV2(
     // ===== FILTER STATE =====
     search,
     status,
+    startDate,
+    endDate,
     filterPage,
     setFilterPage,
 
@@ -388,7 +413,7 @@ export function useDuplicateOperatorManagerV2(
     // Use these instead of raw setters
     onPaginationChange: handlePaginationChange,
     onFilterChange: handleFilterChange,
-    onSearch: handleFilterChange, // ✅ CORRECTED: Use the handler that accepts both search and status
+    onSearch: handleFilterChange, // ✅ CORRECTED: Use the handler that accepts search, status, and dates
     onStatusChange: handleStatusChange,
     onRefresh: handleRefresh,
 
@@ -405,6 +430,8 @@ export function useDuplicateOperatorManagerV2(
     setPage: setCurrentPage,  // Alias for backward compatibility
     setSearch,
     setStatus,
+    setStartDate,
+    setEndDate,
   }), [
     listQuery.data,
     listQuery.isLoading,
@@ -415,6 +442,8 @@ export function useDuplicateOperatorManagerV2(
     pageSize,
     search,
     status,
+    startDate,
+    endDate,
     filterPage,
     handleCreate,
     handleUpdate,

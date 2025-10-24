@@ -35,17 +35,17 @@ func (m *MockDatabaseAdapter) CreateRecord(ctx context.Context, req *CreateReque
 	id := uuid.New()
 	now := time.Now().UTC()
 	isReady := req.IsReadyToRecord
-	
+
 	record := &DuplicateOperatorData{
-		ID:                       id,
-		NikDuplicate:             req.NikDuplicate,
-		NamaDuplicate:            req.NamaDuplicate,
-		NikOperator:              req.NikOperator,
-		NamaOperator:             req.NamaOperator,
-		NikPengaju:               req.NikPengaju,
-		NamaPengaju:              req.NamaPengaju,
-		IsReadyToRecord:          &isReady,
-		CreatedAt:                &now,
+		ID:              id,
+		NikDuplicate:    req.NikDuplicate,
+		NamaDuplicate:   req.NamaDuplicate,
+		NikOperator:     req.NikOperator,
+		NamaOperator:    req.NamaOperator,
+		NikPengaju:      req.NikPengaju,
+		NamaPengaju:     req.NamaPengaju,
+		IsReadyToRecord: &isReady,
+		CreatedAt:       &now,
 	}
 	m.records[id] = record
 	return record, nil
@@ -164,14 +164,14 @@ func TestMockCreateRecord(t *testing.T) {
 	adapter := NewMockDatabaseAdapter()
 
 	record, err := adapter.CreateRecord(context.Background(), &CreateRequest{
-		NikDuplicate:           "1234567890123456",
-		NamaDuplicate:          "Ahmad Maulana",
-		NikOperator:            "6543210987654321",
-		NamaOperator:           "Budi Santoso",
-		TanggalPerekaman:       "2025-01-15",
-		TanggalPengajuan:       "2025-01-14",
+		NikDuplicate:             "1234567890123456",
+		NamaDuplicate:            "Ahmad Maulana",
+		NikOperator:              "6543210987654321",
+		NamaOperator:             "Budi Santoso",
+		TanggalPerekaman:         "2025-01-15",
+		TanggalPengajuan:         "2025-01-14",
 		EstimasiTanggalPerekaman: "2025-01-20",
-		IsReadyToRecord:        true,
+		IsReadyToRecord:          true,
 	})
 
 	require.NoError(t, err)
@@ -185,14 +185,14 @@ func TestMockUpdateRecord(t *testing.T) {
 	adapter := NewMockDatabaseAdapter()
 
 	created, err := adapter.CreateRecord(context.Background(), &CreateRequest{
-		NikDuplicate:           "1234567890123456",
-		NamaDuplicate:          "Ahmad Maulana",
-		NikOperator:            "6543210987654321",
-		NamaOperator:           "Budi Santoso",
-		TanggalPerekaman:       "2025-01-15",
-		TanggalPengajuan:       "2025-01-14",
+		NikDuplicate:             "1234567890123456",
+		NamaDuplicate:            "Ahmad Maulana",
+		NikOperator:              "6543210987654321",
+		NamaOperator:             "Budi Santoso",
+		TanggalPerekaman:         "2025-01-15",
+		TanggalPengajuan:         "2025-01-14",
 		EstimasiTanggalPerekaman: "2025-01-20",
-		IsReadyToRecord:        true,
+		IsReadyToRecord:          true,
 	})
 	require.NoError(t, err)
 
@@ -218,14 +218,14 @@ func TestMockDeleteRecord(t *testing.T) {
 	adapter := NewMockDatabaseAdapter()
 
 	created, err := adapter.CreateRecord(context.Background(), &CreateRequest{
-		NikDuplicate:           "1234567890123456",
-		NamaDuplicate:          "Ahmad Maulana",
-		NikOperator:            "6543210987654321",
-		NamaOperator:           "Budi Santoso",
-		TanggalPerekaman:       "2025-01-15",
-		TanggalPengajuan:       "2025-01-14",
+		NikDuplicate:             "1234567890123456",
+		NamaDuplicate:            "Ahmad Maulana",
+		NikOperator:              "6543210987654321",
+		NamaOperator:             "Budi Santoso",
+		TanggalPerekaman:         "2025-01-15",
+		TanggalPengajuan:         "2025-01-14",
 		EstimasiTanggalPerekaman: "2025-01-20",
-		IsReadyToRecord:        true,
+		IsReadyToRecord:          true,
 	})
 	require.NoError(t, err)
 
@@ -286,14 +286,14 @@ func TestMockSearchRecords(t *testing.T) {
 	adapter := NewMockDatabaseAdapter()
 
 	created, err := adapter.CreateRecord(context.Background(), &CreateRequest{
-		NikDuplicate:           "1234567890123456",
-		NamaDuplicate:          "Ahmad Maulana",
-		NikOperator:            "6543210987654321",
-		NamaOperator:           "Budi Santoso",
-		TanggalPerekaman:       "2025-01-15",
-		TanggalPengajuan:       "2025-01-14",
+		NikDuplicate:             "1234567890123456",
+		NamaDuplicate:            "Ahmad Maulana",
+		NikOperator:              "6543210987654321",
+		NamaOperator:             "Budi Santoso",
+		TanggalPerekaman:         "2025-01-15",
+		TanggalPengajuan:         "2025-01-14",
 		EstimasiTanggalPerekaman: "2025-01-20",
-		IsReadyToRecord:        true,
+		IsReadyToRecord:          true,
 	})
 	require.NoError(t, err)
 

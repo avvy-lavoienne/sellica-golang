@@ -98,46 +98,29 @@ func (a *SupabaseAdapter) ListRecords(
 		query = query.Eq("is_ready_to_record", strconv.FormatBool(isReady))
 	}
 
-	// Apply search and date filters BEFORE pagination
+	// Apply search filter BEFORE pagination
 	if searchQuery, ok := filters["search"].(string); ok && searchQuery != "" {
-		// Split the combined query string by commas
-		parts := strings.Split(searchQuery, ",")
-		var textQueries []string
+		// Simple text search across multiple fields
 		var orConditions []string
+		encodedQuery := url.QueryEscape(strings.TrimSpace(searchQuery))
+		
+		orConditions = append(orConditions, fmt.Sprintf("nik_duplicate.ilike.*%s*", encodedQuery))
+		orConditions = append(orConditions, fmt.Sprintf("nik_operator.ilike.*%s*", encodedQuery))
+		orConditions = append(orConditions, fmt.Sprintf("nama_duplicate.ilike.*%s*", encodedQuery))
+		orConditions = append(orConditions, fmt.Sprintf("nama_operator.ilike.*%s*", encodedQuery))
+		orConditions = append(orConditions, fmt.Sprintf("nik_pengaju.ilike.*%s*", encodedQuery))
+		orConditions = append(orConditions, fmt.Sprintf("nama_pengaju.ilike.*%s*", encodedQuery))
+		
+		query = query.Or(strings.Join(orConditions, ","), "")
+	}
 
-		for _, part := range parts {
-			trimmedPart := strings.TrimSpace(part)
-			if trimmedPart == "" {
-				continue
-			}
-
-			// Check for date filters (e.g., "created_at.gte.2023-01-01T00:00:00Z")
-			if strings.HasPrefix(trimmedPart, "created_at.gte.") {
-				dateStr := strings.TrimPrefix(trimmedPart, "created_at.gte.")
-				query = query.Gte("created_at", dateStr)
-			} else if strings.HasPrefix(trimmedPart, "created_at.lte.") {
-				dateStr := strings.TrimPrefix(trimmedPart, "created_at.lte.")
-				query = query.Lte("created_at", dateStr)
-			} else {
-				// Assume it's a text search term.
-				// The term is URL-encoded to handle special characters safely.
-				textQueries = append(textQueries, url.QueryEscape(trimmedPart))
-			}
-		}
-
-		// Combine all text search terms into a single OR condition.
-		// This uses the correct `ilike` format with `*` as wildcards for Supabase.
-		if len(textQueries) > 0 {
-			for _, tq := range textQueries {
-				orConditions = append(orConditions, fmt.Sprintf("nik_duplicate.ilike.*%s*", tq))
-				orConditions = append(orConditions, fmt.Sprintf("nik_operator.ilike.*%s*", tq))
-				orConditions = append(orConditions, fmt.Sprintf("nama_duplicate.ilike.*%s*", tq))
-				orConditions = append(orConditions, fmt.Sprintf("nama_operator.ilike.*%s*", tq))
-				orConditions = append(orConditions, fmt.Sprintf("nik_pengaju.ilike.*%s*", tq))
-				orConditions = append(orConditions, fmt.Sprintf("nama_pengaju.ilike.*%s*", tq))
-			}
-			query = query.Or(strings.Join(orConditions, ","), "")
-		}
+	// Apply date range filters
+	if dateFrom, ok := filters["date_from"].(string); ok && dateFrom != "" {
+		query = query.Gte("created_at", dateFrom)
+	}
+	if dateTo, ok := filters["date_to"].(string); ok && dateTo != "" {
+		// Add end of day to include the entire day
+		query = query.Lte("created_at", dateTo+"T23:59:59.999Z")
 	}
 
 	// Apply pagination using Range AFTER filters
@@ -175,40 +158,27 @@ func (a *SupabaseAdapter) ListRecords(
 		countQuery = countQuery.Eq("is_ready_to_record", strconv.FormatBool(isReady))
 	}
 
-	// Apply same search and date filter logic to count query
+	// Apply same search filter logic to count query
 	if searchQuery, ok := filters["search"].(string); ok && searchQuery != "" {
-		parts := strings.Split(searchQuery, ",")
-		var textQueries []string
 		var orConditions []string
+		encodedQuery := url.QueryEscape(strings.TrimSpace(searchQuery))
+		
+		orConditions = append(orConditions, fmt.Sprintf("nik_duplicate.ilike.*%s*", encodedQuery))
+		orConditions = append(orConditions, fmt.Sprintf("nik_operator.ilike.*%s*", encodedQuery))
+		orConditions = append(orConditions, fmt.Sprintf("nama_duplicate.ilike.*%s*", encodedQuery))
+		orConditions = append(orConditions, fmt.Sprintf("nama_operator.ilike.*%s*", encodedQuery))
+		orConditions = append(orConditions, fmt.Sprintf("nik_pengaju.ilike.*%s*", encodedQuery))
+		orConditions = append(orConditions, fmt.Sprintf("nama_pengaju.ilike.*%s*", encodedQuery))
+		
+		countQuery = countQuery.Or(strings.Join(orConditions, ","), "")
+	}
 
-		for _, part := range parts {
-			trimmedPart := strings.TrimSpace(part)
-			if trimmedPart == "" {
-				continue
-			}
-
-			if strings.HasPrefix(trimmedPart, "created_at.gte.") {
-				dateStr := strings.TrimPrefix(trimmedPart, "created_at.gte.")
-				countQuery = countQuery.Gte("created_at", dateStr)
-			} else if strings.HasPrefix(trimmedPart, "created_at.lte.") {
-				dateStr := strings.TrimPrefix(trimmedPart, "created_at.lte.")
-				countQuery = countQuery.Lte("created_at", dateStr)
-			} else {
-				textQueries = append(textQueries, url.QueryEscape(trimmedPart))
-			}
-		}
-
-		if len(textQueries) > 0 {
-			for _, tq := range textQueries {
-				orConditions = append(orConditions, fmt.Sprintf("nik_duplicate.ilike.*%s*", tq))
-				orConditions = append(orConditions, fmt.Sprintf("nik_operator.ilike.*%s*", tq))
-				orConditions = append(orConditions, fmt.Sprintf("nama_duplicate.ilike.*%s*", tq))
-				orConditions = append(orConditions, fmt.Sprintf("nama_operator.ilike.*%s*", tq))
-				orConditions = append(orConditions, fmt.Sprintf("nik_pengaju.ilike.*%s*", tq))
-				orConditions = append(orConditions, fmt.Sprintf("nama_pengaju.ilike.*%s*", tq))
-			}
-			countQuery = countQuery.Or(strings.Join(orConditions, ","), "")
-		}
+	// Apply same date range filters to count query
+	if dateFrom, ok := filters["date_from"].(string); ok && dateFrom != "" {
+		countQuery = countQuery.Gte("created_at", dateFrom)
+	}
+	if dateTo, ok := filters["date_to"].(string); ok && dateTo != "" {
+		countQuery = countQuery.Lte("created_at", dateTo+"T23:59:59.999Z")
 	}
 
 	// Apply range with empty string to get the count header

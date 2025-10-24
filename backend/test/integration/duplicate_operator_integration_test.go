@@ -57,19 +57,19 @@ func (m *SimpleMockService) ListRecords(ctx context.Context, filters map[string]
 func (m *SimpleMockService) CreateRecord(ctx context.Context, userID string, req *duplicate_operator.CreateRequest) (*duplicate_operator.DuplicateOperatorData, error) {
 	now := time.Now()
 	isReady := req.IsReadyToRecord
-	
+
 	record := &duplicate_operator.DuplicateOperatorData{
-		ID:                       uuid.New(),
-		UserID:                   uuid.MustParse(userID),
-		NikDuplicate:             req.NikDuplicate,
-		NamaDuplicate:            req.NamaDuplicate,
-		NikOperator:              req.NikOperator,
-		NamaOperator:             req.NamaOperator,
-		NikPengaju:               req.NikPengaju,
-		NamaPengaju:              req.NamaPengaju,
-		TanggalPengajuan:         now,
-		IsReadyToRecord:          &isReady,
-		CreatedAt:                &now,
+		ID:               uuid.New(),
+		UserID:           uuid.MustParse(userID),
+		NikDuplicate:     req.NikDuplicate,
+		NamaDuplicate:    req.NamaDuplicate,
+		NikOperator:      req.NikOperator,
+		NamaOperator:     req.NamaOperator,
+		NikPengaju:       req.NikPengaju,
+		NamaPengaju:      req.NamaPengaju,
+		TanggalPengajuan: now,
+		IsReadyToRecord:  &isReady,
+		CreatedAt:        &now,
 	}
 	m.records[record.ID.String()] = record
 	return record, nil

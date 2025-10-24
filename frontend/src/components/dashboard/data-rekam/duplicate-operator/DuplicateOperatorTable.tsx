@@ -13,10 +13,6 @@ import { cn } from "@/lib/conn/utils";
 import type { DuplicateOperatorData } from "@/types/data-rekam/duplicate-operator";
 import type { UpdateDuplicateOperatorRequest } from "@/lib/api/types/duplicate-operator";
 import TableSkeleton from "@/components/dashboard/data-rekam/duplicate-operator/TableSkeleton";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { id as idLocale } from "date-fns/locale";
 import { useDebounce } from "@/hooks/use-debounce";
 import {
   Search,
@@ -88,8 +84,8 @@ interface DuplicateOperatorTableProps {
   pageSize: number;
   /** Page change handler */
   onPageChange: (page: number) => void;
-  /** Search handler */
-  onSearch: (query: string, statusFilter?: string) => void;
+  /** Search handler with optional date filters */
+  onSearch: (query: string, statusFilter?: string, startDate?: string, endDate?: string) => void;
   /** Refresh handler (full refresh with reset) */
   onRefresh: () => void;
   /** Data refresh handler (preserves pagination/filters) */
@@ -138,8 +134,8 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [editedDates, setEditedDates] = useState<{ [key: string]: string }>({});
   const [saving, setSaving] = useState<{ [key: string]: boolean }>({});
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [sortConfig, setSortConfig] = useState<{
@@ -150,9 +146,11 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
     direction: "desc"
   });
 
-  // ✅ ADD THESE LINES: Tracking refs for defensive checks
+  // ✅ Tracking refs for defensive checks
   const previousSearchRef = useRef<string>("");
   const previousStatusRef = useRef<string>("all");
+  const previousStartDateRef = useRef<string>("");
+  const previousEndDateRef = useRef<string>("");
   const tableRef = useRef<HTMLDivElement>(null);
 
   // Theme and accessibility
@@ -192,57 +190,25 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
     onSearchRef.current = onSearch;
   }, [onSearch]);
 
-  // ✅ UNIFIED SEARCH & FILTER EFFECT
+  // ✅ SIMPLIFIED SEARCH & FILTER EFFECT - Send separate parameters
   useEffect(() => {
-    // Construct the text-based search part of the query
     const textQuery = debouncedSearchQuery.trim();
 
-    // Construct the date-based part of the query
-    let dateQuery = "";
-    if (debouncedStartDate && debouncedEndDate) {
-      try {
-        // Validate dates
-        if (
-          !(debouncedStartDate instanceof Date && !isNaN(debouncedStartDate.getTime())) ||
-          !(debouncedEndDate instanceof Date && !isNaN(debouncedEndDate.getTime()))
-        ) {
-          // Invalid date objects, do nothing
-        } else {
-          const formattedStartDate = new Date(debouncedStartDate);
-          formattedStartDate.setUTCHours(0, 0, 0, 0);
-
-          const formattedEndDate = new Date(debouncedEndDate);
-          formattedEndDate.setUTCHours(23, 59, 59, 999);
-          
-          // Final validation on year to prevent malformed ISO strings
-          const startYear = formattedStartDate.getUTCFullYear();
-          const endYear = formattedEndDate.getUTCFullYear();
-
-          if (startYear > 999 && startYear < 10000 && endYear > 999 && endYear < 10000) {
-            const startISO = formattedStartDate.toISOString();
-            const endISO = formattedEndDate.toISOString();
-            dateQuery = `created_at.gte.${startISO},created_at.lte.${endISO}`;
-          }
-        }
-      } catch (error) {
-        console.error("Error formatting date query:", error);
-        // Don't add a date query if formatting fails
-      }
-    }
-
-    // Combine queries
-    const combinedQuery = [textQuery, dateQuery].filter(Boolean).join(",");
-
-    // DEFENSIVE CHECK: Only call onSearch if the query or filter has actually changed
-    const hasQueryChanged = combinedQuery !== previousSearchRef.current;
+    // DEFENSIVE CHECK: Only call onSearch if values have actually changed
+    const hasQueryChanged = textQuery !== previousSearchRef.current;
     const hasStatusChanged = statusFilter !== previousStatusRef.current;
+    const hasStartDateChanged = debouncedStartDate !== previousStartDateRef.current;
+    const hasEndDateChanged = debouncedEndDate !== previousEndDateRef.current;
 
-    if (hasQueryChanged || hasStatusChanged) {
-      onSearchRef.current(combinedQuery, statusFilter);
-      previousSearchRef.current = combinedQuery;
+    if (hasQueryChanged || hasStatusChanged || hasStartDateChanged || hasEndDateChanged) {
+      // Pass all filters separately (no complex formatting)
+      onSearchRef.current(textQuery, statusFilter, debouncedStartDate, debouncedEndDate);
+      previousSearchRef.current = textQuery;
       previousStatusRef.current = statusFilter;
+      previousStartDateRef.current = debouncedStartDate;
+      previousEndDateRef.current = debouncedEndDate;
     }
-  }, [debouncedSearchQuery, debouncedStartDate, debouncedEndDate, statusFilter]);
+  }, [debouncedSearchQuery, statusFilter, debouncedStartDate, debouncedEndDate]);
 
   const rowsPerPage = 5;
   const totalPages = Math.ceil(totalCount / rowsPerPage);
@@ -539,85 +505,51 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
 
               {/* Date Filters and Status Filter */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <LocalizationProvider
-                  dateAdapter={AdapterDateFns}
-                  adapterLocale={idLocale}
-                >
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Tanggal Mulai</Label>
-                    <DatePicker
-                      value={startDate}
-                      onChange={(newValue) => setStartDate(newValue)}
-                      disabled={loading}
-                      slotProps={{
-                        textField: {
-                          className: cn(
-                            "w-full rounded-xl border transition-all duration-200",
-                            // Light mode styles
-                            "border-gray-200 bg-white text-gray-900",
-                            "focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20",
-                            // Dark mode styles
-                            "dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100",
-                            "dark:focus-within:border-primary/50 dark:focus-within:ring-primary/20",
-                            // Disabled state
-                            loading && "opacity-50 cursor-not-allowed",
-                          ),
-                          size: "small",
-                          sx: {
-                            "& .MuiOutlinedInput-root": {
-                              backgroundColor: "transparent",
-                              "& fieldset": { borderColor: "transparent" },
-                              "&:hover fieldset": {
-                                borderColor: "transparent",
-                              },
-                              "&.Mui-focused fieldset": {
-                                borderColor: "transparent",
-                              },
-                            },
-                          },
-                        },
-                      }}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">
-                      Tanggal Selesai
-                    </Label>
-                    <DatePicker
-                      value={endDate}
-                      onChange={(newValue) => setEndDate(newValue)}
-                      disabled={loading}
-                      slotProps={{
-                        textField: {
-                          className: cn(
-                            "w-full rounded-xl border transition-all duration-200",
-                            // Light mode styles
-                            "border-gray-200 bg-white text-gray-900",
-                            "focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20",
-                            // Dark mode styles
-                            "dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100",
-                            "dark:focus-within:border-primary/50 dark:focus-within:ring-primary/20",
-                            // Disabled state
-                            loading && "opacity-50 cursor-not-allowed",
-                          ),
-                          size: "small",
-                          sx: {
-                            "& .MuiOutlinedInput-root": {
-                              backgroundColor: "transparent",
-                              "& fieldset": { borderColor: "transparent" },
-                              "&:hover fieldset": {
-                                borderColor: "transparent",
-                              },
-                              "&.Mui-focused fieldset": {
-                                borderColor: "transparent",
-                              },
-                            },
-                          },
-                        },
-                      }}
-                    />
-                  </div>
-                </LocalizationProvider>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    Tanggal Mulai
+                  </Label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    disabled={loading}
+                    className={cn(
+                      "block w-full px-3 py-2.5 text-sm",
+                      "border border-gray-200 rounded-xl",
+                      "bg-white text-gray-900",
+                      "focus:border-primary/50 focus:ring-2 focus:ring-primary/20",
+                      "dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100",
+                      "dark:focus:border-primary/50 dark:focus:ring-primary/20",
+                      "transition-all duration-200",
+                      loading && "opacity-50 cursor-not-allowed"
+                    )}
+                    aria-label="Tanggal mulai filter"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    Tanggal Selesai
+                  </Label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    disabled={loading}
+                    className={cn(
+                      "block w-full px-3 py-2.5 text-sm",
+                      "border border-gray-200 rounded-xl",
+                      "bg-white text-gray-900",
+                      "focus:border-primary/50 focus:ring-2 focus:ring-primary/20",
+                      "dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100",
+                      "dark:focus:border-primary/50 dark:focus:ring-primary/20",
+                      "transition-all duration-200",
+                      loading && "opacity-50 cursor-not-allowed"
+                    )}
+                    aria-label="Tanggal selesai filter"
+                  />
+                </div>
 
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-900 dark:text-white">

@@ -248,16 +248,21 @@ export default function DuplicateOperatorPage() {
   };
 
   const handleSearch = useCallback(
-    (query: string, filter?: string) => {
+    (query: string, filter?: string, startDate?: string, endDate?: string) => {
       const newStatus = (filter as "all" | "completed" | "pending") || "all";
       
       // ✅ Defensive: Only call if values changed
-      if (query === manager.search && newStatus === manager.status) {
+      if (
+        query === manager.search &&
+        newStatus === manager.status &&
+        startDate === manager.startDate &&
+        endDate === manager.endDate
+      ) {
         return;
       }
 
-      // ✅ Use the single, unified handler from the hook
-      manager.onSearch(query, newStatus);
+      // ✅ Pass all filters to manager
+      manager.onSearch(query, newStatus, startDate, endDate);
     },
     [manager],
   );

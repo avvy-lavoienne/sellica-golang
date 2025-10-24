@@ -43,6 +43,10 @@ func (h *DuplicateOperatorHandler) ListRecords(c *gin.Context) {
 	// Get search query
 	search := c.Query("search")
 
+	// Get date range filters
+	dateFrom := c.Query("date_from")
+	dateTo := c.Query("date_to")
+
 	// Build filters
 	filters := make(map[string]interface{})
 
@@ -57,6 +61,14 @@ func (h *DuplicateOperatorHandler) ListRecords(c *gin.Context) {
 	// Pass search query to service
 	if search != "" {
 		filters["search"] = search
+	}
+
+	// Pass date filters to service
+	if dateFrom != "" {
+		filters["date_from"] = dateFrom
+	}
+	if dateTo != "" {
+		filters["date_to"] = dateTo
 	}
 
 	// Call service
