@@ -9,6 +9,8 @@ export interface CreateDuplicateOperatorRequest {
   nama_duplicate: string;
   nik_operator: string;
   nama_operator: string;
+  nik_pengaju: string;
+  nama_pengaju: string;
   tanggal_perekaman: string;
   tanggal_pengajuan: string;
   estimasi_tanggal_perekaman?: string;
@@ -20,6 +22,8 @@ export interface UpdateDuplicateOperatorRequest {
   nama_duplicate?: string;
   nik_operator?: string;
   nama_operator?: string;
+  nik_pengaju?: string;
+  nama_pengaju?: string;
   tanggal_perekaman?: string;
   tanggal_pengajuan?: string;
   estimasi_tanggal_perekaman?: string;
@@ -47,12 +51,11 @@ export interface DuplicateOperatorResponse {
   nama_operator: string;
   nik_pengaju: string;
   nama_pengaju: string;
-  tanggal_perekaman: string | null;
+  tanggal_perekaman: string;
   tanggal_pengajuan: string;
   estimasi_tanggal_perekaman: string | null;
   is_ready_to_record: boolean;
   created_at: string;
-  updated_at: string;
 }
 
 export interface PaginationMeta {

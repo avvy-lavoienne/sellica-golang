@@ -27,6 +27,8 @@ func NewSupabaseAdapter(client *supabase.Client) *SupabaseAdapter {
 
 // GetRecordByID fetches a single record by ID
 func (a *SupabaseAdapter) GetRecordByID(ctx context.Context, id string) (*DuplicateOperatorData, error) {
+	_ = ctx // unused parameter
+
 	// Validate ID is not empty
 	if id == "" {
 		return nil, fmt.Errorf("ID cannot be empty")
@@ -68,6 +70,8 @@ func (a *SupabaseAdapter) ListRecords(
 	filters map[string]interface{},
 	page, pageSize int,
 ) ([]DuplicateOperatorData, int64, error) {
+	_ = ctx // unused parameter
+
 	if a.client == nil {
 		return nil, 0, fmt.Errorf("database client not initialized")
 	}
@@ -235,6 +239,8 @@ func (a *SupabaseAdapter) CreateRecord(
 	userID string,
 	req *CreateRequest,
 ) (*DuplicateOperatorData, error) {
+	_ = ctx // unused parameter
+
 	if a.client == nil {
 		return nil, fmt.Errorf("database client not initialized")
 	}
@@ -250,6 +256,8 @@ func (a *SupabaseAdapter) CreateRecord(
 		"nama_duplicate":             req.NamaDuplicate,
 		"nik_operator":               req.NikOperator,
 		"nama_operator":              req.NamaOperator,
+		"nik_pengaju":                req.NikPengaju,
+		"nama_pengaju":               req.NamaPengaju,
 		"tanggal_perekaman":          req.TanggalPerekaman,
 		"tanggal_pengajuan":          req.TanggalPengajuan,
 		"estimasi_tanggal_perekaman": req.EstimasiTanggalPerekaman,
@@ -314,6 +322,12 @@ func (a *SupabaseAdapter) UpdateRecord(
 	}
 	if req.NamaOperator != nil {
 		updates["nama_operator"] = *req.NamaOperator
+	}
+	if req.NikPengaju != nil {
+		updates["nik_pengaju"] = *req.NikPengaju
+	}
+	if req.NamaPengaju != nil {
+		updates["nama_pengaju"] = *req.NamaPengaju
 	}
 	if req.TanggalPerekaman != nil {
 		updates["tanggal_perekaman"] = *req.TanggalPerekaman
@@ -394,7 +408,7 @@ func (a *SupabaseAdapter) SearchRecords(
 	// For new implementations, use ListRecords which has unified search.
 	// To maintain backward compatibility for any potential old calls,
 	// it now redirects to ListRecords.
-	
+
 	// Combine query into filters
 	if filters == nil {
 		filters = make(map[string]interface{})

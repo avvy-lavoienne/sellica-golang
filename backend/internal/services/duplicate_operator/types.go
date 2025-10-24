@@ -14,6 +14,8 @@ type CreateRequest struct {
 	NamaDuplicate            string `json:"nama_duplicate" binding:"required,max=255" validate:"required"`
 	NikOperator              string `json:"nik_operator" binding:"required,len=16" validate:"required"`
 	NamaOperator             string `json:"nama_operator" binding:"required,max=255" validate:"required"`
+	NikPengaju               string `json:"nik_pengaju" binding:"required,len=16" validate:"required"`
+	NamaPengaju              string `json:"nama_pengaju" binding:"required,max=255" validate:"required"`
 	TanggalPerekaman         string `json:"tanggal_perekaman" binding:"required" validate:"required"`
 	TanggalPengajuan         string `json:"tanggal_pengajuan" binding:"required" validate:"required"`
 	EstimasiTanggalPerekaman string `json:"estimasi_tanggal_perekaman" binding:"omitempty"`
@@ -26,6 +28,8 @@ type UpdateRequest struct {
 	NamaDuplicate            *string `json:"nama_duplicate,omitempty" binding:"omitempty,max=255"`
 	NikOperator              *string `json:"nik_operator,omitempty" binding:"omitempty,len=16"`
 	NamaOperator             *string `json:"nama_operator,omitempty" binding:"omitempty,max=255"`
+	NikPengaju               *string `json:"nik_pengaju,omitempty" binding:"omitempty,len=16"`
+	NamaPengaju              *string `json:"nama_pengaju,omitempty" binding:"omitempty,max=255"`
 	TanggalPerekaman         *string `json:"tanggal_perekaman,omitempty"`
 	TanggalPengajuan         *string `json:"tanggal_pengajuan,omitempty"`
 	EstimasiTanggalPerekaman *string `json:"estimasi_tanggal_perekaman,omitempty"`
@@ -65,10 +69,10 @@ type DuplicateOperatorData struct {
 func (d *DuplicateOperatorData) UnmarshalJSON(data []byte) error {
 	type Alias DuplicateOperatorData
 	aux := &struct {
-		ID                       string `json:"id"`
-		UserID                   string `json:"user_id"`
-		TanggalPerekaman         string `json:"tanggal_perekaman"`
-		TanggalPengajuan         string `json:"tanggal_pengajuan"`
+		ID                       string  `json:"id"`
+		UserID                   string  `json:"user_id"`
+		TanggalPerekaman         string  `json:"tanggal_perekaman"`
+		TanggalPengajuan         string  `json:"tanggal_pengajuan"`
 		EstimasiTanggalPerekaman *string `json:"estimasi_tanggal_perekaman"`
 		CreatedAt                *string `json:"created_at"`
 		*Alias
@@ -159,12 +163,12 @@ type PaginationMeta struct {
 
 // ListResponse represents paginated list response
 type ListResponse struct {
-	Status     string            `json:"status"`
-	Code       int               `json:"code"`
-	Message    string            `json:"message"`
+	Status     string                  `json:"status"`
+	Code       int                     `json:"code"`
+	Message    string                  `json:"message"`
 	Data       []DuplicateOperatorData `json:"data"`
-	Pagination PaginationMeta    `json:"pagination"`
-	Timestamp  time.Time         `json:"timestamp"`
+	Pagination PaginationMeta          `json:"pagination"`
+	Timestamp  time.Time               `json:"timestamp"`
 }
 
 // SingleResponse represents single record response
@@ -184,9 +188,9 @@ type ErrorDetail struct {
 
 // ErrorResponse represents an error response
 type ErrorResponse struct {
-	Status       string       `json:"status"`
-	Code         int          `json:"code"`
-	Message      string       `json:"message"`
+	Status       string        `json:"status"`
+	Code         int           `json:"code"`
+	Message      string        `json:"message"`
 	ErrorDetails []ErrorDetail `json:"error_details,omitempty"`
-	Timestamp    time.Time    `json:"timestamp"`
+	Timestamp    time.Time     `json:"timestamp"`
 }
