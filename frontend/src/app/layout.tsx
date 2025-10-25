@@ -5,6 +5,7 @@ import { ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import NextTopLoader from "nextjs-toploader"
 import { ThemeProvider } from "@/components/ThemeProvider"
+import { ApiInterceptorProvider } from "@/components/ApiInterceptorProvider"
 import {
   metadata as siteMetadata,
   structuredData,
@@ -87,31 +88,33 @@ export default async function RootLayout({
         className={`${inter.variable} font-sans antialiased`}
         suppressHydrationWarning={true}
       >
-        <QueryProvider>
-          <ThemeProvider defaultTheme="system">
-            <NextTopLoader
-              color="hsl(var(--primary))"
-              initialPosition={0.08}
-              crawlSpeed={200}
-              height={3}
-              crawl={true}
-              showSpinner={false}
-              easing="ease"
-              speed={200}
-              shadow="0 0 10px hsl(var(--primary)),0 0 5px hsl(var(--primary)/0.5)"
-            />
-            <div className="relative flex min-h-screen flex-col bg-background">
-              {children}
-            </div>
-            <ToastContainer
-              position="top-right"
-              autoClose={3000}
-              hideProgressBar={false}
-              closeOnClick
-              pauseOnHover
-            />
-          </ThemeProvider>
-        </QueryProvider>
+        <ApiInterceptorProvider>
+          <QueryProvider>
+            <ThemeProvider defaultTheme="system">
+              <NextTopLoader
+                color="hsl(var(--primary))"
+                initialPosition={0.08}
+                crawlSpeed={200}
+                height={3}
+                crawl={true}
+                showSpinner={false}
+                easing="ease"
+                speed={200}
+                shadow="0 0 10px hsl(var(--primary)),0 0 5px hsl(var(--primary)/0.5)"
+              />
+              <div className="relative flex min-h-screen flex-col bg-background">
+                {children}
+              </div>
+              <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                closeOnClick
+                pauseOnHover
+              />
+            </ThemeProvider>
+          </QueryProvider>
+        </ApiInterceptorProvider>
       </body>
     </html>
   );

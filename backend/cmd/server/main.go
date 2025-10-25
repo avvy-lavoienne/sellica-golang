@@ -30,6 +30,7 @@ import (
 	"selly-backend/internal/services/supabase_analyzer"
 	"selly-backend/internal/services/training"
 	"selly-backend/internal/services/websocket"
+	"selly-backend/internal/utils/logwriter"
 )
 
 func main() {
@@ -38,11 +39,21 @@ func main() {
 		logrus.Warn("No .env file found, using system environment variables")
 	}
 
-	// Initialize configuration
+	// Initialize configuration first
 	cfg := config.Load()
 
-	// Set up logging
-	setupLogging(cfg)
+	// Initialize log writer
+	lw, err := logwriter.NewLogWriter("./logs/backend")
+	if err != nil {
+		fmt.Printf("Failed to initialize log writer: %v\n", err)
+		fmt.Println("Continuing without file logging...")
+	} else {
+		defer lw.Close()
+		lw.SetupLogrus()
+	}
+
+	// Set up logging (after logwriter setup)
+	setupLoggingWithFile(cfg, lw != nil)
 
 	// Initialize services
 	services, err := initializeServices(cfg)
@@ -462,7 +473,7 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 }
 
 // setupLogging configures the logging system
-func setupLogging(cfg *config.Config) {
+func setupLoggingWithFile(cfg *config.Config, hasFileLogging bool) {
 	// Set log level
 	level, err := logrus.ParseLevel(cfg.Logging.Level)
 	if err != nil {
@@ -470,18 +481,25 @@ func setupLogging(cfg *config.Config) {
 	}
 	logrus.SetLevel(level)
 
-	// Set log format
-	if cfg.Server.Environment == "production" {
-		logrus.SetFormatter(&logrus.JSONFormatter{
-			TimestampFormat: time.RFC3339,
-		})
-	} else {
-		logrus.SetFormatter(&logrus.TextFormatter{
-			FullTimestamp:   true,
-			TimestampFormat: "2006-01-02 15:04:05",
-			ForceColors:     true,
-		})
+	// Set log format - only if we don't already have file logging configured
+	if !hasFileLogging {
+		if cfg.Server.Environment == "production" {
+			logrus.SetFormatter(&logrus.JSONFormatter{
+				TimestampFormat: time.RFC3339,
+			})
+		} else {
+			logrus.SetFormatter(&logrus.TextFormatter{
+				FullTimestamp:   true,
+				TimestampFormat: "2006-01-02 15:04:05",
+				ForceColors:     true,
+			})
+		}
 	}
+	// If hasFileLogging is true, logwriter has already set up the formatter
 
 	logrus.Info("📝 Logging system initialized")
+}
+
+func setupLogging(cfg *config.Config) {
+	setupLoggingWithFile(cfg, false)
 }

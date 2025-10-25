@@ -18,6 +18,7 @@ import type {
   ListQueryParams,
   APIError,
 } from "../types/duplicate-operator";
+import { getValidToken, getTokenWithDiagnostics } from "../token-refresh";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
@@ -99,7 +100,8 @@ class DuplicateOperatorAPI {
 
   /**
    * Get authentication token from storage
-   * Uses Supabase session token for backend API authentication
+   * Synchronously retrieves fresh token from localStorage
+   * For async token refresh, use the getValidToken utility directly in methods
    */
   private getAuthToken(): string | null {
     // Check if running in browser
@@ -117,15 +119,26 @@ class DuplicateOperatorAPI {
         const authData = localStorage.getItem(supabaseAuthKey);
         if (authData) {
           const parsed = JSON.parse(authData);
-          // Return access token from Supabase session
-          return parsed?.access_token || null;
+          const accessToken = parsed?.access_token;
+          
+          if (accessToken) {
+            console.log("🔐 [Auth Token] Retrieved fresh token from Supabase session");
+            return accessToken;
+          }
         }
       }
 
       // Fallback: check for custom auth token
-      return localStorage.getItem("auth_token");
+      const customToken = localStorage.getItem("auth_token");
+      if (customToken) {
+        console.log("🔐 [Auth Token] Using custom auth token from localStorage");
+        return customToken;
+      }
+      
+      console.warn("⚠️ [Auth Token] No authentication token found in localStorage");
+      return null;
     } catch (error) {
-      console.error("Error retrieving auth token:", error);
+      console.error("❌ Error retrieving auth token:", error);
       return null;
     }
   }

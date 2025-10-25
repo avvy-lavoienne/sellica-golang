@@ -141,29 +141,57 @@ export default function DuplicateOperatorPage() {
     }
 
     try {
-      const dataToSave: CreateDuplicateOperatorRequest | UpdateDuplicateOperatorRequest = {
-        nik_duplicate: formData.nik_duplicate.trim(),
-        nama_duplicate: formData.nama_duplicate.trim(),
-        nik_operator: formData.nik_operator.trim(),
-        nama_operator: formData.nama_operator.trim(),
-        tanggal_perekaman: formData.tanggal_perekaman || undefined,
-        tanggal_pengajuan: formData.tanggal_pengajuan,
-        estimasi_tanggal_perekaman: formData.estimasi_tanggal_perekaman || undefined,
-        is_ready_to_record: formData.is_ready_to_record || false,
-      };
-
       if (isEditing && editId) {
-        const result = await manager.update(
-          editId,
-          dataToSave as UpdateDuplicateOperatorRequest
-        );
+        // For UPDATE: Only send fields that have values (omit undefined/empty)
+        const updateData: UpdateDuplicateOperatorRequest = {};
+        
+        if (formData.nik_duplicate?.trim()) {
+          updateData.nik_duplicate = formData.nik_duplicate.trim();
+        }
+        if (formData.nama_duplicate?.trim()) {
+          updateData.nama_duplicate = formData.nama_duplicate.trim();
+        }
+        if (formData.nik_operator?.trim()) {
+          updateData.nik_operator = formData.nik_operator.trim();
+        }
+        if (formData.nama_operator?.trim()) {
+          updateData.nama_operator = formData.nama_operator.trim();
+        }
+        if (formData.tanggal_perekaman?.trim()) {
+          updateData.tanggal_perekaman = formData.tanggal_perekaman.trim();
+        }
+        if (formData.tanggal_pengajuan?.trim()) {
+          updateData.tanggal_pengajuan = formData.tanggal_pengajuan.trim();
+        }
+        if (formData.estimasi_tanggal_perekaman?.trim()) {
+          updateData.estimasi_tanggal_perekaman = formData.estimasi_tanggal_perekaman.trim();
+        }
+        if (formData.is_ready_to_record !== undefined) {
+          updateData.is_ready_to_record = formData.is_ready_to_record;
+        }
+
+        console.log("[Page] Updating record with data:", updateData);
+        const result = await manager.update(editId, updateData);
         if (result) {
           toast.success("Data berhasil diperbarui!");
         }
       } else {
-        const result = await manager.create(
-          dataToSave as CreateDuplicateOperatorRequest
-        );
+        // For CREATE: All required fields must be present
+        const createData: CreateDuplicateOperatorRequest = {
+          nik_duplicate: formData.nik_duplicate.trim(),
+          nama_duplicate: formData.nama_duplicate.trim(),
+          nik_operator: formData.nik_operator.trim(),
+          nama_operator: formData.nama_operator.trim(),
+          nik_pengaju: formData.nik_pengaju.trim(),
+          nama_pengaju: formData.nama_pengaju.trim(),
+          tanggal_perekaman: formData.tanggal_perekaman,
+          tanggal_pengajuan: formData.tanggal_pengajuan,
+          estimasi_tanggal_perekaman: formData.estimasi_tanggal_perekaman || undefined,
+          is_ready_to_record: formData.is_ready_to_record || false,
+        };
+
+        console.log("[Page] Creating record with data:", createData);
+        const result = await manager.create(createData);
         if (result) {
           toast.success("Data berhasil diajukan!");
         }

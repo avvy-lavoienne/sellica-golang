@@ -170,11 +170,69 @@ func (s *Service) ValidateToken(tokenString string) (*UserClaims, error) {
 
 // CreateAuthContext creates an authentication context from claims
 func (s *Service) CreateAuthContext(claims *UserClaims) *AuthContext {
+	role := claims.Role
+	
+	// If role is not in JWT claims, fetch it from the profiles table
+	if role == "" && s.db != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		
+		// Query profiles table for the user's role
+		query := `SELECT role FROM profiles WHERE id = $1 LIMIT 1`
+		row := s.db.QueryRow(ctx, query, claims.UserID)
+		
+		var dbRole string
+		err := row.Scan(&dbRole)
+		if err == nil && dbRole != "" {
+			role = dbRole
+			logrus.WithFields(logrus.Fields{
+				"user_id": claims.UserID,
+				"role":    role,
+			}).Info("🔑 Extracted role from profiles table")
+		} else if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"user_id": claims.UserID,
+				"error":   err.Error(),
+			}).Warn("⚠️  Could not query profiles table for role")
+		}
+	}
+	
+	// Try JWT metadata as fallback (in case profiles query fails)
+	if role == "" && claims.Metadata != nil {
+		// Try to get role from metadata.role (Supabase user_metadata structure)
+		if roleVal, exists := claims.Metadata["role"]; exists {
+			if roleStr, ok := roleVal.(string); ok {
+				role = roleStr
+				logrus.WithField("source", "JWT metadata").Info("🔑 Extracted role from JWT metadata (fallback)")
+			}
+		}
+		
+		// If still not found, try app_metadata.role (alternative Supabase structure)
+		if role == "" {
+			if appMetadata, exists := claims.Metadata["app_metadata"]; exists {
+				if appMetadataMap, ok := appMetadata.(map[string]interface{}); ok {
+					if roleVal, exists := appMetadataMap["role"]; exists {
+						if roleStr, ok := roleVal.(string); ok {
+							role = roleStr
+							logrus.WithField("source", "JWT app_metadata").Info("🔑 Extracted role from app_metadata (fallback)")
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	// Default to "user" role if no role found anywhere
+	if role == "" {
+		role = "user"
+		logrus.WithField("user_id", claims.UserID).Warn("⚠️  No role found in profiles table or JWT, defaulting to 'user' role")
+	}
+
 	authContext := &AuthContext{
 		UserID:      claims.UserID,
 		Email:       claims.Email,
 		Name:        claims.Name,
-		Role:        claims.Role,
+		Role:        role,
 		Permissions: claims.Permissions,
 		SessionID:   claims.SessionID,
 		Metadata:    claims.Metadata,
@@ -188,6 +246,12 @@ func (s *Service) CreateAuthContext(claims *UserClaims) *AuthContext {
 	if claims.ExpiresAt != nil {
 		authContext.ExpiresAt = claims.ExpiresAt.Time
 	}
+
+	logrus.WithFields(logrus.Fields{
+		"user_id": authContext.UserID,
+		"email":   authContext.Email,
+		"role":    authContext.Role,
+	}).Info("✅ Auth context created with role extraction complete")
 
 	return authContext
 }

@@ -103,7 +103,7 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 
 	// Duplicate Operator routes (public with optional auth)
 	if services.DuplicateOperator != nil {
-		setupDuplicateOperatorRoutes(router, services.DuplicateOperator)
+		setupDuplicateOperatorRoutes(router, services.DuplicateOperator, services.Auth)
 	}
 
 	// Supabase analyzer routes (public)
@@ -301,22 +301,29 @@ func setupAktivitasSiakRoutes(router *gin.Engine, aktivitasSiakService aktivitas
 }
 
 // setupDuplicateOperatorRoutes configures duplicate operator endpoints
-func setupDuplicateOperatorRoutes(router *gin.Engine, duplicateOperatorService duplicate_operator.Service) {
+func setupDuplicateOperatorRoutes(router *gin.Engine, duplicateOperatorService duplicate_operator.Service, authService *auth.Service) {
 	// Create handler
 	handler := handlers.NewDuplicateOperatorHandler(duplicateOperatorService)
 
-	// API group for Duplicate Operator endpoints
+	// API group for Duplicate Operator endpoints (public by default)
 	api := router.Group("/api/v1/duplicate-operators")
 	{
-		// CRUD operations
+		// CRUD operations - Read operations (public, optional auth)
 		api.GET("", handler.ListRecords)      // GET /api/v1/duplicate-operators - List records with pagination
 		api.GET("/:id", handler.GetRecord)    // GET /api/v1/duplicate-operators/:id - Get record by ID
-		api.POST("", handler.CreateRecord)    // POST /api/v1/duplicate-operators - Create new record
-		api.PUT("/:id", handler.UpdateRecord) // PUT /api/v1/duplicate-operators/:id - Update record
-		api.DELETE("/:id", handler.DeleteRecord) // DELETE /api/v1/duplicate-operators/:id - Delete record
 
 		// Search endpoint (must come before wildcard routes)
 		api.GET("/search", handler.SearchRecords) // GET /api/v1/duplicate-operators/search - Search records
+	}
+
+	// Protected API group for Duplicate Operator endpoints (requires authentication)
+	protectedAPI := router.Group("/api/v1/duplicate-operators")
+	protectedAPI.Use(middleware.AuthMiddleware(authService))
+	{
+		// CRUD operations - Write operations (protected, require authentication)
+		protectedAPI.POST("", handler.CreateRecord)    // POST /api/v1/duplicate-operators - Create new record
+		protectedAPI.PUT("/:id", handler.UpdateRecord) // PUT /api/v1/duplicate-operators/:id - Update record (requires admin)
+		protectedAPI.DELETE("/:id", handler.DeleteRecord) // DELETE /api/v1/duplicate-operators/:id - Delete record (requires admin)
 	}
 
 	log.Println("🔄 Duplicate Operator routes configured successfully")

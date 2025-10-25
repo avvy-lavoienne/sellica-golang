@@ -143,10 +143,38 @@ export function useDuplicateOperatorManagerV2(
         queryClient.setQueryData(['duplicate-operators'], context.previousList);
       }
 
-      const errorMessage =
-        error?.message || "Gagal memperbarui catatan. Silakan coba lagi.";
-      toast.error(errorMessage);
-      console.error("Error updating duplicate operator:", error);
+      // Comprehensive error handling with validation details
+      let errorMessage = "Gagal memperbarui catatan. Silakan coba lagi.";
+      let errorDetails: string[] = [];
+      
+      // Try to extract validation error details from error_details field
+      if (error?.response?.data?.error_details && Array.isArray(error.response.data.error_details)) {
+        errorDetails = error.response.data.error_details.map((detail: any) => 
+          `${detail.field}: ${detail.message}`
+        );
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+
+      // Log full error for debugging
+      console.error("❌ Error updating duplicate operator:", {
+        message: errorMessage,
+        status: error?.response?.status || error?.code,
+        code: error?.response?.data?.code,
+        errorDetails: errorDetails,
+        fullError: error,
+        errorKeys: error ? Object.keys(error) : [],
+      });
+
+      // Show validation details if available
+      if (errorDetails.length > 0) {
+        const detailsText = errorDetails.join(" | ");
+        toast.error(`${errorMessage}: ${detailsText}`);
+      } else {
+        toast.error(errorMessage);
+      }
     },
   });
 
@@ -158,10 +186,38 @@ export function useDuplicateOperatorManagerV2(
       queryClient.invalidateQueries({ queryKey: ['duplicate-operators'] });
     },
     onError: (error: any) => {
-      const errorMessage =
-        error?.message || "Gagal menghapus catatan. Silakan coba lagi.";
-      toast.error(errorMessage);
-      console.error("Error deleting duplicate operator:", error);
+      // Comprehensive error handling with validation details
+      let errorMessage = "Gagal menghapus catatan. Silakan coba lagi.";
+      let errorDetails: string[] = [];
+      
+      // Try to extract validation error details from error_details field
+      if (error?.response?.data?.error_details && Array.isArray(error.response.data.error_details)) {
+        errorDetails = error.response.data.error_details.map((detail: any) => 
+          `${detail.field}: ${detail.message}`
+        );
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+
+      // Log full error for debugging
+      console.error("❌ Error deleting duplicate operator:", {
+        message: errorMessage,
+        status: error?.response?.status || error?.code,
+        code: error?.response?.data?.code,
+        errorDetails: errorDetails,
+        fullError: error,
+        errorKeys: error ? Object.keys(error) : [],
+      });
+
+      // Show validation details if available
+      if (errorDetails.length > 0) {
+        const detailsText = errorDetails.join(" | ");
+        toast.error(`${errorMessage}: ${detailsText}`);
+      } else {
+        toast.error(errorMessage);
+      }
     },
   });
 

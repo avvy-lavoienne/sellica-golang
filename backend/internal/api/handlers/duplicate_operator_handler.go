@@ -257,13 +257,48 @@ func (h *DuplicateOperatorHandler) UpdateRecord(c *gin.Context) {
 	// Validate request
 	if validationErr := duplicate_operator.ValidateUpdateRequest(&req); validationErr != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  "error",
-			"code":    http.StatusBadRequest,
-			"message": validationErr.Message,
-			"details": validationErr.ErrorDetails,
+			"status":         "error",
+			"code":           http.StatusBadRequest,
+			"message":        validationErr.Message,
+			"error_details":  validationErr.ErrorDetails,
 		})
 		return
 	}
+
+	// Get user ID from context (set by auth middleware)
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status":  "error",
+			"code":    http.StatusUnauthorized,
+			"message": "konteks pengguna tidak ditemukan",
+		})
+		return
+	}
+
+	// Get user role from context
+	userRole, exists := c.Get("user_role")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status":  "error",
+			"code":    http.StatusUnauthorized,
+			"message": "role pengguna tidak ditemukan",
+		})
+		return
+	}
+
+	// Check if user is admin
+	if userRole.(string) != "admin" {
+		c.JSON(http.StatusForbidden, gin.H{
+			"status":  "error",
+			"code":    http.StatusForbidden,
+			"message": "anda tidak memiliki izin untuk mengubah data",
+		})
+		return
+	}
+
+	// Log who is updating (for audit trail)
+	fmt.Printf("🔧 User %v (admin) updating record %s\n", userID, id)
 
 	// Call service
 	record, err := h.service.UpdateRecord(c, id, &req)
@@ -306,6 +341,41 @@ func (h *DuplicateOperatorHandler) DeleteRecord(c *gin.Context) {
 		})
 		return
 	}
+
+	// Get user ID from context (set by auth middleware)
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status":  "error",
+			"code":    http.StatusUnauthorized,
+			"message": "konteks pengguna tidak ditemukan",
+		})
+		return
+	}
+
+	// Get user role from context
+	userRole, exists := c.Get("user_role")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status":  "error",
+			"code":    http.StatusUnauthorized,
+			"message": "role pengguna tidak ditemukan",
+		})
+		return
+	}
+
+	// Check if user is admin
+	if userRole.(string) != "admin" {
+		c.JSON(http.StatusForbidden, gin.H{
+			"status":  "error",
+			"code":    http.StatusForbidden,
+			"message": "anda tidak memiliki izin untuk menghapus data",
+		})
+		return
+	}
+
+	// Log who is deleting (for audit trail)
+	fmt.Printf("🗑️  User %v (admin) deleting record %s\n", userID, id)
 
 	// Call service
 	err := h.service.DeleteRecord(c, id)
