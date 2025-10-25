@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
@@ -172,29 +173,61 @@ func (s *Service) ValidateToken(tokenString string) (*UserClaims, error) {
 func (s *Service) CreateAuthContext(claims *UserClaims) *AuthContext {
 	role := claims.Role
 	
-	// If role is not in JWT claims, fetch it from the profiles table
-	if role == "" && s.db != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		
-		// Query profiles table for the user's role
-		query := `SELECT role FROM profiles WHERE id = $1 LIMIT 1`
-		row := s.db.QueryRow(ctx, query, claims.UserID)
-		
-		var dbRole string
-		err := row.Scan(&dbRole)
-		if err == nil && dbRole != "" {
-			role = dbRole
+	// ALWAYS fetch role from profiles table (ignore Supabase's "authenticated" role)
+	// Supabase JWT contains "authenticated" as the auth role, not the user's custom role
+	if s.db != nil && s.db.IsHealthy() {
+		// Use Supabase client to query profiles table
+		client := s.db.GetClient()
+		if client != nil {
+			data, _, err := client.From("profiles").
+				Select("role", "", false).
+				Eq("id", claims.UserID).
+				Single().
+				Execute()
+			
 			logrus.WithFields(logrus.Fields{
-				"user_id": claims.UserID,
-				"role":    role,
-			}).Info("🔑 Extracted role from profiles table")
-		} else if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"user_id": claims.UserID,
-				"error":   err.Error(),
-			}).Warn("⚠️  Could not query profiles table for role")
+				"user_id":  claims.UserID,
+				"raw_data": string(data),
+				"has_err":  err != nil,
+			}).Debug("📊 Supabase query response")
+			
+			if err == nil && data != nil {
+				// Parse the response - Single() returns a single OBJECT not array
+				var profile map[string]interface{}
+				if err := json.Unmarshal(data, &profile); err == nil && len(profile) > 0 {
+					logrus.WithFields(logrus.Fields{
+						"user_id":  claims.UserID,
+						"profile":  profile,
+					}).Debug("📦 Unmarshaled profile object")
+					
+					if roleVal, ok := profile["role"]; ok {
+						if roleStr, ok := roleVal.(string); ok && roleStr != "" {
+							role = roleStr
+							logrus.WithFields(logrus.Fields{
+								"user_id": claims.UserID,
+								"role":    role,
+							}).Info("✅ Extracted role from profiles table")
+						}
+					}
+				} else if err != nil {
+					logrus.WithFields(logrus.Fields{
+						"user_id": claims.UserID,
+						"error":   err.Error(),
+					}).Warn("⚠️  JSON unmarshal failed")
+				}
+			} else if err != nil {
+				logrus.WithFields(logrus.Fields{
+					"user_id": claims.UserID,
+					"error":   err.Error(),
+				}).Warn("⚠️  Supabase query failed")
+			} else {
+				logrus.WithField("user_id", claims.UserID).Warn("⚠️  Empty response from Supabase query")
+			}
+		} else {
+			logrus.Warn("⚠️  Supabase client is nil")
 		}
+	} else {
+		logrus.Warn("⚠️  Database service is nil or unhealthy")
 	}
 	
 	// Try JWT metadata as fallback (in case profiles query fails)
