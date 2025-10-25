@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"github.com/supabase-community/supabase-go"
 )
 
@@ -336,13 +337,51 @@ func (a *SupabaseAdapter) CreateRecord(
 		return nil, fmt.Errorf("failed to marshal record: %w", err)
 	}
 
-	// Insert into database
+	// Insert into database with * to return all columns
 	resultData, _, err := a.client.From("duplicate_operator").
-		Insert(data, true, "", "", "").
+		Insert(data, true, "*", "", "").
 		Execute()
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create record: %w", err)
+	}
+
+	// Check if response is empty before unmarshaling
+	if len(resultData) == 0 {
+		logrus.Warn("Empty create response detected, attempting fallback fetch")
+		// Fallback: fetch the newly created record
+		// Query without .Single() first to see what we get
+		data, _, err := a.client.From("duplicate_operator").
+			Select("*", "", false).
+			Eq("id", id.String()).
+			Execute()
+
+		if err != nil {
+			logrus.WithError(err).Error("Fallback fetch failed after empty create response")
+			return nil, fmt.Errorf("create appeared to succeed but returned no data, and fetch fallback failed: %w", err)
+		}
+
+		if len(data) == 0 {
+			logrus.Error("Fallback fetch returned empty data")
+			return nil, fmt.Errorf("create succeeded but record not found after creation")
+		}
+
+		// Parse the array response
+		var records []DuplicateOperatorData
+		if err := json.Unmarshal(data, &records); err != nil {
+			logrus.WithError(err).Error("Failed to parse fallback fetch response")
+			return nil, fmt.Errorf("failed to parse fallback response: %w", err)
+		}
+
+		if len(records) == 0 {
+			logrus.Error("Fallback fetch returned empty array")
+			return nil, fmt.Errorf("create succeeded but record array is empty")
+		}
+
+		logrus.WithFields(logrus.Fields{
+			"record_id": records[0].ID,
+		}).Info("Fallback fetch succeeded after create, returning record")
+		return &records[0], nil
 	}
 
 	// Unmarshal the response
@@ -352,7 +391,42 @@ func (a *SupabaseAdapter) CreateRecord(
 	}
 
 	if len(createdRecords) == 0 {
-		return nil, fmt.Errorf("no record returned from creation")
+		logrus.Warn("Empty create response array detected, attempting fallback fetch")
+		// Add small delay to ensure record is committed
+		time.Sleep(50 * time.Millisecond)
+		
+		// Fallback: fetch the newly created record
+		data, _, err := a.client.From("duplicate_operator").
+			Select("*", "", false).
+			Eq("id", id.String()).
+			Execute()
+
+		if err != nil {
+			logrus.WithError(err).Error("Fallback fetch failed after empty create response array")
+			return nil, fmt.Errorf("create returned empty array, and fetch fallback failed: %w", err)
+		}
+
+		if len(data) == 0 {
+			logrus.Error("Fallback fetch returned empty data after empty array")
+			return nil, fmt.Errorf("create succeeded but record not found in fallback")
+		}
+
+		// Parse the array response
+		var records []DuplicateOperatorData
+		if err := json.Unmarshal(data, &records); err != nil {
+			logrus.WithError(err).Error("Failed to parse fallback fetch response")
+			return nil, fmt.Errorf("failed to parse fallback response: %w", err)
+		}
+
+		if len(records) == 0 {
+			logrus.Error("Fallback fetch returned empty array")
+			return nil, fmt.Errorf("create succeeded but record array is empty in fallback")
+		}
+
+		logrus.WithFields(logrus.Fields{
+			"record_id": records[0].ID,
+		}).Info("Fallback fetch succeeded after empty array, returning record")
+		return &records[0], nil
 	}
 
 	return &createdRecords[0], nil
@@ -367,6 +441,15 @@ func (a *SupabaseAdapter) UpdateRecord(
 	if a.client == nil {
 		return nil, fmt.Errorf("database client not initialized")
 	}
+
+	// Debug logging
+	logrus.WithFields(logrus.Fields{
+		"id": id,
+	}).Debug("Starting duplicate operator record update")
+
+	logrus.WithFields(logrus.Fields{
+		"request": req,
+	}).Debug("Update request fields")
 
 	// Verify record exists first
 	if _, err := a.GetRecordByID(ctx, id); err != nil {
@@ -407,20 +490,52 @@ func (a *SupabaseAdapter) UpdateRecord(
 		updates["is_ready_to_record"] = *req.IsReadyToRecord
 	}
 
+	// Debug logging for update fields
+	logrus.WithFields(logrus.Fields{
+		"updates": updates,
+		"field_count": len(updates),
+	}).Debug("Update fields prepared")
+
 	// Convert to JSON for update
 	data, err := json.Marshal(updates)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal updates: %w", err)
 	}
 
-	// Update record
+	logrus.WithFields(logrus.Fields{
+		"json_payload": string(data),
+	}).Debug("Update JSON payload prepared")
+
+	// Update record - request all columns to be returned
 	resultData, _, err := a.client.From("duplicate_operator").
-		Update(data, "", "").
+		Update(data, "*", "").
 		Eq("id", id).
 		Execute()
 
+	logrus.WithFields(logrus.Fields{
+		"error": err,
+		"result_data_length": len(resultData),
+		"result_data": string(resultData),
+	}).Debug("Update operation completed")
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to update record: %w", err)
+	}
+
+	// Check if response is empty
+	if len(resultData) == 0 {
+		logrus.Warn("Empty update response detected, attempting fallback fetch")
+		// Fallback to returning the updated version from database
+		record, fetchErr := a.GetRecordByID(ctx, id)
+		if fetchErr != nil {
+			logrus.WithError(fetchErr).Error("Fallback fetch failed after empty update response")
+			return nil, fmt.Errorf("update appeared to succeed but returned no data, and fetch fallback failed: %w", fetchErr)
+		}
+		logrus.WithFields(logrus.Fields{
+			"record_id": record.ID,
+			"is_ready_to_record": record.IsReadyToRecord,
+		}).Info("Fallback fetch succeeded, returning record")
+		return record, nil
 	}
 
 	// Unmarshal the response
@@ -429,11 +544,27 @@ func (a *SupabaseAdapter) UpdateRecord(
 		return nil, fmt.Errorf("failed to parse response: %w", err)
 	}
 
+	// If no records returned, this likely means RLS silently rejected the update
+	// or the update succeeded but returned empty
 	if len(updatedRecords) == 0 {
+		logrus.Warn("Empty update response detected, attempting fallback fetch")
 		// Fallback to returning the updated version from database
-		return a.GetRecordByID(ctx, id)
+		record, fetchErr := a.GetRecordByID(ctx, id)
+		if fetchErr != nil {
+			logrus.WithError(fetchErr).Error("Fallback fetch failed after empty update response")
+			return nil, fmt.Errorf("update appeared to succeed but returned no data, and fetch fallback failed: %w", fetchErr)
+		}
+		logrus.WithFields(logrus.Fields{
+			"record_id": record.ID,
+			"is_ready_to_record": record.IsReadyToRecord,
+		}).Info("Fallback fetch succeeded, returning record")
+		return record, nil
 	}
 
+	logrus.WithFields(logrus.Fields{
+		"record_id": updatedRecords[0].ID,
+		"is_ready_to_record": updatedRecords[0].IsReadyToRecord,
+	}).Info("Duplicate operator record updated successfully")
 	return &updatedRecords[0], nil
 }
 

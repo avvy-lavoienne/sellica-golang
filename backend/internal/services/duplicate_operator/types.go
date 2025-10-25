@@ -23,13 +23,14 @@ type CreateRequest struct {
 }
 
 // UpdateRequest represents the payload for updating a duplicate operator record
+// NOTE: No Gin binding tags on pointer types - validation handled by ValidateUpdateRequest()
 type UpdateRequest struct {
-	NikDuplicate             *string `json:"nik_duplicate,omitempty" binding:"omitempty,len=16"`
-	NamaDuplicate            *string `json:"nama_duplicate,omitempty" binding:"omitempty,max=255"`
-	NikOperator              *string `json:"nik_operator,omitempty" binding:"omitempty,len=16"`
-	NamaOperator             *string `json:"nama_operator,omitempty" binding:"omitempty,max=255"`
-	NikPengaju               *string `json:"nik_pengaju,omitempty" binding:"omitempty,len=16"`
-	NamaPengaju              *string `json:"nama_pengaju,omitempty" binding:"omitempty,max=255"`
+	NikDuplicate             *string `json:"nik_duplicate,omitempty"`
+	NamaDuplicate            *string `json:"nama_duplicate,omitempty"`
+	NikOperator              *string `json:"nik_operator,omitempty"`
+	NamaOperator             *string `json:"nama_operator,omitempty"`
+	NikPengaju               *string `json:"nik_pengaju,omitempty"`
+	NamaPengaju              *string `json:"nama_pengaju,omitempty"`
 	TanggalPerekaman         *string `json:"tanggal_perekaman,omitempty"`
 	TanggalPengajuan         *string `json:"tanggal_pengajuan,omitempty"`
 	EstimasiTanggalPerekaman *string `json:"estimasi_tanggal_perekaman,omitempty"`

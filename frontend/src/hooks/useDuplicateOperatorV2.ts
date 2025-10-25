@@ -131,6 +131,13 @@ export function useDuplicateOperatorManagerV2(
       return { previousRecord, previousList };
     },
     onSuccess: (updatedRecord) => {
+      // Check if updatedRecord is valid
+      if (!updatedRecord || !updatedRecord.id) {
+        console.error("❌ Invalid response from backend - missing record or id:", updatedRecord);
+        toast.error("Respon server tidak valid. Coba refresh halaman untuk memverifikasi perubahan.");
+        return;
+      }
+
       toast.success("Catatan berhasil diperbarui");
       queryClient.setQueryData(['duplicate-operator', updatedRecord.id], updatedRecord);
       queryClient.invalidateQueries({ queryKey: ['duplicate-operators'] });

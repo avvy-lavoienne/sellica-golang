@@ -232,8 +232,13 @@ func (h *DuplicateOperatorHandler) CreateRecord(c *gin.Context) {
 
 // UpdateRecord handles PUT /api/v1/duplicate-operators/:id
 func (h *DuplicateOperatorHandler) UpdateRecord(c *gin.Context) {
+	fmt.Printf("🔧 [Handler] UpdateRecord called\n")
+	
 	id := c.Param("id")
+	fmt.Printf("🔧 [Handler] ID parameter: %s\n", id)
+	
 	if id == "" {
+		fmt.Printf("🔧 [Handler] ID is empty, returning 400\n")
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"code":    http.StatusBadRequest,
@@ -246,6 +251,7 @@ func (h *DuplicateOperatorHandler) UpdateRecord(c *gin.Context) {
 
 	// Parse request body
 	if err := c.ShouldBindJSON(&req); err != nil {
+		fmt.Printf("🔧 [Handler] JSON binding error: %v\n", err)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"code":    http.StatusBadRequest,
@@ -253,6 +259,8 @@ func (h *DuplicateOperatorHandler) UpdateRecord(c *gin.Context) {
 		})
 		return
 	}
+	
+	fmt.Printf("🔧 [Handler] Request parsed successfully: %+v\n", req)
 
 	// Validate request
 	if validationErr := duplicate_operator.ValidateUpdateRequest(&req); validationErr != nil {

@@ -7,12 +7,16 @@ import React, {
   useMemo,
   useRef,
 } from "react";
+import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/conn/utils";
 import type { DuplicateOperatorData } from "@/types/data-rekam/duplicate-operator";
-import type { UpdateDuplicateOperatorRequest } from "@/lib/api/types/duplicate-operator";
 import TableSkeleton from "@/components/dashboard/data-rekam/duplicate-operator/TableSkeleton";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { id as idLocale } from "date-fns/locale";
 import { useDebounce } from "@/hooks/use-debounce";
 import {
   Search,
@@ -70,7 +74,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import EmptyState from "@/components/dashboard/data-rekam/duplicate-operator/EmptyState";
 
 // Enhanced interface with enterprise-grade features
 interface DuplicateOperatorTableProps {
@@ -80,20 +83,16 @@ interface DuplicateOperatorTableProps {
   totalCount: number;
   /** Current page number */
   currentPage: number;
-  /** Number of items per page */
-  pageSize: number;
   /** Page change handler */
   onPageChange: (page: number) => void;
-  /** Search handler with optional date filters */
-  onSearch: (query: string, statusFilter?: string, startDate?: string, endDate?: string) => void;
+  /** Search handler */
+  onSearch: (query: string, statusFilter?: string) => void;
   /** Refresh handler (full refresh with reset) */
   onRefresh: () => void;
   /** Data refresh handler (preserves pagination/filters) */
   onDataRefresh?: () => void;
   /** Edit handler */
   onEdit: (data: DuplicateOperatorData) => void;
-  /** Update handler for inline updates */
-  onUpdate?: (id: string, data: UpdateDuplicateOperatorRequest) => Promise<any>;
   /** Delete handler */
   onDelete: (id: string) => void;
   /** User role for permissions */
@@ -114,13 +113,11 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
   rekapData,
   totalCount,
   currentPage,
-  pageSize,
   onPageChange,
   onSearch,
   onRefresh,
   onDataRefresh,
   onEdit,
-  onUpdate,
   onDelete,
   userRole,
   loading,
@@ -134,23 +131,14 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [editedDates, setEditedDates] = useState<{ [key: string]: string }>({});
   const [saving, setSaving] = useState<{ [key: string]: boolean }>({});
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [sortConfig, setSortConfig] = useState<{
     key: string;
     direction: "asc" | "desc";
-  } | null>({
-    key: "tanggal_pengajuan",
-    direction: "desc"
-  });
-
-  // ✅ Tracking refs for defensive checks
-  const previousSearchRef = useRef<string>("");
-  const previousStatusRef = useRef<string>("all");
-  const previousStartDateRef = useRef<string>("");
-  const previousEndDateRef = useRef<string>("");
+  } | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
 
   // Theme and accessibility
@@ -180,63 +168,81 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
     [],
   );
 
-  // Store onSearch callback in a ref to avoid recreating effects
-  const onSearchRef = useRef(onSearch);
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const debouncedStartDate = useDebounce(startDate, 300);
+  const debouncedEndDate = useDebounce(endDate, 300);
+
   useEffect(() => {
-    onSearchRef.current = onSearch;
-  }, [onSearch]);
+    if (searchQuery === "" && (!startDate || !endDate)) {
+      onSearch("", statusFilter);
+      return;
+    }
 
-  // ✅ COMBINED FILTERS STATE - Debounce all filters together to avoid split requests
-  const combinedFilters = useMemo(() => ({
-    query: searchQuery.trim(),
-    status: statusFilter,
-    startDate: startDate,
-    endDate: endDate,
-  }), [searchQuery, statusFilter, startDate, endDate]);
+    const timeout = setTimeout(() => {
+      onSearch(debouncedSearchQuery, statusFilter);
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [
+    debouncedSearchQuery,
+    statusFilter,
+    onSearch,
+    endDate,
+    searchQuery,
+    startDate,
+  ]);
 
-  const debouncedFilters = useDebounce(combinedFilters, 500);
+  const handleDateFilter = useCallback(() => {
+    if (debouncedStartDate && debouncedEndDate) {
+      try {
+        if (
+          !(
+            debouncedStartDate instanceof Date &&
+            !isNaN(debouncedStartDate.getTime())
+          ) ||
+          !(
+            debouncedEndDate instanceof Date &&
+            !isNaN(debouncedEndDate.getTime())
+          )
+        ) {
+          return;
+        }
 
-  // ✅ UNIFIED SEARCH & FILTER EFFECT - Fire once with all params together
+        const formattedStartDate = new Date(debouncedStartDate);
+        formattedStartDate.setUTCHours(0, 0, 0, 0);
+
+        const formattedEndDate = new Date(debouncedEndDate);
+        formattedEndDate.setUTCHours(23, 59, 59, 999);
+
+        const startYear = formattedStartDate.getUTCFullYear();
+        const endYear = formattedEndDate.getUTCFullYear();
+
+        if (
+          startYear < 1000 ||
+          startYear > 9999 ||
+          endYear < 1000 ||
+          endYear > 9999
+        ) {
+          return;
+        }
+
+        const startISO = formattedStartDate.toISOString();
+        const endISO = formattedEndDate.toISOString();
+
+        onSearch(
+          `created_at >= '${startISO}' AND created_at <= '${endISO}'`,
+          statusFilter,
+        );
+      } catch (error) {
+        onSearch("", statusFilter);
+      }
+    } else {
+      onSearch("", statusFilter);
+    }
+  }, [debouncedStartDate, debouncedEndDate, statusFilter, onSearch]);
+
   useEffect(() => {
-    console.log('[Table Effect] Debounced filters received:', debouncedFilters);
-    
-    // VALIDATION: If user started date filtering (has startDate), require BOTH dates
-    // This prevents split requests like date_from without date_to
-    const hasStartDate = debouncedFilters.startDate.trim().length > 0;
-    const hasEndDate = debouncedFilters.endDate.trim().length > 0;
-    
-    // If user entered start date, wait for end date (and vice versa)
-    if (hasStartDate && !hasEndDate) {
-      console.log('[Table Effect] Waiting for end date input...');
-      return; // Don't fire search yet
-    }
-    if (hasEndDate && !hasStartDate) {
-      console.log('[Table Effect] Waiting for start date input...');
-      return; // Don't fire search yet
-    }
-    
-    // DEFENSIVE CHECK: Only call onSearch if filters have actually changed
-    const hasChanged = 
-      debouncedFilters.query !== previousSearchRef.current ||
-      debouncedFilters.status !== previousStatusRef.current ||
-      debouncedFilters.startDate !== previousStartDateRef.current ||
-      debouncedFilters.endDate !== previousEndDateRef.current;
-
-    if (hasChanged) {
-      console.log('[Table Effect] Filters changed, calling onSearch with:', debouncedFilters);
-      // Pass all filters together in one API call
-      onSearchRef.current(
-        debouncedFilters.query,
-        debouncedFilters.status,
-        debouncedFilters.startDate,
-        debouncedFilters.endDate
-      );
-      previousSearchRef.current = debouncedFilters.query;
-      previousStatusRef.current = debouncedFilters.status;
-      previousStartDateRef.current = debouncedFilters.startDate;
-      previousEndDateRef.current = debouncedFilters.endDate;
-    }
-  }, [debouncedFilters]);
+    handleDateFilter();
+  }, [debouncedStartDate, debouncedEndDate, handleDateFilter]);
 
   const rowsPerPage = 5;
   const totalPages = Math.ceil(totalCount / rowsPerPage);
@@ -248,15 +254,15 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
     }
 
     try {
-      console.log("[DuplicateOperatorTable] handleToggleChange called:", { id, currentStatus });
       const newStatus = !currentStatus;
-      if (onUpdate) {
-        console.log("[DuplicateOperatorTable] Calling onUpdate with:", { id, newStatus });
-        await onUpdate(id, { is_ready_to_record: newStatus });
-      } else {
-        console.error("onUpdate handler is not provided");
-        toast.error("Gagal memperbarui status: fungsi tidak tersedia.");
-        return;
+      const { error } = await supabase
+        .from("duplicate_operator")
+        .update({ is_ready_to_record: newStatus })
+        .eq("id", id);
+
+      if (error) {
+        console.error("Error updating status:", error);
+        throw new Error(`Gagal mengubah status: ${error.message}`);
       }
 
       toast.success("Status berhasil diubah!");
@@ -291,16 +297,12 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
     setSaving((prev) => ({ ...prev, [id]: true }));
 
     try {
-      console.log("[DuplicateOperatorTable] handleSaveDate called:", { id, newDate });
-      if (onUpdate) {
-        console.log("[DuplicateOperatorTable] Calling onUpdate with:", { id, newDate });
-        await onUpdate(id, { estimasi_tanggal_perekaman: newDate });
-      } else {
-        console.error("onUpdate handler is not provided");
-        toast.error("Gagal menyimpan tanggal: fungsi tidak tersedia.");
-        setSaving((prev) => ({ ...prev, [id]: false }));
-        return;
-      }
+      const { error } = await supabase
+        .from("duplicate_operator")
+        .update({ estimasi_tanggal_perekaman: newDate })
+        .eq("id", id);
+
+      if (error) throw new Error(`Gagal menyimpan tanggal: ${error.message}`);
 
       toast.success("Tanggal berhasil disimpan!");
       // Use onDataRefresh to preserve pagination/filters, fallback to onRefresh
@@ -316,7 +318,9 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
       });
     } catch (error: any) {
       console.error("Error saving date:", error);
-      toast.error(error.message || "Gagal menyimpan tanggal. Silakan coba lagi.");
+      toast.error(
+        error.message || "Gagal menyimpan tanggal. Silakan coba lagi.",
+      );
     } finally {
       setSaving((prev) => ({ ...prev, [id]: false }));
     }
@@ -334,99 +338,8 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
       : "Tanggal tidak valid";
   };
 
-  const sortedData = useMemo(() => {
-    if (!sortConfig) return rekapData;
-
-    return [...rekapData].sort((a, b) => {
-      let aValue: any;
-      let bValue: any;
-
-      switch (sortConfig.key) {
-        case "tanggal_pengajuan":
-          aValue = new Date(a.tanggal_pengajuan).getTime();
-          bValue = new Date(b.tanggal_pengajuan).getTime();
-          break;
-        case "tanggal_perekaman":
-          aValue = new Date(a.tanggal_perekaman).getTime();
-          bValue = new Date(b.tanggal_perekaman).getTime();
-          break;
-        case "nama_duplicate":
-          aValue = a.nama_duplicate.toLowerCase();
-          bValue = b.nama_duplicate.toLowerCase();
-          break;
-        case "nama_operator":
-          aValue = a.nama_operator.toLowerCase();
-          bValue = b.nama_operator.toLowerCase();
-          break;
-        case "nik_duplicate":
-          aValue = a.nik_duplicate;
-          bValue = b.nik_duplicate;
-          break;
-        case "nik_operator":
-          aValue = a.nik_operator;
-          bValue = b.nik_operator;
-          break;
-        default:
-          return 0;
-      }
-
-      if (aValue < bValue) {
-        return sortConfig.direction === "asc" ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return sortConfig.direction === "asc" ? 1 : -1;
-      }
-      return 0;
-    });
-  }, [rekapData, sortConfig]);
-
-  // Sort handler
-  const handleSort = useCallback((key: string) => {
-    setSortConfig(current => {
-      if (current?.key === key) {
-        // Toggle direction if same key
-        return {
-          key,
-          direction: current.direction === "asc" ? "desc" : "asc"
-        };
-      } else {
-        // New key, default to asc except for tanggal_pengajuan which defaults to desc
-        return {
-          key,
-          direction: key === "tanggal_pengajuan" ? "desc" : "asc"
-        };
-      }
-    });
-  }, []);
-
-  // Sort indicator component
-  const SortIndicator = ({ columnKey }: { columnKey: string }) => {
-    if (sortConfig?.key !== columnKey) {
-      return <ChevronDown className="ml-1 h-4 w-4 opacity-30" />;
-    }
-    return sortConfig.direction === "asc" ? 
-      <ChevronUp className="ml-1 h-4 w-4" /> : 
-      <ChevronDown className="ml-1 h-4 w-4" />;
-  };
-
-  // Accessibility attributes
-  const accessibilityProps = {
-    role: "table",
-    "aria-label": ariaLabel || "Tabel data duplicate operator",
-    "aria-describedby": "table-description",
-  };
-
   if (loading) {
     return <TableSkeleton />;
-  }
-
-  // Show empty state when there's no data and not loading
-  if (rekapData.length === 0 && !loading) {
-    return (
-      <div className="space-y-6">
-        <EmptyState onAddNew={() => {}} />
-      </div>
-    );
   }
 
   // Animation variants for enterprise-grade micro-interactions
@@ -484,6 +397,17 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
     },
   };
 
+  // Accessibility attributes
+  const accessibilityProps = {
+    role: "table",
+    "aria-label": ariaLabel || "Tabel data duplicate operator",
+    "aria-describedby": "table-description",
+  };
+
+  if (loading) {
+    return <TableSkeleton />;
+  }
+
   return (
     <TooltipProvider>
       <motion.div
@@ -538,51 +462,85 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
 
               {/* Date Filters and Status Filter */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    Tanggal Mulai
-                  </Label>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    disabled={loading}
-                    className={cn(
-                      "block w-full px-3 py-2.5 text-sm",
-                      "border border-gray-200 rounded-xl",
-                      "bg-white text-gray-900",
-                      "focus:border-primary/50 focus:ring-2 focus:ring-primary/20",
-                      "dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100",
-                      "dark:focus:border-primary/50 dark:focus:ring-primary/20",
-                      "transition-all duration-200",
-                      loading && "opacity-50 cursor-not-allowed"
-                    )}
-                    aria-label="Tanggal mulai filter"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    Tanggal Selesai
-                  </Label>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    disabled={loading}
-                    className={cn(
-                      "block w-full px-3 py-2.5 text-sm",
-                      "border border-gray-200 rounded-xl",
-                      "bg-white text-gray-900",
-                      "focus:border-primary/50 focus:ring-2 focus:ring-primary/20",
-                      "dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100",
-                      "dark:focus:border-primary/50 dark:focus:ring-primary/20",
-                      "transition-all duration-200",
-                      loading && "opacity-50 cursor-not-allowed"
-                    )}
-                    aria-label="Tanggal selesai filter"
-                  />
-                </div>
+                <LocalizationProvider
+                  dateAdapter={AdapterDateFns}
+                  adapterLocale={idLocale}
+                >
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Tanggal Mulai</Label>
+                    <DatePicker
+                      value={startDate}
+                      onChange={(newValue) => setStartDate(newValue)}
+                      disabled={loading}
+                      slotProps={{
+                        textField: {
+                          className: cn(
+                            "w-full rounded-xl border transition-all duration-200",
+                            // Light mode styles
+                            "border-gray-200 bg-white text-gray-900",
+                            "focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20",
+                            // Dark mode styles
+                            "dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100",
+                            "dark:focus-within:border-primary/50 dark:focus-within:ring-primary/20",
+                            // Disabled state
+                            loading && "opacity-50 cursor-not-allowed",
+                          ),
+                          size: "small",
+                          sx: {
+                            "& .MuiOutlinedInput-root": {
+                              backgroundColor: "transparent",
+                              "& fieldset": { borderColor: "transparent" },
+                              "&:hover fieldset": {
+                                borderColor: "transparent",
+                              },
+                              "&.Mui-focused fieldset": {
+                                borderColor: "transparent",
+                              },
+                            },
+                          },
+                        },
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Tanggal Selesai
+                    </Label>
+                    <DatePicker
+                      value={endDate}
+                      onChange={(newValue) => setEndDate(newValue)}
+                      disabled={loading}
+                      slotProps={{
+                        textField: {
+                          className: cn(
+                            "w-full rounded-xl border transition-all duration-200",
+                            // Light mode styles
+                            "border-gray-200 bg-white text-gray-900",
+                            "focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20",
+                            // Dark mode styles
+                            "dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100",
+                            "dark:focus-within:border-primary/50 dark:focus-within:ring-primary/20",
+                            // Disabled state
+                            loading && "opacity-50 cursor-not-allowed",
+                          ),
+                          size: "small",
+                          sx: {
+                            "& .MuiOutlinedInput-root": {
+                              backgroundColor: "transparent",
+                              "& fieldset": { borderColor: "transparent" },
+                              "&:hover fieldset": {
+                                borderColor: "transparent",
+                              },
+                              "&.Mui-focused fieldset": {
+                                borderColor: "transparent",
+                              },
+                            },
+                          },
+                        },
+                      }}
+                    />
+                  </div>
+                </LocalizationProvider>
 
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-900 dark:text-white">
@@ -602,14 +560,7 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
 
                 <div className="flex items-end space-x-2">
                   <button
-                    onClick={() => {
-                      // Reset all filters to initial state
-                      setSearchQuery("");
-                      setStatusFilter("all");
-                      setStartDate("");
-                      setEndDate("");
-                      toast.success("Filter telah direset");
-                    }}
+                    onClick={() => {}}
                     disabled={loading}
                     className="flex-1 inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -662,33 +613,9 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
                     <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                       <tr>
                         <th scope="col" className="px-6 py-3">No</th>
-                        <th scope="col" className="px-6 py-3">
-                          <button
-                            onClick={() => handleSort("tanggal_pengajuan")}
-                            className="flex items-center hover:text-gray-900 dark:hover:text-white transition-colors"
-                          >
-                            Tanggal Pengajuan
-                            <SortIndicator columnKey="tanggal_pengajuan" />
-                          </button>
-                        </th>
-                        <th scope="col" className="px-6 py-3">
-                          <button
-                            onClick={() => handleSort("nama_duplicate")}
-                            className="flex items-center hover:text-gray-900 dark:hover:text-white transition-colors"
-                          >
-                            NIK / Nama Duplikat
-                            <SortIndicator columnKey="nama_duplicate" />
-                          </button>
-                        </th>
-                        <th scope="col" className="px-6 py-3">
-                          <button
-                            onClick={() => handleSort("nama_operator")}
-                            className="flex items-center hover:text-gray-900 dark:hover:text-white transition-colors"
-                          >
-                            NIK / Nama Operator
-                            <SortIndicator columnKey="nama_operator" />
-                          </button>
-                        </th>
+                        <th scope="col" className="px-6 py-3">Tanggal Pengajuan</th>
+                        <th scope="col" className="px-6 py-3">NIK / Nama Duplikat</th>
+                        <th scope="col" className="px-6 py-3">NIK / Nama Operator</th>
                         <th scope="col" className="px-6 py-3">Status</th>
                         <th scope="col" className="px-6 py-3 text-right">Aksi</th>
                       </tr>
@@ -706,15 +633,7 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
                                 Coba ubah filter atau kata kunci pencarian
                               </p>
                               <button
-                                onClick={() => {
-                                  // Reset all filters and refresh
-                                  setSearchQuery("");
-                                  setStatusFilter("all");
-                                  setStartDate("");
-                                  setEndDate("");
-                                  onRefresh();
-                                  toast.success("Filter telah direset");
-                                }}
+                                onClick={() => {}}
                                 className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-700 border border-transparent rounded-lg hover:bg-blue-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               >
                                 <RefreshCw className="w-4 h-4 mr-2" />
@@ -724,8 +643,8 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
                           </td>
                         </tr>
                       ) : (
-                          sortedData.map((item, index) => {
-                            const rowNumber = (currentPage - 1) * pageSize + index + 1;
+                          rekapData.map((item, index) => {
+                            const rowNumber = (currentPage - 1) * 5 + index + 1;
                             const isExpanded = expandedRow === item.id;
 
                             return (
@@ -967,14 +886,14 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
         </motion.div>
 
         {/* Enhanced Pagination */}
-        {Math.ceil(totalCount / pageSize) > 0 && (
+        {Math.ceil(totalCount / 5) > 0 && (
           <div className="flex justify-center">
             <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
               <div className="px-6 py-4">
                 <nav className="flex items-center justify-between" aria-label="Pagination">
                   <div className="text-sm text-gray-700 dark:text-gray-400">
                     Halaman <span className="font-semibold text-gray-900 dark:text-white">{currentPage}</span> dari{" "}
-                    <span className="font-semibold text-gray-900 dark:text-white">{Math.ceil(totalCount / pageSize)}</span>
+                    <span className="font-semibold text-gray-900 dark:text-white">{Math.ceil(totalCount / 5)}</span>
                   </div>
 
                   <div className="flex items-center space-x-2">
@@ -986,8 +905,8 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
                       <ChevronLeft className="w-5 h-5" />
                     </button>
 
-                    {Array.from({ length: Math.ceil(totalCount / pageSize) }, (_, i) => i + 1).map((page) => {
-                      const totalPages = Math.ceil(totalCount / pageSize);
+                    {Array.from({ length: Math.ceil(totalCount / 5) }, (_, i) => i + 1).map((page) => {
+                      const totalPages = Math.ceil(totalCount / 5);
                       const shouldShow = page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1) || (currentPage === 1 && page <= 3) || (currentPage === totalPages && page >= totalPages - 2);
 
                       if (!shouldShow && page === currentPage - 2) {
@@ -1017,8 +936,8 @@ const DuplicateOperatorTable: React.FC<DuplicateOperatorTableProps> = ({
                     })}
 
                     <button
-                      onClick={() => onPageChange(Math.min(Math.ceil(totalCount / pageSize), currentPage + 1))}
-                      disabled={currentPage === Math.ceil(totalCount / pageSize)}
+                      onClick={() => onPageChange(Math.min(Math.ceil(totalCount / 5), currentPage + 1))}
+                      disabled={currentPage === Math.ceil(totalCount / 5)}
                       className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                     >
                       <ChevronRight className="w-5 h-5" />

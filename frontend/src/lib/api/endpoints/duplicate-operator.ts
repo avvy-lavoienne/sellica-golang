@@ -259,11 +259,21 @@ class DuplicateOperatorAPI {
   ): Promise<DuplicateOperatorResponse> {
     try {
       const response = await axios.put<{
+        status: string;
+        code: number;
+        message: string;
         data: DuplicateOperatorResponse;
       }>(`${API_PREFIX}/duplicate-operators/${id}`, data, {
         headers: this.getHeaders(),
         timeout: 30000,
       });
+
+      console.log("✅ Update response:", response.data);
+      
+      if (!response.data.data) {
+        console.error("❌ Response has no data field:", response.data);
+        throw new Error("Backend response missing data field");
+      }
 
       return response.data.data;
     } catch (error) {

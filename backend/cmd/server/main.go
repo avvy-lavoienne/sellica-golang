@@ -81,7 +81,6 @@ func main() {
 		services.SilpanaBroadcaster,
 		services.SupabaseAnalyzer,
 		services.AktivitasSiak,
-		services.DuplicateOperator,
 	)
 	routes.SetupRoutes(router, routeServices)
 
