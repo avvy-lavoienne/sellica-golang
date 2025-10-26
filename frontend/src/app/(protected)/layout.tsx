@@ -37,12 +37,13 @@ export default function ProtectedLayout({
 
         // Check Go backend authentication first if enabled
         if (shouldUseGoAuth) {
-          logger.info('� Checking Go backend authentication');
+          logger.info('✅ Checking Go backend authentication');
           const isGoAuthValid = GoAuthAPI.isAuthenticated();
           logger.debug('Go auth valid:', { isGoAuthValid });
           
-          const goUser = GoAuthAPI.getUserFromToken() || GoAuthAPI.getUserInfo();
-          logger.debug('Go user retrieved:', { email: goUser?.email, id: goUser?.id });
+          // Prefer getUserInfo (from localStorage) first, then fall back to JWT parsing
+          const goUser = GoAuthAPI.getUserInfo() || GoAuthAPI.getUserFromToken();
+          logger.debug('Go user retrieved:', { email: goUser?.email, id: goUser?.id, name: goUser?.name });
 
           if (isGoAuthValid && goUser) {
             logger.info('✅ Go backend authentication valid, setting user:', { email: goUser.email });
