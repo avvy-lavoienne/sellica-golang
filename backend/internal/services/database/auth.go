@@ -30,7 +30,9 @@ type User struct {
 	Name      string    `json:"name" db:"name"`
 	Role      string    `json:"role" db:"role"`
 	NIK       string    `json:"nik" db:"nik"`
-	AvatarURL *string   `json:"avatar_url" db:"avatar_url"` // Pointer to allow null
+	NIP       string    `json:"nip" db:"nip"`                 // Employee ID
+	Position  string    `json:"position" db:"position"`       // Job position
+	AvatarURL *string   `json:"avatar_url" db:"avatar_url"`   // Pointer to allow null
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
@@ -190,7 +192,7 @@ func (s *Service) GetUserByID(ctx context.Context, userID string) (*User, error)
 
 	// Query profiles table for user
 	data, _, err := s.client.From("profiles").
-		Select("id,email,name,role,nik,avatar_url", "", false).
+		Select("id,email,name,role,nik,nip,position,avatar_url", "", false).
 		Eq("id", userID).
 		Single().
 		Execute()

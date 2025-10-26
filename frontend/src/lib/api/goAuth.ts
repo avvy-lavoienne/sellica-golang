@@ -41,6 +41,8 @@ export interface AuthResponse {
     email: string;
     name: string;
     role: string;
+    nip?: string;
+    position?: string;
     avatar_url?: string | null;
   };
   error?: string;
@@ -52,7 +54,9 @@ export interface UserInfo {
   email: string;
   name: string;
   role: string;
-  avatar_url?: string | null; // Optional avatar URL from profile
+  nip?: string;                       // Employee ID from profiles
+  position?: string;                  // Job position from profiles
+  avatar_url?: string | null;         // Optional avatar URL from profile
 }
 
 export interface TokenPayload {

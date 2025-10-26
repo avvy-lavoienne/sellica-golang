@@ -125,26 +125,42 @@ export default function ProfilePage() {
           updated_at: contextUser.updated_at,
         });
 
-        // Fetch avatar from Go backend profile endpoint
-        let avatarUrl: string | null = null;
+        // Fetch full profile from Go backend (includes nip, position, avatar_url)
+        let profileData = {
+          nip: "",
+          position: "",
+          avatar_url: null as string | null,
+        };
+
+        console.log("🔍 DEBUG: Fetching profile for user ID:", contextUser.id);
+
         try {
-          const result = await GoAuthAPI.getProfile();
-          if (result.success && result.user?.avatar_url) {
-            avatarUrl = result.user.avatar_url;
+          // Fetch from Go backend which now includes nip, position, avatar_url
+          const backendProfile = await GoAuthAPI.getProfile();
+          console.log("🔍 DEBUG: Go backend profile response:", backendProfile);
+
+          if (backendProfile?.user) {
+            profileData = {
+              nip: backendProfile.user.nip || "",
+              position: backendProfile.user.position || "",
+              avatar_url: backendProfile.user.avatar_url || null,
+            };
+            console.log("✅ DEBUG: Profile data from Go backend:", profileData);
+          } else {
+            console.warn("❌ DEBUG: Go backend returned no user data");
           }
         } catch (error) {
-          // Silently fail - avatar is optional
-          console.warn("Could not fetch avatar from Go backend:", error);
+          console.warn("❌ DEBUG: Exception fetching profile from Go backend:", error);
         }
 
         // Use profile data directly from context user
         const defaultProfile = {
           id: contextUser.id,
           name: contextUser.name || contextUser.email?.split("@")[0] || "User",
-          nip: "",
-          position: "",
+          nip: profileData.nip,
+          position: profileData.position,
           nik: contextUser.nik || "",
-          avatar_url: avatarUrl,
+          avatar_url: profileData.avatar_url,
         };
 
         setProfile(defaultProfile);

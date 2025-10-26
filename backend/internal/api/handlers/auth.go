@@ -535,6 +535,8 @@ func (h *AuthHandler) GetProfile(c *gin.Context) {
 			"email":      user.Email,
 			"name":       user.Name,
 			"role":       user.Role,
+			"nip":        user.NIP,
+			"position":   user.Position,
 			"avatar_url": user.AvatarURL,
 		},
 	})
