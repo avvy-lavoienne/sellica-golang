@@ -70,3 +70,5 @@ server-macos
 server-win.exe
 server.exe
 
+#extension
+/ext/supabase-main-go
