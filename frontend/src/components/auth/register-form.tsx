@@ -189,9 +189,9 @@ export default function RegisterForm() {
         break
 
       case 'nip':
-        // NIP is optional, but if provided should be valid
+        // NIP is optional, but if provided should be valid (Issue #5: Change warning to error)
         if (value && value.trim().length > 0 && !/^\d{18}$/.test(value)) {
-          warnings.push("NIP should be 18 digits if provided")
+          errors.push("NIP must be exactly 18 digits if provided")
         }
         break
 
