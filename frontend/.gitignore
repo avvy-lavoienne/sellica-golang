@@ -10,6 +10,9 @@ package-lock.json
 # testing
 /coverage
 
+# application logs (generated at runtime)
+/logs/
+
 # next.js
 /.next/
 /out/
