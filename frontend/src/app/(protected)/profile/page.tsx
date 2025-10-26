@@ -7,6 +7,7 @@ import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
 import { cn } from "@/lib/conn/utils";
 import { useProtectedAuth } from "@/app/(protected)/auth-context";
+import { GoAuthAPI } from "@/lib/api/goAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -124,6 +125,18 @@ export default function ProfilePage() {
           updated_at: contextUser.updated_at,
         });
 
+        // Fetch avatar from Go backend profile endpoint
+        let avatarUrl: string | null = null;
+        try {
+          const result = await GoAuthAPI.getProfile();
+          if (result.success && result.user?.avatar_url) {
+            avatarUrl = result.user.avatar_url;
+          }
+        } catch (error) {
+          // Silently fail - avatar is optional
+          console.warn("Could not fetch avatar from Go backend:", error);
+        }
+
         // Use profile data directly from context user
         const defaultProfile = {
           id: contextUser.id,
@@ -131,7 +144,7 @@ export default function ProfilePage() {
           nip: "",
           position: "",
           nik: contextUser.nik || "",
-          avatar_url: null,
+          avatar_url: avatarUrl,
         };
 
         setProfile(defaultProfile);

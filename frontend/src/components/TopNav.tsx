@@ -27,6 +27,7 @@ import { useOnClickOutside } from "@/hooks/use-click-outside";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
 import { cn } from "@/lib/conn/utils";
+import { GoAuthAPI } from "@/lib/api/goAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import SilpanaGuestAccess from "@/components/silpana/SilpanaGuestAccess";
@@ -374,27 +375,30 @@ export default function TopNav({
 
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (user?.id && !user?.name && !user?.avatar_url) {
+      // Fetch avatar from Go backend if we don't have it yet
+      if (user?.id && !user?.avatar_url) {
         try {
-          // Get user profile from profiles table only if we don't have profile data yet
-          const { data, error } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", user.id)
-            .single();
+          setIsLoadingProfile(true);
+          setProfileError(null);
 
-          if (error) throw error;
-
-          if (data && typeof setUser === "function") {
-            // Merge auth data with profile data
+          // Get avatar from Go backend profile endpoint
+          const result = await GoAuthAPI.getProfile();
+          
+          if (result.success && result.user?.avatar_url && typeof setUser === "function") {
+            // Update user with avatar from backend
             setUser({
               ...user,
-              name: data.full_name || user.name,
-              avatar_url: data.avatar_url || user.avatar_url,
+              avatar_url: result.user.avatar_url,
             });
+            console.log('✅ Avatar loaded from Go backend');
+          } else if (!result.success) {
+            console.warn("Could not fetch avatar from Go backend:", result.error);
           }
         } catch (error) {
-          console.error("Error fetching user profile:", error);
+          setProfileError(error instanceof Error ? error.message : "Failed to fetch profile");
+          console.error("Error fetching user avatar:", error);
+        } finally {
+          setIsLoadingProfile(false);
         }
       }
     };

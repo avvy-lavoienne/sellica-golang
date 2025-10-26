@@ -41,6 +41,7 @@ export interface AuthResponse {
     email: string;
     name: string;
     role: string;
+    avatar_url?: string | null;
   };
   error?: string;
   message?: string;
@@ -51,6 +52,7 @@ export interface UserInfo {
   email: string;
   name: string;
   role: string;
+  avatar_url?: string | null; // Optional avatar URL from profile
 }
 
 export interface TokenPayload {
