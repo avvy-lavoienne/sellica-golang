@@ -3,8 +3,9 @@ package unit
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"selly-backend/internal/services/database"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // TestQueryOptions_SelectField tests that Select field is properly set

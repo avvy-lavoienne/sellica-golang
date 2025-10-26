@@ -3,8 +3,8 @@ package database
 import (
 	"fmt"
 
-	"github.com/supabase-community/postgrest-go"
 	"github.com/sirupsen/logrus"
+	"github.com/supabase-community/postgrest-go"
 )
 
 // QueryOptions provides structured query building with advanced features
