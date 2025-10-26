@@ -39,6 +39,8 @@ interface InputDokumentasiProps {
   maxFileSize?: number;
   /** Loading state */
   loading?: boolean;
+  /** User object from context (contains id, email, name) */
+  user?: { id: string; email?: string; name?: string };
 }
 
 export default function InputDokumentasi({
@@ -47,6 +49,7 @@ export default function InputDokumentasi({
   enableDragDrop = true,
   maxFileSize = 5,
   loading = false,
+  user,
 }: InputDokumentasiProps) {
   // Initialize with current datetime in WIB
   const getCurrentDateTimeLocal = () => {
@@ -336,12 +339,7 @@ export default function InputDokumentasi({
       try {
         const tanggal = `${tanggalDate}T${tanggalTime}+07:00`;
 
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser();
-
-        if (userError || !user) {
+        if (!user || !user.id) {
           throw new Error("Pengguna tidak ditemukan");
         }
 

@@ -36,6 +36,7 @@ import { supabase } from "@/lib/conn/supabaseClient"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/conn/utils"
 import { useTheme } from "@/components/ThemeProvider"
+import { useProtectedAuth } from "@/app/(protected)/auth-context"
 
 // Enhanced interfaces with better TypeScript support
 interface SubCategory {
@@ -585,6 +586,14 @@ export default function EnhancedSidebar({
   const [userRole, setUserRole] = useState<string>("user");
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+  const { user: contextUser } = useProtectedAuth();
+
+  // Set user role from context immediately (Go backend auth)
+  useEffect(() => {
+    if (contextUser?.role) {
+      setUserRole(contextUser.role);
+    }
+  }, [contextUser?.role]);
 
   // Memoized computations for better performance
   const filteredMenuItems = useMemo(
@@ -657,32 +666,6 @@ export default function EnhancedSidebar({
       setIsMobileSidebarOpen(false);
     }
   }, [isMobile, setIsMobileSidebarOpen]);
-
-  // User role fetching with error handling
-  useEffect(() => {
-    const fetchUserRole = async () => {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (session?.user) {
-          const { data } = await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", session.user.id)
-            .single();
-
-          if (data) {
-            setUserRole(data.role || "user");
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching user role:", error);
-      }
-    };
-
-    fetchUserRole();
-  }, []);
 
   // Auto-expand categories based on current path
   useEffect(() => {

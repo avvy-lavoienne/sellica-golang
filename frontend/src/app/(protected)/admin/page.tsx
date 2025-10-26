@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { createClient } from '@supabase/supabase-js';
 import { toast } from "react-toastify";
+import { useProtectedAuth } from "@/app/(protected)/auth-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -115,41 +116,24 @@ export default function UserApprovalPage() {
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const router = useRouter();
+  const { user: contextUser } = useProtectedAuth();
   
   // Check if user has admin rights
   useEffect(() => {
-    const checkAdmin = async () => {
-      try {
-        const { data: session } = await supabase.auth.getSession();
-        if (!session.session) {
-          toast.error("Sesi tidak ditemukan. Silakan login kembali.");
-          router.push("/");
-          return;
-        }
+    if (!contextUser) {
+      toast.error("Sesi tidak ditemukan. Silakan login kembali.");
+      router.push("/");
+      return;
+    }
 
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", session.session.user.id)
-          .single();
+    if (!["admin", "superuser"].includes(contextUser.role ?? "")) {
+      toast.error("Anda tidak memiliki akses ke halaman ini");
+      router.push("/dashboard");
+      return;
+    }
 
-        if (
-          !profileData ||
-          !["admin", "superuser"].includes(profileData.role ?? "")
-        ) {
-          toast.error("Anda tidak memiliki akses ke halaman ini");
-          router.push("/dashboard");
-          return;
-        }
-
-        fetchPendingUsers();
-      } catch (error) {
-        router.push("/dashboard");
-      }
-    };
-
-    checkAdmin();
-  }, [router]);
+    fetchPendingUsers();
+  }, [contextUser, router]);
 
   const fetchPendingUsers = async () => {
     try {

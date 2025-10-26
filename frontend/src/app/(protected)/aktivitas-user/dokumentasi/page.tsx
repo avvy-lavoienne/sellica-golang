@@ -58,6 +58,7 @@ export default function DokumentasiPage() {
     const [endDate, setEndDate] = useState<Date | null>(null);
     const [filterBy, setFilterBy] = useState<"tanggal" | "created_at">("tanggal");
     const [error, setError] = useState<string | null>(null);
+    const { user: contextUser, loading: isLoadingAuth } = useProtectedAuth();
     const [pageStats, setPageStats] = useState({
         totalItems: 0,
         filteredItems: 0,
@@ -423,6 +424,7 @@ export default function DokumentasiPage() {
                             <InputDokumentasi
                                 onAddDokumentasi={handleAddDokumentasi}
                                 loading={refreshing}
+                                user={contextUser}
                             />
                         </div>
                     </motion.div>
