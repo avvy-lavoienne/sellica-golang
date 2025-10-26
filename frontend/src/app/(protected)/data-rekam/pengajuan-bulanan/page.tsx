@@ -79,29 +79,21 @@ function PengajuanBulananContent() {
 
         setUser(contextUser);
 
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("name, nik, role")
-          .eq("id", contextUser.id)
-          .single();
+        const userNik = contextUser.nik || "";
 
-        if (profileError) {
-          throw new Error(`Gagal mengambil profil: ${profileError.message}`);
-        }
-
-        if (!profileData.nik || !validateNIK(profileData.nik)) {
+        if (!userNik || !validateNIK(userNik)) {
           toast.error(
-            "NIK Anda di profil tidak valid. Harap perbarui profil Anda terlebih dahulu.",
+            "NIK Anda tidak valid. Harap perbarui profil Anda terlebih dahulu.",
           );
           router.push("/profile");
           return;
         }
 
-        setUserRole(profileData.role || "user");
+        setUserRole(contextUser.role || "user");
         setFormData((prev) => ({
           ...prev,
-          nik_pengaju: profileData.nik || "",
-          nama_pengaju: profileData.name || "",
+          nik_pengaju: userNik,
+          nama_pengaju: contextUser.name || "",
         }));
       } catch (error: any) {
         toast.error(

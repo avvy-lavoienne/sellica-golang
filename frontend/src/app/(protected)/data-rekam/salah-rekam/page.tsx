@@ -82,18 +82,11 @@ export default function SalahRekamPage() {
 
         setUser(contextUser);
 
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("name, nik, role")
-          .eq("id", contextUser.id)
-          .single();
-
-        if (profileError) {
-          console.error("Profile error:", profileError);
-          throw new Error(`Gagal mengambil profil: ${profileError.message}`);
-        }
-
-        if (!profileData.nik || !validateNIK(profileData.nik)) {
+        // Go backend includes role and nik in user data
+        setUserRole(contextUser.role || "user");
+        
+        const userNik = contextUser.nik || "";
+        if (!userNik || !validateNIK(userNik)) {
           toast.error(
             "NIK Anda di profil tidak valid. Harap perbarui profil Anda terlebih dahulu.",
           );
@@ -101,11 +94,11 @@ export default function SalahRekamPage() {
           return;
         }
 
-        setUserRole(profileData.role || "user");
+        setUserRole(contextUser.role || "user");
         setFormData((prev) => ({
           ...prev,
-          nik_pengaju: profileData.nik || "",
-          nama_pengaju: profileData.name || "",
+          nik_pengaju: userNik || "",
+          nama_pengaju: contextUser.name || "",
         }));
       } catch (error: any) {
         console.error("Error fetching user:", error);

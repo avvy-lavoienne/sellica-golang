@@ -76,31 +76,22 @@ export default function AdjudicateRecordPage() {
           return;
         }
 
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("name, nik, position, role")
-          .eq("id", contextUser.id)
-          .single();
+        const userNik = contextUser.nik || "";
 
-        if (profileError) {
-          throw new Error(`Gagal mengambil profil: ${profileError.message}`);
-        }
-
-        if (!profileData.nik || !validateNIK(profileData.nik)) {
+        if (!userNik || !validateNIK(userNik)) {
           toast.error(
-            "NIK Anda di profil tidak valid. Harap perbarui profil Anda terlebih dahulu.",
+            "NIK Anda tidak valid. Harap perbarui profil Anda terlebih dahulu.",
           );
           router.push("/profile");
           return;
         }
 
-        setProfile(profileData);
         setFormData((prev) => ({
           ...prev,
-          nik_pengaju: profileData.nik,
-          nama_pengaju: profileData.name,
+          nik_pengaju: userNik,
+          nama_pengaju: contextUser.name,
         }));
-        setUserRole(profileData.role || "user");
+        setUserRole(contextUser.role || "user");
       } catch (error: any) {
         console.error("Error fetching user data:", error);
         toast.error(

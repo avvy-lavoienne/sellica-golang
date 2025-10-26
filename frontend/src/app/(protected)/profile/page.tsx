@@ -124,45 +124,23 @@ export default function ProfilePage() {
           updated_at: contextUser.updated_at,
         });
 
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("name, nip, position, nik, avatar_url")
-          .eq("id", contextUser.id)
-          .single();
+        // Use profile data directly from context user
+        const defaultProfile = {
+          id: contextUser.id,
+          name: contextUser.name || contextUser.email?.split("@")[0] || "User",
+          nip: "",
+          position: "",
+          nik: contextUser.nik || "",
+          avatar_url: null,
+        };
 
-        if (profileError) {
-          // Profile doesn't exist - use default profile from context user
-          // Don't try to INSERT - let backend handle profile creation
-          if (profileError.code === "PGRST116") {
-            const defaultProfile = {
-              id: contextUser.id,
-              name: contextUser.name || contextUser.email?.split("@")[0] || "User",
-              nip: "",
-              position: "",
-              nik: "",
-              avatar_url: null,
-            };
-
-            setProfile(defaultProfile);
-            setFormData({
-              name: defaultProfile.name,
-              nip: defaultProfile.nip,
-              position: defaultProfile.position,
-              nik: defaultProfile.nik,
-            });
-          } else {
-            // Other errors are genuine database issues
-            throw new Error(`Gagal mengambil profil: ${profileError.message}`);
-          }
-        } else {
-          setProfile(profileData);
-          setFormData({
-            name: profileData.name,
-            nip: profileData.nip,
-            position: profileData.position,
-            nik: profileData.nik || "",
-          });
-        }
+        setProfile(defaultProfile);
+        setFormData({
+          name: defaultProfile.name,
+          nip: defaultProfile.nip,
+          position: defaultProfile.position,
+          nik: defaultProfile.nik,
+        });
       } catch (error: any) {
         console.error("Error fetching profile:", error);
         toast.error(error.message || "Gagal memuat profil. Silakan coba lagi.");

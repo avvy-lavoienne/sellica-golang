@@ -159,22 +159,9 @@ export default function DataRekam() {
         setCurrentUser({ id: contextUser.id });
         userId = contextUser.id;
 
-        // Fetch profile data
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("name")
-          .eq("id", contextUser.id)
-          .single();
-
-        if (profileError) {
-          console.error("Error fetching profile:", profileError);
-          throw new Error("Failed to fetch profile data.");
-        }
-
-        if (profileData) {
-          setProfile(profileData);
-          setUserName(profileData.name || "Pengguna");
-        }
+        // Use user data directly from context
+        setProfile({ id: contextUser.id, name: contextUser.name });
+        setUserName(contextUser.name || "Pengguna");
       } else if (currentUser) {
         userId = currentUser.id;
       } else if (!contextUser) {
