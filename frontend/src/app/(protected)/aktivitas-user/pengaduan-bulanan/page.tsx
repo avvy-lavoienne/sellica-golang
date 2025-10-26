@@ -153,17 +153,11 @@ export default function PengaduanBulananPage() {
 
         setUser(contextUser);
 
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("name, nik, role")
-          .eq("id", contextUser.id)
-          .single();
-
-        if (profileError) {
-          throw new Error(`Gagal mengambil profil: ${profileError.message}`);
-        }
-
-        if (!profileData.nik) {
+        // Go backend includes role in user data, use directly
+        // Note: NIK validation may need to be added to Go backend response in future
+        const userNik = contextUser.nik || "";
+        
+        if (!userNik) {
           toast.error(
             "NIK Anda di profil tidak valid. Harap perbarui profil Anda terlebih dahulu.",
           );
@@ -171,7 +165,7 @@ export default function PengaduanBulananPage() {
           return;
         }
 
-        setUserRole(profileData.role || "user");
+        setUserRole(contextUser.role || "user");
       } catch (error: any) {
         toast.error(
           error.message || "Gagal memuat data pengguna. Silakan coba lagi.",

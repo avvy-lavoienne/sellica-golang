@@ -124,19 +124,18 @@ export default function AktivitasUserPage() {
         }
 
         setUser(contextUser);
-
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("name, nik, role")
-          .eq("id", contextUser.id)
-          .single();
-
-        if (profileError) {
-          throw new Error(`Gagal mengambil profil: ${profileError.message}`);
-        }
-
-        setProfile(profileData);
-        setUserRole(profileData.role || "user");
+        
+        // Go backend includes role in user data, no need to query profiles
+        // Use contextUser.role directly from Go auth response
+        setUserRole(contextUser.role || "user");
+        
+        // If we need profile data (name, nik), we can get it from contextUser
+        // or add it to the Go backend response. For now, use what's available
+        setProfile({
+          name: contextUser.name || "User",
+          nik: contextUser.nik || "",
+          role: contextUser.role || "user",
+        });
       } catch (error: any) {
         toast.error(
           error.message || "Gagal memuat data pengguna. Silakan coba lagi.",

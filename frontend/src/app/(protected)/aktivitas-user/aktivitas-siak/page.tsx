@@ -187,18 +187,13 @@ export default function AktivitasSiakPage() {
                 setUser(contextUser);
                 setSession({ user: contextUser });
 
-                const { data: profileData, error: profileError } = await supabase
-                    .from("profiles")
-                    .select("name, nik, role")
-                    .eq("id", contextUser.id)
-                    .single();
-
-                if (profileError) {
-                    throw new Error(`Gagal mengambil profil: ${profileError.message}`);
-                }
-
-                setProfile(profileData);
-                setUserRole(profileData.role || "user");
+                // Go backend includes role in user data
+                setUserRole(contextUser.role || "user");
+                setProfile({
+                    name: contextUser.name || "User",
+                    nik: contextUser.nik || "",
+                    role: contextUser.role || "user",
+                });
             } catch (error: any) {
                 console.error("Error fetching user data:", error);
                 toast.error(
