@@ -38,6 +38,7 @@ type Services struct {
 	SilpanaBroadcaster  *silpana.WebSocketBroadcaster
 	SupabaseAnalyzer    *supabase_analyzer.Service
 	AktivitasSiak       aktivitas_siak.Service
+	SessionManager      *auth.SessionManager // Session manager for SILPANA operations
 }
 
 // SetupRoutes configures all API routes and middleware
@@ -91,8 +92,13 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	// Authentication routes (public)
 	setupAuthRoutes(router, services.Auth, services.Database)
 
-	// SILPANA ticketing routes (public)
-	setupSilpanaRoutes(router, services.Silpana, services.SilpanaBroadcaster)
+	// SILPANA ticketing routes (public with session management)
+	if services.SessionManager != nil {
+		SetupSilpanaRoutesWithSession(router, services.Silpana, services.SilpanaBroadcaster, services.SessionManager, services.Auth)
+	} else {
+		// Fallback to legacy routes if SessionManager not available
+		setupSilpanaRoutes(router, services.Silpana, services.SilpanaBroadcaster)
+	}
 
 	// Aktivitas SIAK routes (protected)
 	if services.AktivitasSiak != nil {
@@ -294,20 +300,21 @@ func setupAktivitasSiakRoutes(router *gin.Engine, aktivitasSiakService aktivitas
 }
 
 // GetServices creates and returns the services struct for dependency injection
-func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service, silpanaService silpana.ServiceInterface, silpanaBroadcaster *silpana.WebSocketBroadcaster, supabaseAnalyzer *supabase_analyzer.Service, aktivitasSiakService aktivitas_siak.Service) *Services {
+func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service, silpanaService silpana.ServiceInterface, silpanaBroadcaster *silpana.WebSocketBroadcaster, supabaseAnalyzer *supabase_analyzer.Service, aktivitasSiakService aktivitas_siak.Service, sessionManager *auth.SessionManager) *Services {
 	return &Services{
-		EventBus:           eventBus,
-		Database:           db,
-		Cache:              cache,
-		Auth:               auth,
-		Chat:               chat,
-		Monitoring:         monitoring,
-		Training:           training,
-		Concurrent:         concurrent,
-		Silpana:            silpanaService,
-		SilpanaBroadcaster: silpanaBroadcaster,
-		SupabaseAnalyzer:   supabaseAnalyzer,
-		AktivitasSiak:      aktivitasSiakService,
+		EventBus:            eventBus,
+		Database:            db,
+		Cache:               cache,
+		Auth:                auth,
+		Chat:                chat,
+		Monitoring:          monitoring,
+		Training:            training,
+		Concurrent:          concurrent,
+		Silpana:             silpanaService,
+		SilpanaBroadcaster:  silpanaBroadcaster,
+		SupabaseAnalyzer:    supabaseAnalyzer,
+		AktivitasSiak:       aktivitasSiakService,
+		SessionManager:      sessionManager,
 	}
 }
 

@@ -76,6 +76,7 @@ func setupTestServer() *gin.Engine {
 	concurrentService := (*concurrent.Service)(nil)            // Mock concurrent service
 	silpanaService := (silpana.ServiceInterface)(nil)          // Mock SILPANA service
 	silpanaBroadcaster := (*silpana.WebSocketBroadcaster)(nil) // Mock WebSocket broadcaster
+	sessionManager := (*auth.SessionManager)(nil)              // Mock session manager
 
 	services := routes.GetServices(
 		unifiedEventBus,
@@ -90,7 +91,7 @@ func setupTestServer() *gin.Engine {
 		silpanaBroadcaster,
 		nil, // supabaseAnalyzer - not needed for benchmark
 		nil, // aktivitasSiak - not needed for benchmark
-		nil, // duplicateOperator - not needed for benchmark
+		sessionManager,
 	)
 
 	router := gin.New()
