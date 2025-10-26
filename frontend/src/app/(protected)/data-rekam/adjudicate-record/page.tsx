@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
+import { useProtectedAuth } from "@/app/(protected)/auth-context";
 import AdjudicateRecordHeader from "@/components/dashboard/data-rekam/adjudicate-record/AdjudicateRecordHeader";
 import AdjudicateRecordActions from "@/components/dashboard/data-rekam/adjudicate-record/AdjudicateRecordActions";
 import AdjudicateRecordForm from "@/components/dashboard/data-rekam/adjudicate-record/AdjudicateRecordForm";
@@ -35,6 +36,7 @@ interface Profile {
 
 export default function AdjudicateRecordPage() {
   const router = useRouter();
+  const { user: contextUser, loading: isLoadingAuth } = useProtectedAuth();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [formData, setFormData] = useState<AdjudicateRecordFormData>({
@@ -67,22 +69,17 @@ export default function AdjudicateRecordPage() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-        if (sessionError || !session) {
+        // User already authenticated via layout, use context data
+        if (!contextUser) {
           toast.error("Sesi tidak ditemukan. Silakan login kembali.");
           router.push("/");
           return;
         }
 
-        setUser(session.user);
-
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("name, nik, position, role")
-          .eq("id", session.user.id)
+          .eq("id", contextUser.id)
           .single();
 
         if (profileError) {
@@ -113,8 +110,11 @@ export default function AdjudicateRecordPage() {
       }
     };
 
-    fetchUserData();
-  }, [router]);
+    // Only fetch when context user is available and auth is not loading
+    if (!isLoadingAuth && contextUser) {
+      fetchUserData();
+    }
+  }, [contextUser, isLoadingAuth, router, validateNIK]);
 
   const fetchRekapData = useCallback(
     async (

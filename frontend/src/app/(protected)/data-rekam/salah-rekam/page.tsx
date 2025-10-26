@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
+import { useProtectedAuth } from "@/app/(protected)/auth-context";
 import SalahRekamHeader from "@/components/dashboard/data-rekam/salah-rekam/SalahRekamHeader";
 import SalahRekamActions from "@/components/dashboard/data-rekam/salah-rekam/SalahRekamActions";
 import SalahRekamForm from "@/components/dashboard/data-rekam/salah-rekam/SalahRekamForm";
@@ -37,6 +38,7 @@ interface Profile {
 
 export default function SalahRekamPage() {
   const router = useRouter();
+  const { user: contextUser, loading: isLoadingAuth } = useProtectedAuth();
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<string>("user");
   const [showForm, setShowForm] = useState(false);
@@ -70,24 +72,20 @@ export default function SalahRekamPage() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        setIsFetchingUser(true);
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-        if (sessionError || !session) {
-          console.error("Session error:", sessionError);
+        // User already authenticated via layout, use context data
+        if (!contextUser) {
+          console.error("No context user found");
           toast.error("Sesi tidak ditemukan. Silakan login kembali.");
           router.push("/");
           return;
         }
 
-        setUser(session.user);
+        setUser(contextUser);
 
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("name, nik, role")
-          .eq("id", session.user.id)
+          .eq("id", contextUser.id)
           .single();
 
         if (profileError) {
@@ -120,8 +118,11 @@ export default function SalahRekamPage() {
       }
     };
 
-    fetchUserData();
-  }, [router]);
+    // Only fetch when context user is available and auth is not loading
+    if (!isLoadingAuth && contextUser) {
+      fetchUserData();
+    }
+  }, [contextUser, isLoadingAuth, router]);
 
   const validateNIK = (nik: string) => {
     return nik.length === 16 && /^\d{16}$/.test(nik);

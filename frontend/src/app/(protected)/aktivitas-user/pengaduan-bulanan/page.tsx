@@ -7,6 +7,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/conn/utils";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast, ToastContainer } from "react-toastify";
+import { useProtectedAuth } from "@/app/(protected)/auth-context";
 import "react-toastify/dist/ReactToastify.css";
 import { Badge } from "@/components/ui/badge";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -42,6 +43,7 @@ interface User {
 
 export default function PengaduanBulananPage() {
   const router = useRouter();
+  const { user: contextUser, loading: isLoadingAuth } = useProtectedAuth();
 
   // Enhanced state management for enterprise UX
   const [user, setUser] = useState<User | null>(null);
@@ -142,22 +144,19 @@ export default function PengaduanBulananPage() {
     const fetchUserData = async () => {
       try {
         setIsFetchingUser(true);
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-        if (sessionError || !session) {
+        // User already authenticated via layout, use context data
+        if (!contextUser) {
           toast.error("Sesi tidak ditemukan. Silakan login kembali.");
           router.push("/");
           return;
         }
 
-        setUser(session.user);
+        setUser(contextUser);
 
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("name, nik, role")
-          .eq("id", session.user.id)
+          .eq("id", contextUser.id)
           .single();
 
         if (profileError) {
@@ -183,8 +182,11 @@ export default function PengaduanBulananPage() {
       }
     };
 
-    fetchUserData();
-  }, [router]);
+    // Only fetch when context user is available and auth is not loading
+    if (!isLoadingAuth && contextUser) {
+      fetchUserData();
+    }
+  }, [contextUser, isLoadingAuth, router]);
 
   const fetchRekapData = useCallback(
     async (

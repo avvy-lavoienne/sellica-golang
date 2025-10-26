@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
+import { useProtectedAuth } from "@/app/(protected)/auth-context";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
 import {
@@ -146,49 +147,40 @@ export default function DataRekam() {
 
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
+  const { user: contextUser, loading: isLoadingAuth } = useProtectedAuth();
 
   const fetchUserAndStats = useCallback(async () => {
     try {
       setLoading(true);
 
-      // Get user data from Supabase
+      // Get user data from context (already authenticated via layout)
       let userId: string | null = null;
-      if (!currentUser) {
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser();
-        if (userError) {
-          console.error("Error fetching user:", userError);
-          throw new Error("Failed to fetch user data. Please login again.");
+      if (!currentUser && contextUser) {
+        setCurrentUser({ id: contextUser.id });
+        userId = contextUser.id;
+
+        // Fetch profile data
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("name")
+          .eq("id", contextUser.id)
+          .single();
+
+        if (profileError) {
+          console.error("Error fetching profile:", profileError);
+          throw new Error("Failed to fetch profile data.");
         }
-        if (user) {
-          setCurrentUser({ id: user.id });
-          userId = user.id;
 
-          // Fetch profile data
-          const { data: profileData, error: profileError } = await supabase
-            .from("profiles")
-            .select("name")
-            .eq("id", user.id)
-            .single();
-
-          if (profileError) {
-            console.error("Error fetching profile:", profileError);
-            throw new Error("Failed to fetch profile data.");
-          }
-
-          if (profileData) {
-            setProfile(profileData);
-            setUserName(profileData.name || "Pengguna");
-          }
-        } else {
-          console.warn("No user session found.");
-          toast.error("Session not found. Please login again.");
-          return;
+        if (profileData) {
+          setProfile(profileData);
+          setUserName(profileData.name || "Pengguna");
         }
-      } else {
+      } else if (currentUser) {
         userId = currentUser.id;
+      } else if (!contextUser) {
+        console.warn("No user context found.");
+        toast.error("Session not found. Please login again.");
+        return;
       }
 
       if (!userId) throw new Error("User ID not found. Please login again.");

@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
+import { useProtectedAuth } from "@/app/(protected)/auth-context";
 import DuplicateOperatorHeader from "@/components/dashboard/data-rekam/duplicate-operator/DuplicateOperatorHeader";
 import DuplicateOperatorActions from "@/components/dashboard/data-rekam/duplicate-operator/DuplicateOperatorActions";
 import DuplicateOperatorForm from "@/components/dashboard/data-rekam/duplicate-operator/DuplicateOperatorForm";
@@ -35,6 +36,7 @@ interface Profile {
 
 export default function DuplicateOperatorPage() {
   const router = useRouter();
+  const { user: contextUser, loading: isLoadingAuth } = useProtectedAuth();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [viewState, setViewState] = useState<"form" | "table" | "none">("none");
@@ -73,26 +75,17 @@ export default function DuplicateOperatorPage() {
         setIsFetchingUser(true);
         setError(null);
 
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-
-        if (sessionError) {
-          throw new Error(`Sesi tidak ditemukan: ${sessionError.message}`);
+        // User already authenticated via layout, use context data
+        if (!contextUser) {
+          throw new Error("Sesi tidak ditemukan");
         }
 
-        if (!session) {
-          router.push("/");
-          return;
-        }
-
-        setUser(session.user);
+        setUser(contextUser);
 
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("name, nik, position, role")
-          .eq("id", session.user.id)
+          .eq("id", contextUser.id)
           .single();
 
         if (profileError) {
@@ -127,8 +120,11 @@ export default function DuplicateOperatorPage() {
       }
     };
 
-    fetchUserData();
-  }, [router, validateNIK]);
+    // Only fetch when context user is available and auth is not loading
+    if (!isLoadingAuth && contextUser) {
+      fetchUserData();
+    }
+  }, [contextUser, isLoadingAuth, router, validateNIK]);
 
   const fetchRekapData = useCallback(
     async (page = 1, query = "", statusFilter = "all") => {

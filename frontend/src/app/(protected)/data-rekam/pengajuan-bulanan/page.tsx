@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
+import { useProtectedAuth } from "@/app/(protected)/auth-context";
 import { motion, AnimatePresence } from "framer-motion";
 import { ToastContainer } from "react-toastify";
 import type {
@@ -38,6 +39,7 @@ function PengajuanBulananContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const itemsPerPage = 5;
+  const { user: contextUser, loading: isLoadingAuth } = useProtectedAuth();
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<string>("user"); // Default to "user"
   const [showForm, setShowForm] = useState(false);
@@ -68,22 +70,19 @@ function PengajuanBulananContent() {
     const fetchUserData = async () => {
       try {
         setIsFetchingUser(true);
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-        if (sessionError || !session) {
+        // User already authenticated via layout, use context data
+        if (!contextUser) {
           toast.error("Sesi tidak ditemukan. Silakan login kembali.");
           router.push("/");
           return;
         }
 
-        setUser(session.user);
+        setUser(contextUser);
 
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("name, nik, role")
-          .eq("id", session.user.id)
+          .eq("id", contextUser.id)
           .single();
 
         if (profileError) {
@@ -114,8 +113,11 @@ function PengajuanBulananContent() {
       }
     };
 
-    fetchUserData();
-  }, [router]);
+    // Only fetch when context user is available and auth is not loading
+    if (!isLoadingAuth && contextUser) {
+      fetchUserData();
+    }
+  }, [contextUser, isLoadingAuth, router]);
 
   const validateNIK = (nik: string) => {
     return nik.length === 16 && /^\d{16}$/.test(nik);

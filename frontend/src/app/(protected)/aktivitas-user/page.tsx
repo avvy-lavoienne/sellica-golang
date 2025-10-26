@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast, ToastContainer } from "react-toastify";
+import { useProtectedAuth } from "@/app/(protected)/auth-context";
 import "react-toastify/dist/ReactToastify.css";
 import {
   format,
@@ -86,6 +87,7 @@ export default function AktivitasUserPage() {
     end: endOfMonth(new Date()),
   });
   const [timeFilter, setTimeFilter] = useState<string>("month");
+  const { user: contextUser, loading: isLoadingAuth } = useProtectedAuth();
 
   // Data for each section
   const [aktivitasSiakData, setAktivitasSiakData] = useState<
@@ -114,22 +116,19 @@ export default function AktivitasUserPage() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-        if (sessionError || !session) {
+        // User already authenticated via layout, use context data
+        if (!contextUser) {
           toast.error("Sesi tidak ditemukan. Silakan login kembali.");
           router.push("/");
           return;
         }
 
-        setUser(session.user);
+        setUser(contextUser);
 
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("name, nik, role")
-          .eq("id", session.user.id)
+          .eq("id", contextUser.id)
           .single();
 
         if (profileError) {
@@ -148,8 +147,11 @@ export default function AktivitasUserPage() {
       }
     };
 
-    fetchUserData();
-  }, [router]);
+    // Only fetch when context user is available and auth is not loading
+    if (!isLoadingAuth && contextUser) {
+      fetchUserData();
+    }
+  }, [contextUser, isLoadingAuth, router]);
 
   // Fetch all data and create summary stats
   const fetchAllData = useCallback(async () => {

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
 import { cn } from "@/lib/conn/utils";
+import { useProtectedAuth } from "@/app/(protected)/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -102,39 +103,38 @@ export default function ProfilePage() {
     {},
   );
   const [isAvatarUploading, setIsAvatarUploading] = useState(false);
+  const { user: contextUser, loading: isLoadingAuth } = useProtectedAuth();
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        setIsFetchingProfile(true);
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-        if (sessionError || !session) {
+        // User already authenticated via layout, use context data
+        if (!contextUser) {
           toast.error("Sesi tidak ditemukan. Silakan login kembali.");
           router.push("/");
           return;
         }
 
+        setIsFetchingProfile(true);
+
         setUser({
-          id: session.user.id,
-          email: session.user.email || "",
-          created_at: session.user.created_at,
-          updated_at: session.user.updated_at,
+          id: contextUser.id,
+          email: contextUser.email || "",
+          created_at: contextUser.created_at,
+          updated_at: contextUser.updated_at,
         });
 
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("name, nip, position, nik, avatar_url")
-          .eq("id", session.user.id)
+          .eq("id", contextUser.id)
           .single();
 
         if (profileError) {
           if (profileError.code === "PGRST116") {
             const newProfile = {
-              id: session.user.id,
-              name: session.user.email?.split("@")[0] || "User",
+              id: contextUser.id,
+              name: contextUser.name || contextUser.email?.split("@")[0] || "User",
               nip: "",
               position: "",
               nik: "",
@@ -178,8 +178,11 @@ export default function ProfilePage() {
       }
     };
 
-    fetchUserData();
-  }, [router]);
+    // Only fetch when context user is available and auth is not loading
+    if (!isLoadingAuth && contextUser) {
+      fetchUserData();
+    }
+  }, [contextUser, isLoadingAuth, router]);
 
   const handleCancel = useCallback(() => {
     setIsEditing(false);
