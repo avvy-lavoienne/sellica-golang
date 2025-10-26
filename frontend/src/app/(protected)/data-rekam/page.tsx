@@ -580,10 +580,8 @@ export default function DataRekam() {
 
       setLoading(true);
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) {
+        // Use context user from layout instead of fetching again
+        if (!currentUser) {
           toast.error("Session not found. Please login again.");
           return;
         }
