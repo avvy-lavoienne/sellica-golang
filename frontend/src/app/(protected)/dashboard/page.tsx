@@ -75,15 +75,14 @@ async function fetchDashboardData(
     throw new Error("User not authenticated");
   }
 
-  const { data: profileData } = await supabase
-    .from("profiles")
-    .select("name, role")
-    .eq("id", user.id)
-    .single();
-
-  if (!profileData) {
-    throw new Error("Profile not found");
-  }
+  // Use user data from Go backend (name, role, email already provided)
+  // No need to query Supabase - RLS policies already block this anyway
+  const profileData = {
+    name: user.name || "Pengguna",
+    role: user.role || "user",
+    email: user.email,
+    id: user.id,
+  };
 
   const fetchRekamStats = async (): Promise<RekamStats> => {
     const tables = [
@@ -474,23 +473,16 @@ export default function Dashboard() {
       setLoading(true);
       setError(null);
       try {
-        logger.info("Dashboard: Fetching profile for user", { userId: contextUser.id });
+        logger.info("Dashboard: Fetching dashboard data for user", { userId: contextUser.id, userName: contextUser.name });
 
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("role, name")
-          .eq("id", contextUser.id)
-          .single();
-
-        if (!profileData) {
-          throw new Error("Profile not found");
-        }
-
-        setUserRole(profileData.role);
+        // ✅ Use role from Go backend context user (already authenticated)
+        // No need to query Supabase - RLS policies block this anyway
+        const userRole = contextUser.role || "user";
+        setUserRole(userRole);
+        setUserName(contextUser.name || "Pengguna");
 
         // Pass both user and role to fetchDashboardData
-        const data = await fetchDashboardData(contextUser, profileData.role);
-        setUserName(data.userName);
+        const data = await fetchDashboardData(contextUser, userRole);
         setStats(data.stats);
 
         // Cache the data
@@ -499,7 +491,7 @@ export default function Dashboard() {
           data: {
             userName: data.userName,
             stats: data.stats,
-            userRole: profileData.role
+            userRole: userRole
           }
         });
       } catch (error) {
@@ -597,19 +589,13 @@ export default function Dashboard() {
         throw new Error("User not authenticated");
       }
 
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("role, name")
-        .eq("id", contextUser.id)
-        .single();
-
-      if (!profileData) {
-        throw new Error("Profile not found");
-      }
+      // ✅ Use role from Go backend context user (already authenticated)
+      const userRole = contextUser.role || "user";
+      setUserRole(userRole);
+      setUserName(contextUser.name || "Pengguna");
 
       // Pass both user and role to fetchDashboardData
-      const data = await fetchDashboardData(contextUser, profileData.role);
-      setUserName(data.userName);
+      const data = await fetchDashboardData(contextUser, userRole);
       setStats(data.stats);
       setError(null);
 
@@ -619,7 +605,7 @@ export default function Dashboard() {
         data: {
           userName: data.userName,
           stats: data.stats,
-          userRole: profileData.role
+          userRole: userRole
         }
       });
 
