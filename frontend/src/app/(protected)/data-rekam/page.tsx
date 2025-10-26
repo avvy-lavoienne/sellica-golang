@@ -160,7 +160,7 @@ export default function DataRekam() {
         userId = contextUser.id;
 
         // Use user data directly from context
-        setProfile({ id: contextUser.id, name: contextUser.name });
+        setProfile({ name: contextUser.name });
         setUserName(contextUser.name || "Pengguna");
       } else if (currentUser) {
         userId = currentUser.id;

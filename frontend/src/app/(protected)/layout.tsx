@@ -54,10 +54,10 @@ export default function ProtectedLayout({
             logger.warn('❌ Go backend authentication invalid', { 
               isGoAuthValid, 
               hasUser: !!goUser,
-              fallbackEnabled: useAuthFallback()
+              fallbackEnabled: enableFallback
             });
             // If we're supposed to use Go auth but it failed, and no fallback is enabled, redirect to login
-            if (!useAuthFallback()) {
+            if (!enableFallback) {
               logger.error('❌ Go auth required but invalid, no fallback enabled, redirecting to login');
               router.replace("/");
               return;
