@@ -104,7 +104,15 @@ export default function ProtectedLayout({
 
     checkAuth();
 
-    // Set up auth state listener for real-time changes
+    // Only set up Supabase auth listener if NOT using Go backend auth
+    // Go auth is handled by localStorage and doesn't use Supabase sessions
+    // Supabase listener would override Go auth and log users out
+    if (shouldUseGoAuth) {
+      logger.debug('⏭️  Skipping Supabase auth listener (using Go backend auth)');
+      return; // Don't subscribe to Supabase auth changes
+    }
+
+    // Set up auth state listener for Supabase fallback only
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
         logger.debug('🔄 Auth state changed:', { 
@@ -115,11 +123,11 @@ export default function ProtectedLayout({
         
         if (event === "SIGNED_OUT" || !session) {
           // User signed out or session expired
-          logger.info('� Auth listener: SIGNED_OUT, redirecting to login');
+          logger.info('🔴 Auth listener: SIGNED_OUT, redirecting to login');
           router.replace("/");
         } else if (event === "SIGNED_IN") {
           // Update user state if signed in
-          logger.info('� Auth listener: SIGNED_IN', { email: session.user?.email });
+          logger.info('🟢 Auth listener: SIGNED_IN', { email: session.user?.email });
           setUser(session.user);
         }
       },
