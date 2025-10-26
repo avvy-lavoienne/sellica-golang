@@ -506,7 +506,3 @@ func setupLoggingWithFile(cfg *config.Config, hasFileLogging bool) {
 
 	logrus.Info("📝 Logging system initialized")
 }
-
-func setupLogging(cfg *config.Config) {
-	setupLoggingWithFile(cfg, false)
-}
