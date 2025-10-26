@@ -1,5 +1,8 @@
 # SELLY Project .gitignore
 
+# External dependencies (third-party, vendored code)
+ext/
+
 # Deployment artifacts (generated files - should not be committed)
 deployment/static-build/
 deployment/static-build
