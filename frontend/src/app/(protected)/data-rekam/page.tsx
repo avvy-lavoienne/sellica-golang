@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { supabase } from "@/lib/conn/supabaseClient";
+import { GoAuthAPI } from "@/lib/api/goAuth";
 import { toast } from "react-toastify";
 import { useProtectedAuth } from "@/app/(protected)/auth-context";
 import "react-toastify/dist/ReactToastify.css";
@@ -82,6 +82,7 @@ export default function DataRekam() {
   const [userName, setUserName] = useState<string>("Pengguna");
   const [loading, setLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"yearly" | "monthly">("yearly");
   const [selectedYear, setSelectedYear] = useState<string>("2024");
   const [profile, setProfile] = useState<{ name: string } | null>(null);
@@ -152,10 +153,12 @@ export default function DataRekam() {
   const fetchUserAndStats = useCallback(async () => {
     try {
       setLoading(true);
+      console.log("[DataRekam] Starting fetchUserAndStats");
 
       // Get user data from context (already authenticated via layout)
       let userId: string | null = null;
       if (!currentUser && contextUser) {
+        console.log("[DataRekam] Setting currentUser from contextUser:", contextUser);
         setCurrentUser({ id: contextUser.id });
         userId = contextUser.id;
 
@@ -165,97 +168,111 @@ export default function DataRekam() {
       } else if (currentUser) {
         userId = currentUser.id;
       } else if (!contextUser) {
-        console.warn("No user context found.");
-        toast.error("Session not found. Please login again.");
+        console.warn("[DataRekam] No user context found.");
+        setLoading(false);
         return;
       }
 
       if (!userId) throw new Error("User ID not found. Please login again.");
 
-      // Fetch all data
-      const fetchTableData = async (table: string) => {
-        try {
-          // Get total count with filters
-          let query = supabase
-            .from(table)
-            .select("id", { count: "exact", head: true });
+      console.log("[DataRekam] User ID:", userId);
 
-          // Apply date range filter if specified
-          if (startDate) {
-            const startISO = startDate.toISOString().split("T")[0];
-            query = query.gte("created_at", startISO);
-          }
-          if (endDate) {
-            const endISO = endDate.toISOString().split("T")[0];
-            query = query.lte("created_at", endISO);
-          }
+      // Get auth token from Supabase session
+      // Get token from GoAuthAPI (since we're using Go backend auth)
+      const token = GoAuthAPI.getToken();
 
-          const { count: totalCount, error: totalError } = await query;
+      if (!token) {
+        console.error("[DataRekam] No token found from GoAuthAPI");
+        setError("Token autentikasi tidak ditemukan. Silakan login kembali.");
+        setLoading(false);
+        return;
+      }
 
-          if (totalError) {
-            console.error(
-              `Error fetching total count for ${table}:`,
-              totalError,
-            );
-            return { data: [], totalCount: 0, completedCount: 0 };
-          }
+      console.log("[DataRekam] Token retrieved from GoAuthAPI");
 
-          // Get completed count with the same filters
-          let completedQuery = supabase
-            .from(table)
-            .select("id", { count: "exact", head: true })
-            .eq("is_ready_to_record", true);
+      // Build query parameters for dashboard stats
+      const params = new URLSearchParams();
+      if (startDate) {
+        params.append("start_date", startDate.toISOString().split("T")[0]);
+      }
+      if (endDate) {
+        params.append("end_date", endDate.toISOString().split("T")[0]);
+      }
 
-          if (startDate) {
-            const startISO = startDate.toISOString().split("T")[0];
-            completedQuery = completedQuery.gte("created_at", startISO);
-          }
-          if (endDate) {
-            const endISO = endDate.toISOString().split("T")[0];
-            completedQuery = completedQuery.lte("created_at", endISO);
-          }
+      const apiUrl = `/api/data-rekam/dashboard-stats?${params.toString()}`;
+      console.log("[DataRekam] Fetching from API:", apiUrl, "with token:", token ? "✓" : "✗");
 
-          const { count: completedCount, error: completedError } =
-            await completedQuery;
-
-          if (completedError) {
-            console.error(
-              `Error fetching completed count for ${table}:`,
-              completedError,
-            );
-            return { data: [], totalCount, completedCount: 0 };
-          }
-
-          // Log the counts for debugging
-          console.log(
-            `Table ${table}: Total = ${totalCount}, Completed = ${completedCount}`,
-          );
-
-          return {
-            data: [],
-            totalCount: totalCount || 0,
-            completedCount: completedCount || 0,
-          };
-        } catch (error: any) {
-          console.error(`Error in fetchTableData for ${table}:`, error);
-          return { data: [], totalCount: 0, completedCount: 0 };
-        }
+      // Call backend API via Next.js proxy route
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
       };
+      
+      // Add token if available
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
 
-      // Fetch data from all tables
-      const [
-        { totalCount: adjudicateCount, completedCount: adjudicateCompleted },
-        { totalCount: duplicateCount, completedCount: duplicateCompleted },
-        { totalCount: salahRekamCount, completedCount: salahRekamCompleted },
-        { totalCount: pengajuanCount, completedCount: pengajuanCompleted },
-      ] = await Promise.all([
-        fetchTableData("adjudicate_record"),
-        fetchTableData("duplicate_operator"),
-        fetchTableData("salah_rekam"),
-        fetchTableData("pengajuan_bulanan"),
-      ]);
+      const response = await fetch(apiUrl, {
+        method: "GET",
+        headers,
+      });
+
+      console.log("[DataRekam] API Response status:", response.status);
+
+      // Handle auth errors
+      if (response.status === 401) {
+        console.error("[DataRekam] Unauthorized response from dashboard-stats");
+        setLoading(false);
+        return;
+      }
+
+      if (response.status === 403) {
+        console.error("[DataRekam] Forbidden response from dashboard-stats");
+        setLoading(false);
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("[DataRekam] Error fetching dashboard stats:", errorData);
+        setLoading(false);
+        return;
+      }
+
+      // Parse response
+      const result = await response.json();
+      console.log("[DataRekam] API Response data:", result);
+
+      if (!result.success) {
+        console.error("[DataRekam] Dashboard stats API returned success: false", result);
+        setLoading(false);
+        return;
+      }
+
+      const statsData = result.data || {};
+      console.log("[DataRekam] Stats data extracted:", statsData);
 
       // Check if all counts are zero
+      const adjudicateCount = statsData.adjudicate_count || 0;
+      const duplicateCount = statsData.duplicate_operator_count || 0;
+      const salahRekamCount = statsData.salah_rekam_count || 0;
+      const pengajuanCount = statsData.pengajuan_bulanan_count || 0;
+      const adjudicateCompleted = statsData.adjudicate_completed || 0;
+      const duplicateCompleted = statsData.duplicate_operator_completed || 0;
+      const salahRekamCompleted = statsData.salah_rekam_completed || 0;
+      const pengajuanCompleted = statsData.pengajuan_bulanan_completed || 0;
+
+      console.log("[DataRekam] Setting states:", {
+        adjudicateCount,
+        duplicateCount,
+        salahRekamCount,
+        pengajuanCount,
+        adjudicateCompleted,
+        duplicateCompleted,
+        salahRekamCompleted,
+        pengajuanCompleted,
+      });
+
       if (
         adjudicateCount === 0 &&
         duplicateCount === 0 &&
@@ -263,11 +280,9 @@ export default function DataRekam() {
         pengajuanCount === 0
       ) {
         console.warn(
-          "No data found in any table. Please check if data exists in the database.",
+          "[DataRekam] No data found in any table. Please check if data exists in the database.",
         );
-        toast.info(
-          "Tidak ada data pengajuan yang ditemukan. Silakan cek kembali database atau tambahkan data baru.",
-        );
+        // Don't show toast during initial load - just log warning
       }
 
       // Process data for each table
@@ -328,15 +343,17 @@ export default function DataRekam() {
       setSalahRekamStats(salahRekamStatsProcessed);
       setPengajuanBulananStats(pengajuanStats);
 
-      // Update totals with actual counts from the database
-      setTotalPengajuanAdjudicate(adjudicateCount ?? 0);
+      // Update totals with actual counts from the backend
+      setTotalPengajuanAdjudicate(adjudicateCount);
       setTotalSelesaiAdjudicate(adjudicateCompleted);
-      setTotalPengajuanDuplicate(duplicateCount ?? 0);
+      setTotalPengajuanDuplicate(duplicateCount);
       setTotalSelesaiDuplicate(duplicateCompleted);
-      setTotalPengajuanSalahRekam(salahRekamCount ?? 0);
+      setTotalPengajuanSalahRekam(salahRekamCount);
       setTotalSelesaiSalahRekam(salahRekamCompleted);
-      setTotalPengajuanBulanan(pengajuanCount ?? 0);
+      setTotalPengajuanBulanan(pengajuanCount);
       setTotalSelesaiBulanan(pengajuanCompleted);
+
+      console.log("[DataRekam] States updated successfully");
 
       // Prepare chart data
       const monthlyDataByYear: { [year: string]: SparklineData[] } = {};
@@ -428,9 +445,18 @@ export default function DataRekam() {
 
       // Set available years based on data
       setAvailableYears(Object.keys(monthlyDataByYear).sort());
+      
+      console.log("[DataRekam] fetchUserAndStats completed successfully");
     } catch (error: any) {
-      console.error("Error in fetchUserAndStats:", error);
-      toast.error(error.message || "An error occurred while fetching data.");
+      console.error("[DataRekam] Error in fetchUserAndStats:", error);
+      // Only show toast if ToastContainer is ready
+      if (typeof toast !== 'undefined' && toast.error) {
+        try {
+          toast.error(error.message || "An error occurred while fetching data.");
+        } catch (toastError) {
+          console.error("[DataRekam] Toast error:", toastError);
+        }
+      }
     } finally {
       setLoading(false);
       setIsRefreshing(false);
@@ -581,28 +607,8 @@ export default function DataRekam() {
         ];
         const results = await Promise.all(
           tables.map(async (table) => {
-            let query = supabase
-              .from(table)
-              .select("id, created_at, is_ready_to_record");
-
-            // Apply date range filter if specified
-            if (startDate) {
-              const startISO = startDate.toISOString().split("T")[0];
-              query = query.gte("created_at", startISO);
-            }
-            if (endDate) {
-              const endISO = endDate.toISOString().split("T")[0];
-              query = query.lte("created_at", endISO);
-            }
-
-            const { data, error } = await query;
-
-            if (error) {
-              console.error(`Error fetching data from ${table}:`, error);
-              return { table, data: [] };
-            }
-
-            return { table, data: data || [] };
+            // TODO: Migrate to backend API - temporarily disabled
+            return { table, data: [] };
           }),
         );
 

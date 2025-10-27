@@ -123,57 +123,75 @@ export default function SalahRekamPage() {
 
   const fetchRekapData = useCallback(
     async (page = 1, searchQuery = "", statusFilter = "all") => {
-      if (!user) {
+      if (!contextUser) {
         toast.error("Pengguna tidak ditemukan. Silakan login kembali.");
         return { totalCount: 0 };
       }
 
       try {
         setIsTableLoading(true);
-        const rowsPerPage = 5;
-        const start = (page - 1) * rowsPerPage;
-        const end = start + rowsPerPage - 1;
 
-        let query = supabase
-          .from("salah_rekam")
-          .select("*", { count: "exact" })
-          .order("created_at", { ascending: false })
-          .range(start, end);
-
+        // Build query parameters
+        const params = new URLSearchParams();
+        params.append("page", page.toString());
+        params.append("page_size", "5");
         if (statusFilter !== "all") {
-          const isReady = statusFilter === "completed";
-          query = query.eq("is_ready_to_record", isReady);
+          params.append("status", statusFilter === "completed" ? "completed" : "pending");
         }
-
         if (searchQuery) {
-          if (searchQuery.includes("created_at")) {
-            const dateMatches = searchQuery.match(
-              /created_at >= '(.+)' AND created_at <= '(.+)'/,
-            );
-            if (dateMatches && dateMatches.length === 3) {
-              query = query
-                .gte("created_at", dateMatches[1])
-                .lte("created_at", dateMatches[2]);
-            }
-          } else {
-            query = query.or(
-              `nik_salah_rekam.ilike.%${searchQuery}%,nama_salah_rekam.ilike.%${searchQuery}%,nik_pemilik_biometric.ilike.%${searchQuery}%,nama_pemilik_biometric.ilike.%${searchQuery}%`,
-            );
+          params.append("search", searchQuery);
+        }
+
+        // Get auth token from session
+        const session = await supabase.auth.getSession();
+        const token = session.data.session?.access_token;
+        if (!token) {
+          toast.error("Token autentikasi tidak ditemukan. Silakan login kembali.");
+          router.push("/login");
+          return { totalCount: 0 };
+        }
+
+        // Call backend API via Next.js proxy route
+        const response = await fetch(
+          `/api/data-rekam/salah-rekam?${params.toString()}`,
+          {
+            method: "GET",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
           }
+        );
+
+        // Handle auth errors
+        if (response.status === 401) {
+          toast.error("Sesi telah berakhir. Silakan login kembali.");
+          router.push("/login");
+          return { totalCount: 0 };
         }
 
-        const { data, error, count } = await query;
-
-        if (error) {
-          throw new Error(`Gagal mengambil data rekap: ${error.message}`);
+        if (response.status === 403) {
+          toast.error("Anda tidak memiliki izin untuk mengakses data ini.");
+          return { totalCount: 0 };
         }
 
-        const updatedData = data.map((item) => ({
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Gagal memuat data");
+        }
+
+        // Parse response
+        const result = await response.json();
+        if (!result.success) {
+          throw new Error(result.error || "Gagal memuat data rekap");
+        }
+
+        const updatedData = (result.data || []).map((item: any) => ({
           ...item,
           created_at: item.created_at || new Date().toISOString(),
         }));
-        setRekapData(updatedData || []);
-        return { totalCount: count || 0 };
+        setRekapData(updatedData);
+        return { totalCount: result.total_count || 0 };
       } catch (error: any) {
         toast.error(
           error.message || "Gagal mengambil data rekap. Silakan coba lagi.",
@@ -183,7 +201,7 @@ export default function SalahRekamPage() {
         setIsTableLoading(false);
       }
     },
-    [user],
+    [contextUser, router],
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
