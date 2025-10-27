@@ -137,26 +137,48 @@ export default function UserApprovalPage() {
 
   const fetchPendingUsers = async () => {
     try {
-      const { data, error } = await typedSupabase
-        .from("pending_users")
-        .select(
-          "id, email, name, password, requested_at, status, user_metadata",
-        )
-        .order("requested_at", { ascending: false });
+      const token = localStorage.getItem('sb-token') || 
+                   sessionStorage.getItem('sb-token') || 
+                   contextUser?.token;
 
-      if (error) throw error;
+      const response = await fetch('/api/admin/pending-users', {
+        method: 'GET',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 403) {
+          toast.error("Anda tidak memiliki akses sebagai admin");
+        } else {
+          toast.error("Gagal memuat data pengguna yang tertunda");
+        }
+        return;
+      }
+
+      const result = await response.json();
+
+      if (!result.success || !result.data) {
+        toast.error(result.error || "Gagal memuat data pengguna yang tertunda");
+        return;
+      }
+
+      // Transform API response to match component interface
       setPendingUsers(
-        (data || []).map((item) => ({
+        (result.data || []).map((item: any) => ({
           id: item.id,
           email: item.email || "",
           name: item.name || "",
-          password: item.password || "",
+          password: "", // Never sent from backend
           requested_at: item.requested_at || "",
           status: item.status || "pending",
           user_metadata: item.user_metadata || {},
         })),
       );
     } catch (error) {
+      console.error('Error fetching pending users:', error);
       toast.error("Gagal memuat data pengguna yang tertunda");
     } finally {
       setLoading(false);

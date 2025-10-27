@@ -92,6 +92,9 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	// Authentication routes (public)
 	setupAuthRoutes(router, services.Auth, services.Database)
 
+	// Admin routes (protected - require admin role)
+	setupAdminRoutes(router, services.Auth, services.Database)
+
 	// SILPANA ticketing routes (public with session management)
 	if services.SessionManager != nil {
 		SetupSilpanaRoutesWithSession(router, services.Silpana, services.SilpanaBroadcaster, services.SessionManager, services.Auth)
@@ -422,6 +425,21 @@ func (h *WebSocketTicketHandler) Handle(c *gin.Context) {
 	go client.ReadPump()
 
 	log.Printf("New WebSocket connection established for user: %s (admin: %v)", userID, isAdmin)
+}
+
+// setupAdminRoutes configures admin-only endpoints
+// All routes require authentication and admin role verification
+func setupAdminRoutes(router *gin.Engine, authService *auth.Service, dbService *database.Service) {
+	// Create admin handler
+	adminHandler := handlers.NewAdminHandler(dbService)
+
+	// Protected admin endpoints (require authentication and admin role)
+	adminGroup := router.Group("/admin")
+	adminGroup.Use(middleware.AuthMiddleware(authService))
+	{
+		// Get all pending users (for admin review)
+		adminGroup.GET("/pending-users", adminHandler.GetPendingUsers)
+	}
 }
 
 

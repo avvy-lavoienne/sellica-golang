@@ -257,9 +257,10 @@ func (s *Service) GetPendingUsers(ctx context.Context) ([]PendingUser, error) {
 		return nil, ErrDatabaseNotHealthy
 	}
 
+	// Query pending_users table - SELECT all fields except password for security
+	// Include all statuses (pending, approved, rejected) for admin view
 	data, _, err := s.client.From("pending_users").
-		Select("*", "", false).
-		Eq("status", "pending").
+		Select("id,email,name,position,nip,nik,status,requested_at", "", false).
 		Order("requested_at", nil).
 		Execute()
 
