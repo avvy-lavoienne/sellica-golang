@@ -8,6 +8,12 @@ import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
 import { motion } from "framer-motion";
 
+// Import auth context
+import { useProtectedAuth } from "../auth-context";
+
+// Import logger
+import { logger } from "@/lib/logger";
+
 // Types
 import {
   DashboardStats,
@@ -53,7 +59,10 @@ interface RecentActivity {
 }
 
 // Remove unnecessary restrictions for the 'user' role in fetchDashboardData
-async function fetchDashboardData(role: string): Promise<{
+async function fetchDashboardData(
+  user: any,
+  role: string
+): Promise<{
   userName: string;
   stats: {
     rekamData: RekamStats;
@@ -61,22 +70,19 @@ async function fetchDashboardData(role: string): Promise<{
     recentActivities: RecentActivity[];
   };
 }> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // ✅ Use passed user instead of redundant getUser() call
   if (!user) {
     throw new Error("User not authenticated");
   }
 
-  const { data: profileData } = await supabase
-    .from("profiles")
-    .select("name, role")
-    .eq("id", user.id)
-    .single();
-
-  if (!profileData) {
-    throw new Error("Profile not found");
-  }
+  // Use user data from Go backend (name, role, email already provided)
+  // No need to query Supabase - RLS policies already block this anyway
+  const profileData = {
+    name: user.name || "Pengguna",
+    role: user.role || "user",
+    email: user.email,
+    id: user.id,
+  };
 
   const fetchRekamStats = async (): Promise<RekamStats> => {
     const tables = [
@@ -264,6 +270,7 @@ async function fetchDashboardData(role: string): Promise<{
 export default function Dashboard() {
 
   const router = useRouter();
+  const { user: contextUser } = useProtectedAuth();
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -444,8 +451,18 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
+      // Wait for context to provide user
+      if (!contextUser) {
+        console.warn("Dashboard: Waiting for contextUser to be set by layout");
+        setLoading(false);
+        return; // Return early and wait for next effect run
+      }
+
       // Check if we have cached data that's still valid
       if (dataCache && (Date.now() - dataCache.timestamp) < CACHE_DURATION) {
+        logger.debug("Dashboard: Using cached data", { 
+          cacheAge: Date.now() - dataCache.timestamp 
+        });
         setUserName(dataCache.data.userName);
         setStats(dataCache.data.stats);
         setUserRole(dataCache.data.userRole);
@@ -456,29 +473,16 @@ export default function Dashboard() {
       setLoading(true);
       setError(null);
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        logger.info("Dashboard: Fetching dashboard data for user", { userId: contextUser.id, userName: contextUser.name });
 
-        if (!user) {
-          throw new Error("User not authenticated");
-        }
+        // ✅ Use role from Go backend context user (already authenticated)
+        // No need to query Supabase - RLS policies block this anyway
+        const userRole = contextUser.role || "user";
+        setUserRole(userRole);
+        setUserName(contextUser.name || "Pengguna");
 
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("role, name")
-          .eq("id", user.id)
-          .single();
-
-        if (!profileData) {
-          throw new Error("Profile not found");
-        }
-
-        setUserRole(profileData.role);
-
-        // Pass the role to fetchDashboardData
-        const data = await fetchDashboardData(profileData.role);
-        setUserName(data.userName);
+        // Pass both user and role to fetchDashboardData
+        const data = await fetchDashboardData(contextUser, userRole);
         setStats(data.stats);
 
         // Cache the data
@@ -487,11 +491,14 @@ export default function Dashboard() {
           data: {
             userName: data.userName,
             stats: data.stats,
-            userRole: profileData.role
+            userRole: userRole
           }
         });
       } catch (error) {
-        console.error("Error fetching dashboard data:", error);
+        logger.error("Dashboard: Error fetching data", error instanceof Error ? error : new Error(String(error)), {
+          userId: contextUser?.id,
+          errorType: error instanceof Error ? error.constructor.name : typeof error,
+        });
         setError(
           error instanceof Error
             ? error.message
@@ -504,7 +511,7 @@ export default function Dashboard() {
     };
 
     fetchData();
-  }, [dataCache, CACHE_DURATION]);
+  }, [dataCache, CACHE_DURATION, contextUser]);
 
   // Cache chart data to prevent unnecessary API calls
   const [chartDataCache, setChartDataCache] = useState<Record<string, ChartData>>({});
@@ -578,27 +585,17 @@ export default function Dashboard() {
     setChartDataCache({});
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
+      if (!contextUser) {
         throw new Error("User not authenticated");
       }
 
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("role, name")
-        .eq("id", user.id)
-        .single();
+      // ✅ Use role from Go backend context user (already authenticated)
+      const userRole = contextUser.role || "user";
+      setUserRole(userRole);
+      setUserName(contextUser.name || "Pengguna");
 
-      if (!profileData) {
-        throw new Error("Profile not found");
-      }
-
-      // Pass the role to fetchDashboardData
-      const data = await fetchDashboardData(profileData.role);
-      setUserName(data.userName);
+      // Pass both user and role to fetchDashboardData
+      const data = await fetchDashboardData(contextUser, userRole);
       setStats(data.stats);
       setError(null);
 
@@ -608,7 +605,7 @@ export default function Dashboard() {
         data: {
           userName: data.userName,
           stats: data.stats,
-          userRole: profileData.role
+          userRole: userRole
         }
       });
 

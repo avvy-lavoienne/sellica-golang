@@ -1,4 +1,4 @@
-/**
+  /**
  * Go Backend Authentication API Client
  * 
  * This module provides a complete TypeScript client for the Go backend authentication system.
@@ -41,6 +41,9 @@ export interface AuthResponse {
     email: string;
     name: string;
     role: string;
+    nip?: string;
+    position?: string;
+    avatar_url?: string | null;
   };
   error?: string;
   message?: string;
@@ -51,6 +54,9 @@ export interface UserInfo {
   email: string;
   name: string;
   role: string;
+  nip?: string;                       // Employee ID from profiles
+  position?: string;                  // Job position from profiles
+  avatar_url?: string | null;         // Optional avatar URL from profile
 }
 
 export interface TokenPayload {
@@ -467,6 +473,7 @@ export class GoAuthAPI {
   /**
    * Get user information from JWT token
    * Parses token payload to extract user data
+   * Merges with localStorage data to ensure complete user info
    */
   static getUserFromToken(): UserInfo | null {
     const token = this.getToken();
@@ -476,10 +483,14 @@ export class GoAuthAPI {
       const payload = this.parseTokenPayload(token);
       if (!payload) return null;
 
+      // Get stored user info to fill in gaps in JWT payload
+      const storedUserInfo = this.getUserInfo();
+
       return {
         id: payload.sub,
         email: payload.email,
-        name: payload.name || payload.email, // Fallback to email if name not available
+        // Use stored name if available (from selly_user_info), fallback to JWT name, then email
+        name: (storedUserInfo?.name && storedUserInfo.name.trim()) || payload.name || payload.email,
         role: payload.role,
       };
     } catch (error) {

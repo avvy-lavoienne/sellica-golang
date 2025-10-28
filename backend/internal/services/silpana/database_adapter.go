@@ -67,7 +67,7 @@ func (da *DatabaseAdapter) GetClient() *supabase.Client {
 }
 
 // executeQuery handles SELECT queries
-func (da *DatabaseAdapter) executeQuery(ctx context.Context, query string, args ...interface{}) ([]map[string]interface{}, error) {
+func (da *DatabaseAdapter) executeQuery(_ context.Context, query string, args ...interface{}) ([]map[string]interface{}, error) {
 	client := da.service.GetPooledClient()
 	defer da.service.ReturnPooledClient(client)
 
@@ -93,7 +93,7 @@ func (da *DatabaseAdapter) executeQuery(ctx context.Context, query string, args 
 }
 
 // executeCommand handles INSERT, UPDATE, DELETE commands
-func (da *DatabaseAdapter) executeCommand(ctx context.Context, query string, args ...interface{}) error {
+func (da *DatabaseAdapter) executeCommand(_ context.Context, query string, args ...interface{}) error {
 	client := da.service.GetPooledClient()
 	defer da.service.ReturnPooledClient(client)
 

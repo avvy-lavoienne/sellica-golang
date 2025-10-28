@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast, ToastContainer } from "react-toastify";
+import { useProtectedAuth } from "@/app/(protected)/auth-context";
 import "react-toastify/dist/ReactToastify.css";
 import {
   format,
@@ -86,6 +87,7 @@ export default function AktivitasUserPage() {
     end: endOfMonth(new Date()),
   });
   const [timeFilter, setTimeFilter] = useState<string>("month");
+  const { user: contextUser, loading: isLoadingAuth } = useProtectedAuth();
 
   // Data for each section
   const [aktivitasSiakData, setAktivitasSiakData] = useState<
@@ -114,30 +116,26 @@ export default function AktivitasUserPage() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-        if (sessionError || !session) {
+        // User already authenticated via layout, use context data
+        if (!contextUser) {
           toast.error("Sesi tidak ditemukan. Silakan login kembali.");
           router.push("/");
           return;
         }
 
-        setUser(session.user);
-
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("name, nik, role")
-          .eq("id", session.user.id)
-          .single();
-
-        if (profileError) {
-          throw new Error(`Gagal mengambil profil: ${profileError.message}`);
-        }
-
-        setProfile(profileData);
-        setUserRole(profileData.role || "user");
+        setUser(contextUser);
+        
+        // Go backend includes role in user data, no need to query profiles
+        // Use contextUser.role directly from Go auth response
+        setUserRole(contextUser.role || "user");
+        
+        // If we need profile data (name, nik), we can get it from contextUser
+        // or add it to the Go backend response. For now, use what's available
+        setProfile({
+          name: contextUser.name || "User",
+          nik: contextUser.nik || "",
+          role: contextUser.role || "user",
+        });
       } catch (error: any) {
         toast.error(
           error.message || "Gagal memuat data pengguna. Silakan coba lagi.",
@@ -148,8 +146,11 @@ export default function AktivitasUserPage() {
       }
     };
 
-    fetchUserData();
-  }, [router]);
+    // Only fetch when context user is available and auth is not loading
+    if (!isLoadingAuth && contextUser) {
+      fetchUserData();
+    }
+  }, [contextUser, isLoadingAuth, router]);
 
   // Fetch all data and create summary stats
   const fetchAllData = useCallback(async () => {

@@ -30,6 +30,9 @@ type User struct {
 	Name      string    `json:"name" db:"name"`
 	Role      string    `json:"role" db:"role"`
 	NIK       string    `json:"nik" db:"nik"`
+	NIP       string    `json:"nip" db:"nip"`                 // Employee ID
+	Position  string    `json:"position" db:"position"`       // Job position
+	AvatarURL *string   `json:"avatar_url" db:"avatar_url"`   // Pointer to allow null
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
@@ -189,7 +192,7 @@ func (s *Service) GetUserByID(ctx context.Context, userID string) (*User, error)
 
 	// Query profiles table for user
 	data, _, err := s.client.From("profiles").
-		Select("id,email,name,role,nik", "", false).
+		Select("id,email,name,role,nik,nip,position,avatar_url", "", false).
 		Eq("id", userID).
 		Single().
 		Execute()
@@ -254,9 +257,10 @@ func (s *Service) GetPendingUsers(ctx context.Context) ([]PendingUser, error) {
 		return nil, ErrDatabaseNotHealthy
 	}
 
+	// Query pending_users table - SELECT all fields except password for security
+	// Include all statuses (pending, approved, rejected) for admin view
 	data, _, err := s.client.From("pending_users").
-		Select("*", "", false).
-		Eq("status", "pending").
+		Select("id,email,name,position,nip,nik,status,requested_at", "", false).
 		Order("requested_at", nil).
 		Execute()
 

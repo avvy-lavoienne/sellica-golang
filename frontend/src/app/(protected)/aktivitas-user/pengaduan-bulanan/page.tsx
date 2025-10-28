@@ -7,6 +7,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/conn/utils";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast, ToastContainer } from "react-toastify";
+import { useProtectedAuth } from "@/app/(protected)/auth-context";
 import "react-toastify/dist/ReactToastify.css";
 import { Badge } from "@/components/ui/badge";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -42,6 +43,7 @@ interface User {
 
 export default function PengaduanBulananPage() {
   const router = useRouter();
+  const { user: contextUser, loading: isLoadingAuth } = useProtectedAuth();
 
   // Enhanced state management for enterprise UX
   const [user, setUser] = useState<User | null>(null);
@@ -142,29 +144,20 @@ export default function PengaduanBulananPage() {
     const fetchUserData = async () => {
       try {
         setIsFetchingUser(true);
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-        if (sessionError || !session) {
+        // User already authenticated via layout, use context data
+        if (!contextUser) {
           toast.error("Sesi tidak ditemukan. Silakan login kembali.");
           router.push("/");
           return;
         }
 
-        setUser(session.user);
+        setUser(contextUser);
 
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("name, nik, role")
-          .eq("id", session.user.id)
-          .single();
-
-        if (profileError) {
-          throw new Error(`Gagal mengambil profil: ${profileError.message}`);
-        }
-
-        if (!profileData.nik) {
+        // Go backend includes role in user data, use directly
+        // Note: NIK validation may need to be added to Go backend response in future
+        const userNik = contextUser.nik || "";
+        
+        if (!userNik) {
           toast.error(
             "NIK Anda di profil tidak valid. Harap perbarui profil Anda terlebih dahulu.",
           );
@@ -172,7 +165,7 @@ export default function PengaduanBulananPage() {
           return;
         }
 
-        setUserRole(profileData.role || "user");
+        setUserRole(contextUser.role || "user");
       } catch (error: any) {
         toast.error(
           error.message || "Gagal memuat data pengguna. Silakan coba lagi.",
@@ -183,8 +176,11 @@ export default function PengaduanBulananPage() {
       }
     };
 
-    fetchUserData();
-  }, [router]);
+    // Only fetch when context user is available and auth is not loading
+    if (!isLoadingAuth && contextUser) {
+      fetchUserData();
+    }
+  }, [contextUser, isLoadingAuth, router]);
 
   const fetchRekapData = useCallback(
     async (

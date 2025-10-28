@@ -10,6 +10,9 @@ package-lock.json
 # testing
 /coverage
 
+# application logs (generated at runtime)
+/logs/
+
 # next.js
 /.next/
 /out/
@@ -70,3 +73,5 @@ server-macos
 server-win.exe
 server.exe
 
+#extension
+/ext/supabase-main-go

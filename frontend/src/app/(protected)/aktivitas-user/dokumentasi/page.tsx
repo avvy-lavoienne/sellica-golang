@@ -5,6 +5,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/conn/utils";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast, ToastContainer } from "react-toastify";
+import { useProtectedAuth } from "@/app/(protected)/auth-context";
 import "react-toastify/dist/ReactToastify.css";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -57,6 +58,7 @@ export default function DokumentasiPage() {
     const [endDate, setEndDate] = useState<Date | null>(null);
     const [filterBy, setFilterBy] = useState<"tanggal" | "created_at">("tanggal");
     const [error, setError] = useState<string | null>(null);
+    const { user: contextUser, loading: isLoadingAuth } = useProtectedAuth();
     const [pageStats, setPageStats] = useState({
         totalItems: 0,
         filteredItems: 0,
@@ -422,6 +424,7 @@ export default function DokumentasiPage() {
                             <InputDokumentasi
                                 onAddDokumentasi={handleAddDokumentasi}
                                 loading={refreshing}
+                                user={contextUser}
                             />
                         </div>
                     </motion.div>

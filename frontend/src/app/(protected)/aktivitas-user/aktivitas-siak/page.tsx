@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast, ToastContainer } from "react-toastify";
+import { useProtectedAuth } from "@/app/(protected)/auth-context";
 import "react-toastify/dist/ReactToastify.css";
 import type {
     AktivitasSiakData,
@@ -67,6 +68,7 @@ function convertMonthToIndonesian(monthInput: string): string {
 
 export default function AktivitasSiakPage() {
     const router = useRouter();
+    const { user: contextUser, loading: isLoadingAuth } = useProtectedAuth();
 
     // Hydration-safe state
     const [isHydrated, setIsHydrated] = useState(false);
@@ -175,31 +177,23 @@ export default function AktivitasSiakPage() {
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const {
-                    data: { session: supabaseSession },
-                    error: sessionError,
-                } = await supabase.auth.getSession();
-                if (sessionError || !supabaseSession) {
+                // User already authenticated via layout, use context data
+                if (!contextUser) {
                     toast.error("Sesi tidak ditemukan. Silakan login kembali.");
                     router.push("/");
                     return;
                 }
 
-                setUser(supabaseSession.user);
-                setSession(supabaseSession);
+                setUser(contextUser);
+                setSession({ user: contextUser });
 
-                const { data: profileData, error: profileError } = await supabase
-                    .from("profiles")
-                    .select("name, nik, role")
-                    .eq("id", supabaseSession.user.id)
-                    .single();
-
-                if (profileError) {
-                    throw new Error(`Gagal mengambil profil: ${profileError.message}`);
-                }
-
-                setProfile(profileData);
-                setUserRole(profileData.role || "user");
+                // Go backend includes role in user data
+                setUserRole(contextUser.role || "user");
+                setProfile({
+                    name: contextUser.name || "User",
+                    nik: contextUser.nik || "",
+                    role: contextUser.role || "user",
+                });
             } catch (error: any) {
                 console.error("Error fetching user data:", error);
                 toast.error(
@@ -211,8 +205,11 @@ export default function AktivitasSiakPage() {
             }
         };
 
-        fetchUserData();
-    }, [router]);
+        // Only fetch when context user is available and auth is not loading
+        if (!isLoadingAuth && contextUser) {
+            fetchUserData();
+        }
+    }, [contextUser, isLoadingAuth, router]);
 
     const fetchRekapData = useCallback(
         async (

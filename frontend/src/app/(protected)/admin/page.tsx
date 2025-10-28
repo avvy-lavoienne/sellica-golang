@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { createClient } from '@supabase/supabase-js';
 import { toast } from "react-toastify";
+import { useProtectedAuth } from "@/app/(protected)/auth-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -115,64 +116,69 @@ export default function UserApprovalPage() {
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const router = useRouter();
+  const { user: contextUser } = useProtectedAuth();
   
   // Check if user has admin rights
   useEffect(() => {
-    const checkAdmin = async () => {
-      try {
-        const { data: session } = await supabase.auth.getSession();
-        if (!session.session) {
-          toast.error("Sesi tidak ditemukan. Silakan login kembali.");
-          router.push("/");
-          return;
-        }
+    if (!contextUser) {
+      toast.error("Sesi tidak ditemukan. Silakan login kembali.");
+      router.push("/");
+      return;
+    }
 
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", session.session.user.id)
-          .single();
+    if (!["admin", "superuser"].includes(contextUser.role ?? "")) {
+      toast.error("Anda tidak memiliki akses ke halaman ini");
+      router.push("/dashboard");
+      return;
+    }
 
-        if (
-          !profileData ||
-          !["admin", "superuser"].includes(profileData.role ?? "")
-        ) {
-          toast.error("Anda tidak memiliki akses ke halaman ini");
-          router.push("/dashboard");
-          return;
-        }
-
-        fetchPendingUsers();
-      } catch (error) {
-        router.push("/dashboard");
-      }
-    };
-
-    checkAdmin();
-  }, [router]);
+    fetchPendingUsers();
+  }, [contextUser, router]);
 
   const fetchPendingUsers = async () => {
     try {
-      const { data, error } = await typedSupabase
-        .from("pending_users")
-        .select(
-          "id, email, name, password, requested_at, status, user_metadata",
-        )
-        .order("requested_at", { ascending: false });
+      const token = localStorage.getItem('sb-token') || 
+                   sessionStorage.getItem('sb-token') || 
+                   contextUser?.token;
 
-      if (error) throw error;
+      const response = await fetch('/api/admin/pending-users', {
+        method: 'GET',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 403) {
+          toast.error("Anda tidak memiliki akses sebagai admin");
+        } else {
+          toast.error("Gagal memuat data pengguna yang tertunda");
+        }
+        return;
+      }
+
+      const result = await response.json();
+
+      if (!result.success || !result.data) {
+        toast.error(result.error || "Gagal memuat data pengguna yang tertunda");
+        return;
+      }
+
+      // Transform API response to match component interface
       setPendingUsers(
-        (data || []).map((item) => ({
+        (result.data || []).map((item: any) => ({
           id: item.id,
           email: item.email || "",
           name: item.name || "",
-          password: item.password || "",
+          password: "", // Never sent from backend
           requested_at: item.requested_at || "",
           status: item.status || "pending",
           user_metadata: item.user_metadata || {},
         })),
       );
     } catch (error) {
+      console.error('Error fetching pending users:', error);
       toast.error("Gagal memuat data pengguna yang tertunda");
     } finally {
       setLoading(false);

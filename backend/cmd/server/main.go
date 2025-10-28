@@ -81,6 +81,7 @@ func main() {
 		services.SilpanaBroadcaster,
 		services.SupabaseAnalyzer,
 		services.AktivitasSiak,
+		services.SessionManager,
 	)
 	routes.SetupRoutes(router, routeServices)
 
@@ -148,6 +149,7 @@ type Services struct {
 	WebSocketHub        *websocket.Hub
 	SilpanaBroadcaster  *silpana.WebSocketBroadcaster
 	SupabaseAnalyzer    *supabase_analyzer.Service
+	SessionManager      *auth.SessionManager // Session manager for SILPANA operations
 
 	// Enhanced Services (Optimization Layer) - Placeholder interfaces
 	AI           interface{} // *ai.Service - To be implemented
@@ -249,6 +251,11 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		"cached_tokens": authStats["cachedTokens"],
 		"version":       authStats["version"],
 	}).Info("🔐 Enhanced authentication service initialized with advanced features")
+
+	// Initialize session manager for SILPANA operations (Phase 3)
+	sessionConfig := auth.NewSessionConfig()
+	sessionManager := auth.NewSessionManager(authService, sessionConfig)
+	logrus.WithField("status", "initialized").Info("📋 Session manager initialized for SILPANA ticketing system")
 
 	// Initialize monitoring service
 	monitoringService := monitoring.NewService()
@@ -460,6 +467,7 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		WebSocketHub:       wsHub,
 		SilpanaBroadcaster: silpanaBroadcaster,
 		SupabaseAnalyzer:   supabaseAnalyzer,
+		SessionManager:     sessionManager,
 
 		// Enhanced Services (placeholders)
 		AI:           aiService,
@@ -497,8 +505,4 @@ func setupLoggingWithFile(cfg *config.Config, hasFileLogging bool) {
 	// If hasFileLogging is true, logwriter has already set up the formatter
 
 	logrus.Info("📝 Logging system initialized")
-}
-
-func setupLogging(cfg *config.Config) {
-	setupLoggingWithFile(cfg, false)
 }
