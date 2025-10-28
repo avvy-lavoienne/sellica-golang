@@ -149,6 +149,32 @@ export const ChartSection = ({
   className,
   "aria-label": ariaLabel = "Chart data visualization",
 }: ChartSectionProps) => {
+  // Log incoming props for debugging
+  useEffect(() => {
+    console.log('[ChartSection] Props received:', {
+      viewMode,
+      selectedYear,
+      availableYears: availableYears.length,
+      hasChartData: !!chartData,
+      yearlyDatasets: chartData?.yearly?.datasets?.length || 0,
+      monthlyDatasets: chartData?.monthly?.datasets?.length || 0,
+      yearlyLabels: chartData?.yearly?.labels?.length || 0,
+      monthlyLabels: chartData?.monthly?.labels?.length || 0,
+      isLoading,
+      hasError: !!error,
+    });
+    
+    // Log detailed dataset info
+    if (chartData?.yearly?.datasets) {
+      const yearlyDataSample = chartData.yearly.datasets[0];
+      console.log('[ChartSection] Yearly dataset sample:', {
+        label: yearlyDataSample?.label,
+        dataLength: yearlyDataSample?.data?.length,
+        dataSample: yearlyDataSample?.data?.slice(0, 3),
+        hasData: yearlyDataSample?.data?.some((d: number) => d > 0),
+      });
+    }
+  }, [chartData, viewMode, selectedYear, availableYears, isLoading, error]);
   // Custom hook to prevent page reloads
   const safeSetSelectedYear = useCallback(
     (year: string) => {

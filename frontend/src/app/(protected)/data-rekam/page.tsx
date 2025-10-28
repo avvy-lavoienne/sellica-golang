@@ -303,6 +303,7 @@ export default function DataRekam() {
         }
 
         // Process actual data
+        let processedCount = 0;
         data.forEach((item) => {
           if (!item.created_at) {
             console.warn("Missing created_at for item:", item);
@@ -323,25 +324,106 @@ export default function DataRekam() {
           if (item.is_ready_to_record === true) {
             monthlyStats[month].selesai += 1;
           }
+          processedCount++;
         });
 
-        return Object.values(monthlyStats).sort((a, b) =>
+        const result = Object.values(monthlyStats).sort((a, b) =>
           a.month.localeCompare(b.month),
         );
+        
+        console.log('[processMonthlyStats] Processed:', { inputCount: data.length, processedCount, resultCount: result.length, nonZeroMonths: result.filter(r => r.pengajuan > 0).length });
+        
+        return result;
       };
 
-      // Process data for each category - but don't pass the summary stats as individual records
-      // These are summary objects, not individual records, so we create empty arrays for the actual data
-      const adjudicateStats = processMonthlyStats([]);
-      const duplicateStats = processMonthlyStats([]);
-      const salahRekamStatsProcessed = processMonthlyStats([]);
-      const pengajuanStats = processMonthlyStats([]);
+      // Fetch individual records for each category to populate monthly chart data
+      let adjudicateStats: Stat[] = [];
+      let duplicateStats: Stat[] = [];
+      let salahRekamStatsProcessed: Stat[] = [];
+      let pengajuanStats: Stat[] = [];
 
-      // Update states with processed data (these are summary statistics, not individual records)
-      setAdjudicateRecordStats(adjudicateStats);
-      setDuplicateOperatorStats(duplicateStats);
-      setSalahRekamStats(salahRekamStatsProcessed);
-      setPengajuanBulananStats(pengajuanStats);
+      try {
+        const [adjudicateRecords, duplicateRecords, salahRekamRecords, pengajuanRecords] = await Promise.all([
+          fetch(`/api/data-rekam/adjudicate${params.toString() ? '?' + params.toString() : ''}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }).then(r => r.json()).then(d => {
+            if (d.success && d.data) {
+              return Array.isArray(d.data) ? d.data : [];
+            }
+            return [];
+          }).catch(e => {
+            console.warn('[DataRekam] Failed to fetch adjudicate records for charts:', e);
+            return [];
+          }),
+          fetch(`/api/data-rekam/duplicate-operator${params.toString() ? '?' + params.toString() : ''}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }).then(r => r.json()).then(d => {
+            if (d.success && d.data) {
+              return Array.isArray(d.data) ? d.data : [];
+            }
+            return [];
+          }).catch(e => {
+            console.warn('[DataRekam] Failed to fetch duplicate-operator records for charts:', e);
+            return [];
+          }),
+          fetch(`/api/data-rekam/salah-rekam${params.toString() ? '?' + params.toString() : ''}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }).then(r => r.json()).then(d => {
+            if (d.success && d.data) {
+              return Array.isArray(d.data) ? d.data : [];
+            }
+            return [];
+          }).catch(e => {
+            console.warn('[DataRekam] Failed to fetch salah-rekam records for charts:', e);
+            return [];
+          }),
+          fetch(`/api/data-rekam/pengajuan-bulanan${params.toString() ? '?' + params.toString() : ''}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }).then(r => r.json()).then(d => {
+            if (d.success && d.data) {
+              return Array.isArray(d.data) ? d.data : [];
+            }
+            return [];
+          }).catch(e => {
+            console.warn('[DataRekam] Failed to fetch pengajuan-bulanan records for charts:', e);
+            return [];
+          }),
+        ]);
+
+        // Debug: Log first record structure
+        if (adjudicateRecords.length > 0) {
+          console.log('[DataRekam] Sample adjudicate record:', adjudicateRecords[0]);
+        }
+        if (duplicateRecords.length > 0) {
+          console.log('[DataRekam] Sample duplicate record:', duplicateRecords[0]);
+        }
+
+        // Process data for each category with the actual records
+        adjudicateStats = processMonthlyStats(adjudicateRecords);
+        duplicateStats = processMonthlyStats(duplicateRecords);
+        salahRekamStatsProcessed = processMonthlyStats(salahRekamRecords);
+        pengajuanStats = processMonthlyStats(pengajuanRecords);
+
+        console.log('[DataRekam] Chart data records fetched:', {
+          adjudicate: adjudicateRecords.length,
+          duplicate: duplicateRecords.length,
+          salahRekam: salahRekamRecords.length,
+          pengajuan: pengajuanRecords.length,
+        });
+
+        // Update states with processed data
+        setAdjudicateRecordStats(adjudicateStats);
+        setDuplicateOperatorStats(duplicateStats);
+        setSalahRekamStats(salahRekamStatsProcessed);
+        setPengajuanBulananStats(pengajuanStats);
+      } catch (error) {
+        console.warn('[DataRekam] Error fetching chart records:', error);
+        // Fall back to empty stats
+        setAdjudicateRecordStats([]);
+        setDuplicateOperatorStats([]);
+        setSalahRekamStats([]);
+        setPengajuanBulananStats([]);
+      }
 
       // Update totals with actual counts from the backend
       setTotalPengajuanAdjudicate(adjudicateCount);
@@ -423,28 +505,146 @@ export default function DataRekam() {
         monthlyDataByYear[year].sort((a, b) => a.label.localeCompare(b.label));
       });
 
+      const yearlyChartData = Object.entries(monthlyDataByYear).map(([year, data]) => ({
+        label: year,
+        adjudicateRecord: data.reduce(
+          (sum, curr) => sum + curr.adjudicateRecord,
+          0,
+        ),
+        duplicateOperator: data.reduce(
+          (sum, curr) => sum + curr.duplicateOperator,
+          0,
+        ),
+        salahRekam: data.reduce((sum, curr) => sum + curr.salahRekam, 0),
+        pengajuanBulanan: data.reduce(
+          (sum, curr) => sum + curr.pengajuanBulanan,
+          0,
+        ),
+      }));
+
+      console.log('[DataRekam] Chart data before state update:', {
+        monthlyDataYears: Object.keys(monthlyDataByYear),
+        monthlyDataSample: monthlyDataByYear['2025']?.slice(0, 3),
+        yearlyChartData: yearlyChartData,
+        totalRecordsInMonthly: Object.values(monthlyDataByYear).flat().filter(d => d.adjudicateRecord + d.duplicateOperator + d.salahRekam + d.pengajuanBulanan > 0).length,
+      });
+
       setSparklineDataMonthlyByYear(monthlyDataByYear);
-      setSparklineDataYearly(
-        Object.entries(monthlyDataByYear).map(([year, data]) => ({
-          label: year,
-          adjudicateRecord: data.reduce(
-            (sum, curr) => sum + curr.adjudicateRecord,
-            0,
-          ),
-          duplicateOperator: data.reduce(
-            (sum, curr) => sum + curr.duplicateOperator,
-            0,
-          ),
-          salahRekam: data.reduce((sum, curr) => sum + curr.salahRekam, 0),
-          pengajuanBulanan: data.reduce(
-            (sum, curr) => sum + curr.pengajuanBulanan,
-            0,
-          ),
-        })),
-      );
+      setSparklineDataYearly(yearlyChartData);
 
       // Set available years based on data
       setAvailableYears(Object.keys(monthlyDataByYear).sort());
+
+      // Build ChartData from sparkline data
+      const yearlyLabels = yearlyChartData.map(y => y.label);
+      const yearlyDatasets = [
+        {
+          label: 'Adjudicate Record',
+          data: yearlyChartData.map(y => y.adjudicateRecord),
+          borderColor: '#3B82F6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          tension: 0.4,
+        },
+        {
+          label: 'Duplicate Operator',
+          data: yearlyChartData.map(y => y.duplicateOperator),
+          borderColor: '#8B5CF6',
+          backgroundColor: 'rgba(139, 92, 246, 0.1)',
+          tension: 0.4,
+        },
+        {
+          label: 'Salah Rekam',
+          data: yearlyChartData.map(y => y.salahRekam),
+          borderColor: '#EF4444',
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          tension: 0.4,
+        },
+        {
+          label: 'Pengajuan Bulanan',
+          data: yearlyChartData.map(y => y.pengajuanBulanan),
+          borderColor: '#10B981',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          tension: 0.4,
+        },
+      ];
+
+      // Build monthly chart data for current selected year
+      const currentYearData = monthlyDataByYear[selectedYear] || [];
+      const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const monthlyDatasets = [
+        {
+          label: 'Adjudicate Record',
+          data: monthLabels.map((_, monthIndex) => {
+            const monthData = currentYearData.find(d => {
+              const [year, month] = d.label.split('-');
+              return parseInt(month) === monthIndex + 1;
+            });
+            return monthData?.adjudicateRecord || 0;
+          }),
+          borderColor: '#3B82F6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          tension: 0.4,
+        },
+        {
+          label: 'Duplicate Operator',
+          data: monthLabels.map((_, monthIndex) => {
+            const monthData = currentYearData.find(d => {
+              const [year, month] = d.label.split('-');
+              return parseInt(month) === monthIndex + 1;
+            });
+            return monthData?.duplicateOperator || 0;
+          }),
+          borderColor: '#8B5CF6',
+          backgroundColor: 'rgba(139, 92, 246, 0.1)',
+          tension: 0.4,
+        },
+        {
+          label: 'Salah Rekam',
+          data: monthLabels.map((_, monthIndex) => {
+            const monthData = currentYearData.find(d => {
+              const [year, month] = d.label.split('-');
+              return parseInt(month) === monthIndex + 1;
+            });
+            return monthData?.salahRekam || 0;
+          }),
+          borderColor: '#EF4444',
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          tension: 0.4,
+        },
+        {
+          label: 'Pengajuan Bulanan',
+          data: monthLabels.map((_, monthIndex) => {
+            const monthData = currentYearData.find(d => {
+              const [year, month] = d.label.split('-');
+              return parseInt(month) === monthIndex + 1;
+            });
+            return monthData?.pengajuanBulanan || 0;
+          }),
+          borderColor: '#10B981',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          tension: 0.4,
+        },
+      ];
+
+      const finalChartData: ChartData = {
+        yearly: {
+          labels: yearlyLabels,
+          datasets: yearlyDatasets,
+        },
+        monthly: {
+          labels: monthLabels,
+          datasets: monthlyDatasets,
+        },
+      };
+
+      console.log('[DataRekam] Final chart data:', { 
+        yearlyLabels: finalChartData.yearly.labels,
+        yearlyDatasets: finalChartData.yearly.datasets.length,
+        monthlyLabels: finalChartData.monthly.labels,
+        monthlyDatasets: finalChartData.monthly.datasets.length,
+      });
+
+      setChartData(finalChartData);
       
       console.log("[DataRekam] fetchUserAndStats completed successfully");
     } catch (error: any) {
