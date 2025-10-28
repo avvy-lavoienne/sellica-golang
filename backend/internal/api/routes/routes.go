@@ -92,6 +92,9 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	// Authentication routes (public)
 	setupAuthRoutes(router, services.Auth, services.Database)
 
+	// Data-Rekam routes (protected - require authentication)
+	setupDataRekamRoutes(router, services.Auth, services.Database)
+
 	// Admin routes (protected - require admin role)
 	setupAdminRoutes(router, services.Auth, services.Database)
 
@@ -425,6 +428,33 @@ func (h *WebSocketTicketHandler) Handle(c *gin.Context) {
 	go client.ReadPump()
 
 	log.Printf("New WebSocket connection established for user: %s (admin: %v)", userID, isAdmin)
+}
+
+// setupDataRekamRoutes configures data-rekam endpoints
+// All routes require authentication and extract user context from JWT
+func setupDataRekamRoutes(router *gin.Engine, authService *auth.Service, dbService *database.Service) {
+	// Create data-rekam handler
+	dataRekamHandler := handlers.NewDataRekamHandler(dbService)
+
+	// Protected data-rekam endpoints (require authentication)
+	dataRekamGroup := router.Group("/data-rekam")
+	dataRekamGroup.Use(middleware.AuthMiddleware(authService))
+	{
+		// Adjudicate record endpoints
+		dataRekamGroup.GET("/adjudicate", dataRekamHandler.GetAdjudicateRecords)
+
+		// Duplicate operator endpoints
+		dataRekamGroup.GET("/duplicate-operator", dataRekamHandler.GetDuplicateOperatorRecords)
+
+		// Pengajuan bulanan endpoints
+		dataRekamGroup.GET("/pengajuan-bulanan", dataRekamHandler.GetPengajuanBulananRecords)
+
+		// Salah rekam endpoints
+		dataRekamGroup.GET("/salah-rekam", dataRekamHandler.GetSalahRekamRecords)
+
+		// Dashboard statistics endpoint
+		dataRekamGroup.GET("/dashboard-stats", dataRekamHandler.GetDashboardStats)
+	}
 }
 
 // setupAdminRoutes configures admin-only endpoints
