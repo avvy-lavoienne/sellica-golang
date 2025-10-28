@@ -1,23 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * GET /api/data-rekam/dashboard-stats
+ * GET /api/data-rekam/chart-aggregation
  * 
- * Retrieves aggregated statistics for all data-rekam tables.
- * This is a secure API route that:
- * 1. Validates user authentication via their token
- * 2. Passes date filters to Go backend
- * 3. Returns aggregated statistics (total and completed counts)
+ * Retrieves aggregated time-series data specifically for chart visualization.
+ * This route is separate from dashboard-stats to avoid affecting card data.
  * 
  * Query Parameters:
  * - start_date: Filter by start date (YYYY-MM-DD, optional)
  * - end_date: Filter by end date (YYYY-MM-DD, optional)
  * 
- * Response includes totals and completed counts for each table:
- * - adjudicate_record
- * - duplicate_operator
- * - salah_rekam
- * - pengajuan_bulanan
+ * Response includes aggregated monthly and yearly data:
+ * - monthly_data: Array of {year, month, count} for all records
+ * - yearly_data: Array of {year, count} for all records
  */
 export async function GET(request: NextRequest) {
     try {
@@ -35,13 +30,13 @@ export async function GET(request: NextRequest) {
         }
 
         // Get the Go backend URL
-        const goBackendUrl = process.env.NEXT_PUBLIC_GO_BACKEND_URL || 'http://localhost:8080';
+        const goBackendUrl = process.env.NEXT_PUBLIC_GO_BACKEND_URL || 'http://localhost:8081';
 
         // Forward query parameters to Go backend
         const searchParams = request.nextUrl.searchParams;
         const queryString = searchParams.toString();
 
-        // Call the Go backend data-rekam endpoint
+        // Call the Go backend data-rekam endpoint for aggregated stats
         const response = await fetch(
             `${goBackendUrl}/data-rekam/dashboard-stats${queryString ? '?' + queryString : ''}`,
             {
@@ -77,17 +72,40 @@ export async function GET(request: NextRequest) {
             return NextResponse.json(
                 {
                     success: false,
-                    error: 'Failed to retrieve dashboard statistics'
+                    error: 'Failed to retrieve chart aggregation data'
                 },
                 { status: response.status }
             );
         }
 
         // Parse successful response from Go backend
-        const data = await response.json();
+        const response_data = await response.json();
 
-        // Return the data to the frontend
-        return NextResponse.json(data, { status: 200 });
+        // Backend returns wrapped response: { success: true, data: { MonthlyData, YearlyData, ... } }
+        const backendData = response_data.data || response_data;
+
+        console.log('[chart-aggregation] Backend response data:', {
+            hasMonthlyData: !!backendData.MonthlyData,
+            monthlyDataCount: backendData.MonthlyData?.length || 0,
+            hasYearlyData: !!backendData.YearlyData,
+            yearlyDataCount: backendData.YearlyData?.length || 0,
+            fullData: response_data,
+        });
+
+        // Extract and return only time-series data for chart
+        // Backend returns: { data: { Summary: {...}, MonthlyData: [...], YearlyData: [...] } }
+        // We extract only the aggregated data for chart rendering
+        const responseData = {
+            monthly_data: backendData.MonthlyData || [],    // [{ year, month, count }, ...]
+            yearly_data: backendData.YearlyData || [],      // [{ year, count }, ...]
+        };
+
+        console.log('[chart-aggregation] Returning chart data:', responseData);
+
+        return NextResponse.json({
+            success: true,
+            data: responseData
+        }, { status: 200 });
 
     } catch (error) {
         console.error('API route error:', error);
