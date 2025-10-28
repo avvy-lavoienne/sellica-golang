@@ -352,12 +352,13 @@ export default function DataRekam() {
 
   // Initial chart data fetch and fetch when dates change
   useEffect(() => {
-    console.log("[DataRekam] Chart data useEffect triggered:", { startDate, endDate });
+    console.log("[DataRekam] Chart data useEffect triggered:", { startDate, endDate, selectedYear });
     // Always fetch chart data - with or without date filters
     // On initial load: startDate and endDate are null, so API gets all data
     // When dates change: API gets filtered data
-    fetchChartData(startDate || undefined, endDate || undefined);
-  }, [startDate, endDate, fetchChartData]);
+    // When selectedYear changes: API filters monthly data by selected year
+    fetchChartData(startDate || undefined, endDate || undefined, selectedYear);
+  }, [startDate, endDate, selectedYear, fetchChartData]);
 
   const prepareChartData = useCallback(
     (rekamData: ChartDataResponse): ChartData => {

@@ -14,7 +14,7 @@ interface UseChartAggregationReturn {
   chartData: ChartData;
   loading: boolean;
   error: string | null;
-  fetchChartData: (startDate?: Date | null, endDate?: Date | null) => Promise<void>;
+  fetchChartData: (startDate?: Date | null, endDate?: Date | null, selectedYear?: string) => Promise<void>;
 }
 
 /**
@@ -52,12 +52,12 @@ export function useChartAggregation(): UseChartAggregationReturn {
   const [error, setError] = useState<string | null>(null);
 
   const fetchChartData = useCallback(
-    async (startDate?: Date | null, endDate?: Date | null) => {
+    async (startDate?: Date | null, endDate?: Date | null, selectedYear?: string) => {
       try {
         setLoading(true);
         setError(null);
 
-        console.log('[useChartAggregation] fetchChartData called with:', { startDate, endDate });
+        console.log('[useChartAggregation] fetchChartData called with:', { startDate, endDate, selectedYear });
 
         const token = GoAuthAPI.getToken();
         if (!token) {
@@ -122,12 +122,13 @@ export function useChartAggregation(): UseChartAggregationReturn {
         });
 
         // Convert aggregated data to SparklineData format
+        // Backend now returns per-table breakdown: {year, adjudicate_record, duplicate_operator, salah_rekam, pengajuan_bulanan}
         const yearlySparklineData: SparklineData[] = yearly_data.map((item: any) => ({
           label: item.year.toString(),
-          adjudicateRecord: Math.floor(item.count * 0.4),
-          duplicateOperator: Math.floor(item.count * 0.3),
-          salahRekam: Math.floor(item.count * 0.2),
-          pengajuanBulanan: Math.floor(item.count * 0.1),
+          adjudicateRecord: item.adjudicate_record || 0,
+          duplicateOperator: item.duplicate_operator || 0,
+          salahRekam: item.salah_rekam || 0,
+          pengajuanBulanan: item.pengajuan_bulanan || 0,
         }));
 
         console.log('[useChartAggregation] Yearly sparkline data:', yearlySparklineData);
@@ -190,8 +191,9 @@ export function useChartAggregation(): UseChartAggregationReturn {
           },
         ];
 
-        // Get current year for monthly view (default to latest year)
-        const currentYear = yearlyLabels[yearlyLabels.length - 1] || new Date().getFullYear().toString();
+        // Get current year for monthly view
+        // Use selectedYear if provided (from parent component), otherwise default to latest year
+        const currentYear = selectedYear || yearlyLabels[yearlyLabels.length - 1] || new Date().getFullYear().toString();
         const monthlyDataForYear = monthlyByYear[currentYear] || [];
         const monthlyLabels = monthlyDataForYear.map((item) => item.label);
         const monthlyDatasets = [

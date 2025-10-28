@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -408,40 +409,74 @@ func (s *Service) GetMonthlyBreakdown(ctx context.Context, startDate, endDate *s
 		return nil, ErrDatabaseNotHealthy
 	}
 
-	tables := []string{"adjudicate_record", "duplicate_operator", "salah_rekam", "pengajuan_bulanan"}
+	// Define which date column to use for each table
+	tables := []struct {
+		name    string // Table name
+		dateCol string // Date column to query
+	}{
+		{"adjudicate_record", "tanggal_pengajuan"},
+		{"duplicate_operator", "tanggal_pengajuan"},
+		{"salah_rekam", "created_at"},
+		{"pengajuan_bulanan", "tanggal_pengajuan"},
+	}
+
 	monthlyStats := make(map[string]int) // Key: "YYYY-MM", Value: count
 
-	for _, tableName := range tables {
-		query := s.client.From(tableName).Select("created_at", "exact", false)
+	for _, tableInfo := range tables {
+		// SELECT the correct date column for each table
+		query := s.client.From(tableInfo.name).Select(tableInfo.dateCol, "exact", false)
 
 		if startDate != nil {
-			query = query.Gte("created_at", *startDate)
+			query = query.Gte(tableInfo.dateCol, *startDate)
 		}
 		if endDate != nil {
-			query = query.Lte("created_at", *endDate)
+			query = query.Lte(tableInfo.dateCol, *endDate)
 		}
 
 		data, _, err := query.Execute()
 		if err != nil {
-			logrus.WithError(err).WithField("table", tableName).Warn("Failed to get monthly breakdown")
+			logrus.WithError(err).WithField("table", tableInfo.name).Warn("Failed to get monthly breakdown")
 			continue
 		}
 
 		// Unmarshal raw JSON data
 		var records []map[string]interface{}
 		if err := json.Unmarshal(data, &records); err != nil {
-			logrus.WithError(err).WithField("table", tableName).Warn("Failed to unmarshal monthly breakdown data")
+			logrus.WithError(err).WithField("table", tableInfo.name).Warn("Failed to unmarshal monthly breakdown data")
 			continue
 		}
 
-		// Process records to extract created_at dates
+		// Process records to extract dates using the appropriate column for this table
 		for _, record := range records {
-			if createdAt, ok := record["created_at"].(string); ok {
-				// Extract year-month from ISO date string (YYYY-MM-DDTHH:MM:SS.sssZ)
-				if len(createdAt) >= 7 {
-					yearMonth := createdAt[:7] // "YYYY-MM"
-					monthlyStats[yearMonth]++
+			if dateStr, ok := record[tableInfo.dateCol].(string); ok {
+				// Parse date with multiple fallback formats to handle both:
+				// - DATE columns: "2024-03-15"
+				// - TIMESTAMP columns: "2024-03-15T10:30:45+07:00" or "2024-03-15T10:30:45.123456Z"
+				var parsedTime time.Time
+				var err error
+				
+				// Format 1: Try RFC3339Nano first (timestamps with nanoseconds)
+				parsedTime, err = time.Parse(time.RFC3339Nano, dateStr)
+				if err != nil {
+					// Format 2: RFC3339 format (timestamps without nanoseconds)
+					parsedTime, err = time.Parse(time.RFC3339, dateStr)
+					if err != nil {
+						// Format 3: ISO8601 with timezone offset
+						parsedTime, err = time.Parse("2006-01-02T15:04:05Z07:00", dateStr)
+						if err != nil {
+							// Format 4: Simple date format (DATE columns like tanggal_pengajuan)
+							parsedTime, err = time.Parse("2006-01-02", dateStr)
+							if err != nil {
+								logrus.WithError(err).WithField("table", tableInfo.name).WithField("dateCol", tableInfo.dateCol).WithField("dateValue", dateStr).Debug("Failed to parse date in any format, skipping record")
+								continue
+							}
+						}
+					}
 				}
+				
+				// Extract year-month using time.Time methods (YYYY-MM format)
+				yearMonth := parsedTime.Format("2006-01")
+				monthlyStats[yearMonth]++
 			}
 		}
 	}
@@ -463,23 +498,8 @@ func (s *Service) GetMonthlyBreakdown(ctx context.Context, startDate, endDate *s
 	}
 
 	for _, yearMonth := range keys {
-		// Parse YYYY-MM format
-		parts := make([]string, 0)
-		current := ""
-		for _, r := range yearMonth {
-			if r == '-' {
-				if current != "" {
-					parts = append(parts, current)
-					current = ""
-				}
-			} else {
-				current += string(r)
-			}
-		}
-		if current != "" {
-			parts = append(parts, current)
-		}
-
+		// Parse YYYY-MM format using strings.Split (more reliable than manual parsing)
+		parts := strings.Split(yearMonth, "-")
 		year := 0
 		month := 0
 		if len(parts) >= 2 {
@@ -503,49 +523,90 @@ func (s *Service) GetYearlyBreakdown(ctx context.Context, startDate, endDate *st
 		return nil, ErrDatabaseNotHealthy
 	}
 
-	tables := []string{"adjudicate_record", "duplicate_operator", "salah_rekam", "pengajuan_bulanan"}
-	yearlyStats := make(map[int]int) // Key: year, Value: count
+	// Define which date column to use for each table
+	tables := []struct {
+		name    string // Table name
+		dateCol string // Date column to query
+	}{
+		{"adjudicate_record", "tanggal_pengajuan"},
+		{"duplicate_operator", "tanggal_pengajuan"},
+		{"salah_rekam", "created_at"},
+		{"pengajuan_bulanan", "tanggal_pengajuan"},
+	}
 
-	for _, tableName := range tables {
-		query := s.client.From(tableName).Select("created_at", "exact", false)
+	// Track yearly stats per table: map[year]map[tableName]count
+	yearlyStatsByTable := make(map[int]map[string]int)
+
+	for _, tableInfo := range tables {
+		// SELECT the correct date column for each table
+		query := s.client.From(tableInfo.name).Select(tableInfo.dateCol, "exact", false)
 
 		if startDate != nil {
-			query = query.Gte("created_at", *startDate)
+			query = query.Gte(tableInfo.dateCol, *startDate)
 		}
 		if endDate != nil {
-			query = query.Lte("created_at", *endDate)
+			query = query.Lte(tableInfo.dateCol, *endDate)
 		}
 
 		data, _, err := query.Execute()
 		if err != nil {
-			logrus.WithError(err).WithField("table", tableName).Warn("Failed to get yearly breakdown")
+			logrus.WithError(err).WithField("table", tableInfo.name).Warn("Failed to get yearly breakdown")
 			continue
 		}
 
 		// Unmarshal raw JSON data
 		var records []map[string]interface{}
 		if err := json.Unmarshal(data, &records); err != nil {
-			logrus.WithError(err).WithField("table", tableName).Warn("Failed to unmarshal yearly breakdown data")
+			logrus.WithError(err).WithField("table", tableInfo.name).Warn("Failed to unmarshal yearly breakdown data")
 			continue
 		}
 
-		// Process records to extract created_at dates
+		// Process records to extract dates using the appropriate column for this table
 		for _, record := range records {
-			if createdAt, ok := record["created_at"].(string); ok {
-				// Extract year from ISO date string (YYYY-MM-DDTHH:MM:SS.sssZ)
-				if len(createdAt) >= 4 {
-					year := 0
-					fmt.Sscanf(createdAt[:4], "%d", &year)
-					yearlyStats[year]++
+			if dateStr, ok := record[tableInfo.dateCol].(string); ok {
+				// Parse date with multiple fallback formats to handle both:
+				// - DATE columns: "2024-03-15"
+				// - TIMESTAMP columns: "2024-03-15T10:30:45+07:00" or "2024-03-15T10:30:45.123456Z"
+				var parsedTime time.Time
+				var err error
+				
+				// Format 1: Try RFC3339Nano first (timestamps with nanoseconds)
+				parsedTime, err = time.Parse(time.RFC3339Nano, dateStr)
+				if err != nil {
+					// Format 2: RFC3339 format (timestamps without nanoseconds)
+					parsedTime, err = time.Parse(time.RFC3339, dateStr)
+					if err != nil {
+						// Format 3: ISO8601 with timezone offset
+						parsedTime, err = time.Parse("2006-01-02T15:04:05Z07:00", dateStr)
+						if err != nil {
+							// Format 4: Simple date format (DATE columns like tanggal_pengajuan)
+							parsedTime, err = time.Parse("2006-01-02", dateStr)
+							if err != nil {
+								logrus.WithError(err).WithField("table", tableInfo.name).WithField("dateCol", tableInfo.dateCol).WithField("dateValue", dateStr).Debug("Failed to parse date in any format, skipping record")
+								continue
+							}
+						}
+					}
 				}
+				
+				// Extract year using time.Time method
+				year := parsedTime.Year()
+				
+				// Initialize year map if needed
+				if yearlyStatsByTable[year] == nil {
+					yearlyStatsByTable[year] = make(map[string]int)
+				}
+				
+				// Increment count for this table in this year
+				yearlyStatsByTable[year][tableInfo.name]++
 			}
 		}
 	}
 
-	// Convert map to sorted slice
+	// Convert map to sorted slice with per-table breakdown
 	var result []map[string]interface{}
 	var years []int
-	for y := range yearlyStats {
+	for y := range yearlyStatsByTable {
 		years = append(years, y)
 	}
 
@@ -560,8 +621,11 @@ func (s *Service) GetYearlyBreakdown(ctx context.Context, startDate, endDate *st
 
 	for _, year := range years {
 		result = append(result, map[string]interface{}{
-			"year":  year,
-			"count": yearlyStats[year],
+			"year":               year,
+			"adjudicate_record":  yearlyStatsByTable[year]["adjudicate_record"],
+			"duplicate_operator": yearlyStatsByTable[year]["duplicate_operator"],
+			"salah_rekam":        yearlyStatsByTable[year]["salah_rekam"],
+			"pengajuan_bulanan":  yearlyStatsByTable[year]["pengajuan_bulanan"],
 		})
 	}
 
