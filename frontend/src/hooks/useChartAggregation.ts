@@ -57,12 +57,17 @@ export function useChartAggregation(): UseChartAggregationReturn {
         setLoading(true);
         setError(null);
 
+        console.log('[useChartAggregation] fetchChartData called with:', { startDate, endDate });
+
         const token = GoAuthAPI.getToken();
         if (!token) {
+          console.error('[useChartAggregation] No token found');
           setError('Authentication token not found');
           setLoading(false);
           return;
         }
+
+        console.log('[useChartAggregation] Token found:', token.substring(0, 20) + '...');
 
         // Build query parameters
         const params = new URLSearchParams();
@@ -73,9 +78,14 @@ export function useChartAggregation(): UseChartAggregationReturn {
           params.append('end_date', endDate.toISOString().split('T')[0]);
         }
 
+        console.log('[useChartAggregation] Query params:', params.toString());
+
         // Call chart-specific API route
+        const apiUrl = `/api/data-rekam/chart-aggregation?${params.toString()}`;
+        console.log('[useChartAggregation] Calling API:', apiUrl);
+
         const response = await fetch(
-          `/api/data-rekam/chart-aggregation?${params.toString()}`,
+          apiUrl,
           {
             method: 'GET',
             headers: {
@@ -85,20 +95,31 @@ export function useChartAggregation(): UseChartAggregationReturn {
           }
         );
 
+        console.log('[useChartAggregation] API response status:', response.status);
+
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
+          console.error('[useChartAggregation] API error response:', errorData);
           throw new Error(errorData.error || 'Failed to fetch chart data');
         }
 
         const result = await response.json();
 
+        console.log('[useChartAggregation] API response received:', result);
+
         if (!result.success) {
+          console.error('[useChartAggregation] API returned success: false', result);
           throw new Error(result.error || 'API returned success: false');
         }
 
         const { monthly_data = [], yearly_data = [] } = result.data || {};
 
-        console.log('[useChartAggregation] Fetched data:', { monthly_data, yearly_data });
+        console.log('[useChartAggregation] Extracted data:', {
+          monthlyDataLength: monthly_data.length,
+          yearlyDataLength: yearly_data.length,
+          monthly_data,
+          yearly_data,
+        });
 
         // Convert aggregated data to SparklineData format
         const yearlySparklineData: SparklineData[] = yearly_data.map((item: any) => ({
@@ -108,6 +129,8 @@ export function useChartAggregation(): UseChartAggregationReturn {
           salahRekam: Math.floor(item.count * 0.2),
           pengajuanBulanan: Math.floor(item.count * 0.1),
         }));
+
+        console.log('[useChartAggregation] Yearly sparkline data:', yearlySparklineData);
 
         // Convert monthly data grouped by year
         const monthlyByYear: { [year: string]: SparklineData[] } = {};
@@ -213,6 +236,15 @@ export function useChartAggregation(): UseChartAggregationReturn {
           },
         });
 
+        console.log('[useChartAggregation] Chart data updated with:', {
+          yearlyLabelsLength: yearlyLabels.length,
+          yearlyLabels,
+          yearlyDatasetsLength: yearlyDatasets.length,
+          monthlyLabelsLength: monthlyLabels.length,
+          monthlyLabels,
+          monthlyDatasetsLength: monthlyDatasets.length,
+        });
+        
         console.log('[useChartAggregation] Chart data set successfully');
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unknown error occurred';

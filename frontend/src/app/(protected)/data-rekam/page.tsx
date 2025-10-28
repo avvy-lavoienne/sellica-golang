@@ -350,6 +350,15 @@ export default function DataRekam() {
     fetchUserAndStats().finally(() => setIsRefreshing(false));
   };
 
+  // Initial chart data fetch and fetch when dates change
+  useEffect(() => {
+    console.log("[DataRekam] Chart data useEffect triggered:", { startDate, endDate });
+    // Always fetch chart data - with or without date filters
+    // On initial load: startDate and endDate are null, so API gets all data
+    // When dates change: API gets filtered data
+    fetchChartData(startDate || undefined, endDate || undefined);
+  }, [startDate, endDate, fetchChartData]);
+
   const prepareChartData = useCallback(
     (rekamData: ChartDataResponse): ChartData => {
       if (
@@ -456,15 +465,6 @@ export default function DataRekam() {
     },
     [selectedYear, endDate, startDate, salahRekamStats], // eslint-disable-line react-hooks/exhaustive-deps
   );
-
-  useEffect(() => {
-    // Fetch chart data when dates change
-    if (startDate && !isNaN(startDate.getTime())) {
-      if (endDate && !isNaN(endDate.getTime())) {
-        fetchChartData(startDate, endDate);
-      }
-    }
-  }, [startDate, endDate, fetchChartData]);
 
   // Export to CSV
   const exportToCSV = () => {

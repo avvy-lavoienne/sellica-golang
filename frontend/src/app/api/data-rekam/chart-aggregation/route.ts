@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Get the Go backend URL
-        const goBackendUrl = process.env.NEXT_PUBLIC_GO_BACKEND_URL || 'http://localhost:8080';
+        const goBackendUrl = process.env.NEXT_PUBLIC_GO_BACKEND_URL || 'http://localhost:8081';
 
         // Forward query parameters to Go backend
         const searchParams = request.nextUrl.searchParams;
@@ -79,18 +79,32 @@ export async function GET(request: NextRequest) {
         }
 
         // Parse successful response from Go backend
-        const data = await response.json();
+        const response_data = await response.json();
+
+        // Backend returns wrapped response: { success: true, data: { MonthlyData, YearlyData, ... } }
+        const backendData = response_data.data || response_data;
+
+        console.log('[chart-aggregation] Backend response data:', {
+            hasMonthlyData: !!backendData.MonthlyData,
+            monthlyDataCount: backendData.MonthlyData?.length || 0,
+            hasYearlyData: !!backendData.YearlyData,
+            yearlyDataCount: backendData.YearlyData?.length || 0,
+            fullData: response_data,
+        });
 
         // Extract and return only time-series data for chart
-        // Backend returns: { Summary: {...}, MonthlyData: [...], YearlyData: [...] }
+        // Backend returns: { data: { Summary: {...}, MonthlyData: [...], YearlyData: [...] } }
         // We extract only the aggregated data for chart rendering
+        const responseData = {
+            monthly_data: backendData.MonthlyData || [],    // [{ year, month, count }, ...]
+            yearly_data: backendData.YearlyData || [],      // [{ year, count }, ...]
+        };
+
+        console.log('[chart-aggregation] Returning chart data:', responseData);
+
         return NextResponse.json({
             success: true,
-            data: {
-                // Time-series aggregated data (all tables combined)
-                monthly_data: data.MonthlyData || [],    // [{ year, month, count }, ...]
-                yearly_data: data.YearlyData || [],      // [{ year, count }, ...]
-            }
+            data: responseData
         }, { status: 200 });
 
     } catch (error) {

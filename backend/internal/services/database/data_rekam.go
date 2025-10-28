@@ -25,16 +25,16 @@ type AdjudicateRecordRow struct {
 }
 
 type DuplicateOperatorRow struct {
-	ID                       string    `json:"id" db:"id"`
-	NikDuplicate             string    `json:"nik_duplicate" db:"nik_duplicate"`
-	NamaDuplicate            string    `json:"nama_duplicate" db:"nama_duplicate"`
-	NikOperator              string    `json:"nik_operator" db:"nik_operator"`
-	NamaOperator             string    `json:"nama_operator" db:"nama_operator"`
-	NikPengaju               string    `json:"nik_pengaju" db:"nik_pengaju"`
-	NamaPengaju              string    `json:"nama_pengaju" db:"nama_pengaju"`
-	TanggalPerekaman         string    `json:"tanggal_perekaman" db:"tanggal_perekaman"`
-	IsReadyToRecord          bool      `json:"is_ready_to_record" db:"is_ready_to_record"`
-	CreatedAt                time.Time `json:"created_at" db:"created_at"`
+	ID               string    `json:"id" db:"id"`
+	NikDuplicate     string    `json:"nik_duplicate" db:"nik_duplicate"`
+	NamaDuplicate    string    `json:"nama_duplicate" db:"nama_duplicate"`
+	NikOperator      string    `json:"nik_operator" db:"nik_operator"`
+	NamaOperator     string    `json:"nama_operator" db:"nama_operator"`
+	NikPengaju       string    `json:"nik_pengaju" db:"nik_pengaju"`
+	NamaPengaju      string    `json:"nama_pengaju" db:"nama_pengaju"`
+	TanggalPerekaman string    `json:"tanggal_perekaman" db:"tanggal_perekaman"`
+	IsReadyToRecord  bool      `json:"is_ready_to_record" db:"is_ready_to_record"`
+	CreatedAt        time.Time `json:"created_at" db:"created_at"`
 }
 
 type PengajuanBulananRow struct {
@@ -74,8 +74,8 @@ type DataRekamFilter struct {
 	SearchQuery  string  // text search
 	StartDate    *string // optional date filter
 	EndDate      *string
-	UserNik      string  // for user-owned data filtering
-	IsAdmin      bool    // if true, show all; if false, show only user records
+	UserNik      string // for user-owned data filtering
+	IsAdmin      bool   // if true, show all; if false, show only user records
 }
 
 // QueryResult for paginated query responses
@@ -150,9 +150,9 @@ func (s *Service) GetAdjudicateRecordList(ctx context.Context, filter DataRekamF
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"count":   len(records),
-		"total":   count,
-		"page":    filter.Page,
+		"count":    len(records),
+		"total":    count,
+		"page":     filter.Page,
 		"is_admin": filter.IsAdmin,
 	}).Debug("Retrieved adjudicate record list")
 
@@ -402,7 +402,171 @@ func (s *Service) GetSalahRekamList(ctx context.Context, filter DataRekamFilter)
 	}, nil
 }
 
-// GetDashboardStats retrieves aggregated statistics for all data-rekam tables
+// GetMonthlyBreakdown returns monthly aggregated count across all data-rekam tables combined
+func (s *Service) GetMonthlyBreakdown(ctx context.Context, startDate, endDate *string) ([]map[string]interface{}, error) {
+	if !s.isHealthy {
+		return nil, ErrDatabaseNotHealthy
+	}
+
+	tables := []string{"adjudicate_record", "duplicate_operator", "salah_rekam", "pengajuan_bulanan"}
+	monthlyStats := make(map[string]int) // Key: "YYYY-MM", Value: count
+
+	for _, tableName := range tables {
+		query := s.client.From(tableName).Select("created_at", "exact", false)
+
+		if startDate != nil {
+			query = query.Gte("created_at", *startDate)
+		}
+		if endDate != nil {
+			query = query.Lte("created_at", *endDate)
+		}
+
+		data, _, err := query.Execute()
+		if err != nil {
+			logrus.WithError(err).WithField("table", tableName).Warn("Failed to get monthly breakdown")
+			continue
+		}
+
+		// Unmarshal raw JSON data
+		var records []map[string]interface{}
+		if err := json.Unmarshal(data, &records); err != nil {
+			logrus.WithError(err).WithField("table", tableName).Warn("Failed to unmarshal monthly breakdown data")
+			continue
+		}
+
+		// Process records to extract created_at dates
+		for _, record := range records {
+			if createdAt, ok := record["created_at"].(string); ok {
+				// Extract year-month from ISO date string (YYYY-MM-DDTHH:MM:SS.sssZ)
+				if len(createdAt) >= 7 {
+					yearMonth := createdAt[:7] // "YYYY-MM"
+					monthlyStats[yearMonth]++
+				}
+			}
+		}
+	}
+
+	// Convert map to sorted slice
+	var result []map[string]interface{}
+	var keys []string
+	for k := range monthlyStats {
+		keys = append(keys, k)
+	}
+	
+	// Sort keys (naturally sorted as YYYY-MM format)
+	for i := 0; i < len(keys)-1; i++ {
+		for j := i + 1; j < len(keys); j++ {
+			if keys[j] < keys[i] {
+				keys[i], keys[j] = keys[j], keys[i]
+			}
+		}
+	}
+
+	for _, yearMonth := range keys {
+		// Parse YYYY-MM format
+		parts := make([]string, 0)
+		current := ""
+		for _, r := range yearMonth {
+			if r == '-' {
+				if current != "" {
+					parts = append(parts, current)
+					current = ""
+				}
+			} else {
+				current += string(r)
+			}
+		}
+		if current != "" {
+			parts = append(parts, current)
+		}
+
+		year := 0
+		month := 0
+		if len(parts) >= 2 {
+			fmt.Sscanf(parts[0], "%d", &year)
+			fmt.Sscanf(parts[1], "%d", &month)
+		}
+
+		result = append(result, map[string]interface{}{
+			"year":  year,
+			"month": month,
+			"count": monthlyStats[yearMonth],
+		})
+	}
+
+	return result, nil
+}
+
+// GetYearlyBreakdown returns yearly aggregated count across all data-rekam tables combined
+func (s *Service) GetYearlyBreakdown(ctx context.Context, startDate, endDate *string) ([]map[string]interface{}, error) {
+	if !s.isHealthy {
+		return nil, ErrDatabaseNotHealthy
+	}
+
+	tables := []string{"adjudicate_record", "duplicate_operator", "salah_rekam", "pengajuan_bulanan"}
+	yearlyStats := make(map[int]int) // Key: year, Value: count
+
+	for _, tableName := range tables {
+		query := s.client.From(tableName).Select("created_at", "exact", false)
+
+		if startDate != nil {
+			query = query.Gte("created_at", *startDate)
+		}
+		if endDate != nil {
+			query = query.Lte("created_at", *endDate)
+		}
+
+		data, _, err := query.Execute()
+		if err != nil {
+			logrus.WithError(err).WithField("table", tableName).Warn("Failed to get yearly breakdown")
+			continue
+		}
+
+		// Unmarshal raw JSON data
+		var records []map[string]interface{}
+		if err := json.Unmarshal(data, &records); err != nil {
+			logrus.WithError(err).WithField("table", tableName).Warn("Failed to unmarshal yearly breakdown data")
+			continue
+		}
+
+		// Process records to extract created_at dates
+		for _, record := range records {
+			if createdAt, ok := record["created_at"].(string); ok {
+				// Extract year from ISO date string (YYYY-MM-DDTHH:MM:SS.sssZ)
+				if len(createdAt) >= 4 {
+					year := 0
+					fmt.Sscanf(createdAt[:4], "%d", &year)
+					yearlyStats[year]++
+				}
+			}
+		}
+	}
+
+	// Convert map to sorted slice
+	var result []map[string]interface{}
+	var years []int
+	for y := range yearlyStats {
+		years = append(years, y)
+	}
+
+	// Sort years numerically
+	for i := 0; i < len(years)-1; i++ {
+		for j := i + 1; j < len(years); j++ {
+			if years[j] < years[i] {
+				years[i], years[j] = years[j], years[i]
+			}
+		}
+	}
+
+	for _, year := range years {
+		result = append(result, map[string]interface{}{
+			"year":  year,
+			"count": yearlyStats[year],
+		})
+	}
+
+	return result, nil
+}// GetDashboardStats retrieves aggregated statistics for all data-rekam tables
 func (s *Service) GetDashboardStats(ctx context.Context, startDate, endDate *string) (map[string]interface{}, error) {
 	if !s.isHealthy {
 		return nil, ErrDatabaseNotHealthy
@@ -470,6 +634,23 @@ func (s *Service) GetDashboardStats(ctx context.Context, startDate, endDate *str
 		stats[tableInfo.countKey] = int(totalCount)
 		stats[tableInfo.completedKey] = int(completedCount)
 	}
+
+	// Get time-series aggregation data for chart
+	monthlyData, err := s.GetMonthlyBreakdown(ctx, startDate, endDate)
+	if err != nil {
+		logrus.WithError(err).Warn("Failed to get monthly breakdown, continuing without it")
+		monthlyData = []map[string]interface{}{}
+	}
+
+	yearlyData, err := s.GetYearlyBreakdown(ctx, startDate, endDate)
+	if err != nil {
+		logrus.WithError(err).Warn("Failed to get yearly breakdown, continuing without it")
+		yearlyData = []map[string]interface{}{}
+	}
+
+	// Add time-series data to response
+	stats["MonthlyData"] = monthlyData
+	stats["YearlyData"] = yearlyData
 
 	logrus.WithField("stats", stats).Debug("Retrieved dashboard statistics")
 	return stats, nil
