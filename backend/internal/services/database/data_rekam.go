@@ -403,7 +403,7 @@ func (s *Service) GetSalahRekamList(ctx context.Context, filter DataRekamFilter)
 	}, nil
 }
 
-// GetMonthlyBreakdown returns monthly aggregated count across all data-rekam tables combined
+// GetMonthlyBreakdown returns monthly breakdown with per-table counts
 func (s *Service) GetMonthlyBreakdown(ctx context.Context, startDate, endDate *string) ([]map[string]interface{}, error) {
 	if !s.isHealthy {
 		return nil, ErrDatabaseNotHealthy
@@ -413,14 +413,16 @@ func (s *Service) GetMonthlyBreakdown(ctx context.Context, startDate, endDate *s
 	tables := []struct {
 		name    string // Table name
 		dateCol string // Date column to query
+		key     string // JSON key for response
 	}{
-		{"adjudicate_record", "tanggal_pengajuan"},
-		{"duplicate_operator", "tanggal_pengajuan"},
-		{"salah_rekam", "created_at"},
-		{"pengajuan_bulanan", "tanggal_pengajuan"},
+		{"adjudicate_record", "tanggal_pengajuan", "adjudicate_record"},
+		{"duplicate_operator", "tanggal_pengajuan", "duplicate_operator"},
+		{"salah_rekam", "created_at", "salah_rekam"},
+		{"pengajuan_bulanan", "tanggal_pengajuan", "pengajuan_bulanan"},
 	}
 
-	monthlyStats := make(map[string]int) // Key: "YYYY-MM", Value: count
+	// Track monthly stats per table: map["YYYY-MM"]map[tableName]count
+	monthlyStatsByTable := make(map[string]map[string]int)
 
 	for _, tableInfo := range tables {
 		// SELECT the correct date column for each table
@@ -476,7 +478,14 @@ func (s *Service) GetMonthlyBreakdown(ctx context.Context, startDate, endDate *s
 				
 				// Extract year-month using time.Time methods (YYYY-MM format)
 				yearMonth := parsedTime.Format("2006-01")
-				monthlyStats[yearMonth]++
+				
+				// Initialize month map if needed
+				if monthlyStatsByTable[yearMonth] == nil {
+					monthlyStatsByTable[yearMonth] = make(map[string]int)
+				}
+				
+				// Increment count for this table in this month
+				monthlyStatsByTable[yearMonth][tableInfo.key]++
 			}
 		}
 	}
@@ -484,7 +493,7 @@ func (s *Service) GetMonthlyBreakdown(ctx context.Context, startDate, endDate *s
 	// Convert map to sorted slice
 	var result []map[string]interface{}
 	var keys []string
-	for k := range monthlyStats {
+	for k := range monthlyStatsByTable {
 		keys = append(keys, k)
 	}
 	
@@ -508,9 +517,12 @@ func (s *Service) GetMonthlyBreakdown(ctx context.Context, startDate, endDate *s
 		}
 
 		result = append(result, map[string]interface{}{
-			"year":  year,
-			"month": month,
-			"count": monthlyStats[yearMonth],
+			"year":                 year,
+			"month":                month,
+			"adjudicate_record":    monthlyStatsByTable[yearMonth]["adjudicate_record"],
+			"duplicate_operator":   monthlyStatsByTable[yearMonth]["duplicate_operator"],
+			"salah_rekam":          monthlyStatsByTable[yearMonth]["salah_rekam"],
+			"pengajuan_bulanan":    monthlyStatsByTable[yearMonth]["pengajuan_bulanan"],
 		})
 	}
 

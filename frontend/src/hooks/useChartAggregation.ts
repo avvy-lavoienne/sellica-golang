@@ -144,12 +144,13 @@ export function useChartAggregation(): UseChartAggregationReturn {
             monthlyByYear[year] = [];
           }
 
+          // Use actual per-table counts from backend instead of distribution percentages
           monthlyByYear[year].push({
             label,
-            adjudicateRecord: Math.floor(item.count * 0.4),
-            duplicateOperator: Math.floor(item.count * 0.3),
-            salahRekam: Math.floor(item.count * 0.2),
-            pengajuanBulanan: Math.floor(item.count * 0.1),
+            adjudicateRecord: item.adjudicate_record || 0,
+            duplicateOperator: item.duplicate_operator || 0,
+            salahRekam: item.salah_rekam || 0,
+            pengajuanBulanan: item.pengajuan_bulanan || 0,
           });
         });
 
