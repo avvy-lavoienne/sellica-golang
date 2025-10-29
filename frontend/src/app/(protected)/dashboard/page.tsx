@@ -302,25 +302,29 @@ export default function Dashboard() {
 
   const prepareChartData = useCallback(
     (rekamData: ChartDataResponse): ChartData => {
-      // Safety check for empty/invalid data
-      if (
-        !rekamData ||
-        !rekamData.chartData ||
-        rekamData.chartData.length < 4
-      ) {
-        console.warn("Invalid or incomplete chart data received");
+      // Validate data structure - API returns aggregated monthly/yearly data
+      if (!rekamData || !rekamData.monthly_data || !rekamData.yearly_data) {
+        console.warn("[Dashboard] Invalid or incomplete chart data received:", rekamData);
         return {
           yearly: { labels: [], datasets: [] },
           monthly: { labels: [], datasets: [] },
         };
       }
 
-      const allData = rekamData.chartData;
+      const monthlyData = rekamData.monthly_data || [];
+      const yearlyData = rekamData.yearly_data || [];
+
       const categoryNames = [
         "Adjudicate Record",
         "Duplicate Operator",
         "Salah Rekam",
         "Pengajuan Bulanan",
+      ];
+      const categoryKeys = [
+        "adjudicate_record",
+        "duplicate_operator",
+        "salah_rekam",
+        "pengajuan_bulanan",
       ];
       const colorSchemes = [
         { border: "#3B82F6", background: "rgba(59, 130, 246, 0.1)" }, // Blue
@@ -329,61 +333,43 @@ export default function Dashboard() {
         { border: "#10B981", background: "rgba(16, 185, 129, 0.1)" }, // Green
       ];
 
-      // Extract all years from the data for filtering
+      // Extract unique years from aggregated data
       const years = new Set<string>();
-      allData.forEach((category) => {
-        category.data.forEach((item) => {
-          if (item && item.created_at) {
-            try {
-              const year = new Date(item.created_at).getFullYear().toString();
-              years.add(year);
-            } catch (e) {
-              console.error("Invalid date format:", item.created_at);
-            }
-          }
-        });
+      yearlyData.forEach((row: any) => {
+        if (row && row.year) {
+          years.add(row.year.toString());
+        }
       });
 
-      // Sort the years and set as available years
-      const sortedYears = Array.from(years).sort();
+      const sortedYears = Array.from(years).sort((a, b) => a.localeCompare(b));
 
-      // Update available years state
+      // Update available years
       if (sortedYears.length > 0) {
         setAvailableYears(sortedYears);
 
-        // If current selectedYear is not in the available years, select the most recent year
+        // If current selectedYear not available, use most recent
         if (!sortedYears.includes(selectedYear)) {
-          setSelectedYear(sortedYears[sortedYears.length - 1]);
+          const latestYear = sortedYears[sortedYears.length - 1];
+          logger.info("[Dashboard] Selected year not available, switching to latest year:", {
+            previousYear: selectedYear,
+            newYear: latestYear,
+          });
+          setSelectedYear(latestYear);
         }
       } else {
-        // Default if no data
         setAvailableYears(["2024"]);
       }
 
-      // Use current selected year from state
       const currentSelectedYear = selectedYear;
 
-      // Prepare yearly datasets
+      // Prepare yearly datasets - use aggregated yearly data directly
       const yearlyDatasets = categoryNames.map((label, index) => {
-        // Ensure the category exists in allData
-        const categoryData = allData[index]?.data || [];
-
+        const key = categoryKeys[index];
         return {
           label,
           data: sortedYears.map((year) => {
-            return categoryData.filter((item) => {
-              if (!item || !item.created_at) return false;
-
-              try {
-                const itemYear = new Date(item.created_at)
-                  .getFullYear()
-                  .toString();
-                return itemYear === year;
-              } catch (e) {
-                console.error("Error filtering by year:", e);
-                return false;
-              }
-            }).length;
+            const row = yearlyData.find((r: any) => r.year?.toString() === year);
+            return (row && (row as any)[key]) || 0;
           }),
           borderColor: colorSchemes[index].border,
           backgroundColor: colorSchemes[index].background,
@@ -391,7 +377,7 @@ export default function Dashboard() {
         };
       });
 
-      // Prepare monthly data for selected year
+      // Month labels
       const months = [
         "Jan",
         "Feb",
@@ -407,32 +393,46 @@ export default function Dashboard() {
         "Dec",
       ];
 
+      // Prepare monthly datasets - use aggregated monthly data filtered by selected year
       const monthlyDatasets = categoryNames.map((label, index) => {
-        // Ensure the category exists in allData
-        const categoryData = allData[index]?.data || [];
-
+        const key = categoryKeys[index];
         return {
           label,
           data: months.map((_, monthIndex) => {
-            return categoryData.filter((item) => {
-              if (!item || !item.created_at) return false;
-
-              try {
-                const date = new Date(item.created_at);
-                return (
-                  date.getFullYear().toString() === currentSelectedYear &&
-                  date.getMonth() === monthIndex
-                );
-              } catch (e) {
-                console.error("Error filtering by month:", e);
-                return false;
-              }
-            }).length;
+            // Find row for current year and month (month is 1-based in backend)
+            const row = monthlyData.find(
+              (r: any) =>
+                r.year?.toString() === currentSelectedYear &&
+                r.month === monthIndex + 1
+            );
+            return (row && (row as any)[key]) || 0;
           }),
           borderColor: colorSchemes[index].border,
           backgroundColor: colorSchemes[index].background,
           tension: 0.4,
         };
+      });
+
+      const yearlyTotal = yearlyDatasets.reduce(
+        (sum, ds) => sum + ds.data.reduce((s: number, v: any) => s + v, 0),
+        0
+      );
+      const monthlyTotal = monthlyDatasets.reduce(
+        (sum, ds) => sum + ds.data.reduce((s: number, v: any) => s + v, 0),
+        0
+      );
+
+      logger.info("[Dashboard] Chart data prepared from aggregated data:", {
+        yearCount: sortedYears.length,
+        monthlyDataCount: monthlyData.length,
+        yearlyDataCount: yearlyData.length,
+        currentYear: currentSelectedYear,
+        yearlyTotal,
+        monthlyTotal,
+        monthlyByTable: monthlyDatasets.map((ds) => ({
+          table: ds.label,
+          total: ds.data.reduce((s: number, v: any) => s + v, 0),
+        })),
       });
 
       return {
@@ -520,6 +520,15 @@ export default function Dashboard() {
   const fetchChartAggregation = useCallback(
     async (year: string) => {
       try {
+        // Get auth token from GoAuthAPI
+        const { GoAuthAPI } = await import("@/lib/api/goAuth");
+        const token = GoAuthAPI.getToken();
+
+        if (!token) {
+          logger.error("Dashboard: No authentication token found");
+          throw new Error("Authentication token not found. Please log in again.");
+        }
+
         // Construct date range from selected year
         const startDate = `${year}-01-01`;
         const endDate = `${year}-12-31`;
@@ -529,22 +538,40 @@ export default function Dashboard() {
         params.append("start_date", startDate);
         params.append("end_date", endDate);
 
+        logger.debug("Dashboard: Fetching chart aggregation data:", {
+          year,
+          startDate,
+          endDate,
+          hasToken: !!token,
+        });
+
         const response = await fetch(
           `/api/data-rekam/chart-aggregation?${params}`,
           {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`,
             },
           }
         );
 
         if (!response.ok) {
+          const errorData = await response.json().catch(() => ({
+            error: response.statusText,
+          }));
+          const errorMsg = `Chart API error: ${response.status} - ${response.statusText}`;
+          logger.error(errorMsg);
           throw new Error(`Failed to fetch chart data: ${response.statusText}`);
         }
 
-        const rekamData: ChartDataResponse = await response.json();
-        const newChartData = prepareChartData(rekamData);
+        const apiResponse = await response.json();
+
+        if (!apiResponse.success || !apiResponse.data) {
+          throw new Error("Invalid response format from chart aggregation API");
+        }
+
+        const newChartData = prepareChartData(apiResponse.data);
 
         setChartData(newChartData);
 
@@ -554,10 +581,18 @@ export default function Dashboard() {
           [year]: newChartData,
         }));
 
-        logger.info("Chart data fetched successfully", {
+        logger.info("Dashboard: Chart data fetched successfully", {
           year,
           startDate,
           endDate,
+          yearlyDataPoints: newChartData.yearly.datasets.reduce(
+            (sum, ds) => sum + ds.data.length,
+            0
+          ),
+          monthlyDataPoints: newChartData.monthly.datasets.reduce(
+            (sum, ds) => sum + ds.data.length,
+            0
+          ),
         });
       } catch (error) {
         logger.error("Error fetching chart aggregation", error instanceof Error ? error : new Error(String(error)), {

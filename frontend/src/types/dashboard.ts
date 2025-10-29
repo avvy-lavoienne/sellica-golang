@@ -48,12 +48,38 @@ export interface ChartData {
 }
 
 export interface ChartDataResponse {
-  chartData: Array<{ 
-    table: string, 
+  // Aggregated monthly data from backend
+  monthly_data?: Array<{
+    year: number;
+    month: number;
+    adjudicate_record: number;
+    duplicate_operator: number;
+    salah_rekam: number;
+    pengajuan_bulanan: number;
+  }>;
+  
+  // Aggregated yearly data from backend
+  yearly_data?: Array<{
+    year: number;
+    adjudicate_record: number;
+    duplicate_operator: number;
+    salah_rekam: number;
+    pengajuan_bulanan: number;
+  }>;
+  
+  // Legacy format (for backward compatibility)
+  chartData?: Array<{ 
+    table_name?: string;
+    table?: string;
     data: Array<{ 
       created_at: string;
       id?: any;
       is_ready_to_record?: any;
     }>
-  }>
+  }>;
+}
+
+export interface ChartAggregationApiResponse {
+  success: boolean;
+  data: ChartDataResponse;
 }

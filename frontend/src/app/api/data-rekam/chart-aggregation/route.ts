@@ -92,15 +92,25 @@ export async function GET(request: NextRequest) {
             fullData: response_data,
         });
 
-        // Extract and return only time-series data for chart
-        // Backend returns: { data: { Summary: {...}, MonthlyData: [...], YearlyData: [...] } }
-        // We extract only the aggregated data for chart rendering
-        const responseData = {
-            monthly_data: backendData.MonthlyData || [],    // [{ year, month, count }, ...]
-            yearly_data: backendData.YearlyData || [],      // [{ year, count }, ...]
-        };
+        // Return backend aggregation data directly
+        // Backend returns per-table monthly/yearly aggregation:
+        // MonthlyData: [{year, month, adjudicate_record, duplicate_operator, salah_rekam, pengajuan_bulanan}, ...]
+        // YearlyData: [{year, adjudicate_record, duplicate_operator, salah_rekam, pengajuan_bulanan}, ...]
+        
+        const monthlyData = backendData.MonthlyData || [];
+        const yearlyData = backendData.YearlyData || [];
 
-        console.log('[chart-aggregation] Returning chart data:', responseData);
+        console.log('[chart-aggregation] Backend data received:', {
+            monthlyCount: monthlyData.length,
+            yearlyCount: yearlyData.length,
+            firstMonthly: monthlyData[0],
+            firstYearly: yearlyData[0],
+        });
+
+        const responseData = {
+            monthly_data: monthlyData,
+            yearly_data: yearlyData,
+        };
 
         return NextResponse.json({
             success: true,
