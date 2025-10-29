@@ -516,67 +516,75 @@ export default function Dashboard() {
   // Cache chart data to prevent unnecessary API calls
   const [chartDataCache, setChartDataCache] = useState<Record<string, ChartData>>({});
 
-  useEffect(() => {
-    // Only fetch chart data if we don't have it cached and stats are loaded
-    if (!loading && stats?.rekamData && !chartDataCache[selectedYear]) {
+  // Fetch chart aggregation data with date range filtering based on selected year
+  const fetchChartAggregation = useCallback(
+    async (year: string) => {
       try {
-        // Use existing stats data instead of making new API calls
-        const rekamData: ChartDataResponse = {
-          chartData: [
-            { table: "adjudicate_record", data: [] },
-            { table: "duplicate_operator", data: [] },
-            { table: "salah_rekam", data: [] },
-            { table: "pengajuan_bulanan", data: [] },
-          ],
-        };
+        // Construct date range from selected year
+        const startDate = `${year}-01-01`;
+        const endDate = `${year}-12-31`;
 
-        // Only fetch if we really need fresh data for charts
-        const fetchChartDataOnce = async () => {
-          const tables = [
-            "adjudicate_record",
-            "duplicate_operator",
-            "salah_rekam",
-            "pengajuan_bulanan",
-          ];
+        // Build query parameters
+        const params = new URLSearchParams();
+        params.append("start_date", startDate);
+        params.append("end_date", endDate);
 
-          const results = await Promise.all(
-            tables.map(async (table, index) => {
-              const query = supabase
-                .from(table)
-                .select("id, created_at, is_ready_to_record")
-                .limit(100); // Limit results to reduce data transfer
+        const response = await fetch(
+          `/api/data-rekam/chart-aggregation?${params}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
-              const { data, error } = await query;
+        if (!response.ok) {
+          throw new Error(`Failed to fetch chart data: ${response.statusText}`);
+        }
 
-              if (error) {
-                console.error(`Error fetching ${table}:`, error);
-                return { data: [] };
-              }
+        const rekamData: ChartDataResponse = await response.json();
+        const newChartData = prepareChartData(rekamData);
 
-              rekamData.chartData[index].data = data || [];
-              return { data: data || [] };
-            }),
-          );
+        setChartData(newChartData);
 
-          const newChartData = prepareChartData(rekamData);
-          setChartData(newChartData);
+        // Cache the chart data for this year
+        setChartDataCache((prev) => ({
+          ...prev,
+          [year]: newChartData,
+        }));
 
-          // Cache the chart data
-          setChartDataCache(prev => ({
-            ...prev,
-            [selectedYear]: newChartData
-          }));
-        };
-
-        fetchChartDataOnce();
+        logger.info("Chart data fetched successfully", {
+          year,
+          startDate,
+          endDate,
+        });
       } catch (error) {
-        console.error("Error updating chart data:", error);
+        logger.error("Error fetching chart aggregation", error instanceof Error ? error : new Error(String(error)), {
+          year,
+        });
+        toast.error("Gagal memuat data grafik");
+      }
+    },
+    [prepareChartData]
+  );
+
+  useEffect(() => {
+    // Only fetch chart data if we don't have it cached
+    if (!loading && !chartDataCache[selectedYear]) {
+      try {
+        // Fetch chart data from backend with date range filtering
+        fetchChartAggregation(selectedYear);
+      } catch (error) {
+        logger.error("Error fetching chart data", error instanceof Error ? error : new Error(String(error)), {
+          selectedYear,
+        });
       }
     } else if (chartDataCache[selectedYear]) {
-      // Use cached data
+      // Use cached data for this year
       setChartData(chartDataCache[selectedYear]);
     }
-  }, [selectedYear, loading, stats?.rekamData, prepareChartData, chartDataCache]);
+  }, [selectedYear, loading, fetchChartAggregation, chartDataCache]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -598,6 +606,9 @@ export default function Dashboard() {
       const data = await fetchDashboardData(contextUser, userRole);
       setStats(data.stats);
       setError(null);
+
+      // Refresh chart data for current year
+      await fetchChartAggregation(selectedYear);
 
       // Update cache with fresh data
       setDataCache({
