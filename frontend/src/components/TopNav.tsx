@@ -889,7 +889,11 @@ export default function TopNav({
                           )}
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-semibold text-foreground">
-                              {user?.name || "User"}
+                              {user?.name && user.name.trim() 
+                                ? user.name 
+                                : user?.full_name && user.full_name.trim()
+                                  ? user.full_name
+                                  : user?.email?.split("@")[0] || "User"}
                             </p>
                             <p className="truncate text-xs text-muted-foreground">
                               {user?.email || "user@example.com"}

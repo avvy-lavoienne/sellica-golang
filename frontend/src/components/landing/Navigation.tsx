@@ -245,7 +245,22 @@ export function Navigation({
 
           {/* Action Buttons */}
           {actions?.secondary && (
-            <Link href={actions.secondary.href}>
+            <Link
+              href={actions.secondary.href}
+              onClick={() => {
+                // Clear LocalStorage, SessionStorage, and Cookies on login
+                if (typeof window !== 'undefined') {
+                  localStorage.clear()
+                  sessionStorage.clear()
+                  // Clear all cookies
+                  document.cookie.split(";").forEach((c) => {
+                    const eqPos = c.indexOf("=")
+                    const name = eqPos > -1 ? c.substr(0, eqPos).trim() : c.trim()
+                    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`
+                  })
+                }
+              }}
+            >
               <Button
                 variant={actions.secondary.variant || "ghost"}
                 size="sm"
@@ -257,7 +272,22 @@ export function Navigation({
           )}
 
           {actions?.primary && (
-            <Link href={actions.primary.href}>
+            <Link
+              href={actions.primary.href}
+              onClick={() => {
+                // Clear LocalStorage, SessionStorage, and Cookies on primary action
+                if (typeof window !== 'undefined') {
+                  localStorage.clear()
+                  sessionStorage.clear()
+                  // Clear all cookies
+                  document.cookie.split(";").forEach((c) => {
+                    const eqPos = c.indexOf("=")
+                    const name = eqPos > -1 ? c.substr(0, eqPos).trim() : c.trim()
+                    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`
+                  })
+                }
+              }}
+            >
               <Button
                 variant={actions.primary.variant || "default"}
                 size="sm"
@@ -337,7 +367,20 @@ export function Navigation({
                 {actions?.secondary && (
                   <Link
                     href={actions.secondary.href}
-                    onClick={() => toggleMobileMenu(false)}
+                    onClick={() => {
+                      // Clear LocalStorage, SessionStorage, and Cookies on login
+                      if (typeof window !== 'undefined') {
+                        localStorage.clear()
+                        sessionStorage.clear()
+                        // Clear all cookies
+                        document.cookie.split(";").forEach((c) => {
+                          const eqPos = c.indexOf("=")
+                          const name = eqPos > -1 ? c.substr(0, eqPos).trim() : c.trim()
+                          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`
+                        })
+                      }
+                      toggleMobileMenu(false)
+                    }}
                   >
                     <Button
                       variant={actions.secondary.variant || "outline"}
@@ -351,7 +394,20 @@ export function Navigation({
                 {actions?.primary && (
                   <Link
                     href={actions.primary.href}
-                    onClick={() => toggleMobileMenu(false)}
+                    onClick={() => {
+                      // Clear LocalStorage, SessionStorage, and Cookies on primary action
+                      if (typeof window !== 'undefined') {
+                        localStorage.clear()
+                        sessionStorage.clear()
+                        // Clear all cookies
+                        document.cookie.split(";").forEach((c) => {
+                          const eqPos = c.indexOf("=")
+                          const name = eqPos > -1 ? c.substr(0, eqPos).trim() : c.trim()
+                          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`
+                        })
+                      }
+                      toggleMobileMenu(false)
+                    }}
                   >
                     <Button
                       variant={actions.primary.variant || "default"}

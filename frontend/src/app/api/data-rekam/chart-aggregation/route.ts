@@ -92,11 +92,6 @@ export async function GET(request: NextRequest) {
             fullData: response_data,
         });
 
-        // Return backend aggregation data directly
-        // Backend returns per-table monthly/yearly aggregation:
-        // MonthlyData: [{year, month, adjudicate_record, duplicate_operator, salah_rekam, pengajuan_bulanan}, ...]
-        // YearlyData: [{year, adjudicate_record, duplicate_operator, salah_rekam, pengajuan_bulanan}, ...]
-        
         const monthlyData = backendData.MonthlyData || [];
         const yearlyData = backendData.YearlyData || [];
 
@@ -107,15 +102,91 @@ export async function GET(request: NextRequest) {
             firstYearly: yearlyData[0],
         });
 
-        const responseData = {
-            monthly_data: monthlyData,
-            yearly_data: yearlyData,
-        };
+        // Transform backend per-table aggregated data into chartData format
+        // Backend format: [{year, month, adjudicate_record, duplicate_operator, salah_rekam, pengajuan_bulanan}, ...]
+        // We need to transform into individual items for prepareChartData to process
+        
+        const tableNames = [
+            { key: 'adjudicate_record', display: 'Adjudicate Record' },
+            { key: 'duplicate_operator', display: 'Duplicate Operator' },
+            { key: 'salah_rekam', display: 'Salah Rekam' },
+            { key: 'pengajuan_bulanan', display: 'Pengajuan Bulanan' },
+        ];
 
-        return NextResponse.json({
-            success: true,
-            data: responseData
-        }, { status: 200 });
+        try {
+            // Build chartData array - each table becomes an array of items
+            const chartData = tableNames.map((table) => {
+                try {
+                    // Create individual items for each month/table count
+                    const tableData = monthlyData
+                        .flatMap((row: any) => {
+                            try {
+                                const count = parseInt(row[table.key]) || 0;
+                                const year = parseInt(row.year) || 2024;
+                                const month = parseInt(row.month) || 1;
+                                
+                                // Validate ranges
+                                if (month < 1 || month > 12) {
+                                    console.warn(`[chart-aggregation] Invalid month ${month} for year ${year}, skipping`);
+                                    return [];
+                                }
+                                
+                                // Create synthetic items with created_at timestamp
+                                const items = [];
+                                for (let i = 0; i < count; i++) {
+                                    items.push({
+                                        created_at: new Date(year, month - 1, 15).toISOString(),
+                                        table: table.key,
+                                    });
+                                }
+                                return items;
+                            } catch (rowError) {
+                                console.error(`[chart-aggregation] Error processing row for table ${table.key}:`, rowError, row);
+                                return [];
+                            }
+                        });
+                    
+                    return {
+                        table_name: table.key,
+                        data: tableData,
+                    };
+                } catch (tableError) {
+                    console.error(`[chart-aggregation] Error processing table ${table.key}:`, tableError);
+                    return {
+                        table_name: table.key,
+                        data: [],
+                    };
+                }
+            });
+
+            const responseData = {
+                chartData: chartData,
+                monthly_data: monthlyData,
+                yearly_data: yearlyData,
+            };
+
+            console.log('[chart-aggregation] Transformed data:', {
+                chartDataLength: chartData.length,
+                totalDataPoints: chartData.reduce((sum: number, cat: any) => sum + (cat.data?.length || 0), 0),
+                tables: chartData.map((cat: any) => ({ name: cat.table_name, count: cat.data?.length || 0 })),
+            });
+
+            return NextResponse.json({
+                success: true,
+                data: responseData
+            }, { status: 200 });
+        } catch (transformError) {
+            console.error('[chart-aggregation] Transformation error:', transformError);
+            // Return raw aggregated data as fallback
+            return NextResponse.json({
+                success: true,
+                data: {
+                    chartData: [],
+                    monthly_data: monthlyData,
+                    yearly_data: yearlyData,
+                }
+            }, { status: 200 });
+        }
 
     } catch (error) {
         console.error('API route error:', error);

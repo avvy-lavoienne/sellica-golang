@@ -118,7 +118,22 @@ export function HeroSection({
             className="flex animate-fade-in-up flex-col gap-4 sm:flex-row sm:items-center"
             style={{ animationDelay: "0.4s" }}
           >
-            <Link href={primaryAction.href}>
+            <Link
+              href={primaryAction.href}
+              onClick={() => {
+                // Clear LocalStorage, SessionStorage, and Cookies on registration
+                if (typeof window !== 'undefined') {
+                  localStorage.clear()
+                  sessionStorage.clear()
+                  // Clear all cookies
+                  document.cookie.split(";").forEach((c) => {
+                    const eqPos = c.indexOf("=")
+                    const name = eqPos > -1 ? c.substr(0, eqPos).trim() : c.trim()
+                    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`
+                  })
+                }
+              }}
+            >
               <Button
                 size="lg"
                 className="group h-12 px-8 text-base font-semibold shadow-lg transition-all duration-300 hover:shadow-xl"
@@ -128,7 +143,22 @@ export function HeroSection({
               </Button>
             </Link>
 
-            <Link href={secondaryAction.href}>
+            <Link
+              href={secondaryAction.href}
+              onClick={() => {
+                // Clear LocalStorage, SessionStorage, and Cookies on secondary action
+                if (typeof window !== 'undefined') {
+                  localStorage.clear()
+                  sessionStorage.clear()
+                  // Clear all cookies
+                  document.cookie.split(";").forEach((c) => {
+                    const eqPos = c.indexOf("=")
+                    const name = eqPos > -1 ? c.substr(0, eqPos).trim() : c.trim()
+                    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`
+                  })
+                }
+              }}
+            >
               <Button
                 variant="outline"
                 size="lg"
