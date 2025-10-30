@@ -103,6 +103,40 @@ export default function TopNav({
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  
+  // Local user state to handle localStorage fallback
+  const [displayUser, setDisplayUser] = useState<User | null>(user || null);
+
+  // Sync user from prop or localStorage if prop is incomplete
+  useEffect(() => {
+    if (user && user.name && user.name.trim()) {
+      // User prop has name, use it
+      setDisplayUser(user);
+    } else if (user && user.email) {
+      // User prop exists but no name, try to get from localStorage
+      try {
+        if (typeof window !== 'undefined') {
+          const storedUserInfo = localStorage.getItem('selly_user_info');
+          if (storedUserInfo) {
+            const parsedUserInfo = JSON.parse(storedUserInfo);
+            // Merge stored info with prop
+            setDisplayUser({
+              ...user,
+              name: parsedUserInfo.name || user.name,
+              full_name: parsedUserInfo.full_name || user.full_name,
+            });
+          } else {
+            setDisplayUser(user);
+          }
+        }
+      } catch (error) {
+        // Fall back to prop user if parsing fails
+        setDisplayUser(user);
+      }
+    } else {
+      setDisplayUser(user || null);
+    }
+  }, [user]);
 
   // Refs for click outside detection
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -889,21 +923,21 @@ export default function TopNav({
                           )}
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-semibold text-foreground">
-                              {user?.name && user.name.trim() 
-                                ? user.name 
-                                : user?.full_name && user.full_name.trim()
-                                  ? user.full_name
-                                  : user?.email?.split("@")[0] || "User"}
+                              {displayUser?.name && displayUser.name.trim() 
+                                ? displayUser.name 
+                                : displayUser?.full_name && displayUser.full_name.trim()
+                                  ? displayUser.full_name
+                                  : displayUser?.email?.split("@")[0] || "User"}
                             </p>
                             <p className="truncate text-xs text-muted-foreground">
-                              {user?.email || "user@example.com"}
+                              {displayUser?.email || "user@example.com"}
                             </p>
-                            {user?.role && (
+                            {displayUser?.role && (
                               <Badge
                                 variant="secondary"
                                 className="mt-1 text-xs capitalize"
                               >
-                                {user.role}
+                                {displayUser.role}
                               </Badge>
                             )}
                           </div>
