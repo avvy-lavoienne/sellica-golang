@@ -341,6 +341,10 @@ export default function Dashboard() {
         }
       });
 
+      // Add current year (2025) if not already present
+      const currentYear = new Date().getFullYear().toString();
+      years.add(currentYear);
+
       const sortedYears = Array.from(years).sort((a, b) => a.localeCompare(b));
 
       // Update available years
@@ -357,7 +361,7 @@ export default function Dashboard() {
           setSelectedYear(latestYear);
         }
       } else {
-        setAvailableYears(["2024"]);
+        setAvailableYears([currentYear]);
       }
 
       const currentSelectedYear = selectedYear;
