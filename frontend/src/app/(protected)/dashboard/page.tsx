@@ -610,7 +610,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     // Only fetch chart data if we don't have it cached
-    if (!loading && !chartDataCache[selectedYear]) {
+    // Note: Removed 'loading' dependency to allow parallel chart fetching
+    if (!chartDataCache[selectedYear]) {
       try {
         // Fetch chart data from backend with date range filtering
         fetchChartAggregation(selectedYear);
@@ -623,7 +624,7 @@ export default function Dashboard() {
       // Use cached data for this year
       setChartData(chartDataCache[selectedYear]);
     }
-  }, [selectedYear, loading, fetchChartAggregation, chartDataCache]);
+  }, [selectedYear, fetchChartAggregation, chartDataCache]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
