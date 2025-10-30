@@ -462,6 +462,30 @@ export default function Dashboard() {
         return; // Return early and wait for next effect run
       }
 
+      // Sync contextUser to localStorage so TopNav can pick up complete user info
+      if (typeof window !== 'undefined' && contextUser) {
+        try {
+          // Get existing user info if any
+          const existingUserInfo = localStorage.getItem('selly_user_info');
+          let userInfo = existingUserInfo ? JSON.parse(existingUserInfo) : {};
+          
+          // Merge with contextUser data
+          userInfo = {
+            ...userInfo,
+            id: contextUser.id,
+            email: contextUser.email,
+            name: contextUser.name || userInfo.name,
+            full_name: contextUser.full_name || userInfo.full_name,
+            role: contextUser.role || userInfo.role,
+          };
+          
+          localStorage.setItem('selly_user_info', JSON.stringify(userInfo));
+          logger.debug("Dashboard: Synced contextUser to localStorage for TopNav");
+        } catch (error) {
+          logger.debug("Dashboard: Failed to sync user to localStorage", error instanceof Error ? error : new Error(String(error)));
+        }
+      }
+
       // Check if we have cached data that's still valid
       if (dataCache && (Date.now() - dataCache.timestamp) < CACHE_DURATION) {
         logger.debug("Dashboard: Using cached data", { 
