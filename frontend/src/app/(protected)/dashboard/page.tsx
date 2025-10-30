@@ -524,12 +524,24 @@ export default function Dashboard() {
   const fetchChartAggregation = useCallback(
     async (year: string) => {
       try {
-        // Get auth token from GoAuthAPI
-        const { GoAuthAPI } = await import("@/lib/api/goAuth");
-        const token = GoAuthAPI.getToken();
+        // Get auth token - try multiple sources for robustness
+        let token: string | null = null;
+        
+        // Method 1: Try GoAuthAPI (primary)
+        try {
+          const { GoAuthAPI } = await import("@/lib/api/goAuth");
+          token = GoAuthAPI.getToken();
+        } catch (e) {
+          logger.debug("GoAuthAPI import failed, trying localStorage directly");
+        }
+        
+        // Method 2: Try localStorage directly as fallback
+        if (!token && typeof window !== 'undefined') {
+          token = localStorage.getItem("selly_auth_token");
+        }
 
         if (!token) {
-          logger.error("Dashboard: No authentication token found");
+          logger.error("Dashboard: No authentication token found in any source");
           throw new Error("Authentication token not found. Please log in again.");
         }
 
