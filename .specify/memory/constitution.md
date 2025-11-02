@@ -1,50 +1,572 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# SELLY-AI Project Constitution
+<!-- Civil Records Management System with AI Assistance Capabilities -->
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Service-Oriented Architecture (NON-NEGOTIABLE)
+**Every feature is a modular service with clear boundaries and responsibilities.**
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+- All backend services reside in `backend/internal/services/` with standardized structure
+- Services implement adapter pattern for external dependencies (database, cache, monitoring)
+- Each service must have: `interface.go`, `service.go`, `factory.go`, `operations.go`
+- Services communicate via EventBus pub/sub pattern for loose coupling
+- New services must be registered in BOTH `initializeServices()` AND `routes.GetServices()`
+- Service initialization follows strict dependency order (config → infrastructure → business logic)
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+**Example Service Structure:**
+```go
+// Interface definition
+type ServiceInterface interface {
+    Initialize(ctx context.Context) error
+    Operation() error
+}
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+// Adapter pattern for testability
+type DatabaseAdapter interface { /* ... */ }
+type CacheAdapter interface { /* ... */ }
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+// Service with injected dependencies
+type Service struct {
+    db    DatabaseAdapter
+    cache CacheAdapter
+}
+```
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### II. Performance-First Design (NON-NEGOTIABLE)
+**No performance regressions allowed. All changes must maintain or improve validated metrics.**
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- **Validated Baseline**: 20-289x faster than Next.js (1.7-28ms response time)
+- **Cache Target**: 85%+ hit ratio (currently optimizing from 20%)
+- **Zero Error Rate**: Under 500+ concurrent users load testing
+- **Response Time**: <1000ms for all endpoints (most achieve <50ms)
+- **Memory Efficiency**: 4-5x less memory usage vs. Next.js baseline
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+**Mandatory Performance Validation:**
+- Load testing before merging: `go test -bench=. -benchmem -count=3 ./scripts/load-testing/`
+- Health checks + metrics on ALL endpoints (`/health`, `/metrics`)
+- Use `internal/services/monitoring` for automatic metrics collection
+- Grafana dashboard monitoring: `http://localhost:3001` (admin/admin)
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### III. Test-First with Quality Gates (NON-NEGOTIABLE)
+**95% coverage target with automated quality gates enforcing Phase 2 compliance.**
+
+**Testing Requirements:**
+- **Backend Tests**: Located in `backend/test/{unit,integration,performance,e2e}/`
+- **Frontend Tests**: Located in `frontend/src/__tests__/` or co-located `__tests__/`
+- **Coverage Gates**: 95% global, 98% critical components, 95% branch/function
+- **Performance Gates**: Response time, cache hit rate, error rate validation
+- **Security Gates**: Zero critical vulnerabilities, dependency scanning
+- **Phase 2 Compliance Gates**: Monitoring integration, cache optimization
+
+**Test Execution:**
+```powershell
+# Backend tests
+go test ./internal/services/... -v
+go test ./test/integration/... -v
+
+# Frontend tests
+pnpm test                 # All tests
+pnpm test:unit            # Unit tests only
+pnpm test:integration     # Integration tests
+pnpm validate:performance # Performance validation
+```
+
+**Quality Gate Enforcement:**
+- All PRs must pass automated quality gates before merge
+- Quality gate results logged in monitoring system
+- Trend analysis tracks regression prevention
+- Real-time reporting with recommendations
+
+### IV. Indonesian Government Compliance
+**Data sovereignty and cultural sensitivity are mandatory for civil records management.**
+
+**Language Requirements:**
+- **User-Facing Content**: Indonesian (bahasa baku) - MANDATORY
+- **Technical Docs/Code**: English
+- **Error Messages**: Indonesian user message + English debug info for logs
+
+**Data Sovereignty:**
+- ONLY `ap-southeast-1` (Singapore) or `ap-southeast-3` (Jakarta) AWS regions allowed
+- All Supabase calls must validate region compliance
+- Document compliance in `docs/` with government standards references
+
+**Cultural Standards:**
+- 7-component cultural validation system (hierarchy, collectivism, face-saving, religious, regional, language, authenticity)
+- Cultural quality score target: 80%+ (currently achieving 90%)
+- Expert validation cache for cultural appropriateness
+- See `backend/internal/services/persona/cultural_validator.go`
+
+### V. Hybrid Monorepo Integration Patterns
+**Frontend and backend operate independently with two integration pathways.**
+
+**Two Integration Modes:**
+1. **Direct Supabase Calls** (e.g., SILPANA form submissions bypass Go backend)
+   - Anonymous submissions use RLS policies for security
+   - Frontend validates, Supabase enforces via RLS WITH CHECK
+   - Debug RLS policies BEFORE backend code for 401/403 errors
+
+2. **Go Backend API Calls** (e.g., `/api/v1/chat`, `/api/v1/silpana/tickets`)
+   - JWT authentication via `internal/services/auth`
+   - Multi-level caching (Memory + Redis with automatic fallback)
+   - WebSocket support for real-time updates (room-based broadcasting)
+
+**Critical Architecture Understanding:**
+```
+sellica-golang/
+├── backend/          # Go 1.23 - High-performance API layer
+│   ├── cmd/server/   # Application entry point (main.go)
+│   ├── internal/     # Private services (23+ service modules)
+│   └── exe/          # Build outputs (MANDATORY location)
+├── frontend/         # Next.js 15 - Static-first SSR/SSG
+└── selly-legacy-nextjs-backend/  # Legacy code being migrated
+```
+
+### VI. Windows Development Environment Standards
+**Optimized for Windows 11, PowerShell, and pnpm package manager.**
+
+**Mandatory Tools:**
+- **OS**: Windows 11 with PowerShell 5.1
+- **Package Manager**: pnpm 10.14.0 (NEVER use npm or yarn)
+- **Node.js**: v22.18.0
+- **Go**: 1.25.0 windows/amd64
+- **IDE**: VS Code with recommended extensions (`.vscode/extensions.json`)
+
+**PowerShell Command Patterns:**
+```powershell
+# Chaining commands
+cd backend; go build              # ✅ Correct (semicolon)
+cd backend && go build            # ❌ Wrong (bash syntax)
+
+# Environment variables
+$env:PORT = "8080"                # Set variable
+$env:DEBUG = "true"; npm test     # Temporary for single command
+
+# Path handling
+# Always use forward slashes in code for cross-platform compatibility
+const filePath = path.join(__dirname, 'src/components')
+```
+
+**File System Rules:**
+- Case-insensitive filesystem (Windows NTFS)
+- Use forward slashes `/` in code for cross-platform compatibility
+- Absolute paths for system commands: `d:\Journey Code\Project\lab\sellica-golang\`
+
+### VII. Observability and Documentation
+**Comprehensive logging, metrics, and documentation are non-negotiable.**
+
+**Logging Standards:**
+- Structured logging via logrus (backend) and console (frontend)
+- Log levels: ERROR (user-facing Indonesian + technical English), INFO, DEBUG
+- Logs directory: `backend/logs/backend/` and `frontend/logs/`
+- Automatic log rotation and file management via `logwriter`
+
+**Documentation Standards:**
+- **Dated Technical Docs**: `YYYY-MM-DD-{descriptive-title}.md` (backend/frontend docs)
+- **Root-Level Category Docs**: `CATEGORY-DESCRIPTIVE-TITLE.md` (ALL-CAPS, project-wide)
+- **Mandatory Header**: Document metadata (date, version, status, priority, audience, type)
+- **Markdown Linting**: Zero errors required (heading hierarchy, code blocks with language, consistent list markers)
+- **Executive Summary**: 2-3 sentence overview of purpose and outcomes
+
+**Metrics Collection:**
+- Health endpoints: `/health`, `/health/simple`, `/health/live`, `/health/ready`
+- Metrics endpoints: `/metrics`, `/metrics/health`, `/metrics/summary`
+- Prometheus integration via `backend/docker-compose.yml`
+- Grafana dashboards for real-time monitoring
+
+## Technology Stack Requirements
+
+### Backend (Go 1.23)
+**Mandatory Dependencies:**
+- **Web Framework**: Gin (v1.10.0) - Fast HTTP router
+- **Database**: Supabase Go client (v0.0.4) - Connection pooling (10-100 conns)
+- **Caching**: Redis (v9.7.0) + in-memory fallback (patrickmn/go-cache)
+- **Authentication**: golang-jwt/jwt (v5.2.1) - JWT validation with Supabase secrets
+- **Logging**: logrus (v1.9.3) - Structured logging
+- **Configuration**: godotenv (v1.5.1) - Environment variable management
+
+**Build and Deployment:**
+- Executables output to `backend/exe/` (NOT bin/, build/, or root)
+- Build command: `go build -o exe/selly-backend.exe cmd/server/main.go`
+- Docker support: `backend/docker-compose.yml` (includes Redis, Prometheus, Grafana)
+- Health checks required for all deployments
+
+### Frontend (Next.js 15)
+**Mandatory Dependencies:**
+- **Framework**: Next.js 15.3.0 - Static-first SSR/SSG
+- **Package Manager**: pnpm 10.14.0 (MANDATORY - no npm/yarn)
+- **UI Framework**: React 19 with TypeScript
+- **Styling**: Tailwind CSS
+- **State Management**: React hooks + Supabase client
+- **Testing**: Jest + React Testing Library
+
+**Build Configuration:**
+- Static export optimized: `next.config.mjs`
+- Image optimization disabled for static builds
+- Output directory: `deployment/static-build/`
+- Development server: Port 3000, Production: Port 4000
+
+**pnpm Scripts (from package.json):**
+```json
+{
+  "dev": "pnpm dev:frontend",
+  "build": "next build",
+  "test": "jest",
+  "test:unit": "jest --selectProjects=\"Unit Tests\"",
+  "test:integration": "jest --selectProjects=\"Integration Tests\"",
+  "test:performance": "jest --selectProjects=\"Performance Tests\"",
+  "validate:performance": "tsx src/scripts/simple-performance-validation.ts"
+}
+```
+
+## Development Workflow
+
+### Git Workflow (PowerShell Three-Step Process)
+**Mandatory conventional commit format with documentation updates.**
+
+```powershell
+# Step 1: Stage all changes
+git add .
+
+# Step 2: Commit with conventional format
+git commit -m "feat(silpana): add real-time WebSocket updates"
+# Types: feat, fix, docs, style, refactor, test, chore
+
+# Step 3: Push to current branch
+git push origin <branch-name>
+```
+
+**Commit Message Convention:**
+- `feat(scope):` - New feature
+- `fix(scope):` - Bug fix
+- `docs(scope):` - Documentation changes
+- `test(scope):` - Test additions/changes
+- `refactor(scope):` - Code refactoring
+- `chore(scope):` - Maintenance tasks
+
+**Documentation Updates:**
+- REQUIRED before committing when implementing from existing specs
+- Update the source doc that guided your work
+- Create new docs for significant features or architecture changes
+
+### File Organization (MANDATORY)
+**Strict directory structure enforced by CI/CD with automated warnings.**
+
+**Backend Files:**
+- **Tests**: `/backend/test/{unit,integration,performance,e2e}/`
+- **Docs**: `/backend/docs/YYYY-MM-DD-{title}.md` (dated format)
+- **Executables**: `/backend/exe/` (ONLY location allowed)
+- **Services**: `/backend/internal/services/{service-name}/`
+- **Migrations**: `/backend/migrations/` (numeric prefixes: `001_`, `002_`)
+
+**Frontend Files:**
+- **Tests**: `/frontend/src/__tests__/` or co-located `__tests__/`
+- **Docs**: `/frontend/docs/YYYY-MM-DD-{title}.md`
+- **Components**: `/frontend/src/components/`
+- **Pages**: `/frontend/src/app/` (Next.js 15 App Router)
+- **Scripts**: `/frontend/src/scripts/`
+
+**Root-Level Docs:**
+- **Project-Wide**: `docs/CATEGORY-DESCRIPTIVE-TITLE.md` (ALL-CAPS, hyphenated)
+- **Backend-Specific**: `docs/backend/docs/YYYY-MM-DD-{title}.md`
+- **Frontend-Specific**: `docs/frontend/docs/YYYY-MM-DD-{title}.md`
+
+### Database Migrations
+**Numeric prefixes with rollback sections required.**
+
+```sql
+-- Migration file: backend/migrations/001_create_table.sql
+
+-- BEGIN MIGRATION
+CREATE TABLE silpana (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    ticket_code VARCHAR(20) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+-- END MIGRATION
+
+-- BEGIN ROLLBACK
+DROP TABLE silpana;
+-- END ROLLBACK
+```
+
+**Frontend Migrations (TypeScript):**
+```powershell
+# Run migration
+pnpm migration:silpana-ticketing
+
+# Rollback migration
+pnpm migration:silpana-ticketing:rollback
+```
+
+### Running the Application
+
+**Backend (from `backend/`):**
+```powershell
+# Install dependencies
+go mod download
+
+# Run development server (port 8080)
+go run cmd/server/main.go
+
+# Build executable
+go build -o exe/selly-backend.exe cmd/server/main.go
+
+# Docker compose (Redis, Prometheus, Grafana)
+docker-compose up -d
+```
+
+**Frontend (from `frontend/`):**
+```powershell
+# Install dependencies (pnpm ONLY)
+pnpm install
+
+# Development server (port 3000)
+pnpm dev
+
+# Production build
+pnpm build
+
+# Production server (port 4000)
+pnpm start
+```
+
+**Critical Endpoints:**
+- Backend health: `http://localhost:8080/health`
+- Backend metrics: `http://localhost:8080/metrics`
+- Frontend: `http://localhost:3000`
+- Grafana: `http://localhost:3001` (admin/admin)
+
+### Error Handling Pattern
+**Indonesian user messages with English technical details for debugging.**
+
+```go
+// Backend error handling
+return nil, fmt.Errorf("gagal menyimpan tiket: %w", err)  // Indonesian for user
+logrus.WithError(err).Error("Failed to save ticket: database timeout")  // English for logs
+
+// Frontend receives Indonesian message
+// Logs contain English technical detail for debugging
+```
+
+### WebSocket Integration (Phase 4)
+**Room-based broadcasting for real-time updates.**
+
+```go
+// Subscribe client to ticket updates
+hub.SubscribeToRoom(client, "ticket-"+ticketID)
+
+// Broadcast to all clients in room
+hub.BroadcastToRoom("ticket-"+ticketID, event)
+
+// Cleanup on disconnect
+hub.UnsubscribeFromAllRooms(client)
+```
+
+**Frontend WebSocket Client** (`frontend/src/lib/websocket/`):
+- Auto-reconnect with exponential backoff
+- Ping/pong keep-alive (54s interval)
+- Event-based message handling
+- React hooks: `useWebSocket()`, `useTicketUpdates()`
+
+## Quality Assurance Standards
+
+### Automated Quality Gates (Phase 2 Compliance)
+**Comprehensive validation pipeline with automatic enforcement.**
+
+**Gate Categories:**
+1. **Performance Gates**: Response time, cache hit rate, error rate, throughput, memory usage
+2. **Coverage Gates**: Global coverage (95%), critical components (98%), branch/function (95%)
+3. **Security Gates**: Dependency vulnerabilities, code security analysis
+4. **Phase 2 Compliance**: Monitoring integration, cache optimization, intelligent caching
+
+**Quality Gate Configuration:**
+```typescript
+{
+  thresholds: {
+    performance: {
+      maxResponseTime: 1000,      // <1s Phase 2 target
+      minCacheHitRate: 85,         // 85%+ Phase 2 target
+      maxErrorRate: 1,             // <1% Phase 2 target
+      minThroughput: 1000,         // req/s
+      maxMemoryUsage: 500          // MB
+    },
+    coverage: {
+      minGlobalCoverage: 95,       // 95% Phase 2 target
+      minCriticalComponentsCoverage: 98,
+      minBranchCoverage: 95,
+      minFunctionCoverage: 95
+    },
+    security: {
+      maxVulnerabilities: 0,
+      maxCriticalVulnerabilities: 0
+    }
+  }
+}
+```
+
+**Execution:**
+```powershell
+# Run quality gates
+pnpm test:enhanced
+
+# Performance validation
+pnpm validate:performance
+
+# Backend load testing
+cd backend; go test -bench=. ./scripts/load-testing/
+```
+
+### Testing Requirements by Type
+**Comprehensive test coverage across all system layers.**
+
+**Unit Tests:**
+- Individual service logic validation
+- Mock external dependencies (database, cache, monitoring)
+- Target: 95%+ coverage
+- Execution: `go test ./internal/services/... -v` or `pnpm test:unit`
+
+**Integration Tests:**
+- Service-to-service communication
+- Database integration (Supabase)
+- Cache integration (Redis + memory fallback)
+- EventBus pub/sub patterns
+- Target: 95%+ coverage
+- Execution: `go test ./test/integration/... -v` or `pnpm test:integration`
+
+**Performance Tests:**
+- Load testing: 500+ concurrent users
+- Response time validation (<1000ms, most <50ms)
+- Cache hit ratio (85%+ target)
+- Memory efficiency validation
+- Execution: `go test -bench=. -benchmem -count=3 ./scripts/load-testing/` or `pnpm test:performance`
+
+**E2E Tests:**
+- Complete user workflows (SILPANA ticket submission, dashboard charts)
+- Frontend + backend integration
+- WebSocket real-time updates
+- Execution: `pnpm test:e2e`
+
+### Code Review Requirements
+**Mandatory checks before merge approval.**
+
+- [ ] All quality gates passed (performance, coverage, security, Phase 2 compliance)
+- [ ] Documentation updated (source docs if implementing from specs)
+- [ ] Conventional commit messages used
+- [ ] No performance regressions (validated via benchmarks)
+- [ ] Tests added for new features (TDD approach)
+- [ ] Error messages use Indonesian (user) + English (technical)
+- [ ] Service registration updated (if new service added)
+- [ ] File organization follows mandatory structure
+- [ ] PowerShell syntax used for Windows commands
+- [ ] Markdown linting passed (zero errors)
+
+## Compliance and Security
+
+### Data Sovereignty
+**Strict regional compliance for Indonesian government standards.**
+
+- **Allowed Regions**: ONLY `ap-southeast-1` (Singapore) or `ap-southeast-3` (Jakarta)
+- **Supabase Configuration**: Region validation in all database calls
+- **Documentation**: Compliance proof in `docs/` with government standard references
+- **Audit Trail**: All data access logged for government audits
+
+### Security Standards
+**Zero-tolerance for critical vulnerabilities.**
+
+- **Dependency Scanning**: Automated checks for known vulnerabilities (max 0 critical)
+- **Code Security**: Static analysis for security issues (max 0 critical)
+- **Authentication**: JWT validation via Supabase secrets (RBAC enforced)
+- **RLS Policies**: Supabase Row-Level Security for anonymous submissions
+- **HTTPS Only**: Production deployments require TLS certificates
+- **Secrets Management**: Environment variables via `.env` (NEVER commit secrets)
+
+### Cultural Compliance (Indonesian Government)
+**7-component validation for cultural appropriateness.**
+
+1. **Hierarchy Validator**: Social hierarchy respect (Indonesian formal structure)
+2. **Collectivism Validator**: Community-oriented communication
+3. **Face-Saving Validator**: Face-saving compliance (avoiding public criticism)
+4. **Religious Validator**: Religious sensitivity (multi-faith respect)
+5. **Regional Validator**: Regional appropriateness (diverse Indonesian cultures)
+6. **Language Validator**: Correct Indonesian language usage (bahasa baku)
+7. **Authenticity Assessment**: Overall cultural authenticity score
+
+**Target**: 80%+ cultural quality score (currently achieving 90%)
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+### Constitutional Authority
+**This constitution supersedes all other development practices and guidelines.**
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+- Constitution defines mandatory standards (NON-NEGOTIABLE principles)
+- `.github/copilot-instructions.md` provides runtime development guidance
+- Conflicts resolved in favor of constitutional principles
+- Amendments require team approval and migration plan
+
+### Amendment Process
+**Changes to constitution require formal process.**
+
+1. **Proposal**: Document proposed change with rationale and impact analysis
+2. **Review**: Team review and discussion (minimum 3 business days)
+3. **Approval**: Unanimous technical lead approval required for core principles
+4. **Migration Plan**: Document migration path for existing code
+5. **Implementation**: Update constitution, notify team, update CI/CD validation
+6. **Versioning**: Increment version number and document in changelog
+
+### Enforcement Mechanisms
+**Automated and manual validation of constitutional compliance.**
+
+**Automated Enforcement (CI/CD):**
+- Quality gates block merges if thresholds not met
+- File organization validated (warn on violations)
+- Test coverage checked (95% minimum)
+- Performance benchmarks run (prevent regressions)
+- Security scans executed (zero critical vulnerabilities)
+- Markdown linting enforced (zero errors)
+
+**Manual Review:**
+- Code reviews verify service architecture patterns
+- Documentation completeness checked (headers, executive summary)
+- Cultural compliance validated (Indonesian language standards)
+- Regional compliance confirmed (data sovereignty)
+
+**Violation Consequences:**
+- Automated: PR blocked until compliance achieved
+- Manual: Review comments require resolution before approval
+- Repeated violations: Additional training or pair programming required
+
+### Exception Process
+**Rare exceptions require explicit documentation and approval.**
+
+**When Exceptions Are Allowed:**
+- Technical impossibility (with proof and alternative approach documented)
+- Emergency hotfixes (with retroactive compliance plan)
+- Legacy code migration (with timeline for compliance)
+
+**Exception Request Process:**
+1. Document exception reason, impact, and temporary mitigation
+2. Propose timeline for compliance or permanent alternative
+3. Obtain technical lead approval
+4. Track exception in `docs/EXCEPTIONS.md` with review dates
+5. Regularly review exceptions for resolution or removal
+
+### Version History
+**Version**: 1.0.0  
+**Ratified**: 2025-11-02  
+**Last Amended**: 2025-11-02
+
+**Changelog:**
+- v1.0.0 (2025-11-02): Initial constitution ratified
+  - Defined 7 core principles (service-oriented, performance-first, test-first, compliance, hybrid integration, Windows environment, observability)
+  - Established technology stack requirements (Go 1.23, Next.js 15, pnpm)
+  - Documented development workflow (Git, file organization, migrations, running application)
+  - Specified quality assurance standards (automated quality gates, testing requirements, code review)
+  - Defined compliance and security standards (data sovereignty, cultural validation)
+  - Established governance process (constitutional authority, amendments, enforcement, exceptions)
+
+---
+
+**Current Phase**: Phase 4 - Real-time WebSocket Integration Complete  
+**Current Branch**: `feat/fix-chart-aggregation`  
+**Project Status**: Production-ready with 20-289x performance improvement validated  
+**Next Focus**: Phase 5 - Advanced AI features and cultural optimization
