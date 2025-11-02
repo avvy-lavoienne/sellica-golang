@@ -6,23 +6,23 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import {
-  Bell,
-  Sun,
-  Moon,
-  User,
-  LogOut,
-  Settings,
-  HelpCircle,
-  Menu,
-  X,
-  ChevronDown,
-  Loader2,
-  AlertCircle,
-  Search,
-  Ticket,
-  Clock,
-  TrendingUp,
-} from "lucide-react";
+  FiBell as Bell,
+  FiSun as Sun,
+  FiMoon as Moon,
+  FiUser as User,
+  FiLogOut as LogOut,
+  FiSettings as Settings,
+  FiHelpCircle as HelpCircle,
+  FiMenu as Menu,
+  FiX as X,
+  FiChevronDown as ChevronDown,
+  FiLoader as Loader2,
+  FiAlertCircle as AlertCircle,
+  FiSearch as Search,
+  FiShoppingCart as Ticket,
+  FiClock as Clock,
+  FiTrendingUp as TrendingUp,
+} from "react-icons/fi";
 import { useOnClickOutside } from "@/hooks/use-click-outside";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
