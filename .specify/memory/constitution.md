@@ -121,7 +121,65 @@ sellica-golang/
 └── selly-legacy-nextjs-backend/  # Legacy code being migrated
 ```
 
-### VI. Windows Development Environment Standards
+### VI. Frontend Authentication Data Flow (NON-NEGOTIABLE)
+**User authentication state must be consistently propagated across all components without fallback placeholders.**
+
+**Critical Authentication Rules:**
+- **Email Field**: ALWAYS populate user.email in authentication objects (layout.tsx responsibility)
+- **No Placeholders**: Components must NEVER display placeholder values like "user@example.com" for authenticated users
+- **Data Integrity**: User objects must maintain complete structure across prop/localStorage transitions
+- **Error Visibility**: Missing critical fields must show error indicators, not fallback placeholders
+- **Priority Chain**: (1) Props with complete data, (2) localStorage with validation, (3) Error state (NEVER placeholder)
+
+**Authentication Data Structure (Mandatory Fields):**
+```typescript
+interface AuthenticatedUser {
+  id: string;              // User ID from auth provider
+  email: string;           // CRITICAL: Always required, NEVER omitted
+  name?: string;           // User display name (optional but preferred)
+  role?: string;           // User role/permission level
+  full_name?: string;      // Complete user name
+  avatar_url?: string;     // User profile avatar
+}
+
+// NO: {id: '123', name: 'John'} - Missing required email
+// YES: {id: '123', email: 'john@example.com', name: 'John'}
+```
+
+**Layout Authentication Flow (frontend/src/app/(protected)/layout.tsx):**
+- Extract email from GoAuthAPI response BEFORE switching to Supabase fallback
+- Construct user object with email field populated FIRST
+- Pass complete user object to TopNav (never incomplete)
+- Log email extraction for debugging (console.debug minimum)
+
+**Component Display Logic (frontend/src/components/TopNav.tsx):**
+- Priority 1: Use prop if email field exists
+- Priority 2: Retrieve from localStorage if email field exists
+- Priority 3: Display error indicator (NEVER use placeholder)
+- Code example: `{displayUser?.email || "[Email not available]"}`
+
+**Common Bug Pattern (PREVENT):**
+```typescript
+// ❌ WRONG - Falls back to placeholder for missing email
+{displayUser?.email || "user@example.com"}
+
+// ✅ CORRECT - Shows error when email missing (signals bug)
+{displayUser?.email || "[Email not available - authentication incomplete]"}
+```
+
+**Testing Requirements:**
+- Unit tests verify email field propagation in authentication flow
+- Integration tests confirm TopNav displays actual email (not placeholder)
+- Test must fail if email is undefined/empty
+- See `frontend/src/components/__tests__/TopNav.auth.test.tsx` for test patterns
+
+**Related Files (Maintain Consistency):**
+- `frontend/src/app/(protected)/layout.tsx` - Auth check and user object construction
+- `frontend/src/components/TopNav.tsx` - User display with authentication state
+- `frontend/src/lib/api/goAuth.ts` - GoAuthAPI user object structure
+- `frontend/src/app/(protected)/dashboard/page.tsx` - localStorage synchronization
+
+### VII. Windows Development Environment Standards
 **Optimized for Windows 11, PowerShell, and pnpm package manager.**
 
 **Mandatory Tools:**
@@ -151,7 +209,7 @@ const filePath = path.join(__dirname, 'src/components')
 - Use forward slashes `/` in code for cross-platform compatibility
 - Absolute paths for system commands: `d:\Journey Code\Project\lab\sellica-golang\`
 
-### VII. Observability and Documentation
+### VIII. Observability and Documentation
 **Comprehensive logging, metrics, and documentation are non-negotiable.**
 
 **Logging Standards:**
@@ -161,8 +219,9 @@ const filePath = path.join(__dirname, 'src/components')
 - Automatic log rotation and file management via `logwriter`
 
 **Documentation Standards:**
-- **Dated Technical Docs**: `YYYY-MM-DD-{descriptive-title}.md` (backend/frontend docs)
-- **Root-Level Category Docs**: `CATEGORY-DESCRIPTIVE-TITLE.md` (ALL-CAPS, project-wide)
+- **Dated Technical Docs**: `docs/bydate/YYYY-MM-DD-{descriptive-title}.md` (MANDATORY: date-prefixed filename)
+- **All Documentation**: Centralized in `docs/bydate/` directory (MANDATORY location)
+- **Naming Convention**: `YYYY-MM-DD-{DESCRIPTIVE-TITLE-KEBAB-CASE}.md` (ALL-CAPS after date)
 - **Mandatory Header**: Document metadata (date, version, status, priority, audience, type)
 - **Markdown Linting**: Zero errors required (heading hierarchy, code blocks with language, consistent list markers)
 - **Executive Summary**: 2-3 sentence overview of purpose and outcomes
@@ -172,6 +231,141 @@ const filePath = path.join(__dirname, 'src/components')
 - Metrics endpoints: `/metrics`, `/metrics/health`, `/metrics/summary`
 - Prometheus integration via `backend/docker-compose.yml`
 - Grafana dashboards for real-time monitoring
+
+### IX. Topic-Based Documentation Organization with Specify-Command Folders
+**Structured topic organization with specify-command subfolders for specialized workflows.**
+
+**Documentation Structure (MANDATORY):**
+```
+docs/bydate/
+├── YYYY-MM-DD-{TOPIC-TITLE}/
+│   ├── speckit-plan/
+│   │   ├── YYYY-MM-DD-research.md
+│   │   ├── YYYY-MM-DD-data-model.md
+│   │   ├── YYYY-MM-DD-contracts/
+│   │   │   ├── YYYY-MM-DD-entity-name-contract.md
+│   │   │   └── YYYY-MM-DD-service-name-contract.md
+│   │   ├── YYYY-MM-DD-quickstart.md
+│   │   └── YYYY-MM-DD-implementation-status.md
+│   │
+│   ├── speckit-analyze/
+│   │   ├── YYYY-MM-DD-root-cause-analysis.md
+│   │   ├── YYYY-MM-DD-architecture-analysis.md
+│   │   └── YYYY-MM-DD-impact-assessment.md
+│   │
+│   ├── speckit-implement/
+│   │   ├── YYYY-MM-DD-phase-1-implementation.md
+│   │   ├── YYYY-MM-DD-phase-2-implementation.md
+│   │   └── YYYY-MM-DD-build-verification.md
+│   │
+│   ├── speckit-specify/
+│   │   ├── YYYY-MM-DD-feature-specification.md
+│   │   ├── YYYY-MM-DD-api-definition.md
+│   │   └── YYYY-MM-DD-acceptance-criteria.md
+│   │
+│   ├── speckit-clarify/
+│   │   ├── YYYY-MM-DD-requirements-clarification.md
+│   │   ├── YYYY-MM-DD-scope-definition.md
+│   │   └── YYYY-MM-DD-unknowns-resolution.md
+│   │
+│   ├── speckit-constitution/
+│   │   ├── YYYY-MM-DD-compliance-check.md
+│   │   └── YYYY-MM-DD-principle-validation.md
+│   │
+│   ├── speckit-checklist/
+│   │   ├── YYYY-MM-DD-phase-0-checklist.md
+│   │   ├── YYYY-MM-DD-phase-1-checklist.md
+│   │   ├── YYYY-MM-DD-phase-2-checklist.md
+│   │   └── YYYY-MM-DD-phase-3-checklist.md
+│   │
+│   └── speckit-tasks/
+│       ├── YYYY-MM-DD-task-planning.md
+│       ├── YYYY-MM-DD-task-tracking.md
+│       └── YYYY-MM-DD-execution-status.md
+│
+├── YYYY-MM-DD-{ANOTHER-TOPIC}/
+│   ├── speckit-plan/
+│   │   └── [same structure as above]
+│   ├── speckit-analyze/
+│   │   └── [same structure as above]
+│   └── [other specify commands...]
+│
+└── YYYY-MM-DD/  # Legacy flat structure (deprecated, transition to topic folders)
+    └── [existing docs migrate here temporarily]
+```
+
+**Topic Folder Naming Rules (MANDATORY):**
+- Format: `YYYY-MM-DD-{DESCRIPTIVE-TOPIC-KEBAB-CASE}/` (e.g., `2025-11-02-topnav-auth-display-bug/`)
+- Topic name: Descriptive kebab-case (e.g., `topnav-auth-display-bug`, `chart-aggregation-filter`, `websocket-integration`)
+- Prefix with date matching the work session date
+- Creates new folder for each distinct project/feature topic
+- Entire workflow for one topic contained within single date-prefixed folder
+
+**Specify-Command Subfolder Rules (MANDATORY):**
+- Each speckit prompt creates a dedicated subfolder: `speckit-{command}/`
+- Commands: `plan`, `analyze`, `implement`, `specify`, `clarify`, `constitution`, `checklist`, `tasks`
+- Files within each subfolder follow naming: `YYYY-MM-DD-{descriptive-title}.md`
+- Subfolders logically organize workflow (e.g., all planning docs in `speckit-plan/`)
+- Related docs live together (e.g., all contracts in `speckit-plan/contracts/`)
+
+**File Organization Within Specify-Command Folders:**
+
+**speckit-plan/** (Planning workflow):
+- `YYYY-MM-DD-research.md` - Phase 0 research findings
+- `YYYY-MM-DD-data-model.md` - Entity definitions and data flow
+- `YYYY-MM-DD-contracts/` (subfolder with contracts)
+  - `YYYY-MM-DD-{entity}-contract.md` - One contract per entity/service
+- `YYYY-MM-DD-quickstart.md` - Testing procedures and workflows
+- `YYYY-MM-DD-implementation-status.md` - Status tracking
+
+**speckit-analyze/** (Analysis workflow):
+- `YYYY-MM-DD-root-cause-analysis.md` - Problem analysis
+- `YYYY-MM-DD-architecture-analysis.md` - System architecture review
+- `YYYY-MM-DD-impact-assessment.md` - Impact and risk analysis
+
+**speckit-implement/** (Implementation workflow):
+- `YYYY-MM-DD-phase-1-implementation.md` - Phase 1 work and results
+- `YYYY-MM-DD-phase-2-implementation.md` - Phase 2 work and results
+- `YYYY-MM-DD-build-verification.md` - Build and verification results
+
+**speckit-specify/** (Specification workflow):
+- `YYYY-MM-DD-feature-specification.md` - Feature specification
+- `YYYY-MM-DD-api-definition.md` - API/interface definitions
+- `YYYY-MM-DD-acceptance-criteria.md` - Acceptance criteria and testing
+
+**speckit-clarify/** (Clarification workflow):
+- `YYYY-MM-DD-requirements-clarification.md` - Clarified requirements
+- `YYYY-MM-DD-scope-definition.md` - Defined scope and boundaries
+- `YYYY-MM-DD-unknowns-resolution.md` - Resolved unknowns
+
+**speckit-constitution/** (Compliance workflow):
+- `YYYY-MM-DD-compliance-check.md` - Constitution compliance verification
+- `YYYY-MM-DD-principle-validation.md` - Principle-by-principle validation
+
+**speckit-checklist/** (Checklist workflow):
+- `YYYY-MM-DD-phase-0-checklist.md` - Phase 0 completion checklist
+- `YYYY-MM-DD-phase-1-checklist.md` - Phase 1 completion checklist
+- `YYYY-MM-DD-phase-2-checklist.md` - Phase 2 completion checklist
+- `YYYY-MM-DD-phase-3-checklist.md` - Phase 3 completion checklist
+
+**speckit-tasks/** (Task management workflow):
+- `YYYY-MM-DD-task-planning.md` - Task breakdown and planning
+- `YYYY-MM-DD-task-tracking.md` - Task status tracking
+- `YYYY-MM-DD-execution-status.md` - Execution status and metrics
+
+**Benefits of This Structure:**
+- **Topical Organization**: All docs for one feature/bug grouped in single date-prefixed folder
+- **Workflow Clarity**: Specify-command subfolders show which workflow stage created each doc
+- **Chronological Sorting**: Date directories sort naturally, each topic has its own timeline
+- **Scalability**: Hundreds of topics can coexist without confusion
+- **Navigation**: Users can easily drill down: Topic → Workflow Stage → Specific Document
+- **Clarity**: Folder structure reflects speckit workflow (plan → analyze → implement → specify → clarify → constitution → checklist → tasks)
+
+**Migration Path (Legacy Documents):**
+1. Existing docs in flat `docs/bydate/2025-11-02/` → move to `docs/bydate/2025-11-02-legacy-flat/speckit-legacy/`
+2. New documents MUST use topic-based structure
+3. Gradual migration of legacy docs into proper topic folders as they're revisited
+4. Deprecation timeline: 90 days for full migration to topic-based organization
 
 ## Technology Stack Requirements
 
@@ -253,22 +447,46 @@ git push origin <branch-name>
 
 **Backend Files:**
 - **Tests**: `/backend/test/{unit,integration,performance,e2e}/`
-- **Docs**: `/backend/docs/YYYY-MM-DD-{title}.md` (dated format)
 - **Executables**: `/backend/exe/` (ONLY location allowed)
 - **Services**: `/backend/internal/services/{service-name}/`
 - **Migrations**: `/backend/migrations/` (numeric prefixes: `001_`, `002_`)
 
 **Frontend Files:**
 - **Tests**: `/frontend/src/__tests__/` or co-located `__tests__/`
-- **Docs**: `/frontend/docs/YYYY-MM-DD-{title}.md`
 - **Components**: `/frontend/src/components/`
 - **Pages**: `/frontend/src/app/` (Next.js 15 App Router)
 - **Scripts**: `/frontend/src/scripts/`
 
-**Root-Level Docs:**
-- **Project-Wide**: `docs/CATEGORY-DESCRIPTIVE-TITLE.md` (ALL-CAPS, hyphenated)
-- **Backend-Specific**: `docs/backend/docs/YYYY-MM-DD-{title}.md`
-- **Frontend-Specific**: `docs/frontend/docs/YYYY-MM-DD-{title}.md`
+**Documentation Organization (CENTRALIZED with NESTED DATES):**
+- **Structure**: `docs/bydate/YYYY-MM-DD/YYYY-MM-DD-{descriptive-title}.md` (MANDATORY)
+- **Date Directory**: Creates subdirectory for each unique date
+- **Filename Rule**: Files MUST have date prefix in filename
+- **Sorting**: Date directories sort chronologically, files within each date sort naturally
+
+**Documentation File Naming Examples:**
+```
+docs/bydate/
+├── 2025-11-02/
+│   ├── 2025-11-02-TOPNAV-AUTH-DISPLAY-BUG-ANALYSIS.md
+│   ├── 2025-11-02-TOPNAV-FIX-RESOLUTION-SUMMARY.md
+│   └── 2025-11-02-FRONTEND-AUTH-DATA-FLOW-PRINCIPLE.md
+├── 2025-10-29/
+│   ├── 2025-10-29-MONTHLY-FILTER-STATUS.md
+│   ├── 2025-10-29-PER-TABLE-CHART-AGGREGATION-COMPLETE.md
+│   ├── 2025-10-29-YEAR-FILTER-IMPLEMENTATION-COMPLETE.md
+│   ├── 2025-10-29-PER-TABLE-VERIFICATION-CHECKLIST.md
+│   └── 2025-10-29-SESSION-SUMMARY-PER-TABLE-PRINCIPLE.md
+└── 2025-10-25/
+    └── 2025-10-25-ARCHITECTURE-ANALYSIS.md
+```
+
+**File Naming Requirements (MANDATORY):**
+- Format: `YYYY-MM-DD-{DESCRIPTIVE-TITLE-KEBAB-CASE}.md`
+- Date Directory: `YYYY-MM-DD/` (creates subdirectory for each date)
+- Filename Date: Same as directory date (redundant but explicit)
+- Title: ALL-CAPS with hyphens, no spaces
+- Double date prefix ensures document age is visible both at directory and filename level
+- Violations prevent merge approval
 
 ### Database Migrations
 **Numeric prefixes with rollback sections required.**
@@ -551,11 +769,30 @@ cd backend; go test -bench=. ./scripts/load-testing/
 5. Regularly review exceptions for resolution or removal
 
 ### Version History
-**Version**: 1.0.0  
+**Version**: 1.2.0  
 **Ratified**: 2025-11-02  
 **Last Amended**: 2025-11-02
 
 **Changelog:**
+- v1.2.0 (2025-11-02): Added topic-based documentation organization with specify-command folders
+  - New Principle IX: Topic-Based Documentation Organization (NON-NEGOTIABLE)
+  - Defined mandatory topic folder structure: `docs/bydate/YYYY-MM-DD-{TOPIC}/speckit-{command}/`
+  - Established specify-command subfolders for workflow organization
+  - Standardized file naming within each subfolder with date prefix
+  - Created migration path for legacy flat documentation structure
+  - Enables scalability for hundreds of concurrent features/bugs
+  - Improved navigation through topical grouping and workflow clarity
+  - Renumbered subsequent sections
+
+- v1.1.0 (2025-11-02): Added Frontend Authentication Data Flow principle
+  - New Principle VI: Frontend Authentication Data Flow (NON-NEGOTIABLE)
+  - Defined mandatory authentication object structure (email field always required)
+  - Established authentication data propagation patterns (prop → localStorage → error)
+  - Added explicit rules against placeholder fallbacks for authenticated users
+  - Specified testing requirements for authentication state verification
+  - Related to TopNav authentication bug fix (email display)
+  - Renumbered subsequent principles (VII → VIII)
+
 - v1.0.0 (2025-11-02): Initial constitution ratified
   - Defined 7 core principles (service-oriented, performance-first, test-first, compliance, hybrid integration, Windows environment, observability)
   - Established technology stack requirements (Go 1.23, Next.js 15, pnpm)

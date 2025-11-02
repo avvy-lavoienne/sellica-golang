@@ -108,34 +108,34 @@ export default function TopNav({
   const [displayUser, setDisplayUser] = useState<User | null>(user || null);
 
   // Sync user from prop or localStorage if prop is incomplete
+  // CRITICAL: Ensures email field is always populated (never falls back to placeholder)
   useEffect(() => {
-    if (user && user.name && user.name.trim()) {
-      // User prop has name, use it
+    // Priority 1: Use prop if it has email (complete user object)
+    if (user?.email) {
       setDisplayUser(user);
-    } else if (user && user.email) {
-      // User prop exists but no name, try to get from localStorage
+      return;
+    }
+
+    // Priority 2: Try to retrieve complete user from localStorage
+    if (typeof window !== 'undefined') {
       try {
-        if (typeof window !== 'undefined') {
-          const storedUserInfo = localStorage.getItem('selly_user_info');
-          if (storedUserInfo) {
-            const parsedUserInfo = JSON.parse(storedUserInfo);
-            // Merge stored info with prop
-            setDisplayUser({
-              ...user,
-              name: parsedUserInfo.name || user.name,
-              full_name: parsedUserInfo.full_name || user.full_name,
-            });
-          } else {
-            setDisplayUser(user);
+        const storedUserInfo = localStorage.getItem('selly_user_info');
+        if (storedUserInfo) {
+          const parsed = JSON.parse(storedUserInfo);
+          // CRITICAL: Only use localStorage if it has email field
+          if (parsed.email) {
+            setDisplayUser(parsed);
+            return;
           }
         }
       } catch (error) {
-        // Fall back to prop user if parsing fails
-        setDisplayUser(user);
+        console.warn('Failed to parse stored user info:', error);
       }
-    } else {
-      setDisplayUser(user || null);
     }
+
+    // Priority 3: Use incomplete prop or null
+    // This will trigger the error display in UI (showing auth is incomplete)
+    setDisplayUser(user || null);
   }, [user]);
 
   // Refs for click outside detection
@@ -842,12 +842,12 @@ export default function TopNav({
                       aria-expanded={isUserMenuOpen}
                       aria-label="User menu"
                     >
-                      {/* Enhanced Avatar */}
-                      {user?.avatar_url ? (
+                      {/* Enhanced Avatar - Use displayUser with synced email */}
+                      {displayUser?.avatar_url ? (
                         <div className="relative h-8 w-8 overflow-hidden rounded-full ring-2 ring-border transition-all duration-200 hover:ring-primary/50">
                           <Image
-                            src={user.avatar_url}
-                            alt={user?.name || "User avatar"}
+                            src={displayUser.avatar_url}
+                            alt={displayUser?.name || "User avatar"}
                             className="rounded-full object-cover"
                             fill
                             sizes="32px"
@@ -857,22 +857,22 @@ export default function TopNav({
                       ) : (
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary ring-2 ring-border transition-all duration-200 hover:ring-primary/50">
                           <span className="text-sm font-semibold">
-                            {user?.name?.charAt(0).toUpperCase() ||
-                              user?.email?.charAt(0).toUpperCase() ||
+                            {displayUser?.name?.charAt(0).toUpperCase() ||
+                              displayUser?.email?.charAt(0).toUpperCase() ||
                               "U"}
                           </span>
                         </div>
                       )}
 
-                      {/* Enhanced User Info */}
+                      {/* Enhanced User Info - Use displayUser with synced email */}
                       <div className="hidden items-center md:flex">
                         <div className="text-left">
                           <p className="max-w-[120px] truncate text-sm font-medium text-foreground">
-                            {user?.name || user?.email?.split("@")[0] || "User"}
+                            {displayUser?.name || displayUser?.email?.split("@")[0] || displayUser?.id ? "User" : "Guest"}
                           </p>
-                          {user?.role && (
+                          {displayUser?.role && (
                             <p className="text-xs capitalize text-muted-foreground">
-                              {user.role}
+                              {displayUser.role}
                             </p>
                           )}
                         </div>
@@ -886,7 +886,7 @@ export default function TopNav({
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom">
-                    {user?.name || user?.email || "User menu"}
+                    {displayUser?.name || displayUser?.email || "User menu"}
                   </TooltipContent>
                 </Tooltip>
 
@@ -902,11 +902,11 @@ export default function TopNav({
                       {/* Enhanced User Info Header */}
                       <div className="border-b p-4">
                         <div className="flex items-center gap-3">
-                          {user?.avatar_url ? (
+                          {displayUser?.avatar_url ? (
                             <div className="relative h-10 w-10 overflow-hidden rounded-full ring-2 ring-border">
                               <Image
-                                src={user.avatar_url}
-                                alt={user?.name || "User avatar"}
+                                src={displayUser.avatar_url}
+                                alt={displayUser?.name || "User avatar"}
                                 className="rounded-full object-cover"
                                 fill
                                 sizes="40px"
@@ -915,8 +915,8 @@ export default function TopNav({
                           ) : (
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary ring-2 ring-border">
                               <span className="text-sm font-semibold">
-                                {user?.name?.charAt(0).toUpperCase() ||
-                                  user?.email?.charAt(0).toUpperCase() ||
+                                {displayUser?.name?.charAt(0).toUpperCase() ||
+                                  displayUser?.email?.charAt(0).toUpperCase() ||
                                   "U"}
                               </span>
                             </div>
@@ -929,8 +929,8 @@ export default function TopNav({
                                   ? displayUser.full_name
                                   : displayUser?.email?.split("@")[0] || "User"}
                             </p>
-                            <p className="truncate text-xs text-muted-foreground">
-                              {displayUser?.email || "user@example.com"}
+                            <p className={`truncate text-xs ${displayUser?.email ? 'text-muted-foreground' : 'text-red-500 italic font-medium'}`}>
+                              {displayUser?.email || "[Email not available - authentication incomplete]"}
                             </p>
                             {displayUser?.role && (
                               <Badge

@@ -778,6 +778,8 @@ export default function Dashboard() {
     <>
       <ToastContainer />
       <EnhancedDashboardLayout
+        user={contextUser}
+        setUser={() => {}}
         userName={userName}
         userRole={userRole}
         enableChatbot={true}
