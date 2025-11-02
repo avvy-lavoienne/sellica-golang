@@ -167,29 +167,5 @@
     "tsx": "^4.20.3",
     "turbo": "^2.5.6",
     "typescript": "^5.8.3"
-  },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "jsdom",
-    "setupFilesAfterEnv": [
-      "<rootDir>/jest.setup.js",
-      "<rootDir>/jest.canvas.setup.js"
-    ],
-    "moduleNameMapper": {
-      "^@/(.*)$": "<rootDir>/src/$1"
-    },
-    "testMatch": [
-      "**/__tests__/**/*.test.ts",
-      "**/__tests__/**/*.test.tsx"
-    ],
-    "transformIgnorePatterns": [
-      "node_modules/(?!(@supabase)/)"
-    ],
-    "testTimeout": 30000,
-    "collectCoverageFrom": [
-      "src/**/*.{ts,tsx}",
-      "!src/**/*.d.ts",
-      "!src/**/*.stories.{ts,tsx}"
-    ]
   }
 }
