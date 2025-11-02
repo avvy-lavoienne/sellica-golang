@@ -176,6 +176,12 @@ export interface SearchResult {
   href: string; // Navigation target
   icon?: React.ReactNode; // Icon component
   badge?: string; // Status badge (optional)
+  metadata?: {
+    // Optional metadata for display
+    code?: string; // Ticket code
+    status?: string; // Ticket status
+    [key: string]: any; // Additional flexible metadata
+  };
 }
 
 // ============================================================================
