@@ -1,0 +1,5 @@
+ΓÇëWARNΓÇë Unsupported engine: wanted: {"node":"20.x"} (current: {"node":"v22.18.0","pnpm":"10.20.0"})
+
+> sellica@2.0 type-check C:\Users\MyPC PRO\Documents\Firman\Project\sellica-golang\frontend
+> tsc --noEmit
+

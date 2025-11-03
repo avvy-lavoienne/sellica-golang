@@ -1,6 +1,9 @@
 /** @type {import("next").NextConfig} */
 // Phase 1 Frontend-Backend Separation: Static Export Configuration
 const nextConfig = {
+  // Exclude problematic packages from Babel transpilation
+  transpilePackages: [],
+  
   // Image optimization configuration
   images: {
     remotePatterns: [
@@ -72,6 +75,37 @@ const nextConfig = {
 
   // Webpack configuration for staging optimization
   webpack: (config, { dev, isServer, webpack }) => {
+    // Exclude es-toolkit and recharts from Babel transpilation to avoid Unicode property regex issues
+    config.module.rules = config.module.rules.map(rule => {
+      if (rule.use && Array.isArray(rule.use)) {
+        return {
+          ...rule,
+          use: rule.use.map(loader => {
+            if (typeof loader === 'object' && loader.loader && loader.loader.includes('babel-loader')) {
+              return {
+                ...loader,
+                exclude: /node_modules[\\/](es-toolkit|recharts)/
+              };
+            }
+            return loader;
+          })
+        };
+      }
+      if (rule.use && typeof rule.use === 'object' && rule.use.loader && rule.use.loader.includes('babel-loader')) {
+        return {
+          ...rule,
+          exclude: /node_modules[\\/](es-toolkit|recharts)/
+        };
+      }
+      if (rule.loader === 'babel-loader') {
+        return {
+          ...rule,
+          exclude: /node_modules[\\/](es-toolkit|recharts)/
+        };
+      }
+      return rule;
+    });
+
     // Production optimizations in staging
     if (!dev && !isServer) {
       // Enable production optimizations

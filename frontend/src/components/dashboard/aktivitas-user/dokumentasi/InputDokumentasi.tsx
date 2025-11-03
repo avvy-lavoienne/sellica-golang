@@ -39,8 +39,8 @@ interface InputDokumentasiProps {
   maxFileSize?: number;
   /** Loading state */
   loading?: boolean;
-  /** User object from context (contains id, email, name) */
-  user?: { id: string; email?: string; name?: string };
+  /** User object from context (contains id, email, name) - can be null during loading */
+  user?: { id: string; email?: string; name?: string } | null;
 }
 
 export default function InputDokumentasi({

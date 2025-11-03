@@ -354,7 +354,7 @@ export default function ProfilePage() {
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ avatar_url: null })
-        .eq("id", contextUser.id);
+        .eq("id", contextUser?.id);
       if (updateError) {
         throw new Error(`Gagal memperbarui profil: ${updateError.message}`);
       }
@@ -535,7 +535,7 @@ export default function ProfilePage() {
                         <div className="relative h-24 w-24 overflow-hidden rounded-full ring-4 ring-border transition-all duration-300 group-hover:ring-primary/50 laptop:h-32 laptop:w-32">
                           <Image
                             src={profile.avatar_url}
-                            alt={`${profile.name || contextUser.email} profile picture`}
+                            alt={`${profile.name || contextUser?.email} profile picture`}
                             fill
                             className="object-cover transition-transform duration-300 group-hover:scale-105"
                             priority

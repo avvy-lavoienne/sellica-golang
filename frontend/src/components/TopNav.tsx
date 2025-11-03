@@ -6,23 +6,23 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import {
-  Bell,
-  Sun,
-  Moon,
-  User,
-  LogOut,
-  Settings,
-  HelpCircle,
-  Menu,
-  X,
-  ChevronDown,
-  Loader2,
-  AlertCircle,
-  Search,
-  Ticket,
-  Clock,
-  TrendingUp,
-} from "lucide-react";
+  FiBell as Bell,
+  FiSun as Sun,
+  FiMoon as Moon,
+  FiUser as User,
+  FiLogOut as LogOut,
+  FiSettings as Settings,
+  FiHelpCircle as HelpCircle,
+  FiMenu as Menu,
+  FiX as X,
+  FiChevronDown as ChevronDown,
+  FiLoader as Loader2,
+  FiAlertCircle as AlertCircle,
+  FiSearch as Search,
+  FiShoppingCart as Ticket,
+  FiClock as Clock,
+  FiTrendingUp as TrendingUp,
+} from "react-icons/fi";
 import { useOnClickOutside } from "@/hooks/use-click-outside";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
@@ -110,9 +110,26 @@ export default function TopNav({
   // Sync user from prop or localStorage if prop is incomplete
   // CRITICAL: Ensures email field is always populated (never falls back to placeholder)
   useEffect(() => {
+    let finalUser = user;
+
     // Priority 1: Use prop if it has email (complete user object)
     if (user?.email) {
-      setDisplayUser(user);
+      // Check if we have avatar in localStorage that the prop doesn't have
+      if (typeof window !== 'undefined' && !user.avatar_url) {
+        try {
+          const storedUserInfo = localStorage.getItem('selly_user_info');
+          if (storedUserInfo) {
+            const parsed = JSON.parse(storedUserInfo);
+            // If localStorage has avatar_url and matches the current user, use it
+            if (parsed.email === user.email && parsed.avatar_url) {
+              finalUser = { ...user, avatar_url: parsed.avatar_url };
+            }
+          }
+        } catch (error) {
+          console.warn('Failed to merge avatar from stored user info:', error);
+        }
+      }
+      setDisplayUser(finalUser);
       return;
     }
 
@@ -424,6 +441,23 @@ export default function TopNav({
               ...user,
               avatar_url: result.user.avatar_url,
             });
+            
+            // Also update localStorage to ensure fallback works
+            if (typeof window !== 'undefined') {
+              try {
+                const storedUserInfo = localStorage.getItem('selly_user_info');
+                if (storedUserInfo) {
+                  const parsed = JSON.parse(storedUserInfo);
+                  if (parsed.email) {
+                    const updatedUser = { ...parsed, avatar_url: result.user.avatar_url };
+                    localStorage.setItem('selly_user_info', JSON.stringify(updatedUser));
+                  }
+                }
+              } catch (error) {
+                console.warn('Failed to update stored user info:', error);
+              }
+            }
+            
             console.log('✅ Avatar loaded from Go backend');
           } else if (!result.success) {
             console.warn("Could not fetch avatar from Go backend:", result.error);
