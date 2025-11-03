@@ -9,7 +9,7 @@ import { ToastContainer } from "react-toastify";
 import { motion } from "framer-motion";
 
 // Import auth context
-import { useProtectedAuth } from "../auth-context";
+import { useProtectedAuth, ProtectedLayoutProvider } from "../auth-context";
 
 // Import logger
 import { logger } from "@/lib/logger";
@@ -270,7 +270,7 @@ async function fetchDashboardData(
 export default function Dashboard() {
 
   const router = useRouter();
-  const { user: contextUser } = useProtectedAuth();
+  const { user: contextUser, loading: isLoadingAuth, setUser } = useProtectedAuth();
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -777,14 +777,15 @@ export default function Dashboard() {
   return (
     <>
       <ToastContainer />
-      <EnhancedDashboardLayout
-        user={contextUser}
-        setUser={() => {}}
-        userName={userName}
-        userRole={userRole}
-        enableChatbot={true}
-        chatbotApiKey={process.env.DEEPSEEK_API_KEY}
-      >
+      <ProtectedLayoutProvider user={contextUser} loading={isLoadingAuth} setUser={setUser}>
+        <EnhancedDashboardLayout
+          user={contextUser}
+          setUser={setUser || (() => {})}
+          userName={userName}
+          userRole={userRole}
+          enableChatbot={true}
+          chatbotApiKey={process.env.DEEPSEEK_API_KEY}
+        >
         {/* Main Dashboard Container with Laptop-Optimized Spacing */}
         <div className="space-y-6 pb-8 laptop:space-y-8 laptop:pb-12">
           {/* Enhanced Header with Quick Stats */}
@@ -855,6 +856,7 @@ export default function Dashboard() {
           </div>
         </div>
       </EnhancedDashboardLayout>
+      </ProtectedLayoutProvider>
     </>
   );
 }
