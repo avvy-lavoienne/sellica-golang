@@ -1,6 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useMemo } from 'react';
+import type { User } from '@/contexts/ProtectedLayoutContext';
 
 /**
  * Protected Layout Authentication Context
@@ -9,6 +10,14 @@ import React, { createContext, useContext, ReactNode } from 'react';
  * redundant authentication checks. The layout verifies session once, then passes
  * user data via context to eliminate race conditions and multiple getUser() calls.
  * 
+ * Principle II: Performance-First
+ * - useMemo prevents unnecessary re-renders
+ * - Only updates when user or loading changes
+ * 
+ * Principle VI: Frontend Authentication Data Flow
+ * - Email field guaranteed for authenticated users
+ * - Never shows placeholder (shows error state instead)
+ * 
  * Usage in child components:
  * ```typescript
  * const { user, loading } = useProtectedAuth();
@@ -16,8 +25,9 @@ import React, { createContext, useContext, ReactNode } from 'react';
  */
 
 export interface AuthContextType {
-  user: any;        // Supabase user object { id, email, name, etc }
-  loading: boolean; // True while verifying session
+  user: User | null;        // Authenticated user { id, email, name, avatar_url, role, etc }
+  loading: boolean;         // True while verifying session
+  setUser?: (user: User | null) => void; // Optional setter for updating user
 }
 
 // Create context with null default
@@ -59,26 +69,38 @@ export function useProtectedAuth(): AuthContextType {
  * Provider component that wraps all protected routes
  * Passes authentication state to all child components
  * 
+ * Implements Principle II: Performance-First
+ * - useMemo prevents unnecessary re-renders
+ * 
  * This should only be used in ProtectedLayout as:
  * ```typescript
- * <ProtectedLayoutProvider user={user} loading={loading}>
+ * <ProtectedLayoutProvider user={user} loading={loading} setUser={setUser}>
  *   {children}
  * </ProtectedLayoutProvider>
  * ```
  */
 interface ProtectedLayoutProviderProps {
   children: ReactNode;
-  user: any;
+  user: User | null;
   loading: boolean;
+  setUser?: (user: User | null) => void;
 }
 
 export function ProtectedLayoutProvider({
   children,
   user,
   loading,
+  setUser,
 }: ProtectedLayoutProviderProps) {
+  // Memoize value to prevent unnecessary re-renders (Principle II)
+  const value = useMemo(() => ({
+    user,
+    loading,
+    setUser,
+  }), [user, loading, setUser]);
+
   return (
-    <ProtectedLayoutContext.Provider value={{ user, loading }}>
+    <ProtectedLayoutContext.Provider value={value}>
       {children}
     </ProtectedLayoutContext.Provider>
   );

@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build artifacts
+dist/
+build/
+.next/
+
+# Testing
+coverage/
+
+# Misc
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Lock files (handled by prettier separately)
+package-lock.json
+yarn.lock

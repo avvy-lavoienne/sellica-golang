@@ -35,6 +35,9 @@ export default function ProtectedLayout({
         setLoading(true);
         logger.debug('🔍 Layout: Starting auth check, shouldUseGoAuth:', { shouldUseGoAuth, pathname });
 
+        // Prepare user object to ensure email field is always present
+        let authenticatedUser: any = null;
+
         // Check Go backend authentication first if enabled
         if (shouldUseGoAuth) {
           logger.info('✅ Checking Go backend authentication');
@@ -47,7 +50,9 @@ export default function ProtectedLayout({
 
           if (isGoAuthValid && goUser) {
             logger.info('✅ Go backend authentication valid, setting user:', { email: goUser.email });
-            setUser(goUser);
+            // Use Go user directly - it has all required fields including email
+            authenticatedUser = goUser;
+            setUser(authenticatedUser);
             setLoading(false);
             return;
           } else {
@@ -83,16 +88,25 @@ export default function ProtectedLayout({
           return;
         }
 
-        // Get user data if needed
-        const { data: userData, error: userError } =
-          await supabase.auth.getUser();
+        // Extract user info from Supabase session with email field guarantee
+        const supabaseSessionUser = sessionData.session.user;
+        const email = supabaseSessionUser.email || 
+                     supabaseSessionUser.user_metadata?.email ||
+                     supabaseSessionUser.email_confirmed_at ? supabaseSessionUser.email : undefined;
 
-        if (userError) {
-          throw userError;
-        }
+        authenticatedUser = {
+          id: supabaseSessionUser.id,
+          email: email, // CRITICAL: Ensure email field is always present
+          name: supabaseSessionUser.user_metadata?.name || 
+                supabaseSessionUser.user_metadata?.full_name ||
+                email?.split('@')[0] || 'User',
+          full_name: supabaseSessionUser.user_metadata?.full_name,
+          role: supabaseSessionUser.role || supabaseSessionUser.user_metadata?.role || 'user',
+          avatar_url: supabaseSessionUser.user_metadata?.avatar_url,
+        };
 
-        logger.info('✅ Supabase session valid, setting user:', { email: userData.user?.email });
-        setUser(userData.user);
+        logger.info('✅ Supabase session valid, setting user:', { email: authenticatedUser.email });
+        setUser(authenticatedUser);
       } catch (error) {
         logger.error("Auth check failed", error instanceof Error ? error : new Error(String(error)));
         toast.error("Authentication error. Please log in again.");

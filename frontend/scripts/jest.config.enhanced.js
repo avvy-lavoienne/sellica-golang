@@ -5,9 +5,12 @@
 
 const nextJest = require('next/jest');
 
+const path = require('path');
+const rootDir = path.resolve(__dirname, '..');
+
 const createJestConfig = nextJest({
   // Provide the path to your Next.js app to load next.config.js and .env files
-  dir: './',
+  dir: rootDir,
 });
 
 // Custom Jest configuration
@@ -15,29 +18,30 @@ const customJestConfig = {
   // Test environment
   testEnvironment: 'jsdom',
   
-  // Setup files
+  // Setup files - use absolute paths to avoid rootDir resolution issues
   setupFilesAfterEnv: [
-    '<rootDir>/src/test/setup/testSetup.ts',
-    '<rootDir>/src/test/setup/indonesianTestSetup.ts',
-    '<rootDir>/src/test/setup/accessibilityTestSetup.ts'
+    path.join(rootDir, 'src/test/setup/testSetup.ts'),
+    path.join(rootDir, 'src/test/setup/indonesianTestSetup.ts'),
+    path.join(rootDir, 'src/test/setup/accessibilityTestSetup.ts')
   ],
   
   // Module name mapping
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
-    '^@/components/(.*)$': '<rootDir>/src/components/$1',
-    '^@/services/(.*)$': '<rootDir>/src/services/$1',
-    '^@/hooks/(.*)$': '<rootDir>/src/hooks/$1',
-    '^@/types/(.*)$': '<rootDir>/src/types/$1',
-    '^@/lib/(.*)$': '<rootDir>/src/lib/$1',
-    '^@/test/(.*)$': '<rootDir>/src/test/$1'
+    '^@/(.*)$': path.join(rootDir, 'src/$1'),
+    '^@/components/(.*)$': path.join(rootDir, 'src/components/$1'),
+    '^@/services/(.*)$': path.join(rootDir, 'src/services/$1'),
+    '^@/hooks/(.*)$': path.join(rootDir, 'src/hooks/$1'),
+    '^@/types/(.*)$': path.join(rootDir, 'src/types/$1'),
+    '^@/lib/(.*)$': path.join(rootDir, 'src/lib/$1'),
+    '^@/test/(.*)$': path.join(rootDir, 'src/test/$1'),
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
   
   // Test patterns
   testMatch: [
-    '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
-    '<rootDir>/src/**/*.{test,spec}.{js,jsx,ts,tsx}',
-    '<rootDir>/src/test/**/*.test.{js,jsx,ts,tsx}'
+    path.join(rootDir, 'src/**/__tests__/**/*.{js,jsx,ts,tsx}'),
+    path.join(rootDir, 'src/**/*.{test,spec}.{js,jsx,ts,tsx}'),
+    path.join(rootDir, 'src/test/**/*.test.{js,jsx,ts,tsx}')
   ],
   
   // Coverage configuration - Phase 2 Week 13 Enhanced Coverage
@@ -296,13 +300,13 @@ const customJestConfig = {
   errorOnDeprecated: true,
   
   // Cache directory
-  cacheDirectory: '<rootDir>/.jest-cache',
+  cacheDirectory: path.join(rootDir, '.jest-cache'),
   
   // Max workers for parallel execution
   maxWorkers: '50%',
   
   // Test result processor for custom reporting
-  testResultsProcessor: '<rootDir>/src/test/utils/testResultsProcessor.js'
+  // testResultsProcessor: path.join(rootDir, 'src/test/utils/testResultsProcessor.js')
 };
 
 // Export the Jest configuration

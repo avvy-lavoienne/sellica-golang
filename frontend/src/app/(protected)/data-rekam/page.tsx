@@ -32,6 +32,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RefreshCw, Filter } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useChartAggregation } from "@/hooks/useChartAggregation";
 
 interface Stat {
   month: string;
@@ -59,12 +60,6 @@ export default function DataRekam() {
   const [pengajuanBulananStats, setPengajuanBulananStats] = useState<Stat[]>(
     [],
   );
-  const [sparklineDataYearly, setSparklineDataYearly] = useState<
-    SparklineData[]
-  >([]);
-  const [sparklineDataMonthlyByYear, setSparklineDataMonthlyByYear] = useState<{
-    [year: string]: SparklineData[];
-  }>({});
   const [totalPengajuanAdjudicate, setTotalPengajuanAdjudicate] =
     useState<number>(0);
   const [totalSelesaiAdjudicate, setTotalSelesaiAdjudicate] =
@@ -93,32 +88,6 @@ export default function DataRekam() {
     "2024",
     "2025",
   ]);
-  const [chartData, setChartData] = useState<ChartData>({
-    yearly: {
-      labels: [],
-      datasets: [
-        {
-          label: "",
-          data: [],
-          borderColor: "",
-          backgroundColor: "",
-          tension: 0,
-        },
-      ],
-    },
-    monthly: {
-      labels: [],
-      datasets: [
-        {
-          label: "",
-          data: [],
-          borderColor: "",
-          backgroundColor: "",
-          tension: 0,
-        },
-      ],
-    },
-  });
   const [tempStartDate, setTempStartDate] = useState<Date | null>(null);
   const [tempEndDate, setTempEndDate] = useState<Date | null>(null);
   const dashboardRef = useRef<HTMLDivElement>(null);
@@ -149,6 +118,7 @@ export default function DataRekam() {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const { user: contextUser, loading: isLoadingAuth } = useProtectedAuth();
+  const { chartData, loading: chartLoading, error: chartError, fetchChartData } = useChartAggregation();
 
   const fetchUserAndStats = useCallback(async () => {
     try {
@@ -672,6 +642,16 @@ export default function DataRekam() {
     fetchUserAndStats().finally(() => setIsRefreshing(false));
   };
 
+  // Initial chart data fetch and fetch when dates change
+  useEffect(() => {
+    console.log("[DataRekam] Chart data useEffect triggered:", { startDate, endDate, selectedYear });
+    // Always fetch chart data - with or without date filters
+    // On initial load: startDate and endDate are null, so API gets all data
+    // When dates change: API gets filtered data
+    // When selectedYear changes: API filters monthly data by selected year
+    fetchChartData(startDate || undefined, endDate || undefined, selectedYear);
+  }, [startDate, endDate, selectedYear, fetchChartData]);
+
   const prepareChartData = useCallback(
     (rekamData: ChartDataResponse): ChartData => {
       if (
@@ -778,53 +758,6 @@ export default function DataRekam() {
     },
     [selectedYear, endDate, startDate, salahRekamStats], // eslint-disable-line react-hooks/exhaustive-deps
   );
-
-  useEffect(() => {
-    const fetchData = async () => {
-      // Skip fetching if dates are invalid
-      if (startDate && isNaN(startDate.getTime())) {
-        console.warn("Invalid start date, skipping fetch:", startDate);
-        return;
-      }
-      if (endDate && isNaN(endDate.getTime())) {
-        console.warn("Invalid end date, skipping fetch:", endDate);
-        return;
-      }
-
-      setLoading(true);
-      try {
-        // Use context user from layout instead of fetching again
-        if (!currentUser) {
-          toast.error("Session not found. Please login again.");
-          return;
-        }
-
-        const tables = [
-          "adjudicate_record",
-          "duplicate_operator",
-          "salah_rekam",
-          "pengajuan_bulanan",
-        ];
-        const results = await Promise.all(
-          tables.map(async (table) => {
-            // TODO: Migrate to backend API - temporarily disabled
-            return { table, data: [] };
-          }),
-        );
-
-        const rekamData: ChartDataResponse = { chartData: results };
-        const preparedData = prepareChartData(rekamData);
-        setChartData(preparedData);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        toast.error("An error occurred while fetching data.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [selectedYear, startDate, endDate, prepareChartData]);
 
   // Export to CSV
   const exportToCSV = () => {

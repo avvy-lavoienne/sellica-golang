@@ -1,5 +1,5 @@
 ---
-description: Generate an actionable, dependency-ordered tasks.md for the feature based on available design artifacts.
+description: Generate an actionable, dependency-ordered tasks.md for the feature based on available design artifacts. Generate task tracking in topic-based folder structure (Principle IX).
 ---
 
 ## User Input
@@ -10,9 +10,23 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
+## Documentation Output Structure (MANDATORY - Principle IX)
+
+**Task tracking output in topic-based folder structure with specify-command subfolder:**
+
+```
+docs/bydate/YYYY-MM-DD-{TOPIC-NAME}/
+└── speckit-tasks/
+    ├── YYYY-MM-DD-task-planning.md
+    ├── YYYY-MM-DD-task-tracking.md
+    └── YYYY-MM-DD-execution-status.md
+```
+
+**All task output goes to `docs/bydate/YYYY-MM-DD-{TOPIC}/speckit-tasks/` directory (create if not exists).**
+
 ## Outline
 
-1. **Setup**: Run `.specify/scripts/powershell/check-prerequisites.ps1 -Json` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+1. **Setup**: Run `.specify/scripts/powershell/check-prerequisites.ps1 -Json` from repo root and parse FEATURE_DIR, AVAILABLE_DOCS list, and extract TOPIC from FEATURE_DIR path. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
 2. **Load design documents**: Read from FEATURE_DIR:
    - **Required**: plan.md (tech stack, libraries, structure), spec.md (user stories with priorities)
