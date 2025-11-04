@@ -75,18 +75,21 @@ export function useDebounce(valueOrCallback: any, delay: number = 300): any {
   // Check if input is a function (callback) or value
   const isCallback = typeof valueOrCallback === "function";
 
+  console.log('useDebounce called with:', { valueOrCallback: typeof valueOrCallback, isCallback, delay });
+
   useEffect(() => {
+    console.log('useDebounce useEffect running, isCallback:', isCallback);
     // Clear any existing timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
 
     if (isCallback) {
-      // Callback debouncing: return debounced function
+      // Callback debouncing: just clear any existing timeout on cleanup
       return () => {
-        timeoutRef.current = setTimeout(() => {
-          valueOrCallback();
-        }, delay);
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
       };
     } else {
       // Value debouncing: set debounced state after delay
@@ -103,16 +106,20 @@ export function useDebounce(valueOrCallback: any, delay: number = 300): any {
     }
   }, [valueOrCallback, delay, isCallback]);
 
-  return isCallback
-    ? (...args: any[]) => {
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
-        timeoutRef.current = setTimeout(() => {
-          valueOrCallback(...args);
-        }, delay);
+  if (isCallback) {
+    return (...args: any[]) => {
+      console.log('debounced callback called with args:', args);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
-    : debouncedValue;
+      timeoutRef.current = setTimeout(() => {
+        console.log('calling original callback with args:', args);
+        valueOrCallback(...args);
+      }, delay);
+    };
+  } else {
+    return debouncedValue;
+  }
 }
 
 export default useDebounce;

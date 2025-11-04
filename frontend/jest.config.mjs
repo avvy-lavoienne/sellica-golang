@@ -6,15 +6,13 @@ const createJestConfig = nextJest({
 
 const customJestConfig = {
   // ✅ CRITICAL: setupFilesAfterEnv ensures jest.setup.js runs FIRST
-  // jest.setup.js contains jest.mock('lucide-react') which must run before ANY test file imports
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js', '<rootDir>/jest.canvas.setup.js'],
   testEnvironment: 'jest-environment-jsdom',
   
-  // ✅ moduleNameMapper: lucide-react interception + path aliases
-  // Intercept lucide-react BEFORE components try to import from node_modules
+  // ✅ moduleNameMapper: path aliases
   moduleNameMapper: {
-    '^lucide-react$': '<rootDir>/jest-mocks/lucide-react.js',
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^@components/(.*)$': '<rootDir>/src/components/$1',
   },
   
   testMatch: [
@@ -22,10 +20,11 @@ const customJestConfig = {
     '**/__tests__/**/*.test.tsx',
   ],
   
-  // ✅ transformIgnorePatterns: Exclude lucide-react from transformation
-  // lucide-react is pure ESM; we mock it in jest.setup.js, so don't try to transform it
+  // ✅ transformIgnorePatterns: Keep most node_modules as-is
+  // lucide-react uses ES modules and should not be transformed
   transformIgnorePatterns: [
-    'node_modules/(?!@supabase)',
+    'node_modules/(?!(@supabase|@tanstack)/)',
+    'node_modules/lucide-react/.*',
   ],
   
   // ✅ Module file extensions for better module resolution
@@ -34,7 +33,7 @@ const customJestConfig = {
   // ✅ ts-jest globals for Next.js ESM quirks and TypeScript support
   globals: {
     'ts-jest': {
-      tsconfig: '<rootDir>/tsconfig.json',
+      tsconfig: '<rootDir>/tsconfig.test.json',
     },
   },
   

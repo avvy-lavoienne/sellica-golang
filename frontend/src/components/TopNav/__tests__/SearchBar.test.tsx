@@ -1,27 +1,10 @@
-/**
- * SearchBar Component Unit Tests
- *
- * Tests cover:
- * - T032: Debounce (300ms), admin filtering, keyboard navigation, error handling
- * - Page shortcut search for all users
- * - Ticket search for admins only
- * - Keyboard shortcuts (Cmd/Ctrl+K, Arrow/Enter/Escape)
- * - ARIA accessibility attributes
- * - Results limit to 8 items
- * - Click-outside dropdown close
- *
- * Target: 80%+ line coverage
- */
+/// <reference types="jest" />
+// @ts-nocheck
 
-import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import SearchBar from '../SearchBar';
-import { AuthenticatedUser } from '../types';
-import { searchSilpanaTickets } from '@/lib/api/supabaseQueries';
-import { toast } from 'react-toastify';
+/// <reference types="jest" />
+// @ts-nocheck
 
-// Mock dependencies
+// Mock ALL dependencies BEFORE any imports - Jest hoists these
 jest.mock('@/lib/api/supabaseQueries');
 jest.mock('react-toastify');
 jest.mock('next-intl', () => ({
@@ -43,6 +26,30 @@ jest.mock('next-intl', () => ({
     return translations[key] || key;
   },
 }));
+
+/**
+ * SearchBar Component Unit Tests
+ *
+ * Tests cover:
+ * - T032: Debounce (300ms), admin filtering, keyboard navigation, error handling
+ * - Page shortcut search for all users
+ * - Ticket search for admins only
+ * - Keyboard shortcuts (Cmd/Ctrl+K, Arrow/Enter/Escape)
+ * - ARIA accessibility attributes
+ * - Results limit to 8 items
+ * - Click-outside dropdown close
+ *
+ * Target: 80%+ line coverage
+ */
+
+import React from 'react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import '@testing-library/jest-dom';
+import SearchBar from '../SearchBar';
+import { AuthenticatedUser } from '../types';
+import { searchSilpanaTickets } from '@/lib/api/supabaseQueries';
+import { toast } from 'react-toastify';
 
 const mockSearchSilpanaTickets = searchSilpanaTickets as jest.MockedFunction<
   typeof searchSilpanaTickets
