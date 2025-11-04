@@ -35,9 +35,18 @@
 
 ## Project Overview
 
-**SELLY** is a civil records management system with AI assistance capabilities, built as a hybrid Go backend + Next.js frontend monorepo. The project is undergoing an active migration from Next.js API routes to Go for 20x+ performance improvements while maintaining the Next.js frontend.
+**SELLICA** is a civil records management system with AI assistance capabilities, built as a hybrid Go backend + Next.js frontend monorepo. The project has successfully completed migration from Next.js API routes to Go, achieving 20-289x performance improvements while maintaining the Next.js frontend.
 
-**Current Phase**: Phase 4 - Real-time WebSocket integration for live ticket updates (branch: `feat/silpana-dev-phase4-realtime`)
+**Current Phase**: Active Development - Multiple feature branches including Spec-Driven Development workflow integration
+**Current Branch**: `feat/specify-dev` (Spec Kit Integration)
+**Active Features**:
+- Authentication system fully migrated to Go backend with session management
+- Profile data management with avatar support
+- Admin dashboard with pending user management
+- Data Rekam (civil records) API complete
+- Aktivitas User tracking and documentation
+- Duplicate Operator detection and management
+- Spec-Driven Development workflow with `.specify/` infrastructure
 
 ## Critical Architecture Concepts
 
@@ -63,12 +72,24 @@ Understanding which path is used is critical for debugging.
 The Go backend follows a modular service architecture with 23+ services:
 
 **Core Services** (`backend/internal/services/`):
-- `database/` - Supabase Go client, connection pooling (10-100 conns)
+- `database/` - Supabase Go client with enhanced QueryOptions, connection pooling (10-100 conns)
 - `cache/` - Multi-level caching (Memory + Redis with automatic fallback)
-- `auth/` - JWT validation using Supabase secrets, RBAC
+- `auth/` - JWT validation, session management with auto-refresh, RBAC
 - `eventbus/` - Thread-safe pub/sub for inter-service communication
 - `websocket/` - Real-time updates with room-based broadcasting
 - `silpana/` - Ticketing system with adapter pattern for database/cache/monitoring
+- `aktivitas_siak/` - Activity reporting for civil records with CRUD, validation, audit logging
+- `duplicate_operator/` - Duplicate detection with search filtering and pagination
+- `supabase_analyzer/` - Database schema and query analysis
+
+**Recent Service Updates** (Last 2 Weeks):
+- ✅ Enhanced database service with QueryOptions (Phase 1 complete - Oct 26)
+- ✅ Session management with JWT auto-refresh (Phase 2 complete - Oct 26)
+- ✅ Profile data API with avatar support (Oct 26)
+- ✅ Admin pending users API with RBAC (Oct 27)
+- ✅ Data Rekam dashboard stats migration to backend API (Oct 27)
+- ✅ Authentication system fixes - removed redundant Supabase calls from protected routes (Oct 26)
+- ✅ Duplicate operator search filtering moved before pagination (Oct 25-27)
 
 **Initialization Pattern** (see `cmd/server/main.go`):
 ```go
@@ -87,7 +108,43 @@ routes.SetupRoutes(router, routeServices)
 
 **Critical**: When adding new services, update BOTH `initializeServices()` AND `routes.GetServices()`.
 
-### 3. Supabase RLS Policy Gotchas
+### 3. Authentication Architecture (UPDATED October 2025)
+
+**Current State**: Hybrid authentication system with Go backend handling all auth operations:
+
+**Go Backend Auth** (`backend/internal/services/auth/`):
+- JWT validation with Supabase secrets
+- Session management with automatic token refresh
+- RBAC enforcement at service layer
+- Profile data API (`/api/v1/auth/profile`) returns user metadata including avatar_url, NIP, position
+- Password validation, NIK/NIP validation on registration
+- Session-based logging for protected routes
+
+**Frontend Integration** (`frontend/src/lib/auth/`):
+- Uses Go backend for all authentication operations
+- Stores session data in localStorage (user data, tokens)
+- Auth context provider for protected routes
+- Removed redundant `supabase.auth.getSession()` calls from protected pages
+- Disabled Supabase auth listener when using Go backend auth
+
+**Key Changes (October 26-27, 2025)**:
+- ✅ Moved user profile retrieval from Supabase RLS queries to Go backend API
+- ✅ Eliminated RLS-blocking Supabase queries that failed with Go auth
+- ✅ Implemented session-based context provider for consistent auth state
+- ✅ Fixed random logout bug by moving hook calls outside async functions
+- ✅ Added comprehensive session logging for debugging
+
+**Authentication Flow**:
+1. User logs in via Go backend API (`/api/v1/auth/login`)
+2. Backend validates credentials, issues JWT tokens (access + refresh)
+3. Frontend stores tokens and user data in localStorage
+4. Protected routes check localStorage (NOT Supabase) for auth state
+5. Session manager auto-refreshes tokens before expiry
+6. Profile updates go through Go backend (`/api/v1/auth/profile`)
+
+**CRITICAL**: Never call `supabase.auth.getSession()` directly in protected routes - use auth context provider
+
+### 4. Supabase RLS Policy Gotchas
 
 **SILPANA anonymous submissions** work via direct Supabase calls, NOT via Go backend. RLS policies control access:
 
@@ -699,6 +756,12 @@ Get-Process -Id (Get-NetTCPConnection -LocalPort 8080).OwningProcess | Stop-Proc
 
 ## Key Files Reference
 
+**Spec-Driven Development** (NEW - October 28, 2025):
+- `.specify/memory/constitution.md` - Project development constitution and principles
+- `.specify/scripts/powershell/` - PowerShell scripts for Spec Kit workflow automation
+- `.specify/templates/` - Templates for spec.md, plan.md, tasks.md, checklists
+- `specs/[###-feature-name]/` - Feature documentation (spec, plan, tasks, contracts)
+
 **Architecture docs**:
 - `docs/SILPANA-ARCHITECTURE-ANALYSIS.md` - RLS policy debugging
 - `docs/SILPANA-INTEGRATION-SUMMARY.md` - Frontend/backend integration
@@ -718,6 +781,147 @@ Get-Process -Id (Get-NetTCPConnection -LocalPort 8080).OwningProcess | Stop-Proc
 - `backend/scripts/load-testing/benchmark_test.go` - Performance baselines
 - `frontend/src/scripts/simple-performance-validation.ts` - Frontend perf
 
+## Spec-Driven Development Workflow (NEW - October 28, 2025)
+
+**Overview**: SELLICA now implements a structured specification-driven development workflow using the `.specify/` infrastructure. This workflow ensures requirements are clearly documented, planned, and tracked before implementation.
+
+### Workflow Stages
+
+**Stage 1: Specification** (`/speckit.specify`)
+- Creates feature branch: `###-feature-name` format (e.g., `001-user-auth`)
+- Generates `specs/###-feature-name/spec.md` from natural language description
+- Validates spec completeness with automated checklist
+- Focuses on WHAT users need (not HOW to implement)
+
+**Stage 2: Clarification** (`/speckit.clarify` - Optional)
+- Identifies ambiguous requirements
+- Asks targeted clarification questions (max 5)
+- Updates spec with clarified requirements
+- Recommended before planning phase
+
+**Stage 3: Planning** (`/speckit.plan`)
+- Generates `plan.md` with technical approach
+- Creates `research.md` for technology decisions
+- Generates `data-model.md` for entities
+- Creates API contracts in `contracts/`
+- Validates against project constitution
+
+**Stage 4: Task Generation** (`/speckit.tasks`)
+- Generates `tasks.md` with implementation checklist
+- Organizes tasks by user story priority
+- Enables independent story implementation
+- Supports parallel development paths
+
+**Stage 5: Quality Validation** (`/speckit.checklist`)
+- Creates custom checklists for requirements validation
+- Supports multiple checklist types (UX, API, security, performance)
+- Checklists are "unit tests for requirements" - validate requirement quality, not implementation
+
+**Stage 6: Implementation** (`/speckit.implement`)
+- Executes tasks from tasks.md
+- Checks prerequisites and checklists
+- Supports phased implementation (MVP first)
+- Tracks progress with task completion
+
+**Stage 7: Analysis** (`/speckit.analyze`)
+- Cross-artifact consistency validation
+- Detects duplications, ambiguities, coverage gaps
+- Constitution compliance checking
+- Reports before implementation begins
+
+### Spec Kit Files Structure
+
+```text
+.specify/
+├── memory/
+│   └── constitution.md          # Project development principles (NON-NEGOTIABLE)
+├── scripts/
+│   └── powershell/              # Workflow automation scripts
+│       ├── common.ps1           # Shared PowerShell functions
+│       ├── check-prerequisites.ps1
+│       ├── create-new-feature.ps1
+│       ├── setup-plan.ps1
+│       └── update-agent-context.ps1
+└── templates/
+    ├── spec-template.md         # Feature specification template
+    ├── plan-template.md         # Implementation plan template
+    ├── tasks-template.md        # Task list template
+    ├── checklist-template.md    # Quality checklist template
+    └── agent-file-template.md   # AI context file template
+
+specs/
+└── [###-feature-name]/          # Generated per feature
+    ├── spec.md                  # What to build (user requirements)
+    ├── plan.md                  # How to build (technical approach)
+    ├── tasks.md                 # Step-by-step implementation
+    ├── research.md              # Technology research notes
+    ├── data-model.md            # Entity definitions
+    ├── quickstart.md            # Integration guide
+    ├── contracts/               # API endpoint contracts
+    └── checklists/              # Quality validation checklists
+        ├── ux.md                # UX requirements validation
+        ├── api.md               # API requirements validation
+        └── security.md          # Security requirements validation
+```
+
+### Key Principles from Constitution
+
+1. **Service-Oriented Architecture**: All backend features as standalone services in `backend/internal/services/`
+2. **Performance-First**: Maintain 20-289x faster than legacy, <50ms response times
+3. **Hybrid Monorepo**: Go backend + Next.js frontend with clear integration patterns
+4. **Indonesian Government Compliance**: User-facing content in Indonesian, data sovereignty requirements
+5. **Test-First Development**: TDD mandatory with zero breaking changes
+
+### Spec Kit Commands (Slash Commands)
+
+**Development Workflow**:
+- `/speckit.specify [description]` - Create new feature specification
+- `/speckit.clarify` - Resolve spec ambiguities
+- `/speckit.plan` - Generate implementation plan
+- `/speckit.tasks` - Generate task breakdown
+- `/speckit.checklist [type]` - Create validation checklist
+- `/speckit.implement` - Execute implementation
+- `/speckit.analyze` - Validate consistency
+
+**Governance**:
+- `/speckit.constitution` - Update project constitution
+
+### Integration with Existing Workflow
+
+**Before Spec Kit** (Old Workflow):
+1. Create feature branch manually
+2. Write code directly
+3. Document retrospectively
+
+**With Spec Kit** (Current Workflow):
+1. `/speckit.specify "feature description"`
+2. `/speckit.clarify` (optional but recommended)
+3. `/speckit.plan`
+4. `/speckit.checklist ux` (or other types as needed)
+5. `/speckit.tasks`
+6. `/speckit.implement` - automated execution
+7. Commit with conventional format: `feat(scope): description`
+
+**Benefits**:
+- Clear requirements before coding
+- Constitution compliance validation
+- Automated task generation
+- Quality gates with checklists
+- Reduced rework through upfront planning
+- Better documentation for knowledge transfer
+
+### Current Branch Context
+
+**Branch**: `feat/specify-dev`
+**Purpose**: Integrate Spec-Driven Development workflow
+**Status**: Infrastructure complete, testing integration
+**Components Added**:
+- Complete `.specify/` directory structure
+- PowerShell automation scripts (7 scripts)
+- Templates for all workflow stages (7 templates)
+- Project constitution filled with SELLICA requirements
+- AI agent context integration
+
 ## Additional Resources
 
 - Full development rules: `.github/instructions/instructions.md` (1700+ lines)
@@ -726,7 +930,8 @@ Get-Process -Id (Get-NetTCPConnection -LocalPort 8080).OwningProcess | Stop-Proc
 
 ---
 
-**Last Updated**: 2025-11-02
-**Current Branch**: feat/silpana-dev-phase4-realtime
+**Last Updated**: 2025-10-28
+**Current Branch**: feat/specify-dev
 **Go Version**: 1.23.0
 **Next.js Version**: 15.3.0
+**Major Update**: Added Spec-Driven Development workflow integration with complete `.specify/` infrastructure

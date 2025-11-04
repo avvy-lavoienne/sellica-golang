@@ -119,7 +119,6 @@ func (h *DataRekamHandler) GetAdjudicateRecords(c *gin.Context) {
 	// Log successful retrieval
 	logrus.WithFields(logrus.Fields{
 		"user_id":     userID,
-		"record_count": len(result.Data.([]interface{})),
 		"total_count": result.TotalCount,
 		"page":        page,
 		"is_admin":    isAdmin,
@@ -215,11 +214,10 @@ func (h *DataRekamHandler) GetDuplicateOperatorRecords(c *gin.Context) {
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"user_id":      userID,
-		"record_count": len(result.Data.([]interface{})),
-		"total_count":  result.TotalCount,
-		"page":         page,
-		"is_admin":     isAdmin,
+		"user_id":     userID,
+		"total_count": result.TotalCount,
+		"page":        page,
+		"is_admin":    isAdmin,
 	}).Debug("Retrieved duplicate operator records")
 
 	c.JSON(http.StatusOK, DataRekamResponse{
@@ -308,11 +306,10 @@ func (h *DataRekamHandler) GetPengajuanBulananRecords(c *gin.Context) {
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"user_id":      userID,
-		"record_count": len(result.Data.([]interface{})),
-		"total_count":  result.TotalCount,
-		"page":         page,
-		"is_admin":     isAdmin,
+		"user_id":     userID,
+		"total_count": result.TotalCount,
+		"page":        page,
+		"is_admin":    isAdmin,
 	}).Debug("Retrieved pengajuan bulanan records")
 
 	c.JSON(http.StatusOK, DataRekamResponse{
@@ -401,11 +398,10 @@ func (h *DataRekamHandler) GetSalahRekamRecords(c *gin.Context) {
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"user_id":      userID,
-		"record_count": len(result.Data.([]interface{})),
-		"total_count":  result.TotalCount,
-		"page":         page,
-		"is_admin":     isAdmin,
+		"user_id":     userID,
+		"total_count": result.TotalCount,
+		"page":        page,
+		"is_admin":    isAdmin,
 	}).Debug("Retrieved salah rekam records")
 
 	c.JSON(http.StatusOK, DataRekamResponse{
