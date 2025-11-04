@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -76,10 +78,13 @@ func (h *AdminHandler) GetPendingUsers(c *gin.Context) {
 	// Get pending users from database
 	pendingUsers, err := h.dbService.GetPendingUsers(c.Request.Context())
 	if err != nil {
-		logrus.WithError(err).Error("Failed to retrieve pending users")
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"error_type": fmt.Sprintf("%T", err),
+			"error_msg":  err.Error(),
+		}).Error("Failed to retrieve pending users from database")
 		c.JSON(http.StatusInternalServerError, AdminResponse{
 			Success: false,
-			Error:   "Failed to retrieve pending users",
+			Error:   fmt.Sprintf("Database error: %v", err.Error()),
 		})
 		return
 	}
@@ -110,5 +115,150 @@ func (h *AdminHandler) GetPendingUsers(c *gin.Context) {
 		Success: true,
 		Data:    responses,
 		Message: "Pending users retrieved successfully",
+	})
+}
+
+// ApproveUserRequest represents the request to approve a pending user
+type ApproveUserRequest struct {
+	PendingUserID string `json:"pending_user_id" binding:"required"`
+}
+
+// ApproveUser handles user approval - moves pending user to profiles and creates Supabase Auth user
+func (h *AdminHandler) ApproveUser(c *gin.Context) {
+	var req ApproveUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, AdminResponse{
+			Success: false,
+			Error:   "pending_user_id is required",
+		})
+		return
+	}
+
+	// Verify admin role from context
+	role, exists := c.Get("user_role")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, AdminResponse{
+			Success: false,
+			Error:   "Authentication required",
+		})
+		return
+	}
+
+	userRole := role.(string)
+	if userRole != "admin" && userRole != "superuser" {
+		c.JSON(http.StatusForbidden, AdminResponse{
+			Success: false,
+			Error:   "Only admin users can approve users",
+		})
+		return
+	}
+
+	adminID, _ := c.Get("user_id")
+	
+	logrus.WithFields(logrus.Fields{
+		"pending_user_id": req.PendingUserID,
+		"admin_id":        adminID,
+	}).Info("Processing user approval request")
+
+	// Get the pending user
+	pendingUsers, err := h.dbService.GetPendingUsers(c.Request.Context())
+	if err != nil {
+		logrus.WithError(err).Error("Failed to retrieve pending users")
+		c.JSON(http.StatusInternalServerError, AdminResponse{
+			Success: false,
+			Error:   "Failed to retrieve pending users",
+		})
+		return
+	}
+
+	var pendingUser *database.PendingUser
+	for i := range pendingUsers {
+		if pendingUsers[i].ID == req.PendingUserID {
+			pendingUser = &pendingUsers[i]
+			break
+		}
+	}
+
+	if pendingUser == nil {
+		c.JSON(http.StatusNotFound, AdminResponse{
+			Success: false,
+			Error:   "Pending user not found",
+		})
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"user_id": pendingUser.ID,
+		"email":   pendingUser.Email,
+		"name":    pendingUser.Name,
+	}).Info("Found pending user for approval")
+
+	// Create profile entry
+	profile := map[string]interface{}{
+		"id":       pendingUser.ID,
+		"email":    pendingUser.Email,
+		"name":     pendingUser.Name,
+		"nip":      pendingUser.NIP,
+		"position": pendingUser.Position,
+		"nik":      pendingUser.NIK,
+		"role":     "user", // Default role
+	}
+
+	// Insert into profiles table
+	client := h.dbService.GetClient()
+	if client == nil {
+		c.JSON(http.StatusInternalServerError, AdminResponse{
+			Success: false,
+			Error:   "Database client not available",
+		})
+		return
+	}
+
+	_, _, err = client.From("profiles").Insert([]interface{}{profile}, false, "", "", "").Execute()
+	if err != nil {
+		logrus.WithError(err).Error("Failed to create profile")
+		c.JSON(http.StatusInternalServerError, AdminResponse{
+			Success: false,
+			Error:   "Failed to create user profile: " + err.Error(),
+		})
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"user_id": pendingUser.ID,
+		"email":   pendingUser.Email,
+	}).Info("Profile created successfully")
+
+	// Update pending_users status to approved
+	now := time.Now()
+	updateData := map[string]interface{}{
+		"status":      "approved",
+		"approved_at": now,
+		"approved_by": adminID,
+	}
+
+	_, _, err = client.From("pending_users").
+		Update(updateData, "", "").
+		Eq("id", req.PendingUserID).
+		Execute()
+
+	if err != nil {
+		logrus.WithError(err).Error("Failed to update pending user status")
+		c.JSON(http.StatusInternalServerError, AdminResponse{
+			Success: false,
+			Error:   "Failed to update approval status: " + err.Error(),
+		})
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"user_id": pendingUser.ID,
+		"email":   pendingUser.Email,
+		"admin_id": adminID,
+	}).Info("User approved successfully")
+
+	c.JSON(http.StatusOK, AdminResponse{
+		Success: true,
+		Message: "User approved successfully and profile created",
 	})
 }

@@ -19,7 +19,7 @@ const ENV_FLAGS = {
   USE_GO_CHAT: process.env.NEXT_PUBLIC_USE_GO_CHAT === 'true',
   ENABLE_AUTH_FALLBACK: process.env.NEXT_PUBLIC_ENABLE_AUTH_FALLBACK !== 'false', // Default to true
   ENABLE_PARALLEL_TESTING: process.env.NEXT_PUBLIC_ENABLE_PARALLEL_TESTING === 'true',
-  GO_BACKEND_URL: process.env.NEXT_PUBLIC_GO_BACKEND_URL || 'http://localhost:8081',
+  GO_BACKEND_URL: process.env.NEXT_PUBLIC_GO_BACKEND_URL || 'http://localhost:8080',
   MIGRATION_PHASE: process.env.NEXT_PUBLIC_MIGRATION_PHASE || 'development',
 } as const;
 

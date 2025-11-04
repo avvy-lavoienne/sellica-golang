@@ -137,8 +137,9 @@ export default function UserApprovalPage() {
 
   const fetchPendingUsers = async () => {
     try {
-      const token = localStorage.getItem('sb-token') || 
-                   sessionStorage.getItem('sb-token') || 
+      // Use Go backend auth token instead of Supabase token
+      const token = localStorage.getItem('selly_auth_token') || 
+                   sessionStorage.getItem('selly_auth_token') || 
                    contextUser?.token;
 
       const response = await fetch('/api/admin/pending-users', {

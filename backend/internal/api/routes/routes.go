@@ -469,6 +469,8 @@ func setupAdminRoutes(router *gin.Engine, authService *auth.Service, dbService *
 	{
 		// Get all pending users (for admin review)
 		adminGroup.GET("/pending-users", adminHandler.GetPendingUsers)
+		// Approve a pending user registration
+		adminGroup.POST("/approve-user", adminHandler.ApproveUser)
 	}
 }
 

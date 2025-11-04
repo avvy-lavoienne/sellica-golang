@@ -15,7 +15,7 @@
  */
 
 // API Configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_GO_BACKEND_URL || 'http://localhost:8081';
+const API_BASE_URL = process.env.NEXT_PUBLIC_GO_BACKEND_URL || 'http://localhost:8080';
 const API_TIMEOUT = 10000; // 10 seconds timeout
 
 // TypeScript Interfaces

@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Get the Go backend URL
-        const goBackendUrl = process.env.NEXT_PUBLIC_GO_BACKEND_URL || 'http://localhost:8081';
+        const goBackendUrl = process.env.NEXT_PUBLIC_GO_BACKEND_URL || 'http://localhost:8080';
 
         // Forward query parameters to Go backend
         const searchParams = request.nextUrl.searchParams;
