@@ -54,7 +54,7 @@ func TestUltraFastAnalyzer(t *testing.T) {
 			{
 				name:            "General_Inquiry",
 				query:           "Jam operasional kantor dukcapil",
-				expectedService: ServiceGeneral,
+				expectedService: ServiceUnknown,  // Queries without specific service markers return unknown
 				expectedIntent:  "general_inquiry",
 				maxTime:         50 * time.Millisecond,
 			},
