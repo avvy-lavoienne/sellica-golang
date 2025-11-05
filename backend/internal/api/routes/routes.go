@@ -72,10 +72,10 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	setupMetricsRoutes(router, metricsHandler)
 
 	// Database test routes (public)
-	setupDatabaseRoutes(router, databaseHandler)
+	setupDatabaseRoutes(router, databaseHandler, services.Auth)
 
-	// Cache routes (public)
-	setupCacheRoutes(router, cacheHandler)
+	// Cache routes (public GET, admin-only DELETE - CRITICAL FIX)
+	setupCacheRoutes(router, cacheHandler, services.Auth)
 
 	// Chat routes (public and protected)
 	setupChatRoutes(router, chatHandler, services.Auth)
@@ -111,9 +111,9 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 		setupAktivitasSiakRoutes(router, services.AktivitasSiak, services.Auth)
 	}
 
-	// Supabase analyzer routes (public)
+	// Supabase analyzer routes (admin only - CRITICAL FIX)
 	if services.SupabaseAnalyzer != nil {
-		setupSupabaseAnalyzerRoutes(router, supabaseAnalyzerHandler)
+		setupSupabaseAnalyzerRoutes(router, supabaseAnalyzerHandler, services.Auth)
 	}
 
 	// WebSocket routes (public)
@@ -168,12 +168,16 @@ func setupMetricsRoutes(router *gin.Engine, handler *handlers.MetricsHandler) {
 }
 
 // setupDatabaseRoutes configures database test endpoints
-func setupDatabaseRoutes(router *gin.Engine, handler *handlers.DatabaseHandler) {
+func setupDatabaseRoutes(router *gin.Engine, handler *handlers.DatabaseHandler, authService *auth.Service) {
 	database := router.Group("/database")
 	{
 		database.GET("/health", handler.GetDatabaseHealth)            // GET /database/health
 		database.GET("/stats", handler.GetDatabaseStats)              // GET /database/stats
-		database.GET("/performance", handler.TestDatabasePerformance) // GET /database/performance
+		// GET /database/performance - ADMIN ONLY (expensive operation)
+		database.GET("/performance",
+			middleware.AuthMiddleware(authService),
+			middleware.RequireRole("admin"),
+			handler.TestDatabasePerformance)
 	}
 
 	// Root database test endpoint (matches Next.js /api/test-db)
@@ -181,13 +185,17 @@ func setupDatabaseRoutes(router *gin.Engine, handler *handlers.DatabaseHandler) 
 }
 
 // setupCacheRoutes configures cache endpoints
-func setupCacheRoutes(router *gin.Engine, handler *handlers.CacheHandler) {
+func setupCacheRoutes(router *gin.Engine, handler *handlers.CacheHandler, authService *auth.Service) {
 	cache := router.Group("/cache")
 	{
 		cache.GET("/health", handler.GetCacheHealth)            // GET /cache/health
 		cache.GET("/stats", handler.GetCacheStats)              // GET /cache/stats
 		cache.GET("/performance", handler.TestCachePerformance) // GET /cache/performance
-		cache.DELETE("/clear", handler.ClearCache)              // DELETE /cache/clear
+		// DELETE /cache/clear - ADMIN ONLY (destructive operation)
+		cache.DELETE("/clear",
+			middleware.AuthMiddleware(authService),
+			middleware.RequireRole("admin"),
+			handler.ClearCache)
 	}
 }
 
