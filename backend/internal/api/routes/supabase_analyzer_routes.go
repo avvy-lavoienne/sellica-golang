@@ -3,6 +3,7 @@ package routes
 import (
 	"selly-backend/internal/api/middleware"
 	"selly-backend/internal/services/auth"
+
 	"github.com/gin-gonic/gin"
 
 	"selly-backend/internal/api/handlers"
