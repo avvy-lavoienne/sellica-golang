@@ -87,6 +87,21 @@ type JSONTrainingDataFile struct {
 	LastUpdated time.Time          `json:"last_updated"`
 }
 
+// JSONTrainingDataIndex represents the index.json structure
+type JSONTrainingDataIndex struct {
+	Service            string                   `json:"service"`
+	ResearchMaterial   string                   `json:"research_material"`
+	TrainingCategories []map[string]interface{} `json:"training_categories"`
+	TotalTrainingPairs int                      `json:"total_training_pairs"`
+	LastUpdated        string                   `json:"last_updated"`
+}
+
+// JSONTrainingDataWrapper represents the ktp-training-pairs.json structure with metadata wrapper
+type JSONTrainingDataWrapper struct {
+	Metadata      map[string]interface{} `json:"metadata"`
+	TrainingPairs []JSONTrainingData     `json:"training_pairs"`
+}
+
 // NewDocumentLoaderService creates a new document loader service
 func NewDocumentLoaderService(ragService *rag.RedisRAGService, cache *cache.Service, documentsPath string) (*DocumentLoaderService, error) {
 	// Resolve the absolute path to ensure it works regardless of working directory
@@ -727,12 +742,20 @@ func (dls *DocumentLoaderService) LoadJSONTrainingData(filePath string) error {
 	logrus.WithField("file_path", filePath).Debug("📖 Reading JSON training file...")
 	jsonData, err := dls.readJSONTrainingFile(filePath)
 	if err != nil {
-		logrus.WithError(err).WithField("file_path", filePath).Error("❌ Failed to read JSON training file")
-		return fmt.Errorf("failed to read JSON training file: %w", err)
+		logrus.WithError(err).WithField("file_path", filePath).Warn("⚠️ Could not parse JSON training file (may be index file, continuing)")
+		// Don't return error - some JSON files are just indices that reference other files
+		return nil  // Skip this file, not a fatal error
 	}
+
+	// Skip index files that have no training data
+	if len(jsonData.Data) == 0 {
+		logrus.WithField("file_path", filePath).Debug("ℹ️ Skipping JSON file with no training data (likely index metadata)")
+		return nil
+	}
+
 	logrus.WithFields(logrus.Fields{
-		"file_path": filePath,
-		"data_count": len(jsonData.Data),
+		"file_path":    filePath,
+		"data_count":   len(jsonData.Data),
 		"service_type": jsonData.ServiceType,
 	}).Debug("✅ JSON training file read successfully")
 
@@ -790,7 +813,8 @@ func (dls *DocumentLoaderService) LoadJSONTrainingData(filePath string) error {
 	return nil
 }
 
-// readJSONTrainingFile reads and parses a JSON training data file
+// readJSONTrainingFile reads and parses JSON training data files
+// Handles multiple JSON structures (index.json, training-pairs.json, etc.)
 func (dls *DocumentLoaderService) readJSONTrainingFile(filePath string) (*JSONTrainingDataFile, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -798,13 +822,62 @@ func (dls *DocumentLoaderService) readJSONTrainingFile(filePath string) (*JSONTr
 	}
 	defer file.Close()
 
-	var jsonData []JSONTrainingData
+	// Read raw JSON data to detect structure
+	var rawData map[string]interface{}
 	decoder := json.NewDecoder(file)
-	if err := decoder.Decode(&jsonData); err != nil {
+	if err := decoder.Decode(&rawData); err != nil {
 		return nil, fmt.Errorf("failed to decode JSON: %w", err)
 	}
 
-	// Extract service type from filename
+	var jsonData []JSONTrainingData
+
+	// Detect JSON structure based on top-level keys
+	if _, hasTrainingPairs := rawData["training_pairs"]; hasTrainingPairs {
+		// Structure 2: Object with training_pairs array (ktp-training-pairs.json)
+		jsonBytes, _ := json.Marshal(rawData)
+		var wrapper JSONTrainingDataWrapper
+		if err := json.Unmarshal(jsonBytes, &wrapper); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal training_pairs structure: %w", err)
+		}
+		jsonData = wrapper.TrainingPairs
+		logrus.WithFields(logrus.Fields{
+			"file_path":  filePath,
+			"structure":  "training_pairs_wrapper",
+			"pairs_count": len(jsonData),
+		}).Debug("📖 Parsed training_pairs JSON structure")
+	} else if _, hasTrainingCategories := rawData["training_categories"]; hasTrainingCategories {
+		// Structure 1: Index object (index.json) - extract categories
+		// Note: index.json references other files, so we log but don't extract data here
+		logrus.WithFields(logrus.Fields{
+			"file_path":   filePath,
+			"structure":   "index_metadata",
+			"categories":  len(rawData["training_categories"].([]interface{})),
+		}).Debug("📖 Parsed index metadata structure (training files referenced separately)")
+		jsonData = []JSONTrainingData{} // Empty for index files
+	} else if _, hasData := rawData["data"]; hasData {
+		// Structure 3: Direct data array wrapped in object (fallback)
+		jsonBytes, _ := json.Marshal(rawData["data"])
+		if err := json.Unmarshal(jsonBytes, &jsonData); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal data array structure: %w", err)
+		}
+		logrus.WithFields(logrus.Fields{
+			"file_path":   filePath,
+			"structure":   "data_array",
+			"items_count": len(jsonData),
+		}).Debug("📖 Parsed data array JSON structure")
+	} else {
+		// Try to unmarshal as direct array of JSONTrainingData (Structure 4)
+		jsonBytes, _ := json.Marshal(rawData)
+		if err := json.Unmarshal(jsonBytes, &jsonData); err != nil {
+			logrus.WithFields(logrus.Fields{
+				"file_path":    filePath,
+				"available_keys": getMapKeys(rawData),
+				"error":        err.Error(),
+			}).Warn("⚠️ Could not determine JSON structure - skipping file")
+			return nil, fmt.Errorf("unknown JSON structure in file: %s", filePath)
+		}
+	}
+
 	serviceType := dls.extractServiceTypeFromJSONPath(filePath)
 
 	return &JSONTrainingDataFile{
@@ -813,6 +886,15 @@ func (dls *DocumentLoaderService) readJSONTrainingFile(filePath string) (*JSONTr
 		Data:        jsonData,
 		LastUpdated: time.Now(),
 	}, nil
+}
+
+// getMapKeys returns sorted list of map keys for debugging
+func getMapKeys(m map[string]interface{}) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
 }
 
 // extractServiceTypeFromJSONPath extracts service type from JSON file path
