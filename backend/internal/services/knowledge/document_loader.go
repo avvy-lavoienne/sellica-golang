@@ -21,14 +21,15 @@ import (
 
 // DocumentLoaderService handles loading and indexing of training documents
 type DocumentLoaderService struct {
-	ragService      *rag.RedisRAGService
-	cache           *cache.Service
-	fileWatcher     *fsnotify.Watcher
-	indexManager    *IndexManager
-	documentsPath   string
-	additionalPaths []string // For persona, profile, and other directories
-	enabled         bool
-	recursiveScan   bool // Enable recursive scanning of subdirectories
+	ragService       *rag.RedisRAGService
+	cache            *cache.Service
+	fileWatcher      *fsnotify.Watcher
+	indexManager     *IndexManager
+	documentsPath    string
+	additionalPaths  []string // For persona, profile, and other directories
+	enabled          bool
+	recursiveScan    bool // Enable recursive scanning of subdirectories
+	backgroundIndexer *BackgroundIndexer
 }
 
 // DocumentChunk represents a chunk of a training document
@@ -135,12 +136,13 @@ func NewDocumentLoaderService(ragService *rag.RedisRAGService, cache *cache.Serv
 	}
 
 	service := &DocumentLoaderService{
-		ragService:    ragService,
-		cache:         cache,
-		fileWatcher:   watcher,
-		indexManager:  indexManager,
-		documentsPath: absPath, // Use the resolved absolute path
-		enabled:       true,
+		ragService:        ragService,
+		cache:             cache,
+		fileWatcher:       watcher,
+		indexManager:      indexManager,
+		documentsPath:     absPath, // Use the resolved absolute path
+		enabled:           true,
+		backgroundIndexer: NewBackgroundIndexer(),
 	}
 
 	// Start file watching
@@ -1126,4 +1128,124 @@ func (dls *DocumentLoaderService) GetStats() *KnowledgeStats {
 		PathsWatched:       watchedPaths,
 		LastUpdated:        time.Now(),
 	}
+}
+
+// StartBackgroundIndexing begins document indexing in a background goroutine
+func (dls *DocumentLoaderService) StartBackgroundIndexing(ctx context.Context) error {
+	if dls.backgroundIndexer.IsRunning {
+		logrus.Warn("⚠️ Background indexing already running, skipping start request")
+		return fmt.Errorf("indexing already in progress")
+	}
+
+	// Get total document count without loading
+	totalDocs := dls.countTotalDocuments()
+	
+	logrus.WithFields(map[string]interface{}{
+		"total_documents": totalDocs,
+		"timestamp":       time.Now(),
+	}).Info("🚀 Starting background document indexing")
+
+	// Start the indexing in background
+	go dls.backgroundIndexingWorker(ctx, totalDocs)
+	return nil
+}
+
+// countTotalDocuments counts all documents without loading them
+func (dls *DocumentLoaderService) countTotalDocuments() int {
+	count := 0
+
+	// Count markdown documents
+	if dls.recursiveScan {
+		filepath.Walk(dls.documentsPath, func(path string, info os.FileInfo, err error) error {
+			if err == nil && !info.IsDir() && (strings.HasSuffix(path, ".md") || strings.HasSuffix(path, ".markdown")) {
+				count++
+			}
+			return nil
+		})
+	} else {
+		entries, err := os.ReadDir(dls.documentsPath)
+		if err == nil {
+			for _, entry := range entries {
+				if !entry.IsDir() && (strings.HasSuffix(entry.Name(), ".md") || strings.HasSuffix(entry.Name(), ".markdown")) {
+					count++
+				}
+			}
+		}
+	}
+
+	// Count JSON documents
+	for _, additionalPath := range dls.additionalPaths {
+		if dls.recursiveScan {
+			filepath.Walk(additionalPath, func(path string, info os.FileInfo, err error) error {
+				if err == nil && !info.IsDir() && strings.HasSuffix(path, ".json") {
+					count++
+				}
+				return nil
+			})
+		} else {
+			entries, err := os.ReadDir(additionalPath)
+			if err == nil {
+				for _, entry := range entries {
+					if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".json") {
+						count++
+					}
+				}
+			}
+		}
+	}
+
+	return count
+}
+
+// backgroundIndexingWorker performs the actual indexing in background
+func (dls *DocumentLoaderService) backgroundIndexingWorker(ctx context.Context, totalDocs int) {
+	defer func() {
+		dls.backgroundIndexer.Complete()
+		logrus.WithFields(map[string]interface{}{
+			"docs_processed": dls.backgroundIndexer.DocsProcessed,
+			"total_docs":     dls.backgroundIndexer.TotalDocs,
+			"elapsed":        time.Since(dls.backgroundIndexer.StartTime),
+		}).Info("✅ Background document indexing completed")
+	}()
+
+	dls.backgroundIndexer.Start(totalDocs)
+	processed := 0
+	errorCount := 0
+	skippedDocs := 0
+
+	// Load all documents synchronously within the background goroutine
+	if err := dls.LoadAllDocuments(); err != nil {
+		dls.backgroundIndexer.SetError(err)
+		logrus.WithError(err).Error("Error loading documents in background")
+		errorCount++
+	}
+
+	// Count actual documents loaded
+	stats := dls.GetStats()
+	processed = stats.DocumentsLoaded
+
+	// Update final progress
+	dls.backgroundIndexer.UpdateProgress(processed, errorCount, skippedDocs)
+
+	logrus.WithFields(map[string]interface{}{
+		"processed":  processed,
+		"errors":     errorCount,
+		"skipped":    skippedDocs,
+		"duration":   time.Since(dls.backgroundIndexer.StartTime).Seconds(),
+	}).Info("📊 Background indexing statistics")
+}
+
+// GetBackgroundIndexingStatus returns the current status of background indexing
+func (dls *DocumentLoaderService) GetBackgroundIndexingStatus() IndexerStats {
+	return dls.backgroundIndexer.GetStats()
+}
+
+// IsIndexingComplete returns true if background indexing has finished
+func (dls *DocumentLoaderService) IsIndexingComplete() bool {
+	return !dls.backgroundIndexer.IsRunning
+}
+
+// WaitForIndexingComplete blocks until indexing is complete or context is cancelled
+func (dls *DocumentLoaderService) WaitForIndexingComplete(ctx context.Context) error {
+	return dls.backgroundIndexer.WaitForCompletion(ctx)
 }
