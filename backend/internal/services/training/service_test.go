@@ -463,19 +463,19 @@ func TestQueryAnalyzer_AnalyzeQuery(t *testing.T) {
 	}{
 		{
 			query:               "Bagaimana cara mengurus KTP yang hilang?",
-			expectedServiceType: string(types.ServiceTypeUnknown),
+			expectedServiceType: "ktp_services",
 			expectedIntent:      "inquiry",
 			expectedComplexity:  "simple",
 		},
 		{
 			query:               "Saya ingin membuat akta kelahiran untuk anak saya",
-			expectedServiceType: string(types.ServiceTypeUnknown),
+			expectedServiceType: "birth_certificate",
 			expectedIntent:      "create",
 			expectedComplexity:  "simple",
 		},
 		{
 			query:               "Bagaimana cara mengubah data di kartu keluarga?",
-			expectedServiceType: string(types.ServiceTypeUnknown),
+			expectedServiceType: "family_card",
 			expectedIntent:      "update",
 			expectedComplexity:  "simple",
 		},
