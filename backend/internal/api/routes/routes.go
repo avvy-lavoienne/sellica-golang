@@ -86,8 +86,8 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	// Training data routes (protected)
 	setupTrainingRoutes(router, trainingHandler, services.Auth)
 
-	// Performance monitoring routes (public)
-	setupPerformanceRoutes(router, performanceHandler)
+	// Performance monitoring routes (public read-only, admin-only POST - CRITICAL FIX)
+	setupPerformanceRoutes(router, performanceHandler, services.Auth)
 
 	// Concurrent processing routes (public)
 	SetupConcurrentRoutes(router, services.Concurrent)
@@ -119,9 +119,9 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 		setupSupabaseAnalyzerRoutes(router, supabaseAnalyzerHandler, services.Auth)
 	}
 
-	// WebSocket routes (public)
+	// WebSocket routes (authenticated - CRITICAL FIX: Requires authentication)
 	if services.SilpanaBroadcaster != nil {
-		setupWebSocketRoutes(router, services.SilpanaBroadcaster)
+		setupWebSocketRoutes(router, services.SilpanaBroadcaster, services.Auth)
 	}
 
 	// Protected routes (require authentication)
@@ -262,8 +262,14 @@ func setupAuthRoutes(router *gin.Engine, authService *auth.Service, dbService *d
 }
 
 // setupChatRoutes configures chat endpoints
-func setupChatRoutes(router *gin.Engine, handler *handlers.ChatHandler, _ *auth.Service) {
-	// Public chat endpoints (with optional auth)
+func setupChatRoutes(router *gin.Engine, handler *handlers.ChatHandler, authService *auth.Service) {
+	// SECURITY DECISION: Chat endpoints are PUBLIC with OPTIONAL authentication
+	// - Allows anonymous users to use the chat feature (public chatbot use case)
+	// - Authenticated users are tracked and associated with their sessions
+	// - This is intentional to support public-facing chatbot while enabling user tracking
+	// - If business requirements change to require authentication, apply AuthMiddleware to entire group
+	
+	// Public chat endpoints (with optional auth via global OptionalAuthMiddleware)
 	router.POST("/chat", handler.ProcessChat)
 	router.POST("/chat/session", handler.ProcessSessionChat)
 
@@ -273,7 +279,9 @@ func setupChatRoutes(router *gin.Engine, handler *handlers.ChatHandler, _ *auth.
 		api.POST("/chat", handler.ProcessChat) // POST /api/chat - API chat endpoint
 	}
 
-	// Chat management endpoints
+	// Chat management endpoints (read user's own chat data)
+	// TODO: Future enhancement - consider protecting these with AuthMiddleware
+	// Currently relies on handler-level permission checking (verify handler checks user ownership)
 	chat := router.Group("/chat")
 	{
 		chat.GET("/history", handler.GetChatHistory)   // GET /chat/history - Chat history retrieval
@@ -292,17 +300,25 @@ func setupTrainingRoutes(router *gin.Engine, handler *handlers.TrainingHandler, 
 }
 
 // setupPerformanceRoutes configures performance monitoring endpoints
-func setupPerformanceRoutes(router *gin.Engine, handler *handlers.PerformanceHandler) {
+func setupPerformanceRoutes(router *gin.Engine, handler *handlers.PerformanceHandler, authService *auth.Service) {
 	// Documented performance endpoint (primary path)
 	router.GET("/performance", handler.GetPerformanceMetrics) // GET /performance - Documented performance endpoint
 
-	// Performance monitoring endpoints (public) - backward compatibility
+	// Performance monitoring endpoints (public read-only) - backward compatibility
 	api := router.Group("/api/performance")
 	{
 		api.GET("/metrics", handler.GetHighPerformanceMetrics) // GET /api/performance/metrics - High-performance AI metrics
 		api.GET("/health", handler.GetPerformanceHealth)       // GET /api/performance/health - Performance health check
 		api.GET("/stats", handler.GetPerformanceStats)         // GET /api/performance/stats - Performance statistics
-		api.POST("/test", handler.PostPerformanceTest)         // POST /api/performance/test - Performance test endpoint
+	}
+
+	// Admin-only performance test endpoint (CRITICAL FIX: Requires admin JWT)
+	// This endpoint can generate significant load and should only be accessible to administrators
+	adminApi := router.Group("/api/performance")
+	adminApi.Use(middleware.AuthMiddleware(authService))
+	adminApi.Use(middleware.RequireRole("admin"))
+	{
+		adminApi.POST("/test", handler.PostPerformanceTest) // POST /api/performance/test - Admin-only performance test endpoint
 	}
 }
 
@@ -402,7 +418,7 @@ func setupSilpanaRoutes(router *gin.Engine, silpanaService silpana.ServiceInterf
 }
 
 // setupWebSocketRoutes configures WebSocket endpoints for real-time updates
-func setupWebSocketRoutes(router *gin.Engine, broadcaster *silpana.WebSocketBroadcaster) {
+func setupWebSocketRoutes(router *gin.Engine, broadcaster *silpana.WebSocketBroadcaster, authService *auth.Service) {
 	log.Println("🔌 Setting up WebSocket routes...")
 	
 	// Get the hub from broadcaster
@@ -426,10 +442,16 @@ func setupWebSocketRoutes(router *gin.Engine, broadcaster *silpana.WebSocketBroa
 		},
 	}
 
-	// WebSocket endpoint for ticket updates
-	router.GET("/ws/tickets", wsHandler.Handle)
+	// Protected WebSocket endpoint for ticket updates (CRITICAL FIX: Requires authentication)
+	// WebSocket connections must be authenticated to subscribe to ticket updates
+	// This prevents unauthorized users from listening to ticket change events
+	ws := router.Group("/ws")
+	ws.Use(middleware.AuthMiddleware(authService))
+	{
+		ws.GET("/tickets", wsHandler.Handle)
+	}
 	
-	log.Println("✅ WebSocket route registered at /ws/tickets")
+	log.Println("✅ WebSocket route registered at /ws/tickets (authentication required)")
 }
 
 // WebSocketTicketHandler handles WebSocket connections for ticket updates
@@ -440,11 +462,14 @@ type WebSocketTicketHandler struct {
 
 // Handle handles WebSocket upgrade and registration
 func (h *WebSocketTicketHandler) Handle(c *gin.Context) {
-	// Extract user information from context (set by auth middleware)
+	// Extract user information from context (set by AuthMiddleware)
 	userID, exists := c.Get("user_id")
 	if !exists {
-		// Allow anonymous connections for now
-		userID = "anonymous"
+		// CRITICAL FIX: Reject unauthenticated WebSocket connections
+		// Authentication is now required to subscribe to ticket updates
+		log.Printf("❌ WebSocket connection attempt without authentication")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required for WebSocket connection"})
+		return
 	}
 
 	isAdmin := false
@@ -466,7 +491,7 @@ func (h *WebSocketTicketHandler) Handle(c *gin.Context) {
 	go client.WritePump()
 	go client.ReadPump()
 
-	log.Printf("New WebSocket connection established for user: %s (admin: %v)", userID, isAdmin)
+	log.Printf("✅ New WebSocket connection established for user: %s (admin: %v)", userID, isAdmin)
 }
 
 // setupDataRekamRoutes configures data-rekam endpoints
