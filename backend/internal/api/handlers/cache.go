@@ -330,3 +330,105 @@ func (h *CacheHandler) ClearCache(c *gin.Context) {
 
 	c.JSON(http.StatusOK, result)
 }
+
+// GetCacheMetrics returns advanced cache metrics
+// GET /api/v1/cache/metrics - Advanced cache metrics endpoint
+func (h *CacheHandler) GetCacheMetrics(c *gin.Context) {
+	startTime := time.Now()
+
+	metrics := map[string]interface{}{
+		"timestamp": time.Now().UTC(),
+		"service":   "cache-metrics",
+		"version":   "go-1.0",
+	}
+
+	if h.cache == nil {
+		metrics["status"] = "error"
+		metrics["error"] = "Cache service not initialized"
+		c.JSON(http.StatusServiceUnavailable, metrics)
+		return
+	}
+
+	// Get cache statistics
+	stats := h.cache.GetStats()
+
+	// Calculate derived metrics
+	totalRedisRequests := 0
+	totalMemoryRequests := 0
+	redisHits := 0
+	memoryHits := 0
+
+	if redisHits64, ok := stats["redisHits"].(int64); ok {
+		redisHits = int(redisHits64)
+	}
+	if redisMisses64, ok := stats["redisMisses"].(int64); ok {
+		totalRedisRequests = redisHits + int(redisMisses64)
+	}
+	if memHits64, ok := stats["memoryHits"].(int64); ok {
+		memoryHits = int(memHits64)
+	}
+	if memMisses64, ok := stats["memoryMisses"].(int64); ok {
+		totalMemoryRequests = memoryHits + int(memMisses64)
+	}
+
+	// Calculate hit ratios
+	redisCacheHitRatio := 0.0
+	if totalRedisRequests > 0 {
+		redisCacheHitRatio = float64(redisHits) / float64(totalRedisRequests) * 100
+	}
+
+	memoryCacheHitRatio := 0.0
+	if totalMemoryRequests > 0 {
+		memoryCacheHitRatio = float64(memoryHits) / float64(totalMemoryRequests) * 100
+	}
+
+	totalRequests := totalRedisRequests + totalMemoryRequests
+	totalCacheHitRatio := 0.0
+	if totalRequests > 0 {
+		totalCacheHitRatio = float64(redisHits+memoryHits) / float64(totalRequests) * 100
+	}
+
+	// Build metrics response
+	metrics["status"] = "success"
+	metrics["cache_stats"] = stats
+	metrics["derived_metrics"] = map[string]interface{}{
+		"redis_cache_hit_ratio":   fmt.Sprintf("%.2f%%", redisCacheHitRatio),
+		"memory_cache_hit_ratio":  fmt.Sprintf("%.2f%%", memoryCacheHitRatio),
+		"total_cache_hit_ratio":   fmt.Sprintf("%.2f%%", totalCacheHitRatio),
+		"total_redis_requests":    totalRedisRequests,
+		"total_memory_requests":   totalMemoryRequests,
+		"total_requests":          totalRequests,
+	}
+
+	// Add performance insights
+	insights := map[string]interface{}{
+		"recommendation": "Optimal",
+		"actions":        []string{},
+	}
+
+	if totalCacheHitRatio < 50 {
+		insights["recommendation"] = "Action Required"
+		insights["actions"] = append(insights["actions"].([]string), "Increase cache warming, Monitor access patterns")
+	} else if totalCacheHitRatio < 75 {
+		insights["recommendation"] = "Can be improved"
+		insights["actions"] = append(insights["actions"].([]string), "Optimize cache key strategy, Review TTL configuration")
+	}
+
+	metrics["insights"] = insights
+
+	// Record response time
+	responseTime := time.Since(startTime).Milliseconds()
+	metrics["responseTime"] = responseTime
+
+	if h.monitoring != nil {
+		h.monitoring.RecordRequest(time.Since(startTime))
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"cacheHitRatio": fmt.Sprintf("%.2f%%", totalCacheHitRatio),
+		"responseTime":  responseTime,
+	}).Info("📊 Cache metrics retrieved")
+
+	c.JSON(http.StatusOK, metrics)
+}
+

@@ -220,6 +220,7 @@ func setupCacheRoutes(router *gin.Engine, handler *handlers.CacheHandler, authSe
 	{
 		cache.GET("/health", handler.GetCacheHealth)            // GET /cache/health
 		cache.GET("/stats", handler.GetCacheStats)              // GET /cache/stats
+		cache.GET("/metrics", handler.GetCacheMetrics)          // GET /cache/metrics (Phase 3A - Advanced metrics)
 		cache.GET("/performance", handler.TestCachePerformance) // GET /cache/performance
 		// DELETE /cache/clear - ADMIN ONLY (destructive operation)
 		cache.DELETE("/clear",
