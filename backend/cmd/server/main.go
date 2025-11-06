@@ -82,6 +82,7 @@ func main() {
 		services.SupabaseAnalyzer,
 		services.AktivitasSiak,
 		services.SessionManager,
+		services.Knowledge,
 	)
 	routes.SetupRoutes(router, routeServices)
 
@@ -324,19 +325,17 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		knowledgeService.EnableJSONProcessing(cfg.Knowledge.JSONProcessing)
 	}
 
-	// Load all training documents on startup
-	logrus.Info("📚 Loading training documents...")
-	if err := knowledgeService.LoadAllDocuments(); err != nil {
-		logrus.WithError(err).Fatal("Failed to load training documents")
+	// Load all training documents on startup (async in background)
+	logrus.Info("� Starting background document indexing...")
+	if err := knowledgeService.StartBackgroundIndexing(context.Background()); err != nil {
+		logrus.WithError(err).Warn("Failed to start background indexing: will retry on next request")
 	}
 
 	// Log knowledge service status with detailed verification
-	knowledgeStats := knowledgeService.GetStats()
 	logrus.WithFields(logrus.Fields{
-		"documents_loaded":    knowledgeStats.DocumentsLoaded,
-		"json_files_processed": knowledgeStats.JSONFilesProcessed,
-		"paths_watched":       knowledgeStats.PathsWatched,
-	}).Info("✅ Document loading verification")
+		"indexing_enabled": true,
+		"background_mode":  "async",
+	}).Info("✅ Background document indexing started (server ready immediately)")
 
 	// Initialize chat service with RAG integration (after RAG service is ready)
 	chatService := chat.NewService(dbService, cacheService, authService, ragService)
