@@ -2,7 +2,6 @@ package knowledge
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -87,7 +86,7 @@ func TestJSONTrainingDataParsing(t *testing.T) {
 			// Create temporary file
 			tmpDir := t.TempDir()
 			tmpFile := filepath.Join(tmpDir, "test-training.json")
-			err := ioutil.WriteFile(tmpFile, []byte(tt.jsonContent), 0644)
+			err := os.WriteFile(tmpFile, []byte(tt.jsonContent), 0644)
 			require.NoError(t, err, "Failed to create temporary JSON file")
 
 			// Parse JSON content
@@ -188,11 +187,12 @@ func TestJSONStructureDetection(t *testing.T) {
 				}
 
 				// Verify expected structure detected
-				if tt.expectedStructure == "training_pairs" {
+				switch tt.expectedStructure {
+				case "training_pairs":
 					assert.True(t, hasTrainingPairs, "Should detect training_pairs key")
-				} else if tt.expectedStructure == "training_categories" {
+				case "training_categories":
 					assert.True(t, hasTrainingCategories, "Should detect training_categories key")
-				} else if tt.expectedStructure == "data" {
+				case "data":
 					assert.True(t, hasData, "Should detect data key")
 				}
 			default:

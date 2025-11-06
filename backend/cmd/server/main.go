@@ -152,6 +152,11 @@ type Services struct {
 	SupabaseAnalyzer    *supabase_analyzer.Service
 	SessionManager      *auth.SessionManager // Session manager for SILPANA operations
 
+	// Advanced Cache Services (Phase 3A - Optimization)
+	InvalidationManager *cache.InvalidationManager
+	CacheWarmer         *cache.CacheWarmer
+	MemoryOptimizer     *cache.MemoryOptimizer
+
 	// Enhanced Services (Optimization Layer) - Placeholder interfaces
 	AI           interface{} // *ai.Service - To be implemented
 	Compliance   interface{} // *compliance.Service - To be implemented
@@ -240,6 +245,32 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	cacheService, err := cache.NewService(cfg.Cache.RedisURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize cache service: %w", err)
+	}
+
+	// Initialize advanced cache services (Phase 3A - Optimization)
+	invalidationMgr := cache.NewInvalidationManager(cacheService.GetRedisClient(), true) // true = distributed mode
+	logrus.WithField("status", "initialized").Info("🔄 Cache invalidation manager initialized with namespace versioning")
+
+	warmingConfig := &cache.WarmingConfig{
+		Enabled:              true,
+		WorkerCount:          4,
+		WarmingInterval:      5 * time.Minute,
+		PredictionWindow:     1 * time.Hour,
+		MaxWarmingQueueSize:  1000,
+		PerformanceThreshold: 0.85,
+		MinPredictionScore:   0.7,
+		MaxPredictions:       100,
+		RateLimitPerMinute:   1000,
+		GovernmentServices:   []string{"silpana", "rekam-medis"},
+	}
+	cacheWarmerService := cache.NewCacheWarmer(cacheService, warmingConfig)
+	logrus.WithField("status", "initialized").Info("🔥 Cache warmer initialized for intelligent pre-loading")
+
+	memoryOptimizerService := cache.NewMemoryOptimizer(cacheService.GetRedisClient(), "200mb", cache.EvictLRU)
+	if err := memoryOptimizerService.Configure(context.Background()); err != nil {
+		logrus.WithError(err).Warn("⚠️ Warning: Failed to configure memory optimizer, continuing with defaults")
+	} else {
+		logrus.WithField("status", "configured").Info("💾 Memory optimizer initialized with maxmemory=200MB and LRU eviction")
 	}
 
 	// Initialize enhanced auth service with caching and audit logging
@@ -467,6 +498,11 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		SilpanaBroadcaster: silpanaBroadcaster,
 		SupabaseAnalyzer:   supabaseAnalyzer,
 		SessionManager:     sessionManager,
+
+		// Advanced Cache Services (Phase 3A - Optimization)
+		InvalidationManager: invalidationMgr,
+		CacheWarmer:         cacheWarmerService,
+		MemoryOptimizer:     memoryOptimizerService,
 
 		// Enhanced Services (placeholders)
 		AI:           aiService,

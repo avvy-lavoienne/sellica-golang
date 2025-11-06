@@ -11,7 +11,6 @@ import (
 // OptimizedHealthHandler provides high-performance health checks with caching
 type OptimizedHealthHandler struct {
 	cache    HealthCache
-	services []HealthService
 	timeout  time.Duration
 	cacheTTL time.Duration
 }
@@ -204,7 +203,9 @@ func (h *OptimizedHealthHandler) performBasicSystemCheck() BasicSystemCheck {
 func (h *OptimizedHealthHandler) isServiceReady(serviceName string) bool {
 	// Ultra-fast readiness check - just verify initialization
 	// In real implementation, this would check service registry
-	return true // Placeholder - services are considered ready
+	// serviceName parameter reserved for future service-specific checks
+	_ = serviceName // Parameter reserved for future use
+	return true     // Placeholder - services are considered ready
 }
 
 // GetCacheStats returns health check cache statistics
