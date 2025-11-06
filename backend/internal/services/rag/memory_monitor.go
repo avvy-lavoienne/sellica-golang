@@ -66,7 +66,8 @@ func (mm *MemoryMonitor) StartMonitoring(interval time.Duration) {
 	mm.ticker = time.NewTicker(interval)
 	mm.mutex.Unlock()
 
-	logrus.WithField("interval", interval).Info("Starting memory monitoring")
+	// TEMPORARILY DISABLED: Memory monitoring logs for focus on auth workflow
+	// logrus.WithField("interval", interval).Info("Starting memory monitoring")
 
 	go func() {
 		defer mm.ticker.Stop()

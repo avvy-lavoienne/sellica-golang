@@ -6,9 +6,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/sirupsen/logrus"
 
 	"selly-backend/internal/api/handlers"
 	"selly-backend/internal/api/middleware"
+	"selly-backend/internal/services/aktivitas_siak"
 	"selly-backend/internal/services/auth"
 	"selly-backend/internal/services/cache"
 	"selly-backend/internal/services/chat"
@@ -17,22 +19,26 @@ import (
 	"selly-backend/internal/services/eventbus"
 	"selly-backend/internal/services/monitoring"
 	"selly-backend/internal/services/silpana"
+	"selly-backend/internal/services/supabase_analyzer"
 	"selly-backend/internal/services/training"
 	ws "selly-backend/internal/services/websocket"
 )
 
 // Services struct holds references to all application services
 type Services struct {
-	EventBus           eventbus.EventBusInterface
-	Database           *database.Service
-	Cache              *cache.Service
-	Auth               *auth.Service
-	Chat               *chat.Service
-	Monitoring         *monitoring.Service
-	Training           *training.Service
-	Concurrent         *concurrent.Service
-	Silpana            silpana.ServiceInterface
-	SilpanaBroadcaster *silpana.WebSocketBroadcaster
+	EventBus            eventbus.EventBusInterface
+	Database            *database.Service
+	Cache               *cache.Service
+	Auth                *auth.Service
+	Chat                *chat.Service
+	Monitoring          *monitoring.Service
+	Training            *training.Service
+	Concurrent          *concurrent.Service
+	Silpana             silpana.ServiceInterface
+	SilpanaBroadcaster  *silpana.WebSocketBroadcaster
+	SupabaseAnalyzer    *supabase_analyzer.Service
+	AktivitasSiak       aktivitas_siak.Service
+	SessionManager      *auth.SessionManager // Session manager for SILPANA operations
 }
 
 // SetupRoutes configures all API routes and middleware
@@ -45,6 +51,7 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	chatHandler := handlers.NewChatHandler(services.Chat, services.Monitoring)
 	trainingHandler := handlers.NewTrainingHandler(services.Training)
 	performanceHandler := handlers.NewPerformanceHandler(services.Chat, services.Monitoring)
+	supabaseAnalyzerHandler := handlers.NewSupabaseAnalyzerHandler(services.SupabaseAnalyzer, services.Monitoring)
 
 	// Global middleware
 	router.Use(middleware.RequestIDMiddleware())
@@ -85,8 +92,29 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	// Authentication routes (public)
 	setupAuthRoutes(router, services.Auth, services.Database)
 
-	// SILPANA ticketing routes (public)
-	setupSilpanaRoutes(router, services.Silpana, services.SilpanaBroadcaster)
+	// Data-Rekam routes (protected - require authentication)
+	setupDataRekamRoutes(router, services.Auth, services.Database)
+
+	// Admin routes (protected - require admin role)
+	setupAdminRoutes(router, services.Auth, services.Database)
+
+	// SILPANA ticketing routes (public with session management)
+	if services.SessionManager != nil {
+		SetupSilpanaRoutesWithSession(router, services.Silpana, services.SilpanaBroadcaster, services.SessionManager, services.Auth)
+	} else {
+		// Fallback to legacy routes if SessionManager not available
+		setupSilpanaRoutes(router, services.Silpana, services.SilpanaBroadcaster)
+	}
+
+	// Aktivitas SIAK routes (protected)
+	if services.AktivitasSiak != nil {
+		setupAktivitasSiakRoutes(router, services.AktivitasSiak, services.Auth)
+	}
+
+	// Supabase analyzer routes (public)
+	if services.SupabaseAnalyzer != nil {
+		setupSupabaseAnalyzerRoutes(router, supabaseAnalyzerHandler)
+	}
 
 	// WebSocket routes (public)
 	if services.SilpanaBroadcaster != nil {
@@ -240,19 +268,59 @@ func setupPerformanceRoutes(router *gin.Engine, handler *handlers.PerformanceHan
 	}
 }
 
+// setupAktivitasSiakRoutes configures Aktivitas SIAK civil registry activity management endpoints
+func setupAktivitasSiakRoutes(router *gin.Engine, aktivitasSiakService aktivitas_siak.Service, authService *auth.Service) {
+	// Create logger for handlers
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp: true,
+	})
+
+	// Create Aktivitas SIAK HTTP handlers
+	handlers, err := aktivitas_siak.NewHTTPHandlers(aktivitasSiakService, logger)
+	if err != nil {
+		log.Printf("❌ Failed to create Aktivitas SIAK handlers: %v", err)
+		return
+	}
+
+	// API group for Aktivitas SIAK endpoints (protected with authentication)
+	api := router.Group("/api/v1/aktivitas-siak")
+	api.Use(middleware.AuthMiddleware(authService)) // All routes require authentication
+	{
+		// Health check (public within protected group)
+		api.GET("/health", handlers.Health)
+
+		// CRUD operations
+		api.POST("", handlers.CreateRecord)           // POST /api/v1/aktivitas-siak - Create new record
+		api.GET("", handlers.ListRecords)             // GET /api/v1/aktivitas-siak - List records with pagination
+		api.GET("/:id", handlers.GetRecord)           // GET /api/v1/aktivitas-siak/:id - Get record by ID
+		api.PUT("/:id", handlers.UpdateRecord)        // PUT /api/v1/aktivitas-siak/:id - Update record
+		api.DELETE("/:id", handlers.DeleteRecord)     // DELETE /api/v1/aktivitas-siak/:id - Delete record
+
+		// Utility endpoints
+		api.POST("/check-duplicate", handlers.CheckDuplicate) // POST /api/v1/aktivitas-siak/check-duplicate - Check for duplicate
+		api.GET("/statistics", handlers.GetStatistics)        // GET /api/v1/aktivitas-siak/statistics - Get statistics
+	}
+
+	log.Println("📊 Aktivitas SIAK routes configured successfully")
+}
+
 // GetServices creates and returns the services struct for dependency injection
-func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service, silpanaService silpana.ServiceInterface, silpanaBroadcaster *silpana.WebSocketBroadcaster) *Services {
+func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service, silpanaService silpana.ServiceInterface, silpanaBroadcaster *silpana.WebSocketBroadcaster, supabaseAnalyzer *supabase_analyzer.Service, aktivitasSiakService aktivitas_siak.Service, sessionManager *auth.SessionManager) *Services {
 	return &Services{
-		EventBus:           eventBus,
-		Database:           db,
-		Cache:              cache,
-		Auth:               auth,
-		Chat:               chat,
-		Monitoring:         monitoring,
-		Training:           training,
-		Concurrent:         concurrent,
-		Silpana:            silpanaService,
-		SilpanaBroadcaster: silpanaBroadcaster,
+		EventBus:            eventBus,
+		Database:            db,
+		Cache:               cache,
+		Auth:                auth,
+		Chat:                chat,
+		Monitoring:          monitoring,
+		Training:            training,
+		Concurrent:          concurrent,
+		Silpana:             silpanaService,
+		SilpanaBroadcaster:  silpanaBroadcaster,
+		SupabaseAnalyzer:    supabaseAnalyzer,
+		AktivitasSiak:       aktivitasSiakService,
+		SessionManager:      sessionManager,
 	}
 }
 
@@ -360,6 +428,48 @@ func (h *WebSocketTicketHandler) Handle(c *gin.Context) {
 	go client.ReadPump()
 
 	log.Printf("New WebSocket connection established for user: %s (admin: %v)", userID, isAdmin)
+}
+
+// setupDataRekamRoutes configures data-rekam endpoints
+// All routes require authentication and extract user context from JWT
+func setupDataRekamRoutes(router *gin.Engine, authService *auth.Service, dbService *database.Service) {
+	// Create data-rekam handler
+	dataRekamHandler := handlers.NewDataRekamHandler(dbService)
+
+	// Protected data-rekam endpoints (require authentication)
+	dataRekamGroup := router.Group("/data-rekam")
+	dataRekamGroup.Use(middleware.AuthMiddleware(authService))
+	{
+		// Adjudicate record endpoints
+		dataRekamGroup.GET("/adjudicate", dataRekamHandler.GetAdjudicateRecords)
+
+		// Duplicate operator endpoints
+		dataRekamGroup.GET("/duplicate-operator", dataRekamHandler.GetDuplicateOperatorRecords)
+
+		// Pengajuan bulanan endpoints
+		dataRekamGroup.GET("/pengajuan-bulanan", dataRekamHandler.GetPengajuanBulananRecords)
+
+		// Salah rekam endpoints
+		dataRekamGroup.GET("/salah-rekam", dataRekamHandler.GetSalahRekamRecords)
+
+		// Dashboard statistics endpoint
+		dataRekamGroup.GET("/dashboard-stats", dataRekamHandler.GetDashboardStats)
+	}
+}
+
+// setupAdminRoutes configures admin-only endpoints
+// All routes require authentication and admin role verification
+func setupAdminRoutes(router *gin.Engine, authService *auth.Service, dbService *database.Service) {
+	// Create admin handler
+	adminHandler := handlers.NewAdminHandler(dbService)
+
+	// Protected admin endpoints (require authentication and admin role)
+	adminGroup := router.Group("/admin")
+	adminGroup.Use(middleware.AuthMiddleware(authService))
+	{
+		// Get all pending users (for admin review)
+		adminGroup.GET("/pending-users", adminHandler.GetPendingUsers)
+	}
 }
 
 

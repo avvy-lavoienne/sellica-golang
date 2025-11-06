@@ -15,18 +15,22 @@ import (
 
 	"selly-backend/internal/api/routes"
 	"selly-backend/internal/config"
+	"selly-backend/internal/services/aktivitas_siak"
 	"selly-backend/internal/services/auth"
 	"selly-backend/internal/services/cache"
 	"selly-backend/internal/services/chat"
 	"selly-backend/internal/services/concurrent"
 	"selly-backend/internal/services/database"
+	"selly-backend/internal/services/duplicate_operator"
 	"selly-backend/internal/services/eventbus"
 	"selly-backend/internal/services/knowledge"
 	"selly-backend/internal/services/monitoring"
 	"selly-backend/internal/services/rag"
 	"selly-backend/internal/services/silpana"
+	"selly-backend/internal/services/supabase_analyzer"
 	"selly-backend/internal/services/training"
 	"selly-backend/internal/services/websocket"
+	"selly-backend/internal/utils/logwriter"
 )
 
 func main() {
@@ -35,11 +39,21 @@ func main() {
 		logrus.Warn("No .env file found, using system environment variables")
 	}
 
-	// Initialize configuration
+	// Initialize configuration first
 	cfg := config.Load()
 
-	// Set up logging
-	setupLogging(cfg)
+	// Initialize log writer
+	lw, err := logwriter.NewLogWriter("./logs/backend")
+	if err != nil {
+		fmt.Printf("Failed to initialize log writer: %v\n", err)
+		fmt.Println("Continuing without file logging...")
+	} else {
+		defer lw.Close()
+		lw.SetupLogrus()
+	}
+
+	// Set up logging (after logwriter setup)
+	setupLoggingWithFile(cfg, lw != nil)
 
 	// Initialize services
 	services, err := initializeServices(cfg)
@@ -65,6 +79,9 @@ func main() {
 		services.Concurrent,
 		services.Silpana,
 		services.SilpanaBroadcaster,
+		services.SupabaseAnalyzer,
+		services.AktivitasSiak,
+		services.SessionManager,
 	)
 	routes.SetupRoutes(router, routeServices)
 
@@ -119,16 +136,20 @@ type Services struct {
 	Monitoring *monitoring.Service
 
 	// Business Logic Services (Application Layer)
-	Chat       *chat.Service
-	Training   *training.Service
-	Knowledge  *knowledge.DocumentLoaderService
-	RAG        *rag.RedisRAGService
-	Concurrent *concurrent.Service
-	Silpana    silpana.ServiceInterface
+	Chat              *chat.Service
+	Training          *training.Service
+	Knowledge         *knowledge.DocumentLoaderService
+	RAG               *rag.RedisRAGService
+	Concurrent        *concurrent.Service
+	Silpana           silpana.ServiceInterface
+	AktivitasSiak     aktivitas_siak.Service
+	DuplicateOperator duplicate_operator.Service
 
 	// Real-time Services
 	WebSocketHub        *websocket.Hub
 	SilpanaBroadcaster  *silpana.WebSocketBroadcaster
+	SupabaseAnalyzer    *supabase_analyzer.Service
+	SessionManager      *auth.SessionManager // Session manager for SILPANA operations
 
 	// Enhanced Services (Optimization Layer) - Placeholder interfaces
 	AI           interface{} // *ai.Service - To be implemented
@@ -231,6 +252,11 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		"version":       authStats["version"],
 	}).Info("🔐 Enhanced authentication service initialized with advanced features")
 
+	// Initialize session manager for SILPANA operations (Phase 3)
+	sessionConfig := auth.NewSessionConfig()
+	sessionManager := auth.NewSessionManager(authService, sessionConfig)
+	logrus.WithField("status", "initialized").Info("📋 Session manager initialized for SILPANA ticketing system")
+
 	// Initialize monitoring service
 	monitoringService := monitoring.NewService()
 
@@ -323,6 +349,39 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	}
 	logrus.Info("🎫 SILPANA ticketing service initialized successfully")
 
+	// Initialize Aktivitas SIAK service
+	// Create database adapter with Supabase client
+	dbAdapter, err := aktivitas_siak.NewSupabaseDatabaseAdapter(dbService.GetClient(), logrus.New())
+	if err != nil {
+		return nil, fmt.Errorf("failed to create database adapter for Aktivitas SIAK: %w", err)
+	}
+
+	// Create cache adapter
+	cacheAdapter := aktivitas_siak.NewCacheAdapterImpl(cacheService)
+
+	// Create monitoring adapter
+	monitoringAdapter := aktivitas_siak.NewMonitoringAdapterImpl(monitoringService)
+
+	// Create the Aktivitas SIAK service
+	aktivitasSiakService, err := aktivitas_siak.NewService(
+		dbAdapter,
+		cacheAdapter,
+		monitoringAdapter,
+		nil, // auditLog - not implemented yet
+		nil, // rateLimiter - not implemented yet
+		logrus.New(),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize Aktivitas SIAK service: %w", err)
+	}
+	logrus.Info("✅ Aktivitas SIAK service initialized successfully")
+
+	// Initialize Duplicate Operator service
+	supabaseClient := dbService.GetClient()
+	duplicateOperatorAdapter := duplicate_operator.NewSupabaseAdapter(supabaseClient)
+	duplicateOperatorService := duplicate_operator.NewService(duplicateOperatorAdapter)
+	logrus.Info("✅ Duplicate Operator service initialized successfully")
+
 	// Initialize WebSocket hub for real-time features
 	logrus.Info("🔌 Initializing WebSocket hub...")
 	wsHub := websocket.NewHub(websocket.DefaultConfig())
@@ -332,6 +391,21 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	// Create WebSocket broadcaster for SILPANA
 	silpanaBroadcaster := silpana.NewWebSocketBroadcaster(wsHub)
 	logrus.Info("📡 SILPANA WebSocket broadcaster initialized")
+
+	// Initialize Supabase Analyzer service
+	// We'll need to get the database URL from config to create a direct SQL connection
+	var supabaseAnalyzer *supabase_analyzer.Service
+	if cfg.Database.URL != "" && cfg.Database.ServiceRoleKey != "" {
+		// Create a direct PostgreSQL connection for metadata queries
+		supabaseAnalyzer = supabase_analyzer.NewService(
+			dbService.GetClient(),
+			nil, // SQL connection will be handled within the service
+			cfg.Database.URL,
+		)
+		logrus.Info("🔍 Supabase analyzer service initialized successfully")
+	} else {
+		logrus.Warn("⚠️ Supabase analyzer service initialization skipped - missing database configuration")
+	}
 
 	// Initialize Enhanced Services (Optimization Layer)
 	logrus.Info("🚀 Initializing enhanced services...")
@@ -380,16 +454,20 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		Monitoring: monitoringService,
 
 		// Business Logic Services
-		Chat:       chatService,
-		Training:   trainingService,
-		Knowledge:  knowledgeService,
-		RAG:        ragService,
-		Concurrent: concurrentService,
-		Silpana:    silpanaService,
+		Chat:              chatService,
+		Training:          trainingService,
+		Knowledge:         knowledgeService,
+		RAG:               ragService,
+		Concurrent:        concurrentService,
+		Silpana:           silpanaService,
+		AktivitasSiak:     aktivitasSiakService,
+		DuplicateOperator: duplicateOperatorService,
 
 		// Real-time Services
 		WebSocketHub:       wsHub,
 		SilpanaBroadcaster: silpanaBroadcaster,
+		SupabaseAnalyzer:   supabaseAnalyzer,
+		SessionManager:     sessionManager,
 
 		// Enhanced Services (placeholders)
 		AI:           aiService,
@@ -402,7 +480,7 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 }
 
 // setupLogging configures the logging system
-func setupLogging(cfg *config.Config) {
+func setupLoggingWithFile(cfg *config.Config, hasFileLogging bool) {
 	// Set log level
 	level, err := logrus.ParseLevel(cfg.Logging.Level)
 	if err != nil {
@@ -410,18 +488,21 @@ func setupLogging(cfg *config.Config) {
 	}
 	logrus.SetLevel(level)
 
-	// Set log format
-	if cfg.Server.Environment == "production" {
-		logrus.SetFormatter(&logrus.JSONFormatter{
-			TimestampFormat: time.RFC3339,
-		})
-	} else {
-		logrus.SetFormatter(&logrus.TextFormatter{
-			FullTimestamp:   true,
-			TimestampFormat: "2006-01-02 15:04:05",
-			ForceColors:     true,
-		})
+	// Set log format - only if we don't already have file logging configured
+	if !hasFileLogging {
+		if cfg.Server.Environment == "production" {
+			logrus.SetFormatter(&logrus.JSONFormatter{
+				TimestampFormat: time.RFC3339,
+			})
+		} else {
+			logrus.SetFormatter(&logrus.TextFormatter{
+				FullTimestamp:   true,
+				TimestampFormat: "2006-01-02 15:04:05",
+				ForceColors:     true,
+			})
+		}
 	}
+	// If hasFileLogging is true, logwriter has already set up the formatter
 
 	logrus.Info("📝 Logging system initialized")
 }

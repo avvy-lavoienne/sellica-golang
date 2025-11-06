@@ -28,19 +28,8 @@ export function EnhancedDashboardLayout({
   chatbotApiKey,
 }: EnhancedDashboardLayoutProps) {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (userData.user) {
-        setUser(userData.user);
-      }
-    };
-    getUser();
-  }, []);
 
   return (
     <div className={cn("flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900 md:flex-row", className)}>
@@ -68,8 +57,8 @@ export function EnhancedDashboardLayout({
       >
         {/* Top Navigation */}
         <TopNav
-          user={user}
-          setUser={setUser}
+          user={null}
+          setUser={() => {}}
           isMobileSidebarOpen={isMobileSidebarOpen}
           setIsMobileSidebarOpen={setIsMobileSidebarOpen}
         />
@@ -87,7 +76,7 @@ export function EnhancedDashboardLayout({
       {enableChatbot && (
         <ChatbotIntegration
           position="bottom-right"
-          userId={user?.email || userName}
+          userId={userName}
           apiKey={chatbotApiKey}
           showEnhancementToggle={false}
         />

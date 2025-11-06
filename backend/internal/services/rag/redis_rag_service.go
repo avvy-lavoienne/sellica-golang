@@ -189,18 +189,19 @@ func (rrs *RedisRAGService) IndexDocument(ctx context.Context, doc *RAGDocument)
 		indexingInfo["metadata_count"] = len(doc.Metadata)
 	}
 	
-	logrus.WithFields(logrus.Fields{
-		"indexing_info": indexingInfo,
-	}).Info("📝 [INDEXING] Starting document indexing with enhanced debugging")
+	// TEMPORARILY DISABLED: Document indexing logs for focus on auth workflow
+	// logrus.WithFields(logrus.Fields{
+	// 	"indexing_info": indexingInfo,
+	// }).Info("📝 [INDEXING] Starting document indexing with enhanced debugging")
 
 	// Generate embedding for document content with detailed logging
 	embeddingStartTime := time.Now()
-	logrus.WithFields(logrus.Fields{
-		"document_id": doc.ID,
-		"content_preview": truncateString(doc.Content, 100),
-		"embedding_service_initialized": rrs.embeddingService != nil,
-		"step": "embedding_generation_start",
-	}).Debug("🔤 [INDEXING] Generating embedding for document content")
+	// logrus.WithFields(logrus.Fields{
+	// 	"document_id": doc.ID,
+	// 	"content_preview": truncateString(doc.Content, 100),
+	// 	"embedding_service_initialized": rrs.embeddingService != nil,
+	// 	"step": "embedding_generation_start",
+	// }).Debug("🔤 [INDEXING] Generating embedding for document content")
 
 	embedding, err := rrs.embeddingService.GenerateEmbedding(ctx, doc.Content)
 	embeddingDuration := time.Since(embeddingStartTime)
@@ -231,11 +232,12 @@ func (rrs *RedisRAGService) IndexDocument(ctx context.Context, doc *RAGDocument)
 		}
 	}
 	
-	logrus.WithFields(logrus.Fields{
-		"document_id": doc.ID,
-		"embedding_validation": embeddingValidation,
-		"step": "embedding_generation_success",
-	}).Info("✅ [INDEXING] Document embedding generated and validated")
+	// TEMPORARILY DISABLED: Embedding validation logs
+	// logrus.WithFields(logrus.Fields{
+	// 	"document_id": doc.ID,
+	// 	"embedding_validation": embeddingValidation,
+	// 	"step": "embedding_generation_success",
+	// }).Info("✅ [INDEXING] Document embedding generated and validated")
 
 	doc.Embedding = embedding
 	doc.IndexedAt = time.Now()
@@ -252,11 +254,12 @@ func (rrs *RedisRAGService) IndexDocument(ctx context.Context, doc *RAGDocument)
 		storageInfo["is_hnsw_ops"] = true
 		storageInfo["storage_method"] = "hnsw"
 		
-		logrus.WithFields(logrus.Fields{
-			"document_id": doc.ID,
-			"storage_info": storageInfo,
-			"step": "hnsw_storage_start",
-		}).Debug("🏗️ [INDEXING] Storing document using HNSW vector operations")
+	// TEMPORARILY DISABLED: HNSW storage logs
+	// logrus.WithFields(logrus.Fields{
+	// 	"document_id": doc.ID,
+	// 	"storage_info": storageInfo,
+	// 	"step": "hnsw_storage_start",
+	// }).Debug("🏗️ [INDEXING] Storing document using HNSW vector operations")
 		
 		if err := hnswOps.StoreDocument(ctx, doc); err != nil {
 			storageInfo["storage_error"] = err.Error()
@@ -276,11 +279,12 @@ func (rrs *RedisRAGService) IndexDocument(ctx context.Context, doc *RAGDocument)
 		storageInfo["is_upstash_ops"] = true
 		storageInfo["storage_method"] = "upstash"
 		
-		logrus.WithFields(logrus.Fields{
-			"document_id": doc.ID,
-			"storage_info": storageInfo,
-			"step": "upstash_storage_start",
-		}).Debug("🏗️ [INDEXING] Storing document using Upstash vector operations")
+	// TEMPORARILY DISABLED: Upstash storage logs
+	// logrus.WithFields(logrus.Fields{
+	// 	"document_id": doc.ID,
+	// 	"storage_info": storageInfo,
+	// 	"step": "upstash_storage_start",
+	// }).Debug("🏗️ [INDEXING] Storing document using Upstash vector operations")
 		
 		if err := upstashOps.StoreDocument(ctx, doc); err != nil {
 			storageInfo["storage_error"] = err.Error()
@@ -312,29 +316,32 @@ func (rrs *RedisRAGService) IndexDocument(ctx context.Context, doc *RAGDocument)
 	storageInfo["storage_duration"] = storageDuration
 
 	// Final indexing summary
-	indexingSummary := map[string]interface{}{
-		"document_id": doc.ID,
-		"service_type": doc.ServiceType,
-		"content_length": len(doc.Content),
-		"total_indexing_time": time.Since(startTime),
-		"embedding_time": embeddingDuration,
-		"storage_time": storageDuration,
-		"embedding_dimensions": len(embedding),
-		"indexed_at": doc.IndexedAt,
-		"success": true,
-	}
+	// TEMPORARILY DISABLED: indexing logs - comment out the whole indexingSummary map since it's only used in disabled logs
+	// indexingSummary := map[string]interface{}{
+	// 	"document_id": doc.ID,
+	// 	"service_type": doc.ServiceType,
+	// 	"content_length": len(doc.Content),
+	// 	"total_indexing_time": time.Since(startTime),
+	// 	"embedding_time": embeddingDuration,
+	// 	"storage_time": storageDuration,
+	// 	"embedding_dimensions": len(embedding),
+	// 	"indexed_at": doc.IndexedAt,
+	// 	"success": true,
+	// }
 
-	logrus.WithFields(logrus.Fields{
-		"indexing_summary": indexingSummary,
-		"step": "indexing_complete",
-	}).Info("🎯 [INDEXING] Document indexing completed successfully")
+	// TEMPORARILY DISABLED: Final indexing summary logs
+	// logrus.WithFields(logrus.Fields{
+	// 	"indexing_summary": indexingSummary,
+	// 	"step": "indexing_complete",
+	// }).Info("🎯 [INDEXING] Document indexing completed successfully")
 
-	logrus.WithFields(logrus.Fields{
-		"document_id":    doc.ID,
-		"service_type":   doc.ServiceType,
-		"content_length": len(doc.Content),
-		"keywords":       len(doc.Keywords),
-	}).Info("📄 Document indexed successfully")
+	// TEMPORARILY DISABLED: Document indexed successfully log
+	// logrus.WithFields(logrus.Fields{
+	// 	"document_id":    doc.ID,
+	// 	"service_type":   doc.ServiceType,
+	// 	"content_length": len(doc.Content),
+	// 	"keywords":       len(doc.Keywords),
+	// }).Info("📄 Document indexed successfully")
 
 	return nil
 }

@@ -1,5 +1,8 @@
 # SELLY Project .gitignore
 
+# External dependencies (third-party, vendored code)
+ext/
+
 # Deployment artifacts (generated files - should not be committed)
 deployment/static-build/
 deployment/static-build
@@ -141,9 +144,17 @@ backend/*.exe~
 backend/*.dll
 backend/*.so
 backend/*.dylib
-backend/test
+backend/test/**/*.out
+backend/test/testdata/
+backend/test/manual/
 backend/*.out
 backend/go.work
+
+# But track test files in specific directories
+!backend/test/integration/*_test.go
+!backend/test/integration/test_*.go
+!backend/test/e2e/*_test.go
+!backend/test/performance/*_test.go
 
 # Python (if any Python services)
 __pycache__/

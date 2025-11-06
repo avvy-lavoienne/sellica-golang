@@ -52,6 +52,149 @@ type UserInfo struct {
 	Role  string `json:"role"`
 }
 
+// validatePasswordStrength validates password complexity requirements
+// Requirements: min 8 chars, uppercase, lowercase, number, special character
+func validatePasswordStrength(password string) error {
+	if len(password) < 8 {
+		return &ValidationError{
+			Field:    "password",
+			Message:  "Kata sandi harus minimal 8 karakter",
+			HTTPCode: http.StatusBadRequest,
+		}
+	}
+
+	hasUpper := false
+	hasLower := false
+	hasDigit := false
+	hasSpecial := false
+
+	for _, ch := range password {
+		if ch >= 'A' && ch <= 'Z' {
+			hasUpper = true
+		} else if ch >= 'a' && ch <= 'z' {
+			hasLower = true
+		} else if ch >= '0' && ch <= '9' {
+			hasDigit = true
+		} else if (ch >= 33 && ch <= 47) || (ch >= 58 && ch <= 64) || (ch >= 91 && ch <= 96) || (ch >= 123 && ch <= 126) {
+			hasSpecial = true
+		}
+	}
+
+	if !hasUpper {
+		return &ValidationError{
+			Field:    "password",
+			Message:  "Kata sandi harus mengandung huruf besar (A-Z)",
+			HTTPCode: http.StatusBadRequest,
+		}
+	}
+	if !hasLower {
+		return &ValidationError{
+			Field:    "password",
+			Message:  "Kata sandi harus mengandung huruf kecil (a-z)",
+			HTTPCode: http.StatusBadRequest,
+		}
+	}
+	if !hasDigit {
+		return &ValidationError{
+			Field:    "password",
+			Message:  "Kata sandi harus mengandung angka (0-9)",
+			HTTPCode: http.StatusBadRequest,
+		}
+	}
+	if !hasSpecial {
+		return &ValidationError{
+			Field:    "password",
+			Message:  "Kata sandi harus mengandung karakter khusus (!@#$%^&*)",
+			HTTPCode: http.StatusBadRequest,
+		}
+	}
+
+	return nil
+}
+
+// validateNIK validates NIK format (Indonesian National ID - 16 digits)
+func validateNIK(nik string) error {
+	if nik == "" {
+		return nil // Optional field
+	}
+
+	if len(nik) != 16 {
+		return &ValidationError{
+			Field:    "nik",
+			Message:  "NIK harus terdiri dari 16 angka",
+			HTTPCode: http.StatusBadRequest,
+		}
+	}
+
+	for _, ch := range nik {
+		if ch < '0' || ch > '9' {
+			return &ValidationError{
+				Field:    "nik",
+				Message:  "NIK hanya boleh mengandung angka",
+				HTTPCode: http.StatusBadRequest,
+			}
+		}
+	}
+
+	return nil
+}
+
+// validateNIP validates NIP format (Indonesian Civil Service ID - 18 digits if provided)
+func validateNIP(nip string) error {
+	if nip == "" {
+		return nil // Optional field
+	}
+
+	if len(nip) != 18 {
+		return &ValidationError{
+			Field:    "nip",
+			Message:  "NIP harus terdiri dari 18 angka jika disediakan",
+			HTTPCode: http.StatusBadRequest,
+		}
+	}
+
+	for _, ch := range nip {
+		if ch < '0' || ch > '9' {
+			return &ValidationError{
+				Field:    "nip",
+				Message:  "NIP hanya boleh mengandung angka",
+				HTTPCode: http.StatusBadRequest,
+			}
+		}
+	}
+
+	return nil
+}
+
+// validatePosition validates position field length
+func validatePosition(position string) error {
+	if position == "" {
+		return nil // Optional field
+	}
+
+	if len(position) > 100 {
+		return &ValidationError{
+			Field:    "position",
+			Message:  "Posisi tidak boleh lebih dari 100 karakter",
+			HTTPCode: http.StatusBadRequest,
+		}
+	}
+
+	return nil
+}
+
+// ValidationError represents a validation error with HTTP code
+type ValidationError struct {
+	Field    string
+	Message  string
+	HTTPCode int
+}
+
+// Error implements the error interface
+func (e *ValidationError) Error() string {
+	return e.Message
+}
+
 // NewAuthHandler creates a new authentication handler
 func NewAuthHandler(authService *auth.Service, dbService *database.Service) *AuthHandler {
 	return &AuthHandler{
@@ -76,6 +219,46 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		"email": req.Email,
 		"name":  req.Name,
 	}).Info("Processing user registration request")
+
+	// Validate password strength (Issue #1: CRITICAL)
+	if err := validatePasswordStrength(req.Password); err != nil {
+		logrus.WithField("email", req.Email).Warn("Password validation failed: " + err.Error())
+		c.JSON(http.StatusBadRequest, AuthResponse{
+			Success: false,
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	// Validate NIK format (Issue #2: MEDIUM)
+	if err := validateNIK(req.NIK); err != nil {
+		logrus.WithField("email", req.Email).Warn("NIK validation failed: " + err.Error())
+		c.JSON(http.StatusBadRequest, AuthResponse{
+			Success: false,
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	// Validate NIP format (Issue #3: MEDIUM)
+	if err := validateNIP(req.NIP); err != nil {
+		logrus.WithField("email", req.Email).Warn("NIP validation failed: " + err.Error())
+		c.JSON(http.StatusBadRequest, AuthResponse{
+			Success: false,
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	// Validate position length (Issue #4: MEDIUM)
+	if err := validatePosition(req.Position); err != nil {
+		logrus.WithField("email", req.Email).Warn("Position validation failed: " + err.Error())
+		c.JSON(http.StatusBadRequest, AuthResponse{
+			Success: false,
+			Error:   err.Error(),
+		})
+		return
+	}
 
 	// Check if user already exists in pending_users (handle database unavailability)
 	if h.dbService != nil && h.dbService.IsHealthy() {
@@ -347,11 +530,14 @@ func (h *AuthHandler) GetProfile(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"user": UserInfo{
-			ID:    user.ID,
-			Email: user.Email,
-			Name:  user.Name,
-			Role:  user.Role,
+		"user": gin.H{
+			"id":         user.ID,
+			"email":      user.Email,
+			"name":       user.Name,
+			"role":       user.Role,
+			"nip":        user.NIP,
+			"position":   user.Position,
+			"avatar_url": user.AvatarURL,
 		},
 	})
 }

@@ -248,7 +248,8 @@ func (ve *ValidationEngine) RegisterValidator(validator Validator) {
 	defer ve.mu.Unlock()
 
 	ve.validators[validator.GetName()] = validator
-	logrus.Infof("Registered validator: %s", validator.GetName())
+	// TEMPORARILY DISABLED: Validator registration logs for focus on auth workflow
+	// logrus.Infof("Registered validator: %s", validator.GetName())
 }
 
 // Validate runs all validators on the provided data

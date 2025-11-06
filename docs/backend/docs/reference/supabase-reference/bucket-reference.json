@@ -1,0 +1,22 @@
+[
+  {
+    "id": "avatars",
+    "name": "avatars",
+    "owner": null,
+    "created_at": "2025-04-14 07:49:50.071985+00",
+    "updated_at": "2025-04-14 07:49:50.071985+00",
+    "is_public": true,
+    "allowed_mime_types": null,
+    "file_size_limit": null
+  },
+  {
+    "id": "dokumentasi-foto",
+    "name": "dokumentasi-foto",
+    "owner": null,
+    "created_at": "2025-04-24 13:21:40.730585+00",
+    "updated_at": "2025-04-24 13:21:40.730585+00",
+    "is_public": true,
+    "allowed_mime_types": null,
+    "file_size_limit": null
+  }
+]

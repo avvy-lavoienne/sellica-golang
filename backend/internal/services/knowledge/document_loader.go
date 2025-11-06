@@ -144,8 +144,10 @@ func (dls *DocumentLoaderService) LoadTrainingDocument(filePath string) error {
 		return fmt.Errorf("document loader service is disabled")
 	}
 
-	startTime := time.Now()
-	logrus.WithField("file_path", filePath).Info("📖 Loading training document...")
+	// TEMPORARILY DISABLED: Training document timing for focus on auth workflow
+	// startTime := time.Now()
+	// TEMPORARILY DISABLED: Training document loading logs for focus on auth workflow
+	// logrus.WithField("file_path", filePath).Info("📖 Loading training document...")
 
 	// Read markdown file
 	content, err := dls.readMarkdownFile(filePath)
@@ -159,11 +161,12 @@ func (dls *DocumentLoaderService) LoadTrainingDocument(filePath string) error {
 	// Parse and chunk document
 	chunks := dls.parseAndChunkDocument(content, metadata)
 	
-	logrus.WithFields(logrus.Fields{
-		"file_path":    filePath,
-		"chunks_count": len(chunks),
-		"service_type": metadata["service_type"],
-	}).Info("📄 Document parsed and chunked")
+	// TEMPORARILY DISABLED: Document parsing logs for focus on auth workflow
+	// logrus.WithFields(logrus.Fields{
+	// 	"file_path":    filePath,
+	// 	"chunks_count": len(chunks),
+	// 	"service_type": metadata["service_type"],
+	// }).Info("📄 Document parsed and chunked")
 
 	// Generate embeddings and store in vector database
 	successCount := 0
@@ -176,13 +179,14 @@ func (dls *DocumentLoaderService) LoadTrainingDocument(filePath string) error {
 		successCount++
 	}
 
-	processingTime := time.Since(startTime)
-	logrus.WithFields(logrus.Fields{
-		"file_path":       filePath,
-		"chunks_indexed":  successCount,
-		"total_chunks":    len(chunks),
-		"processing_time": processingTime,
-	}).Info("✅ Training document loaded successfully")
+	// TEMPORARILY DISABLED: Training document success logs for focus on auth workflow
+	// processingTime := time.Since(startTime)
+	// logrus.WithFields(logrus.Fields{
+	// 	"file_path":       filePath,
+	// 	"chunks_indexed":  successCount,
+	// 	"total_chunks":    len(chunks),
+	// 	"processing_time": processingTime,
+	// }).Info("✅ Training document loaded successfully")
 
 	// Cache document metadata
 	cacheKey := fmt.Sprintf("document_metadata:%s", filepath.Base(filePath))
@@ -458,11 +462,12 @@ func (dls *DocumentLoaderService) indexDocumentChunk(chunk *DocumentChunk) error
 		return fmt.Errorf("failed to store document in vector database: %w", err)
 	}
 
-	logrus.WithFields(logrus.Fields{
-		"chunk_id": chunk.ID,
-		"doc_id": doc.ID,
-		"service_type": doc.ServiceType,
-	}).Info("📄 Document indexed successfully")
+	// TEMPORARILY DISABLED: Document indexing logs for focus on auth workflow
+	// logrus.WithFields(logrus.Fields{
+	// 	"chunk_id": chunk.ID,
+	// 	"doc_id": doc.ID,
+	// 	"service_type": doc.ServiceType,
+	// }).Info("📄 Document indexed successfully")
 
 	return nil
 }
@@ -554,15 +559,17 @@ func (dls *DocumentLoaderService) watchAllSubdirectories(rootPath string) error 
 func (dls *DocumentLoaderService) startIndexingWorkers() {
 	for i := 0; i < dls.indexManager.workers; i++ {
 		go func(workerID int) {
-			logrus.WithField("worker_id", workerID).Info("🔄 Started document indexing worker")
+			// TEMPORARILY DISABLED: Document indexing worker logs for focus on auth workflow
+			// logrus.WithField("worker_id", workerID).Info("🔄 Started document indexing worker")
 
 			for job := range dls.indexManager.indexQueue {
-				logrus.WithFields(logrus.Fields{
-					"worker_id": workerID,
-					"file_path": job.FilePath,
-					"operation": job.Operation,
-					"priority":  job.Priority,
-				}).Info("Processing indexing job")
+				// TEMPORARILY DISABLED: Document indexing job logs for focus on auth workflow
+				// logrus.WithFields(logrus.Fields{
+				// 	"worker_id": workerID,
+				// 	"file_path": job.FilePath,
+				// 	"operation": job.Operation,
+				// 	"priority":  job.Priority,
+				// }).Info("Processing indexing job")
 
 				var err error
 				if strings.HasSuffix(job.FilePath, ".json") {
@@ -588,6 +595,7 @@ func (dls *DocumentLoaderService) LoadAllDocuments() error {
 	logrus.WithField("recursive_scan", dls.recursiveScan).Info("📚 Loading training documents...")
 
 	// Load from main documents path
+	// TEMPORARILY DISABLED: LoadAllDocuments logs for focus on auth workflow
 	if !dls.recursiveScan {
 		err := dls.loadDocumentsFromDirectory(dls.documentsPath)
 		if err != nil {
@@ -602,7 +610,8 @@ func (dls *DocumentLoaderService) LoadAllDocuments() error {
 
 	// Load from additional paths (persona, profile, etc.)
 	for _, additionalPath := range dls.additionalPaths {
-		logrus.WithField("path", additionalPath).Info("📁 Loading documents from additional path")
+		// TEMPORARILY DISABLED: Additional paths loading logs for focus on auth workflow
+		// logrus.WithField("path", additionalPath).Info("📁 Loading documents from additional path")
 		if !dls.recursiveScan {
 			err := dls.loadDocumentsFromDirectory(additionalPath)
 			if err != nil {
@@ -618,7 +627,8 @@ func (dls *DocumentLoaderService) LoadAllDocuments() error {
 		}
 	}
 
-	logrus.Info("✅ All training documents loaded successfully")
+	// TEMPORARILY DISABLED: All training documents completion log for focus on auth workflow
+	// logrus.Info("✅ All training documents loaded successfully")
 	return nil
 }
 
@@ -631,13 +641,15 @@ func (dls *DocumentLoaderService) loadDocumentsRecursively(dirPath string) error
 
 		if !info.IsDir() {
 			if strings.HasSuffix(path, ".md") {
-				logrus.WithField("file", path).Info("Loading training document")
+				// TEMPORARILY DISABLED: Document loading logs for focus on auth workflow
+				// logrus.WithField("file", path).Info("Loading training document")
 				err := dls.LoadTrainingDocument(path)
 				if err != nil {
 					logrus.WithError(err).WithField("file", path).Error("Failed to load training document")
 				}
 			} else if strings.HasSuffix(path, ".json") {
-				logrus.WithField("file", path).Info("Loading JSON training data")
+				// TEMPORARILY DISABLED: JSON training data loading logs for focus on auth workflow
+				// logrus.WithField("file", path).Info("Loading JSON training data")
 				err := dls.LoadJSONTrainingData(path)
 				if err != nil {
 					logrus.WithError(err).WithField("file", path).Error("Failed to load JSON training data")
@@ -673,13 +685,15 @@ func (dls *DocumentLoaderService) loadDocumentsFromDirectory(dirPath string) err
 		filePath := filepath.Join(dirPath, entry.Name())
 
 		if strings.HasSuffix(filePath, ".md") {
-			logrus.WithField("file", filePath).Info("Loading training document")
+			// TEMPORARILY DISABLED: Document loading logs for focus on auth workflow
+			// logrus.WithField("file", filePath).Info("Loading training document")
 			err := dls.LoadTrainingDocument(filePath)
 			if err != nil {
 				logrus.WithError(err).WithField("file", filePath).Error("Failed to load training document")
 			}
 		} else if strings.HasSuffix(filePath, ".json") {
-			logrus.WithField("file", filePath).Info("Loading JSON training data")
+			// TEMPORARILY DISABLED: JSON training data loading logs for focus on auth workflow
+			// logrus.WithField("file", filePath).Info("Loading JSON training data")
 			err := dls.LoadJSONTrainingData(filePath)
 			if err != nil {
 				logrus.WithError(err).WithField("file", filePath).Error("Failed to load JSON training data")
@@ -697,8 +711,10 @@ func (dls *DocumentLoaderService) LoadJSONTrainingData(filePath string) error {
 		return fmt.Errorf("document loader service is disabled")
 	}
 
-	startTime := time.Now()
-	logrus.WithField("file_path", filePath).Info("📖 Loading JSON training data...")
+	// TEMPORARILY DISABLED: JSON training data timing for focus on auth workflow
+	// startTime := time.Now()
+	// TEMPORARILY DISABLED: JSON training data loading logs for focus on auth workflow
+	// logrus.WithField("file_path", filePath).Info("📖 Loading JSON training data...")
 
 	// Debug: Check if file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
@@ -724,13 +740,15 @@ func (dls *DocumentLoaderService) LoadJSONTrainingData(filePath string) error {
 	logrus.WithField("file_path", filePath).Debug("🔄 Converting JSON data to chunks...")
 	chunks := dls.convertJSONToChunks(jsonData)
 
-	logrus.WithFields(logrus.Fields{
-		"file_path":    filePath,
-		"chunks_count": len(chunks),
-		"service_type": jsonData.ServiceType,
-	}).Info("📄 JSON training data parsed and chunked")
+	// TEMPORARILY DISABLED: JSON training data parsing logs for focus on auth workflow
+	// logrus.WithFields(logrus.Fields{
+	// 	"file_path":    filePath,
+	// 	"chunks_count": len(chunks),
+	// 	"service_type": jsonData.ServiceType,
+	// }).Info("📄 JSON training data parsed and chunked")
 
 	// Index chunks in RAG system
+	// TEMPORARILY DISABLED: JSON training data indexing logs for focus on auth workflow
 	logrus.WithFields(logrus.Fields{
 		"file_path": filePath,
 		"total_chunks": len(chunks),
@@ -760,13 +778,14 @@ func (dls *DocumentLoaderService) LoadJSONTrainingData(filePath string) error {
 		}
 	}
 
-	processingTime := time.Since(startTime)
-	logrus.WithFields(logrus.Fields{
-		"file_path":       filePath,
-		"chunks_indexed":  successCount,
-		"total_chunks":    len(chunks),
-		"processing_time": processingTime,
-	}).Info("✅ JSON training data loaded successfully")
+	// TEMPORARILY DISABLED: JSON training data success logs for focus on auth workflow
+	// processingTime := time.Since(startTime)
+	// logrus.WithFields(logrus.Fields{
+	// 	"file_path":       filePath,
+	// 	"chunks_indexed":  successCount,
+	// 	"total_chunks":    len(chunks),
+	// 	"processing_time": processingTime,
+	// }).Info("✅ JSON training data loaded successfully")
 
 	return nil
 }
@@ -897,7 +916,8 @@ func (dls *DocumentLoaderService) AddDocumentPath(path string) error {
 		}
 	}
 
-	logrus.WithField("path", path).Info("✅ Added additional document path to watcher")
+	// TEMPORARILY DISABLED: Additional document path watcher logs for focus on auth workflow
+	// logrus.WithField("path", path).Info("✅ Added additional document path to watcher")
 	return nil
 }
 

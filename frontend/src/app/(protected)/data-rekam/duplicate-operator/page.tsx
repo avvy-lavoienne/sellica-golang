@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
+import { useProtectedAuth } from "@/app/(protected)/auth-context";
 import DuplicateOperatorHeader from "@/components/dashboard/data-rekam/duplicate-operator/DuplicateOperatorHeader";
 import DuplicateOperatorActions from "@/components/dashboard/data-rekam/duplicate-operator/DuplicateOperatorActions";
 import DuplicateOperatorForm from "@/components/dashboard/data-rekam/duplicate-operator/DuplicateOperatorForm";
@@ -35,6 +36,7 @@ interface Profile {
 
 export default function DuplicateOperatorPage() {
   const router = useRouter();
+  const { user: contextUser, loading: isLoadingAuth } = useProtectedAuth();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [viewState, setViewState] = useState<"form" | "table" | "none">("none");
@@ -73,47 +75,29 @@ export default function DuplicateOperatorPage() {
         setIsFetchingUser(true);
         setError(null);
 
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-
-        if (sessionError) {
-          throw new Error(`Sesi tidak ditemukan: ${sessionError.message}`);
+        // User already authenticated via layout, use context data
+        if (!contextUser) {
+          throw new Error("Sesi tidak ditemukan");
         }
 
-        if (!session) {
-          router.push("/");
-          return;
-        }
+        setUser(contextUser);
 
-        setUser(session.user);
+        const userNik = contextUser.nik || "";
 
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("name, nik, position, role")
-          .eq("id", session.user.id)
-          .single();
-
-        if (profileError) {
-          throw new Error(`Gagal mengambil profil: ${profileError.message}`);
-        }
-
-        if (!profileData.nik || !validateNIK(profileData.nik)) {
+        if (!userNik || !validateNIK(userNik)) {
           toast.error(
-            "NIK Anda di profil tidak valid. Harap perbarui profil Anda terlebih dahulu.",
+            "NIK Anda tidak valid. Harap perbarui profil Anda terlebih dahulu.",
           );
           router.push("/profile");
           return;
         }
 
-        setProfile(profileData);
         setFormData((prev) => ({
           ...prev,
-          nik_pengaju: profileData.nik,
-          nama_pengaju: profileData.name,
+          nik_pengaju: userNik,
+          nama_pengaju: contextUser.name,
         }));
-        setUserRole(profileData.role || "user");
+        setUserRole(contextUser.role || "user");
       } catch (error: any) {
         console.error("Error fetching user:", error);
         setError(
@@ -127,12 +111,15 @@ export default function DuplicateOperatorPage() {
       }
     };
 
-    fetchUserData();
-  }, [router, validateNIK]);
+    // Only fetch when context user is available and auth is not loading
+    if (!isLoadingAuth && contextUser) {
+      fetchUserData();
+    }
+  }, [contextUser, isLoadingAuth, router, validateNIK]);
 
   const fetchRekapData = useCallback(
     async (page = 1, query = "", statusFilter = "all") => {
-      if (!user) {
+      if (!contextUser) {
         toast.error("Pengguna tidak ditemukan. Silakan login kembali.");
         return { totalCount: 0 };
       }
@@ -141,51 +128,69 @@ export default function DuplicateOperatorPage() {
         setIsTableLoading(true);
         setError(null);
 
-        const rowsPerPage = 5;
-        const start = (page - 1) * rowsPerPage;
-        const end = start + rowsPerPage - 1;
-
-        let queryBuilder = supabase
-          .from("duplicate_operator")
-          .select("*", { count: "exact" })
-          .order("created_at", { ascending: false })
-          .range(start, end);
-
+        // Build query parameters
+        const params = new URLSearchParams();
+        params.append("page", page.toString());
+        params.append("page_size", "5");
         if (statusFilter !== "all") {
-          const isReady = statusFilter === "completed";
-          queryBuilder = queryBuilder.eq("is_ready_to_record", isReady);
+          params.append("status", statusFilter === "completed" ? "completed" : "pending");
         }
-
         if (query) {
-          const dateRangeMatch = query.match(
-            /created_at >= '([^']+)' AND created_at <= '([^']+)'/,
-          );
-          if (dateRangeMatch) {
-            const [, startDate, endDate] = dateRangeMatch;
-            queryBuilder = queryBuilder
-              .gte("created_at", startDate)
-              .lte("created_at", endDate);
-          } else {
-            queryBuilder = queryBuilder.or(
-              `nik_duplicate.ilike.%${query}%,nama_duplicate.ilike.%${query}%,nik_operator.ilike.%${query}%,nama_operator.ilike.%${query}%`,
-            );
-          }
+          params.append("search", query);
         }
 
-        const { data, error, count } = await queryBuilder;
+        // Get auth token from session
+        const session = await supabase.auth.getSession();
+        const token = session.data.session?.access_token;
+        if (!token) {
+          toast.error("Token autentikasi tidak ditemukan. Silakan login kembali.");
+          router.push("/login");
+          return { totalCount: 0 };
+        }
 
-        if (error) {
-          throw new Error(`Gagal mengambil data rekap: ${error.message}`);
+        // Call backend API via Next.js proxy route
+        const response = await fetch(
+          `/api/data-rekam/duplicate-operator?${params.toString()}`,
+          {
+            method: "GET",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        // Handle auth errors
+        if (response.status === 401) {
+          toast.error("Sesi telah berakhir. Silakan login kembali.");
+          router.push("/login");
+          return { totalCount: 0 };
+        }
+
+        if (response.status === 403) {
+          toast.error("Anda tidak memiliki izin untuk mengakses data ini.");
+          return { totalCount: 0 };
+        }
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Gagal memuat data");
+        }
+
+        // Parse response
+        const result = await response.json();
+        if (!result.success) {
+          throw new Error(result.error || "Gagal memuat data rekap");
         }
 
         const updatedData =
-          data?.map((item) => ({
+          result.data?.map((item: any) => ({
             ...item,
             created_at: item.created_at || new Date().toISOString(),
           })) || [];
 
         setRekapData(updatedData);
-        return { totalCount: count || 0 };
+        return { totalCount: result.total_count || 0 };
       } catch (error: any) {
         console.error("Error fetching rekap data:", error);
         setError(
@@ -199,7 +204,7 @@ export default function DuplicateOperatorPage() {
         setIsTableLoading(false);
       }
     },
-    [user],
+    [contextUser, router],
   );
 
   const handleSubmit = async (e: React.FormEvent) => {

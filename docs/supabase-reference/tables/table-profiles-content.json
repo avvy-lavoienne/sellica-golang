@@ -1,0 +1,282 @@
+[
+  {
+    "id": "6e676c8a-bb55-4f4d-a1fa-68ba86805968",
+    "name": "Firman",
+    "nip": "199509232020121018",
+    "position": "Pengelola SIAK",
+    "avatar_url": null,
+    "updated_at": "2025-05-07 07:55:05.345437+00",
+    "nik": "3273052309950084",
+    "role": "user",
+    "email": "natasya_s1pendmas@mahasiswa.ung.ac.id",
+    "selly_preferences": {
+      "greeting_style": "adaptive",
+      "cultural_context": "indonesian_formal",
+      "address_preference": "auto",
+      "response_verbosity": "balanced",
+      "enable_personalization": true,
+      "enable_conversation_memory": true
+    },
+    "last_selly_interaction": null,
+    "selly_conversation_count": 0,
+    "selly_user_preferences": {
+      "formality_level": "auto",
+      "preferred_greeting_time": "adaptive",
+      "enable_islamic_greetings": true,
+      "enable_time_based_greetings": true,
+      "conversation_continuity_preference": true
+    }
+  },
+  {
+    "id": "65b68c09-673c-4492-abf0-a1ae39df9d0e",
+    "name": "Bukan Firman Firdaus",
+    "nip": "199509222020121009",
+    "position": "Aslinya Pengelola SIAK",
+    "avatar_url": "https://yrssspoimsxpibcbeaca.supabase.co/storage/v1/object/public/avatars/65b68c09-673c-4492-abf0-a1ae39df9d0e.jpg?t=1744888141220",
+    "updated_at": "2025-04-17 11:09:01.901+00",
+    "nik": "3273052309950003",
+    "role": "user",
+    "email": null,
+    "selly_preferences": {
+      "greeting_style": "adaptive",
+      "cultural_context": "indonesian_formal",
+      "address_preference": "auto",
+      "response_verbosity": "balanced",
+      "enable_personalization": true,
+      "enable_conversation_memory": true
+    },
+    "last_selly_interaction": null,
+    "selly_conversation_count": 0,
+    "selly_user_preferences": {
+      "formality_level": "auto",
+      "preferred_greeting_time": "adaptive",
+      "enable_islamic_greetings": true,
+      "enable_time_based_greetings": true,
+      "conversation_continuity_preference": true
+    }
+  },
+  {
+    "id": "848c8ef8-d305-4f15-9f3d-c323acff98de",
+    "name": "Aris Gristianto",
+    "nip": "197808192008011003",
+    "position": "Pengelola SIAK",
+    "avatar_url": null,
+    "updated_at": "2025-05-10 04:22:08.769095+00",
+    "nik": "3205011908780002",
+    "role": "user",
+    "email": "arisgristianto@gmail.com",
+    "selly_preferences": {
+      "greeting_style": "adaptive",
+      "cultural_context": "indonesian_formal",
+      "address_preference": "auto",
+      "response_verbosity": "balanced",
+      "enable_personalization": true,
+      "enable_conversation_memory": true
+    },
+    "last_selly_interaction": null,
+    "selly_conversation_count": 0,
+    "selly_user_preferences": {
+      "formality_level": "auto",
+      "preferred_greeting_time": "adaptive",
+      "enable_islamic_greetings": true,
+      "enable_time_based_greetings": true,
+      "conversation_continuity_preference": true
+    }
+  },
+  {
+    "id": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+    "name": "Firman Firdaus",
+    "nip": "199509232020121009",
+    "position": "Pengelola SIAK",
+    "avatar_url": "https://yrssspoimsxpibcbeaca.supabase.co/storage/v1/object/public/avatars/c395d8af-410d-4821-91f4-1fd8ec39b0e4-1760684539629.jpeg",
+    "updated_at": "2025-08-13 08:21:10.063+00",
+    "nik": "9999999999999999",
+    "role": "admin",
+    "email": "firmanfird23@gmail.com",
+    "selly_preferences": {
+      "greeting_style": "adaptive",
+      "cultural_context": "indonesian_formal",
+      "address_preference": "auto",
+      "response_verbosity": "balanced",
+      "enable_personalization": true,
+      "enable_conversation_memory": true
+    },
+    "last_selly_interaction": "2025-08-27 08:50:35+00",
+    "selly_conversation_count": 117,
+    "selly_user_preferences": {
+      "formality_level": "auto",
+      "preferred_greeting_time": "adaptive",
+      "enable_islamic_greetings": true,
+      "enable_time_based_greetings": true,
+      "conversation_continuity_preference": true
+    }
+  },
+  {
+    "id": "a354c4cf-e8a4-440f-af9f-285940164d4f",
+    "name": "Sigit Pratama",
+    "nip": "9999999999999999",
+    "position": "ADB",
+    "avatar_url": null,
+    "updated_at": "2025-05-07 07:54:41.181715+00",
+    "nik": "3205021305890000",
+    "role": "user",
+    "email": "sigit.pratamaaaa@gmail.com",
+    "selly_preferences": {
+      "greeting_style": "adaptive",
+      "cultural_context": "indonesian_formal",
+      "address_preference": "auto",
+      "response_verbosity": "balanced",
+      "enable_personalization": true,
+      "enable_conversation_memory": true
+    },
+    "last_selly_interaction": null,
+    "selly_conversation_count": 0,
+    "selly_user_preferences": {
+      "formality_level": "auto",
+      "preferred_greeting_time": "adaptive",
+      "enable_islamic_greetings": true,
+      "enable_time_based_greetings": true,
+      "conversation_continuity_preference": true
+    }
+  },
+  {
+    "id": "d1ea301c-5ee4-4e95-97a0-b6ecee7e9a1d",
+    "name": "Dewi Maesaroh",
+    "nip": null,
+    "position": "Administrator Database Kependudukan",
+    "avatar_url": null,
+    "updated_at": "2025-05-07 08:40:59.027798+00",
+    "nik": "3204156810880001",
+    "role": "user",
+    "email": "dewi.dukcapilgarut@gmail.com",
+    "selly_preferences": {
+      "greeting_style": "adaptive",
+      "cultural_context": "indonesian_formal",
+      "address_preference": "auto",
+      "response_verbosity": "balanced",
+      "enable_personalization": true,
+      "enable_conversation_memory": true
+    },
+    "last_selly_interaction": null,
+    "selly_conversation_count": 0,
+    "selly_user_preferences": {
+      "formality_level": "auto",
+      "preferred_greeting_time": "adaptive",
+      "enable_islamic_greetings": true,
+      "enable_time_based_greetings": true,
+      "conversation_continuity_preference": true
+    }
+  },
+  {
+    "id": "15d6203a-b3f5-4004-b2b7-7330219369ca",
+    "name": "Bayu Kusumawardani",
+    "nip": "198501032010011001",
+    "position": "Pranata Komputer",
+    "avatar_url": null,
+    "updated_at": "2025-05-22 03:34:03.77509+00",
+    "nik": "3205050301850003",
+    "role": "admin",
+    "email": "rizkya.rafsya123@gmail.com",
+    "selly_preferences": {
+      "greeting_style": "adaptive",
+      "cultural_context": "indonesian_formal",
+      "address_preference": "auto",
+      "response_verbosity": "balanced",
+      "enable_personalization": true,
+      "enable_conversation_memory": true
+    },
+    "last_selly_interaction": null,
+    "selly_conversation_count": 0,
+    "selly_user_preferences": {
+      "formality_level": "auto",
+      "preferred_greeting_time": "adaptive",
+      "enable_islamic_greetings": true,
+      "enable_time_based_greetings": true,
+      "conversation_continuity_preference": true
+    }
+  },
+  {
+    "id": "93b3ba51-7cfe-4210-bad6-598b1127ae0a",
+    "name": "Karin",
+    "nip": "199311152025022001",
+    "position": "Kasi Pelayanan",
+    "avatar_url": null,
+    "updated_at": "2025-04-28 12:23:44.270174+00",
+    "nik": "3205330311100001",
+    "role": "admin",
+    "email": "karinfarm2@gmail.com",
+    "selly_preferences": {
+      "greeting_style": "adaptive",
+      "cultural_context": "indonesian_formal",
+      "address_preference": "auto",
+      "response_verbosity": "balanced",
+      "enable_personalization": true,
+      "enable_conversation_memory": true
+    },
+    "last_selly_interaction": null,
+    "selly_conversation_count": 0,
+    "selly_user_preferences": {
+      "formality_level": "auto",
+      "preferred_greeting_time": "adaptive",
+      "enable_islamic_greetings": true,
+      "enable_time_based_greetings": true,
+      "conversation_continuity_preference": true
+    }
+  },
+  {
+    "id": "71614941-e1de-4b6b-96d0-fc60c6013ce5",
+    "name": "Sutiawan",
+    "nip": "198306092025211007",
+    "position": "Operator SIAK",
+    "avatar_url": "https://yrssspoimsxpibcbeaca.supabase.co/storage/v1/object/public/avatars/71614941-e1de-4b6b-96d0-fc60c6013ce5-1747905880689.jpeg",
+    "updated_at": "2025-05-22 03:55:20.528496+00",
+    "nik": "3205020906830004",
+    "role": "user",
+    "email": "sutiawan940@gmail.com",
+    "selly_preferences": {
+      "greeting_style": "adaptive",
+      "cultural_context": "indonesian_formal",
+      "address_preference": "auto",
+      "response_verbosity": "balanced",
+      "enable_personalization": true,
+      "enable_conversation_memory": true
+    },
+    "last_selly_interaction": null,
+    "selly_conversation_count": 0,
+    "selly_user_preferences": {
+      "formality_level": "auto",
+      "preferred_greeting_time": "adaptive",
+      "enable_islamic_greetings": true,
+      "enable_time_based_greetings": true,
+      "conversation_continuity_preference": true
+    }
+  },
+  {
+    "id": "59343a74-e752-491d-b08c-0729621be440",
+    "name": "Asep Ridwan Abana",
+    "nip": "197703102025211003",
+    "position": "Penata Layanan Operasional",
+    "avatar_url": null,
+    "updated_at": "2025-05-26 02:33:30.038757+00",
+    "nik": "3205051003770001",
+    "role": "user",
+    "email": "asepabana@gmail.com",
+    "selly_preferences": {
+      "greeting_style": "adaptive",
+      "cultural_context": "indonesian_formal",
+      "address_preference": "auto",
+      "response_verbosity": "balanced",
+      "enable_personalization": true,
+      "enable_conversation_memory": true
+    },
+    "last_selly_interaction": null,
+    "selly_conversation_count": 0,
+    "selly_user_preferences": {
+      "formality_level": "auto",
+      "preferred_greeting_time": "adaptive",
+      "enable_islamic_greetings": true,
+      "enable_time_based_greetings": true,
+      "conversation_continuity_preference": true
+    }
+  }
+]

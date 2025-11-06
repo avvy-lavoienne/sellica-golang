@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
 import { cn } from "@/lib/conn/utils";
+import { useProtectedAuth } from "@/app/(protected)/auth-context";
+import { GoAuthAPI } from "@/lib/api/goAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -102,73 +104,72 @@ export default function ProfilePage() {
     {},
   );
   const [isAvatarUploading, setIsAvatarUploading] = useState(false);
+  const { user: contextUser, loading: isLoadingAuth } = useProtectedAuth();
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        setIsFetchingProfile(true);
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-        if (sessionError || !session) {
+        // User already authenticated via layout, use context data
+        if (!contextUser) {
           toast.error("Sesi tidak ditemukan. Silakan login kembali.");
           router.push("/");
           return;
         }
 
+        setIsFetchingProfile(true);
+
         setUser({
-          id: session.user.id,
-          email: session.user.email || "",
-          created_at: session.user.created_at,
-          updated_at: session.user.updated_at,
+          id: contextUser.id,
+          email: contextUser.email || "",
+          created_at: contextUser.created_at,
+          updated_at: contextUser.updated_at,
         });
 
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("name, nip, position, nik, avatar_url")
-          .eq("id", session.user.id)
-          .single();
+        // Fetch full profile from Go backend (includes nip, position, avatar_url)
+        let profileData = {
+          nip: "",
+          position: "",
+          avatar_url: null as string | null,
+        };
 
-        if (profileError) {
-          if (profileError.code === "PGRST116") {
-            const newProfile = {
-              id: session.user.id,
-              name: session.user.email?.split("@")[0] || "User",
-              nip: "",
-              position: "",
-              nik: "",
-              avatar_url: null,
+        console.log("🔍 DEBUG: Fetching profile for user ID:", contextUser.id);
+
+        try {
+          // Fetch from Go backend which now includes nip, position, avatar_url
+          const backendProfile = await GoAuthAPI.getProfile();
+          console.log("🔍 DEBUG: Go backend profile response:", backendProfile);
+
+          if (backendProfile?.user) {
+            profileData = {
+              nip: backendProfile.user.nip || "",
+              position: backendProfile.user.position || "",
+              avatar_url: backendProfile.user.avatar_url || null,
             };
-
-            const { error: insertError } = await supabase
-              .from("profiles")
-              .insert(newProfile);
-
-            if (insertError)
-              throw new Error(
-                `Gagal membuat profil baru: ${insertError.message}`,
-              );
-
-            setProfile(newProfile);
-            setFormData({
-              name: newProfile.name,
-              nip: newProfile.nip,
-              position: newProfile.position,
-              nik: newProfile.nik,
-            });
+            console.log("✅ DEBUG: Profile data from Go backend:", profileData);
           } else {
-            throw new Error(`Gagal mengambil profil: ${profileError.message}`);
+            console.warn("❌ DEBUG: Go backend returned no user data");
           }
-        } else {
-          setProfile(profileData);
-          setFormData({
-            name: profileData.name,
-            nip: profileData.nip,
-            position: profileData.position,
-            nik: profileData.nik || "",
-          });
+        } catch (error) {
+          console.warn("❌ DEBUG: Exception fetching profile from Go backend:", error);
         }
+
+        // Use profile data directly from context user
+        const defaultProfile = {
+          id: contextUser.id,
+          name: contextUser.name || contextUser.email?.split("@")[0] || "User",
+          nip: profileData.nip,
+          position: profileData.position,
+          nik: contextUser.nik || "",
+          avatar_url: profileData.avatar_url,
+        };
+
+        setProfile(defaultProfile);
+        setFormData({
+          name: defaultProfile.name,
+          nip: defaultProfile.nip,
+          position: defaultProfile.position,
+          nik: defaultProfile.nik,
+        });
       } catch (error: any) {
         console.error("Error fetching profile:", error);
         toast.error(error.message || "Gagal memuat profil. Silakan coba lagi.");
@@ -178,8 +179,11 @@ export default function ProfilePage() {
       }
     };
 
-    fetchUserData();
-  }, [router]);
+    // Only fetch when context user is available and auth is not loading
+    if (!isLoadingAuth && contextUser) {
+      fetchUserData();
+    }
+  }, [contextUser, isLoadingAuth, router]);
 
   const handleCancel = useCallback(() => {
     setIsEditing(false);
@@ -194,7 +198,7 @@ export default function ProfilePage() {
   }, [profile]);
 
   const handleSave = useCallback(async () => {
-    if (!user || !profile) {
+    if (!contextUser || !profile) {
       toast.error("Data pengguna tidak ditemukan. Silakan coba lagi.");
       return;
     }
@@ -228,7 +232,7 @@ export default function ProfilePage() {
           );
         }
 
-        const fileName = `${user.id}.${fileExt}`;
+        const fileName = `${contextUser.id}.${fileExt}`;
         const maxSizeInMB = 2;
         const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
         if (avatarFile.size > maxSizeInBytes) {
@@ -237,13 +241,10 @@ export default function ProfilePage() {
           );
         }
 
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-        if (sessionError || !session) {
+        // Use context user instead of session
+        if (!contextUser || !contextUser.id) {
           throw new Error(
-            "Sesi autentikasi tidak valid. Silakan login kembali.",
+            "Data pengguna tidak valid. Silakan login kembali.",
           );
         }
 
@@ -258,7 +259,7 @@ export default function ProfilePage() {
 
         const filesToDelete =
           existingFiles
-            ?.filter((file) => file.name.startsWith(user.id + "."))
+            ?.filter((file) => file.name.startsWith(contextUser.id + "."))
             .map((file) => file.name) || [];
 
         if (filesToDelete.length > 0) {
@@ -299,7 +300,7 @@ export default function ProfilePage() {
           avatar_url: avatarUrl,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", user.id);
+        .eq("id", contextUser.id);
 
       if (updateError)
         throw new Error(`Gagal memperbarui profil: ${updateError.message}`);
@@ -325,7 +326,7 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
-  }, [user, profile, formData, avatarFile]);
+  }, [contextUser, profile, formData, avatarFile]);
 
   // Add this function to handle avatar uploads
 
@@ -353,7 +354,7 @@ export default function ProfilePage() {
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ avatar_url: null })
-        .eq("id", user.id);
+        .eq("id", contextUser.id);
       if (updateError) {
         throw new Error(`Gagal memperbarui profil: ${updateError.message}`);
       }
@@ -385,15 +386,15 @@ export default function ProfilePage() {
         return;
       }
 
-      // Enhanced user validation
-      if (!user) {
+      // Enhanced user validation - use context user
+      if (!contextUser) {
         setAvatarError("User tidak ditemukan. Silakan login kembali.");
         return;
       }
 
       // Generate unique filename
       const fileExt = file.name.split(".").pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const fileName = `${contextUser.id}-${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
       // Upload to storage
@@ -412,7 +413,7 @@ export default function ProfilePage() {
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ avatar_url: publicURL.publicUrl })
-        .eq("id", user.id);
+        .eq("id", contextUser.id);
 
       if (updateError) throw updateError;
 
@@ -534,7 +535,7 @@ export default function ProfilePage() {
                         <div className="relative h-24 w-24 overflow-hidden rounded-full ring-4 ring-border transition-all duration-300 group-hover:ring-primary/50 laptop:h-32 laptop:w-32">
                           <Image
                             src={profile.avatar_url}
-                            alt={`${profile.name || user.email} profile picture`}
+                            alt={`${profile.name || contextUser.email} profile picture`}
                             fill
                             className="object-cover transition-transform duration-300 group-hover:scale-105"
                             priority
@@ -549,7 +550,7 @@ export default function ProfilePage() {
                         <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary/10 text-primary ring-4 ring-border transition-all duration-300 group-hover:ring-primary/50 laptop:h-32 laptop:w-32">
                           <span className="text-2xl font-semibold laptop:text-3xl">
                             {profile?.name?.charAt(0).toUpperCase() ||
-                              user?.email?.charAt(0).toUpperCase() ||
+                              contextUser?.email?.charAt(0).toUpperCase() ||
                               "U"}
                           </span>
                         </div>
@@ -640,7 +641,7 @@ export default function ProfilePage() {
                         accept="image/jpeg,image/jpg,image/png"
                         onChange={(event) => {
                           const file = event.target.files?.[0];
-                          if (file && user) {
+                          if (file && contextUser) {
                             handleAvatarChange(file, "");
                           }
                         }}

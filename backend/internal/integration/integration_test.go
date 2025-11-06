@@ -2,17 +2,24 @@ package integration
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"selly-backend/internal/api/handlers"
 	"selly-backend/internal/services/auth"
 	"selly-backend/internal/services/cache"
 	"selly-backend/internal/services/chat"
 	"selly-backend/internal/services/database"
+	"selly-backend/internal/services/duplicate_operator"
 	"selly-backend/internal/services/monitoring"
 	"selly-backend/internal/services/rag"
 	"selly-backend/internal/services/training"
@@ -433,4 +440,220 @@ func TestConcurrentOperations(t *testing.T) {
 		assert.True(t, suite.Cache.IsHealthy())
 		assert.NotNil(t, suite.Monitoring.GetMetrics())
 	})
+}
+
+// TestDuplicateOperatorDatabaseIntegration tests duplicate operator handler with real database
+func TestDuplicateOperatorDatabaseIntegration(t *testing.T) {
+	// Skip if no database connection available (for CI/CD environments)
+	if testing.Short() {
+		t.Skip("Skipping database integration test in short mode")
+	}
+
+	suite := setupIntegrationSuite(t)
+
+	t.Run("Create and Retrieve Record", func(t *testing.T) {
+		// Create Supabase adapter with real database client
+		dbAdapter := duplicate_operator.NewSupabaseAdapter(suite.DB.GetClient())
+		duplicateOperatorService := duplicate_operator.NewService(dbAdapter)
+		handler := handlers.NewDuplicateOperatorHandler(duplicateOperatorService)
+
+		// Test data
+		userID := "integration-test-user"
+		createReq := duplicate_operator.CreateRequest{
+			NikDuplicate:  "1234567890123456",
+			NamaDuplicate: "Integration Test User",
+			NikOperator:   "1234567890123456",
+			NamaOperator:  "Integration Test Operator",
+			TanggalPerekaman: "2024-01-01",
+			TanggalPengajuan: "2024-01-01",
+		}
+
+		// Create record
+		ctx, w := createPostContext("POST", "/api/v1/duplicate-operators", createReq)
+		ctx.Set("user_id", userID)
+
+		handler.CreateRecord(ctx)
+
+		assert.Equal(t, http.StatusCreated, w.Code)
+		var createResponse map[string]interface{}
+		json.Unmarshal(w.Body.Bytes(), &createResponse)
+		assert.Equal(t, "success", createResponse["status"])
+
+		// Extract record ID from response
+		data := createResponse["data"].(map[string]interface{})
+		recordID := data["id"].(string)
+		assert.NotEmpty(t, recordID)
+
+		// Retrieve the record
+		getCtx, getW := createTestContext()
+		getCtx.Params = []gin.Param{{Key: "id", Value: recordID}}
+
+		handler.GetRecord(getCtx)
+
+		assert.Equal(t, http.StatusOK, getW.Code)
+		var getResponse map[string]interface{}
+		json.Unmarshal(getW.Body.Bytes(), &getResponse)
+		assert.Equal(t, "success", getResponse["status"])
+
+		// Verify data integrity
+		getData := getResponse["data"].(map[string]interface{})
+		assert.Equal(t, createReq.NikDuplicate, getData["nik_duplicate"])
+		assert.Equal(t, createReq.NamaDuplicate, getData["nama_duplicate"])
+		assert.Equal(t, createReq.NikOperator, getData["nik_operator"])
+		assert.Equal(t, createReq.NamaOperator, getData["nama_operator"])
+	})
+
+	t.Run("Database Connection Resilience", func(t *testing.T) {
+		dbAdapter := duplicate_operator.NewSupabaseAdapter(suite.DB.GetClient())
+		duplicateOperatorService := duplicate_operator.NewService(dbAdapter)
+		handler := handlers.NewDuplicateOperatorHandler(duplicateOperatorService)
+
+		// Test multiple rapid operations to verify connection pooling
+		for i := 0; i < 5; i++ {
+			ctx, w := createTestContext()
+			ctx.Params = []gin.Param{{Key: "id", Value: "non-existent-id"}}
+
+			handler.GetRecord(ctx)
+
+			assert.Equal(t, http.StatusNotFound, w.Code)
+			var response map[string]interface{}
+			json.Unmarshal(w.Body.Bytes(), &response)
+			assert.Equal(t, "error", response["status"])
+		}
+	})
+
+	t.Run("Cache Integration with Database", func(t *testing.T) {
+		dbAdapter := duplicate_operator.NewSupabaseAdapter(suite.DB.GetClient())
+		duplicateOperatorService := duplicate_operator.NewService(dbAdapter)
+		handler := handlers.NewDuplicateOperatorHandler(duplicateOperatorService)
+
+		// Create a record
+		userID := "cache-integration-user"
+		createReq := duplicate_operator.CreateRequest{
+			NikDuplicate:  "9876543210987654",
+			NamaDuplicate: "Cache Integration User",
+			NikOperator:   "9876543210987654",
+			NamaOperator:  "Cache Integration Operator",
+			TanggalPerekaman: "2024-01-01",
+			TanggalPengajuan: "2024-01-01",
+		}
+
+		ctx, w := createPostContext("POST", "/api/v1/duplicate-operators", createReq)
+		ctx.Set("user_id", userID)
+
+		handler.CreateRecord(ctx)
+		assert.Equal(t, http.StatusCreated, w.Code)
+
+		var createResponse map[string]interface{}
+		json.Unmarshal(w.Body.Bytes(), &createResponse)
+		data := createResponse["data"].(map[string]interface{})
+		recordID := data["id"].(string)
+
+		// First retrieval (should hit database and populate cache)
+		start := time.Now()
+		getCtx1, getW1 := createTestContext()
+		getCtx1.Params = []gin.Param{{Key: "id", Value: recordID}}
+		handler.GetRecord(getCtx1)
+		firstRetrievalTime := time.Since(start)
+
+		assert.Equal(t, http.StatusOK, getW1.Code)
+
+		// Second retrieval (should hit cache if available)
+		start = time.Now()
+		getCtx2, getW2 := createTestContext()
+		getCtx2.Params = []gin.Param{{Key: "id", Value: recordID}}
+		handler.GetRecord(getCtx2)
+		secondRetrievalTime := time.Since(start)
+
+		assert.Equal(t, http.StatusOK, getW2.Code)
+
+		// Cache should make second retrieval faster (though this is a basic check)
+		// In a real scenario, we'd expect second retrieval to be significantly faster
+		t.Logf("First retrieval: %v, Second retrieval: %v", firstRetrievalTime, secondRetrievalTime)
+	})
+
+	t.Run("Error Handling with Database", func(t *testing.T) {
+		dbAdapter := duplicate_operator.NewSupabaseAdapter(suite.DB.GetClient())
+		duplicateOperatorService := duplicate_operator.NewService(dbAdapter)
+		handler := handlers.NewDuplicateOperatorHandler(duplicateOperatorService)
+
+		// Test with invalid data that should cause database constraint violations
+		invalidCreateReq := duplicate_operator.CreateRequest{
+			NikDuplicate:  "", // Empty NIK should cause validation error
+			NamaDuplicate: "",
+			NikOperator:   "1234567890123456",
+			NamaOperator:  "Test Operator",
+			TanggalPerekaman: "2024-01-01",
+			TanggalPengajuan: "2024-01-01",
+		}
+
+		ctx, w := createPostContext("POST", "/api/v1/duplicate-operators", invalidCreateReq)
+		ctx.Set("user_id", "error-test-user")
+
+		handler.CreateRecord(ctx)
+
+		// Should get a validation or database error
+		assert.True(t, w.Code == http.StatusBadRequest || w.Code == http.StatusInternalServerError,
+			"Expected BadRequest or InternalServerError, got %d", w.Code)
+
+		var response map[string]interface{}
+		json.Unmarshal(w.Body.Bytes(), &response)
+		assert.Equal(t, "error", response["status"])
+	})
+
+	t.Run("Concurrent Database Operations", func(t *testing.T) {
+		dbAdapter := duplicate_operator.NewSupabaseAdapter(suite.DB.GetClient())
+		duplicateOperatorService := duplicate_operator.NewService(dbAdapter)
+		handler := handlers.NewDuplicateOperatorHandler(duplicateOperatorService)
+
+		// Test concurrent operations
+		numGoroutines := 5
+		done := make(chan bool, numGoroutines)
+
+		for i := 0; i < numGoroutines; i++ {
+			go func(id int) {
+				// Each goroutine tries to get a non-existent record
+				ctx, w := createTestContext()
+				ctx.Params = []gin.Param{{Key: "id", Value: fmt.Sprintf("concurrent-test-%d", id)}}
+
+				handler.GetRecord(ctx)
+
+				assert.Equal(t, http.StatusNotFound, w.Code)
+				done <- true
+			}(i)
+		}
+
+		// Wait for all goroutines to complete
+		for i := 0; i < numGoroutines; i++ {
+			<-done
+		}
+	})
+}
+
+// Helper functions for integration tests
+func createPostContext(method, path string, body interface{}) (*gin.Context, *httptest.ResponseRecorder) {
+	gin.SetMode(gin.TestMode)
+	w := httptest.NewRecorder()
+
+	var req *http.Request
+	if body != nil {
+		bodyJSON, _ := json.Marshal(body)
+		req, _ = http.NewRequest(method, path, strings.NewReader(string(bodyJSON)))
+		req.Header.Set("Content-Type", "application/json")
+	} else {
+		req, _ = http.NewRequest(method, path, nil)
+	}
+
+	ctx, _ := gin.CreateTestContext(w)
+	ctx.Request = req
+	return ctx, w
+}
+
+func createTestContext() (*gin.Context, *httptest.ResponseRecorder) {
+	gin.SetMode(gin.TestMode)
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/", nil)
+	ctx, _ := gin.CreateTestContext(w)
+	ctx.Request = req
+	return ctx, w
 }

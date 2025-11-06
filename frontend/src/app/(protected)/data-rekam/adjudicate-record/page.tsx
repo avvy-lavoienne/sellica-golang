@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
+import { useProtectedAuth } from "@/app/(protected)/auth-context";
 import AdjudicateRecordHeader from "@/components/dashboard/data-rekam/adjudicate-record/AdjudicateRecordHeader";
 import AdjudicateRecordActions from "@/components/dashboard/data-rekam/adjudicate-record/AdjudicateRecordActions";
 import AdjudicateRecordForm from "@/components/dashboard/data-rekam/adjudicate-record/AdjudicateRecordForm";
@@ -35,6 +36,7 @@ interface Profile {
 
 export default function AdjudicateRecordPage() {
   const router = useRouter();
+  const { user: contextUser, loading: isLoadingAuth } = useProtectedAuth();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [formData, setFormData] = useState<AdjudicateRecordFormData>({
@@ -67,43 +69,29 @@ export default function AdjudicateRecordPage() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-        if (sessionError || !session) {
+        // User already authenticated via layout, use context data
+        if (!contextUser) {
           toast.error("Sesi tidak ditemukan. Silakan login kembali.");
           router.push("/");
           return;
         }
 
-        setUser(session.user);
+        const userNik = contextUser.nik || "";
 
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("name, nik, position, role")
-          .eq("id", session.user.id)
-          .single();
-
-        if (profileError) {
-          throw new Error(`Gagal mengambil profil: ${profileError.message}`);
-        }
-
-        if (!profileData.nik || !validateNIK(profileData.nik)) {
+        if (!userNik || !validateNIK(userNik)) {
           toast.error(
-            "NIK Anda di profil tidak valid. Harap perbarui profil Anda terlebih dahulu.",
+            "NIK Anda tidak valid. Harap perbarui profil Anda terlebih dahulu.",
           );
           router.push("/profile");
           return;
         }
 
-        setProfile(profileData);
         setFormData((prev) => ({
           ...prev,
-          nik_pengaju: profileData.nik,
-          nama_pengaju: profileData.name,
+          nik_pengaju: userNik,
+          nama_pengaju: contextUser.name,
         }));
-        setUserRole(profileData.role || "user");
+        setUserRole(contextUser.role || "user");
       } catch (error: any) {
         console.error("Error fetching user data:", error);
         toast.error(
@@ -113,8 +101,11 @@ export default function AdjudicateRecordPage() {
       }
     };
 
-    fetchUserData();
-  }, [router]);
+    // Only fetch when context user is available and auth is not loading
+    if (!isLoadingAuth && contextUser) {
+      fetchUserData();
+    }
+  }, [contextUser, isLoadingAuth, router, validateNIK]);
 
   const fetchRekapData = useCallback(
     async (
@@ -122,54 +113,71 @@ export default function AdjudicateRecordPage() {
       searchQuery: string = "",
       statusFilter: string = "all",
     ) => {
-      if (!user) {
+      if (!contextUser) {
         toast.error("Pengguna tidak ditemukan. Silakan login kembali.");
         return { totalCount: 0 };
       }
 
       try {
         setIsTableLoading(true);
-        const rowsPerPage = 5;
-        const start = (page - 1) * rowsPerPage;
-        const end = start + rowsPerPage - 1;
 
-        let query = supabase
-          .from("adjudicate_record")
-          .select(
-            "id, user_id, nik_adjudicate, nama_adjudicate, nik_pengaju, nama_pengaju, jenis_eksepsi, tanggal_pengajuan, estimasi_tanggal_perekaman, created_at, is_ready_to_record",
-            { count: "exact" },
-          )
-          .order("created_at", { ascending: false })
-          .range(start, end);
-
+        // Build query parameters
+        const params = new URLSearchParams();
+        params.append("page", page.toString());
+        params.append("page_size", "5");
         if (statusFilter !== "all") {
-          const isReady = statusFilter === "completed";
-          query = query.eq("is_ready_to_record", isReady);
+          params.append("status", statusFilter === "completed" ? "completed" : "pending");
         }
-
         if (searchQuery) {
-          const dateRangeMatch = searchQuery.match(
-            /created_at >= '([^']+)' AND created_at <= '([^']+)'/,
-          );
-          if (dateRangeMatch) {
-            const [, startDate, endDate] = dateRangeMatch;
-            query = query
-              .gte("created_at", startDate)
-              .lte("created_at", endDate);
-          } else {
-            query = query.or(
-              `nik_adjudicate.ilike.%${searchQuery}%,nama_adjudicate.ilike.%${searchQuery}%`,
-            );
+          params.append("search", searchQuery);
+        }
+
+        // Get auth token from session
+        const session = await supabase.auth.getSession();
+        const token = session.data.session?.access_token;
+        if (!token) {
+          toast.error("Token autentikasi tidak ditemukan. Silakan login kembali.");
+          router.push("/login");
+          return { totalCount: 0 };
+        }
+
+        // Call backend API via Next.js proxy route
+        const response = await fetch(
+          `/api/data-rekam/adjudicate?${params.toString()}`,
+          {
+            method: "GET",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
           }
+        );
+
+        // Handle auth errors
+        if (response.status === 401) {
+          toast.error("Sesi telah berakhir. Silakan login kembali.");
+          router.push("/login");
+          return { totalCount: 0 };
         }
 
-        const { data, error, count } = await query;
-        if (error) {
-          throw new Error(`Gagal mengambil data rekap: ${error.message}`);
+        if (response.status === 403) {
+          toast.error("Anda tidak memiliki izin untuk mengakses data ini.");
+          return { totalCount: 0 };
         }
 
-        setRekapData(data || []);
-        return { totalCount: count || 0 };
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Gagal memuat data");
+        }
+
+        // Parse response
+        const result = await response.json();
+        if (!result.success) {
+          throw new Error(result.error || "Gagal memuat data rekap");
+        }
+
+        setRekapData(result.data || []);
+        return { totalCount: result.total_count || 0 };
       } catch (error: any) {
         console.error("Error fetching rekap data:", error);
         toast.error(
@@ -180,7 +188,7 @@ export default function AdjudicateRecordPage() {
         setIsTableLoading(false);
       }
     },
-    [user],
+    [contextUser, router],
   );
 
   useEffect(() => {

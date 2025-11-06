@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
+import { useProtectedAuth } from "@/app/(protected)/auth-context";
 import { motion, AnimatePresence } from "framer-motion";
 import { ToastContainer } from "react-toastify";
 import type {
@@ -38,6 +39,7 @@ function PengajuanBulananContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const itemsPerPage = 5;
+  const { user: contextUser, loading: isLoadingAuth } = useProtectedAuth();
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<string>("user"); // Default to "user"
   const [showForm, setShowForm] = useState(false);
@@ -68,41 +70,30 @@ function PengajuanBulananContent() {
     const fetchUserData = async () => {
       try {
         setIsFetchingUser(true);
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-        if (sessionError || !session) {
+        // User already authenticated via layout, use context data
+        if (!contextUser) {
           toast.error("Sesi tidak ditemukan. Silakan login kembali.");
           router.push("/");
           return;
         }
 
-        setUser(session.user);
+        setUser(contextUser);
 
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("name, nik, role")
-          .eq("id", session.user.id)
-          .single();
+        const userNik = contextUser.nik || "";
 
-        if (profileError) {
-          throw new Error(`Gagal mengambil profil: ${profileError.message}`);
-        }
-
-        if (!profileData.nik || !validateNIK(profileData.nik)) {
+        if (!userNik || !validateNIK(userNik)) {
           toast.error(
-            "NIK Anda di profil tidak valid. Harap perbarui profil Anda terlebih dahulu.",
+            "NIK Anda tidak valid. Harap perbarui profil Anda terlebih dahulu.",
           );
           router.push("/profile");
           return;
         }
 
-        setUserRole(profileData.role || "user");
+        setUserRole(contextUser.role || "user");
         setFormData((prev) => ({
           ...prev,
-          nik_pengaju: profileData.nik || "",
-          nama_pengaju: profileData.name || "",
+          nik_pengaju: userNik,
+          nama_pengaju: contextUser.name || "",
         }));
       } catch (error: any) {
         toast.error(
@@ -114,8 +105,11 @@ function PengajuanBulananContent() {
       }
     };
 
-    fetchUserData();
-  }, [router]);
+    // Only fetch when context user is available and auth is not loading
+    if (!isLoadingAuth && contextUser) {
+      fetchUserData();
+    }
+  }, [contextUser, isLoadingAuth, router]);
 
   const validateNIK = (nik: string) => {
     return nik.length === 16 && /^\d{16}$/.test(nik);
@@ -123,60 +117,75 @@ function PengajuanBulananContent() {
 
   const fetchRekapData = useCallback(
     async (page = 1, searchQuery = "", statusFilter = "all") => {
-      if (!user) {
+      if (!contextUser) {
         toast.error("Pengguna tidak ditemukan. Silakan login kembali.");
         return { totalCount: 0 };
       }
 
       try {
         setIsTableLoading(true);
-        const rowsPerPage = 5;
-        const start = (page - 1) * rowsPerPage;
-        const end = start + rowsPerPage - 1;
 
-        let query = supabase
-          .from("pengajuan_bulanan")
-          .select("*", { count: "exact" })
-          .order("created_at", { ascending: false })
-          .range(start, end);
-
+        // Build query parameters
+        const params = new URLSearchParams();
+        params.append("page", page.toString());
+        params.append("page_size", "5");
         if (statusFilter !== "all") {
-          const isReady = statusFilter === "completed";
-          query = query.eq("is_ready_to_record", isReady);
+          params.append("status", statusFilter === "completed" ? "completed" : "pending");
         }
-
         if (searchQuery) {
-          // Check if this is a date range query
-          if (searchQuery.includes("created_at")) {
-            // Apply date range filter
-            const dateMatches = searchQuery.match(
-              /created_at >= '(.+)' AND created_at <= '(.+)'/,
-            );
-            if (dateMatches && dateMatches.length === 3) {
-              query = query
-                .gte("created_at", dateMatches[1])
-                .lte("created_at", dateMatches[2]);
-            }
-          } else {
-            // Regular text search
-            query = query.or(
-              `nik_pengajuan_hapus.ilike.%${searchQuery}%,nama_pengajuan.ilike.%${searchQuery}%`,
-            );
+          params.append("search", searchQuery);
+        }
+
+        // Get auth token from session
+        const session = await supabase.auth.getSession();
+        const token = session.data.session?.access_token;
+        if (!token) {
+          toast.error("Token autentikasi tidak ditemukan. Silakan login kembali.");
+          router.push("/login");
+          return { totalCount: 0 };
+        }
+
+        // Call backend API via Next.js proxy route
+        const response = await fetch(
+          `/api/data-rekam/pengajuan-bulanan?${params.toString()}`,
+          {
+            method: "GET",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
           }
+        );
+
+        // Handle auth errors
+        if (response.status === 401) {
+          toast.error("Sesi telah berakhir. Silakan login kembali.");
+          router.push("/login");
+          return { totalCount: 0 };
         }
 
-        const { data, error, count } = await query;
-
-        if (error) {
-          throw new Error(`Gagal mengambil data rekap: ${error.message}`);
+        if (response.status === 403) {
+          toast.error("Anda tidak memiliki izin untuk mengakses data ini.");
+          return { totalCount: 0 };
         }
 
-        const updatedData = data.map((item) => ({
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Gagal memuat data");
+        }
+
+        // Parse response
+        const result = await response.json();
+        if (!result.success) {
+          throw new Error(result.error || "Gagal memuat data rekap");
+        }
+
+        const updatedData = (result.data || []).map((item: any) => ({
           ...item,
           created_at: item.created_at || new Date().toISOString(),
         }));
-        setRekapData(updatedData || []);
-        return { totalCount: count || 0 };
+        setRekapData(updatedData);
+        return { totalCount: result.total_count || 0 };
       } catch (error: any) {
         toast.error(
           error.message || "Gagal mengambil data rekap. Silakan coba lagi.",
@@ -186,7 +195,7 @@ function PengajuanBulananContent() {
         setIsTableLoading(false);
       }
     },
-    [user],
+    [contextUser, router],
   );
 
   const handleSubmit = async (data: PengajuanBulananFormData) => {

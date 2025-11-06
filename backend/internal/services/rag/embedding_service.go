@@ -329,17 +329,18 @@ func (es *EmbeddingService) GenerateEmbedding(ctx context.Context, text string) 
 		processedValidation["document_types_count"] = len(processed.Government.DocumentTypes)
 	}
 	
-	logrus.WithFields(logrus.Fields{
-		"processed_validation": processedValidation,
-	}).Info("✅ [EMBEDDING] Indonesian text processed successfully")
+	// TEMPORARILY DISABLED: Embedding logs for focus on auth workflow
+	// logrus.WithFields(logrus.Fields{
+	// 	"processed_validation": processedValidation,
+	// }).Info("✅ [EMBEDDING] Indonesian text processed successfully")
 
 	// Generate embedding from processed text with parallel optimization
 	embeddingGenStart := time.Now()
-	logrus.WithFields(logrus.Fields{
-		"parallel_workers": es.parallelWorkers,
-		"dimensions": es.dimensions,
-		"step": "embedding_generation_start",
-	}).Debug("🚀 [EMBEDDING] Generating embedding with parallel optimization")
+	// logrus.WithFields(logrus.Fields{
+	// 	"parallel_workers": es.parallelWorkers,
+	// 	"dimensions": es.dimensions,
+	// 	"step": "embedding_generation_start",
+	// }).Debug("🚀 [EMBEDDING] Generating embedding with parallel optimization")
 
 	embedding := es.generateEmbeddingFromProcessedOptimized(processed)
 	embeddingGenDuration := time.Since(embeddingGenStart)
@@ -363,36 +364,39 @@ func (es *EmbeddingService) GenerateEmbedding(ctx context.Context, text string) 
 	
 	embeddingValidation["embedding_mean"] = embeddingValidation["embedding_sum"].(float64) / float64(len(embedding))
 	
-	logrus.WithFields(logrus.Fields{
-		"embedding_validation": embeddingValidation,
-		"step": "embedding_generation_success",
-	}).Info("🎯 [EMBEDDING] Embedding generated and validated")
+	// TEMPORARILY DISABLED: Embedding validation log
+	// logrus.WithFields(logrus.Fields{
+	// 	"embedding_validation": embeddingValidation,
+	// 	"step": "embedding_generation_success",
+	// }).Info("🎯 [EMBEDDING] Embedding generated and validated")
 
 	// Cache the result in both L1 and L2 caches with timing
-	cachingStart := time.Now()
+	// TEMPORARILY DISABLED: cachingDuration no longer needed since generation summary log is disabled
+	// cachingStart := time.Now()
 	es.setL1CachedEmbedding(cacheKey, embedding)
 	es.setL2CachedEmbedding(ctx, cacheKey, embedding)
-	cachingDuration := time.Since(cachingStart)
+	// cachingDuration := time.Since(cachingStart)
 
 	es.cacheMutex.Lock()
 	es.cacheMisses++
 	es.cacheMutex.Unlock()
 	
 	// Final generation summary
-	generationSummary := map[string]interface{}{
-		"total_generation_time": time.Since(startTime),
-		"text_processing_time": processingDuration,
-		"embedding_generation_time": embeddingGenDuration,
-		"caching_time": cachingDuration,
-		"embedding_dimensions": len(embedding),
-		"cache_miss": true,
-		"success": true,
-	}
-	
-	logrus.WithFields(logrus.Fields{
-		"generation_summary": generationSummary,
-		"step": "embedding_complete",
-	}).Info("🏁 [EMBEDDING] Embedding generation pipeline completed")
+	// TEMPORARILY DISABLED: Embedding generation summary logs
+	// generationSummary := map[string]interface{}{
+	// 	"total_generation_time": time.Since(startTime),
+	// 	"text_processing_time": processingDuration,
+	// 	"embedding_generation_time": embeddingGenDuration,
+	// 	"caching_time": cachingDuration,
+	// 	"embedding_dimensions": len(embedding),
+	// 	"cache_miss": true,
+	// 	"success": true,
+	// }
+	//
+	// logrus.WithFields(logrus.Fields{
+	// 	"generation_summary": generationSummary,
+	// 	"step": "embedding_complete",
+	// }).Info("🏁 [EMBEDDING] Embedding generation pipeline completed")
 
 	return embedding, nil
 }

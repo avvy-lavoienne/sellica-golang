@@ -7,52 +7,18 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/conn/utils";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast, ToastContainer } from "react-toastify";
+import { useProtectedAuth } from "@/app/(protected)/auth-context";
 import "react-toastify/dist/ReactToastify.css";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   Home,
   ChevronRight,
-  FileText,
-  AlertCircle,
-  CheckCircle,
   Clock,
   Sparkles,
   Target,
   TrendingUp,
-  Users,
-  Calendar,
   Filter,
-  Search,
-  RefreshCw,
-  Info,
-  Settings,
-  Shield,
-  Activity,
-  BarChart3,
-  PieChart,
-  Loader2,
-  Eye,
-  EyeOff,
 } from "lucide-react";
 import Link from "next/link";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -75,14 +41,9 @@ interface User {
   };
 }
 
-interface Profile {
-  name: string;
-  nik: string;
-  role: string;
-}
-
 export default function PengaduanBulananPage() {
   const router = useRouter();
+  const { user: contextUser, loading: isLoadingAuth } = useProtectedAuth();
 
   // Enhanced state management for enterprise UX
   const [user, setUser] = useState<User | null>(null);
@@ -112,14 +73,9 @@ export default function PengaduanBulananPage() {
   const [filterBy, setFilterBy] = useState<"created_at" | "tanggal_pengaduan">(
     "tanggal_pengaduan",
   );
-  const [error, setError] = useState<string | null>(null);
-  const [isHovered, setIsHovered] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
-  const [pageProgress, setPageProgress] = useState(0);
 
   // Refs for enhanced functionality
   const containerRef = useRef<HTMLDivElement>(null);
-  const toastRef = useRef<any>(null);
 
   // Theme and accessibility
   const prefersReducedMotion = useReducedMotion();
@@ -188,29 +144,20 @@ export default function PengaduanBulananPage() {
     const fetchUserData = async () => {
       try {
         setIsFetchingUser(true);
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-        if (sessionError || !session) {
+        // User already authenticated via layout, use context data
+        if (!contextUser) {
           toast.error("Sesi tidak ditemukan. Silakan login kembali.");
           router.push("/");
           return;
         }
 
-        setUser(session.user);
+        setUser(contextUser);
 
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("name, nik, role")
-          .eq("id", session.user.id)
-          .single();
-
-        if (profileError) {
-          throw new Error(`Gagal mengambil profil: ${profileError.message}`);
-        }
-
-        if (!profileData.nik) {
+        // Go backend includes role in user data, use directly
+        // Note: NIK validation may need to be added to Go backend response in future
+        const userNik = contextUser.nik || "";
+        
+        if (!userNik) {
           toast.error(
             "NIK Anda di profil tidak valid. Harap perbarui profil Anda terlebih dahulu.",
           );
@@ -218,7 +165,7 @@ export default function PengaduanBulananPage() {
           return;
         }
 
-        setUserRole(profileData.role || "user");
+        setUserRole(contextUser.role || "user");
       } catch (error: any) {
         toast.error(
           error.message || "Gagal memuat data pengguna. Silakan coba lagi.",
@@ -229,12 +176,11 @@ export default function PengaduanBulananPage() {
       }
     };
 
-    fetchUserData();
-  }, [router]);
-
-  const validatePhoneNumber = (phone: string) => {
-    return /^(\+62|62|0)[0-9]{9,12}$/.test(phone);
-  };
+    // Only fetch when context user is available and auth is not loading
+    if (!isLoadingAuth && contextUser) {
+      fetchUserData();
+    }
+  }, [contextUser, isLoadingAuth, router]);
 
   const fetchRekapData = useCallback(
     async (
@@ -689,10 +635,6 @@ export default function PengaduanBulananPage() {
           "min-h-screen bg-gradient-to-br from-background via-background to-muted/20",
           "px-4 py-10 sm:px-6 lg:px-8",
         )}
-        onHoverStart={() => setIsHovered(true)}
-        onHoverEnd={() => setIsHovered(false)}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
       >
         {/* Enhanced Toast Container */}
         <ToastContainer
@@ -827,52 +769,6 @@ export default function PengaduanBulananPage() {
                       </Badge>
                     )}
                   </div>
-                </div>
-
-                {/* Enhanced Quick Actions */}
-                <div className="flex items-center gap-3">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleRefresh}
-                        disabled={loading || isTableLoading}
-                        className="transition-all duration-200 hover:border-primary/30 hover:bg-primary/10"
-                      >
-                        <RefreshCw
-                          className={cn(
-                            "h-4 w-4",
-                            (loading || isTableLoading) && "animate-spin",
-                          )}
-                        />
-                        <span className="ml-2 hidden sm:inline">
-                          {loading || isTableLoading ? "Loading..." : "Refresh"}
-                        </span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Refresh all data</p>
-                    </TooltipContent>
-                  </Tooltip>
-
-                  {userRole === "admin" && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="transition-all duration-200 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-900/20"
-                        >
-                          <Shield className="h-4 w-4" />
-                          <span className="ml-2 hidden sm:inline">Admin</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Admin privileges active</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
                 </div>
               </div>
             </div>

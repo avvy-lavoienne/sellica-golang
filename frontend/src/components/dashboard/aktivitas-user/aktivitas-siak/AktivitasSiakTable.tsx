@@ -107,13 +107,44 @@ export default function AktivitasSiakTable({
     totalKeseluruhan > 0
       ? Math.round((totalIndividual / totalKeseluruhan) * 100)
       : 0;
+  // Helper to parse Indonesian month name to number (e.g., "Oktober" -> 10)
+  const getMonthNumber = (bulanText: string): number | null => {
+    const months: Record<string, number> = {
+      "januari": 1, "februari": 2, "maret": 3, "april": 4,
+      "mei": 5, "juni": 6, "juli": 7, "agustus": 8,
+      "september": 9, "oktober": 10, "november": 11, "desember": 12,
+    };
+    const lowerText = bulanText?.toLowerCase() || "";
+    return months[lowerText] || null;
+  };
+
+  // Check if item is from current month (handles both "Oktober 2025" and "2025-10" formats)
   const currentMonthData = data.filter((item) => {
-    const itemDate = new Date(item.bulan_rekapitulasi + "-01");
+    if (!item.bulan_rekapitulasi) return false;
+    
+    let monthNum: number | null = null;
+    let yearNum: number | null = null;
+    
+    // Check if format is "YYYY-MM"
+    if (item.bulan_rekapitulasi.includes('-')) {
+      const parts = item.bulan_rekapitulasi.split('-');
+      if (parts.length === 2) {
+        yearNum = parseInt(parts[0]);
+        monthNum = parseInt(parts[1]);
+      }
+    } else {
+      // Check if format is "Bulan Tahun" (Indonesian)
+      const parts = item.bulan_rekapitulasi.trim().split(" ");
+      if (parts.length === 2) {
+        monthNum = getMonthNumber(parts[0]);
+        yearNum = parseInt(parts[1]);
+      }
+    }
+    
+    if (!monthNum || isNaN(monthNum) || !yearNum || isNaN(yearNum)) return false;
+    
     const currentDate = new Date();
-    return (
-      itemDate.getMonth() === currentDate.getMonth() &&
-      itemDate.getFullYear() === currentDate.getFullYear()
-    );
+    return monthNum === (currentDate.getMonth() + 1) && yearNum === currentDate.getFullYear();
   }).length;
 
   // Toggle expand/collapse for an item
@@ -127,16 +158,27 @@ export default function AktivitasSiakTable({
     setExpandedItems(newExpandedItems);
   };
 
-  // Format bulan rekapitulasi for display
+  // Format bulan rekapitulasi for display (handles both "YYYY-MM" and "Oktober 2025" formats)
   const formatMonthYear = (dateString: string) => {
     try {
       if (!dateString) return "-";
-      const [year, month] = dateString.split("-");
-      const date = new Date(parseInt(year), parseInt(month) - 1, 1);
-      return date.toLocaleDateString("id-ID", {
-        month: "long",
-        year: "numeric",
-      });
+      
+      // If format is "YYYY-MM", convert to Indonesian
+      if (dateString.includes('-')) {
+        const [year, month] = dateString.split('-');
+        const monthNum = parseInt(month, 10);
+        const months = [
+          'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+          'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        ];
+        if (monthNum >= 1 && monthNum <= 12) {
+          return `${months[monthNum - 1]} ${year}`;
+        }
+        return dateString;
+      }
+      
+      // If format is "Oktober 2025" or similar, return as-is
+      return dateString.trim() || "-";
     } catch (error) {
       return dateString || "-";
     }
@@ -610,7 +652,7 @@ export default function AktivitasSiakTable({
                                       {item.created_at
                                         ? new Date(
                                             item.created_at,
-                                          ).toLocaleDateString("id-ID", {
+                                          ).toLocaleString("id-ID", {
                                             day: "2-digit",
                                             month: "long",
                                             year: "numeric",

@@ -1,0 +1,902 @@
+[
+  {
+    "table_name": "adjudicate_record",
+    "column_name": "id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "uuid_generate_v4()",
+    "position": 1
+  },
+  {
+    "table_name": "adjudicate_record",
+    "column_name": "user_id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "adjudicate_record",
+    "column_name": "nik_adjudicate",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 3
+  },
+  {
+    "table_name": "adjudicate_record",
+    "column_name": "nama_adjudicate",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 4
+  },
+  {
+    "table_name": "adjudicate_record",
+    "column_name": "nik_pengaju",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 5
+  },
+  {
+    "table_name": "adjudicate_record",
+    "column_name": "nama_pengaju",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 6
+  },
+  {
+    "table_name": "adjudicate_record",
+    "column_name": "jenis_eksepsi",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 7
+  },
+  {
+    "table_name": "adjudicate_record",
+    "column_name": "tanggal_pengajuan",
+    "data_type": "date",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 8
+  },
+  {
+    "table_name": "adjudicate_record",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "CURRENT_TIMESTAMP",
+    "position": 9
+  },
+  {
+    "table_name": "adjudicate_record",
+    "column_name": "is_ready_to_record",
+    "data_type": "boolean",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "false",
+    "position": 10
+  },
+  {
+    "table_name": "adjudicate_record",
+    "column_name": "estimasi_tanggal_perekaman",
+    "data_type": "date",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 11
+  },
+  {
+    "table_name": "aktivitas_siak",
+    "column_name": "id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "uuid_generate_v4()",
+    "position": 1
+  },
+  {
+    "table_name": "aktivitas_siak",
+    "column_name": "user_id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "aktivitas_siak",
+    "column_name": "total_aktivitas_individu",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 3
+  },
+  {
+    "table_name": "aktivitas_siak",
+    "column_name": "total_aktivitas_keseluruhan",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 4
+  },
+  {
+    "table_name": "aktivitas_siak",
+    "column_name": "fix_anomali_data",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 5
+  },
+  {
+    "table_name": "aktivitas_siak",
+    "column_name": "restore_data_maintenance",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 6
+  },
+  {
+    "table_name": "aktivitas_siak",
+    "column_name": "restore_data_ktp",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 7
+  },
+  {
+    "table_name": "aktivitas_siak",
+    "column_name": "daftar_duplikasi",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 8
+  },
+  {
+    "table_name": "aktivitas_siak",
+    "column_name": "login_user",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 9
+  },
+  {
+    "table_name": "aktivitas_siak",
+    "column_name": "logout_user",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 10
+  },
+  {
+    "table_name": "aktivitas_siak",
+    "column_name": "mutasi_elemen_data",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 11
+  },
+  {
+    "table_name": "aktivitas_siak",
+    "column_name": "bulan_rekapitulasi",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 12
+  },
+  {
+    "table_name": "aktivitas_siak",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "CURRENT_TIMESTAMP",
+    "position": 13
+  },
+  {
+    "table_name": "aktivitas_user",
+    "column_name": "id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "uuid_generate_v4()",
+    "position": 1
+  },
+  {
+    "table_name": "aktivitas_user",
+    "column_name": "user_id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "aktivitas_user",
+    "column_name": "total_aktivitas_individu",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 3
+  },
+  {
+    "table_name": "aktivitas_user",
+    "column_name": "total_aktivitas_keseluruhan",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 4
+  },
+  {
+    "table_name": "aktivitas_user",
+    "column_name": "fix_anomali_data",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 5
+  },
+  {
+    "table_name": "aktivitas_user",
+    "column_name": "restore_data_maintenance",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 6
+  },
+  {
+    "table_name": "aktivitas_user",
+    "column_name": "restore_data_ktp",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 7
+  },
+  {
+    "table_name": "aktivitas_user",
+    "column_name": "daftar_duplikasi",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 8
+  },
+  {
+    "table_name": "aktivitas_user",
+    "column_name": "login_user",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 9
+  },
+  {
+    "table_name": "aktivitas_user",
+    "column_name": "logout_user",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 10
+  },
+  {
+    "table_name": "aktivitas_user",
+    "column_name": "mutasi_elemen_data",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 11
+  },
+  {
+    "table_name": "aktivitas_user",
+    "column_name": "bulan_rekapitulasi",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 12
+  },
+  {
+    "table_name": "aktivitas_user",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "CURRENT_TIMESTAMP",
+    "position": 13
+  },
+  {
+    "table_name": "daily_training_stats",
+    "column_name": "date",
+    "data_type": "date",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 1
+  },
+  {
+    "table_name": "daily_training_stats",
+    "column_name": "total_entries",
+    "data_type": "bigint",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "daily_training_stats",
+    "column_name": "processed_entries",
+    "data_type": "bigint",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 3
+  },
+  {
+    "table_name": "daily_training_stats",
+    "column_name": "pending_entries",
+    "data_type": "bigint",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 4
+  },
+  {
+    "table_name": "daily_training_stats",
+    "column_name": "avg_quality_score",
+    "data_type": "numeric",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 5
+  },
+  {
+    "table_name": "daily_training_stats",
+    "column_name": "unique_users",
+    "data_type": "bigint",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 6
+  },
+  {
+    "table_name": "daily_training_stats",
+    "column_name": "unique_sessions",
+    "data_type": "bigint",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 7
+  },
+  {
+    "table_name": "dokumentasi",
+    "column_name": "id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "uuid_generate_v4()",
+    "position": 1
+  },
+  {
+    "table_name": "dokumentasi",
+    "column_name": "tanggal",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "dokumentasi",
+    "column_name": "judul",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 3
+  },
+  {
+    "table_name": "dokumentasi",
+    "column_name": "keterangan",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 4
+  },
+  {
+    "table_name": "dokumentasi",
+    "column_name": "foto",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 5
+  },
+  {
+    "table_name": "dokumentasi",
+    "column_name": "created_by",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 6
+  },
+  {
+    "table_name": "dokumentasi",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "CURRENT_TIMESTAMP",
+    "position": 7
+  },
+  {
+    "table_name": "duplicate_operator",
+    "column_name": "id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "uuid_generate_v4()",
+    "position": 1
+  },
+  {
+    "table_name": "duplicate_operator",
+    "column_name": "user_id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "duplicate_operator",
+    "column_name": "nik_duplicate",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 3
+  },
+  {
+    "table_name": "duplicate_operator",
+    "column_name": "nama_duplicate",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 4
+  },
+  {
+    "table_name": "duplicate_operator",
+    "column_name": "nik_operator",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 5
+  },
+  {
+    "table_name": "duplicate_operator",
+    "column_name": "nama_operator",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 6
+  },
+  {
+    "table_name": "duplicate_operator",
+    "column_name": "nik_pengaju",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 7
+  },
+  {
+    "table_name": "duplicate_operator",
+    "column_name": "nama_pengaju",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 8
+  },
+  {
+    "table_name": "duplicate_operator",
+    "column_name": "tanggal_perekaman",
+    "data_type": "date",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 9
+  },
+  {
+    "table_name": "duplicate_operator",
+    "column_name": "tanggal_pengajuan",
+    "data_type": "date",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 10
+  },
+  {
+    "table_name": "duplicate_operator",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "CURRENT_TIMESTAMP",
+    "position": 11
+  },
+  {
+    "table_name": "duplicate_operator",
+    "column_name": "is_ready_to_record",
+    "data_type": "boolean",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "false",
+    "position": 12
+  },
+  {
+    "table_name": "duplicate_operator",
+    "column_name": "estimasi_tanggal_perekaman",
+    "data_type": "date",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 13
+  },
+  {
+    "table_name": "pending_users",
+    "column_name": "id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "uuid_generate_v4()",
+    "position": 1
+  },
+  {
+    "table_name": "pending_users",
+    "column_name": "email",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "pending_users",
+    "column_name": "name",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 3
+  },
+  {
+    "table_name": "pending_users",
+    "column_name": "password",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 4
+  },
+  {
+    "table_name": "pending_users",
+    "column_name": "requested_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "now()",
+    "position": 5
+  },
+  {
+    "table_name": "pending_users",
+    "column_name": "status",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "'pending'::text",
+    "position": 6
+  },
+  {
+    "table_name": "pending_users",
+    "column_name": "approved_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 7
+  },
+  {
+    "table_name": "pending_users",
+    "column_name": "approved_by",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 8
+  },
+  {
+    "table_name": "pending_users",
+    "column_name": "user_metadata",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "'{}'::jsonb",
+    "position": 9
+  },
+  {
+    "table_name": "pengaduan_bulanan",
+    "column_name": "id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "gen_random_uuid()",
+    "position": 1
+  },
+  {
+    "table_name": "pengaduan_bulanan",
+    "column_name": "user_id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "pengaduan_bulanan",
+    "column_name": "nik_pengaduan",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 3
+  },
+  {
+    "table_name": "pengaduan_bulanan",
+    "column_name": "nama_pengaduan",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 4
+  },
+  {
+    "table_name": "pengaduan_bulanan",
+    "column_name": "alasan_pengaduan",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 5
+  },
+  {
+    "table_name": "pengaduan_bulanan",
+    "column_name": "deskripsi_pengaduan",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 6
+  },
+  {
+    "table_name": "pengaduan_bulanan",
+    "column_name": "nomor_telepon",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 7
+  },
+  {
+    "table_name": "pengaduan_bulanan",
+    "column_name": "tindak_lanjut_pengaduan",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 8
+  },
+  {
+    "table_name": "pengaduan_bulanan",
+    "column_name": "tanggal_pengaduan",
+    "data_type": "date",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 9
+  },
+  {
+    "table_name": "pengaduan_bulanan",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "now()",
+    "position": 10
+  },
+  {
+    "table_name": "pengajuan_bulanan",
+    "column_name": "id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "uuid_generate_v4()",
+    "position": 1
+  },
+  {
+    "table_name": "pengajuan_bulanan",
+    "column_name": "user_id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "pengajuan_bulanan",
+    "column_name": "nik_pengajuan_hapus",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 3
+  },
+  {
+    "table_name": "pengajuan_bulanan",
+    "column_name": "nama_pengajuan",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 4
+  },
+  {
+    "table_name": "pengajuan_bulanan",
+    "column_name": "alasan_pengajuan",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 5
+  },
+  {
+    "table_name": "pengajuan_bulanan",
+    "column_name": "alasan_lainnya",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 6
+  },
+  {
+    "table_name": "pengajuan_bulanan",
+    "column_name": "nik_pengaju",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 7
+  },
+  {
+    "table_name": "pengajuan_bulanan",
+    "column_name": "nama_pengaju",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 8
+  },
+  {
+    "table_name": "pengajuan_bulanan",
+    "column_name": "tanggal_pengajuan",
+    "data_type": "date",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 9
+  },
+  {
+    "table_name": "pengajuan_bulanan",
+    "column_name": "estimasi_tanggal_perekaman",
+    "data_type": "date",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 10
+  },
+  {
+    "table_name": "pengajuan_bulanan",
+    "column_name": "is_ready_to_record",
+    "data_type": "boolean",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "false",
+    "position": 11
+  },
+  {
+    "table_name": "pengajuan_bulanan",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "CURRENT_TIMESTAMP",
+    "position": 12
+  },
+  {
+    "table_name": "profiles",
+    "column_name": "id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 1
+  },
+  {
+    "table_name": "profiles",
+    "column_name": "name",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "profiles",
+    "column_name": "nip",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 3
+  },
+  {
+    "table_name": "profiles",
+    "column_name": "position",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 4
+  },
+  {
+    "table_name": "profiles",
+    "column_name": "avatar_url",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 5
+  }
+]

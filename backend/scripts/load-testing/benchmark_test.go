@@ -1,4 +1,4 @@
-package main
+package main_test
 
 import (
 	"bytes"
@@ -67,15 +67,16 @@ func setupTestServer() *gin.Engine {
 	if err != nil {
 		log.Fatalf("Failed to create event bus: %v", err)
 	}
-	dbService := &database.Service{}           // Mock service
-	cacheService := &cache.Service{}           // Mock service
-	authService := &auth.Service{}             // Mock service
-	chatService := &chat.Service{}             // Mock service
-	monitoringService := &monitoring.Service{} // Mock service
-	trainingService := &training.Service{}     // Mock service
-	concurrentService := (*concurrent.Service)(nil) // Mock concurrent service
-	silpanaService := (silpana.ServiceInterface)(nil) // Mock SILPANA service
+	dbService := &database.Service{}                           // Mock service
+	cacheService := &cache.Service{}                           // Mock service
+	authService := &auth.Service{}                             // Mock service
+	chatService := &chat.Service{}                             // Mock service
+	monitoringService := &monitoring.Service{}                 // Mock service
+	trainingService := &training.Service{}                     // Mock service
+	concurrentService := (*concurrent.Service)(nil)            // Mock concurrent service
+	silpanaService := (silpana.ServiceInterface)(nil)          // Mock SILPANA service
 	silpanaBroadcaster := (*silpana.WebSocketBroadcaster)(nil) // Mock WebSocket broadcaster
+	sessionManager := (*auth.SessionManager)(nil)              // Mock session manager
 
 	services := routes.GetServices(
 		unifiedEventBus,
@@ -88,6 +89,9 @@ func setupTestServer() *gin.Engine {
 		concurrentService,
 		silpanaService,
 		silpanaBroadcaster,
+		nil, // supabaseAnalyzer - not needed for benchmark
+		nil, // aktivitasSiak - not needed for benchmark
+		sessionManager,
 	)
 
 	router := gin.New()
