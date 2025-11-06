@@ -167,7 +167,7 @@ func (rrs *RedisRAGService) Initialize(ctx context.Context) error {
 func (rrs *RedisRAGService) IndexDocument(ctx context.Context, doc *RAGDocument) error {
 	startTime := time.Now()
 	defer func() {
-		rrs.performanceMonitor.RecordIndexingTime(time.Since(startTime))
+		rrs.performanceMonitor.RecordIndexingTime(time.Since(startTime), doc.ID)
 	}()
 
 	if !rrs.isInitialized {

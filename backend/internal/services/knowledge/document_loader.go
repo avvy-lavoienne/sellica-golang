@@ -824,59 +824,84 @@ func (dls *DocumentLoaderService) readJSONTrainingFile(filePath string) (*JSONTr
 	}
 	defer file.Close()
 
-	// Read raw JSON data to detect structure
-	var rawData map[string]interface{}
+	// Read raw JSON data to detect structure - could be array or object
+	file.Seek(0, 0) // Reset file pointer
 	decoder := json.NewDecoder(file)
-	if err := decoder.Decode(&rawData); err != nil {
-		return nil, fmt.Errorf("failed to decode JSON: %w", err)
+
+	// First, try to detect if it's an array or object by peeking at the first token
+	token, err := decoder.Token()
+	if err != nil {
+		return nil, fmt.Errorf("failed to read JSON token: %w", err)
 	}
 
 	var jsonData []JSONTrainingData
 
-	// Detect JSON structure based on top-level keys
-	if _, hasTrainingPairs := rawData["training_pairs"]; hasTrainingPairs {
-		// Structure 2: Object with training_pairs array (ktp-training-pairs.json)
-		jsonBytes, _ := json.Marshal(rawData)
-		var wrapper JSONTrainingDataWrapper
-		if err := json.Unmarshal(jsonBytes, &wrapper); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal training_pairs structure: %w", err)
-		}
-		jsonData = wrapper.TrainingPairs
-		logrus.WithFields(logrus.Fields{
-			"file_path":  filePath,
-			"structure":  "training_pairs_wrapper",
-			"pairs_count": len(jsonData),
-		}).Debug("📖 Parsed training_pairs JSON structure")
-	} else if _, hasTrainingCategories := rawData["training_categories"]; hasTrainingCategories {
-		// Structure 1: Index object (index.json) - extract categories
-		// Note: index.json references other files, so we log but don't extract data here
-		logrus.WithFields(logrus.Fields{
-			"file_path":   filePath,
-			"structure":   "index_metadata",
-			"categories":  len(rawData["training_categories"].([]interface{})),
-		}).Debug("📖 Parsed index metadata structure (training files referenced separately)")
-		jsonData = []JSONTrainingData{} // Empty for index files
-	} else if _, hasData := rawData["data"]; hasData {
-		// Structure 3: Direct data array wrapped in object (fallback)
-		jsonBytes, _ := json.Marshal(rawData["data"])
-		if err := json.Unmarshal(jsonBytes, &jsonData); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal data array structure: %w", err)
+	// Check if JSON starts with array delimiter
+	if delim, ok := token.(json.Delim); ok && delim == '[' {
+		// JSON is an array of training data objects
+		file.Seek(0, 0) // Reset file pointer
+		if err := json.NewDecoder(file).Decode(&jsonData); err != nil {
+			return nil, fmt.Errorf("failed to decode JSON array: %w", err)
 		}
 		logrus.WithFields(logrus.Fields{
 			"file_path":   filePath,
-			"structure":   "data_array",
+			"structure":   "array",
 			"items_count": len(jsonData),
-		}).Debug("📖 Parsed data array JSON structure")
+		}).Debug("📖 Parsed JSON array structure")
 	} else {
-		// Try to unmarshal as direct array of JSONTrainingData (Structure 4)
-		jsonBytes, _ := json.Marshal(rawData)
-		if err := json.Unmarshal(jsonBytes, &jsonData); err != nil {
+		// JSON is an object - reset and parse as map
+		file.Seek(0, 0) // Reset file pointer
+		var rawData map[string]interface{}
+		decoder := json.NewDecoder(file)
+		if err := decoder.Decode(&rawData); err != nil {
+			return nil, fmt.Errorf("failed to decode JSON object: %w", err)
+		}
+
+		// Detect JSON structure based on top-level keys
+		if _, hasTrainingPairs := rawData["training_pairs"]; hasTrainingPairs {
+			// Structure 2: Object with training_pairs array (ktp-training-pairs.json)
+			jsonBytes, _ := json.Marshal(rawData)
+			var wrapper JSONTrainingDataWrapper
+			if err := json.Unmarshal(jsonBytes, &wrapper); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal training_pairs structure: %w", err)
+			}
+			jsonData = wrapper.TrainingPairs
 			logrus.WithFields(logrus.Fields{
-				"file_path":    filePath,
-				"available_keys": getMapKeys(rawData),
-				"error":        err.Error(),
-			}).Warn("⚠️ Could not determine JSON structure - skipping file")
-			return nil, fmt.Errorf("unknown JSON structure in file: %s", filePath)
+				"file_path":  filePath,
+				"structure":  "training_pairs_wrapper",
+				"pairs_count": len(jsonData),
+			}).Debug("📖 Parsed training_pairs JSON structure")
+		} else if _, hasTrainingCategories := rawData["training_categories"]; hasTrainingCategories {
+			// Structure 1: Index object (index.json) - extract categories
+			// Note: index.json references other files, so we log but don't extract data here
+			logrus.WithFields(logrus.Fields{
+				"file_path":   filePath,
+				"structure":   "index_metadata",
+				"categories":  len(rawData["training_categories"].([]interface{})),
+			}).Debug("📖 Parsed index metadata structure (training files referenced separately)")
+			jsonData = []JSONTrainingData{} // Empty for index files
+		} else if _, hasData := rawData["data"]; hasData {
+			// Structure 3: Direct data array wrapped in object (fallback)
+			jsonBytes, _ := json.Marshal(rawData["data"])
+			if err := json.Unmarshal(jsonBytes, &jsonData); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal data array structure: %w", err)
+			}
+			logrus.WithFields(logrus.Fields{
+				"file_path":   filePath,
+				"structure":   "data_array",
+				"items_count": len(jsonData),
+			}).Debug("📖 Parsed data array JSON structure")
+		} else {
+			// Try to unmarshal as direct array of JSONTrainingData (fallback for objects)
+			jsonBytes, _ := json.Marshal(rawData)
+			if err := json.Unmarshal(jsonBytes, &jsonData); err != nil {
+				logrus.WithFields(logrus.Fields{
+					"file_path":    filePath,
+					"available_keys": getMapKeys(rawData),
+					"error":        err.Error(),
+				}).Warn("⚠️ Could not determine JSON structure - skipping file")
+				return nil, fmt.Errorf("unknown JSON structure in file: %s", filePath)
+			}
 		}
 	}
 
@@ -1199,6 +1224,7 @@ func (dls *DocumentLoaderService) countTotalDocuments() int {
 
 // backgroundIndexingWorker performs the actual indexing in background
 func (dls *DocumentLoaderService) backgroundIndexingWorker(ctx context.Context, totalDocs int) {
+	_ = ctx // Context available for future cancellation support
 	defer func() {
 		dls.backgroundIndexer.Complete()
 		logrus.WithFields(map[string]interface{}{

@@ -2,8 +2,9 @@ package rag
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/binary"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"sync"
@@ -536,11 +537,47 @@ func (vo *VectorOperations) recordIndexingTime(duration time.Duration) {
 	}
 }
 
-// optimizedEmbeddingMarshal optimizes embedding marshaling for Redis
+// optimizedEmbeddingMarshal optimizes embedding marshaling for Redis using binary encoding
 func (vo *VectorOperations) optimizedEmbeddingMarshal(embedding []float64) ([]byte, error) {
-	// Use more efficient marshaling for Redis vector operations
-	// This could be optimized further with binary encoding if needed
-	return json.Marshal(embedding)
+	// Use binary encoding for better performance than JSON
+	// Each float64 is 8 bytes, so allocate exact size needed
+	buf := make([]byte, len(embedding)*8)
+
+	// Write embedding length as first 4 bytes (int32)
+	binary.LittleEndian.PutUint32(buf[0:4], uint32(len(embedding)))
+
+	// Write each float64 value
+	for i, val := range embedding {
+		offset := 4 + i*8
+		binary.LittleEndian.PutUint64(buf[offset:offset+8], math.Float64bits(val))
+	}
+
+	return buf, nil
+}
+
+// optimizedEmbeddingUnmarshal unmarshals binary encoded embeddings
+func (vo *VectorOperations) optimizedEmbeddingUnmarshal(data []byte) ([]float64, error) {
+	if len(data) < 4 {
+		return nil, fmt.Errorf("data too short for embedding")
+	}
+
+	// Read embedding length
+	length := binary.LittleEndian.Uint32(data[0:4])
+	expectedSize := int(length)*8 + 4
+
+	if len(data) != expectedSize {
+		return nil, fmt.Errorf("data size mismatch: expected %d, got %d", expectedSize, len(data))
+	}
+
+	// Read float64 values
+	embedding := make([]float64, length)
+	for i := uint32(0); i < length; i++ {
+		offset := 4 + int(i)*8
+		bits := binary.LittleEndian.Uint64(data[offset : offset+8])
+		embedding[i] = math.Float64frombits(bits)
+	}
+
+	return embedding, nil
 }
 
 // SearchSimilarBatch performs batch vector similarity search with concurrent processing
@@ -645,6 +682,14 @@ func (vo *VectorOperations) parseDocumentFields(docKey string, fields []interfac
 			if scoreStr, ok := fieldValue.(string); ok {
 				if parsedScore, err := strconv.ParseFloat(scoreStr, 64); err == nil {
 					score = parsedScore
+				}
+			}
+		case "embedding":
+			if embeddingStr, ok := fieldValue.(string); ok {
+				if embedding, err := vo.optimizedEmbeddingUnmarshal([]byte(embeddingStr)); err == nil {
+					doc.Embedding = embedding
+				} else {
+					logrus.WithError(err).Warn("Failed to unmarshal embedding from Redis")
 				}
 			}
 		default:

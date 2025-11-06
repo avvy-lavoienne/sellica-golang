@@ -208,11 +208,11 @@ func Load() *Config {
 				"data/training/documents/ktp",
 				"data/training/documents/kk",
 				// New reference structure paths (Phase 4 implementation)
-				"docs/reference/selly-intelligence/services/civil-registration",
-				"docs/reference/selly-intelligence/services/identity-documents", 
-				"docs/reference/selly-intelligence/services/general-services",
-				"docs/reference/selly-intelligence/persona",
-				"docs/reference/selly-intelligence/profile",
+				"docs/backend/docs/reference/selly-intelligence/services/civil-registration",
+				"docs/backend/docs/reference/selly-intelligence/services/identity-documents", 
+				"docs/backend/docs/reference/selly-intelligence/services/general-services",
+				"docs/backend/docs/reference/selly-intelligence/persona",
+				"docs/backend/docs/reference/selly-intelligence/profile",
 			},
 			RecursiveScan:  getEnvAsBool("KNOWLEDGE_RECURSIVE_SCAN", true), // Enable recursive scanning by default
 			AutoIndexing:   getEnvAsBool("KNOWLEDGE_AUTO_INDEXING", true),

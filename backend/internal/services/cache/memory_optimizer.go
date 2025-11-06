@@ -4,6 +4,7 @@ package cache
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -23,6 +24,17 @@ const (
 	// EvictTTL evicts keys closest to expiration
 	EvictTTL MemoryPolicy = "volatile-ttl"
 )
+
+// isConfigNotSupportedError checks if the error indicates that a Redis CONFIG SET option is not supported
+func isConfigNotSupportedError(err error) bool {
+	if err == nil {
+		return false
+	}
+	errStr := err.Error()
+	return strings.Contains(errStr, "Unknown option") ||
+		   strings.Contains(errStr, "ERR Unknown") ||
+		   strings.Contains(errStr, "not supported")
+}
 
 // MemoryOptimizer manages Redis memory configuration and optimization
 type MemoryOptimizer struct {
@@ -48,22 +60,33 @@ func (mo *MemoryOptimizer) Configure(ctx context.Context) error {
 		return fmt.Errorf("Redis client not initialized")
 	}
 
-	// Set max memory limit
+	// Set max memory limit (skip if not supported, e.g., Upstash)
 	if err := mo.redis.ConfigSet(ctx, "maxmemory", mo.maxMemory).Err(); err != nil {
-		logrus.Errorf("Failed to set maxmemory: %v", err)
-		return err
+		// Check if this is an "Unknown option" error (common with managed Redis services)
+		if isConfigNotSupportedError(err) {
+			logrus.Warnf("⚠️ maxmemory configuration not supported by Redis provider, skipping memory limit")
+		} else {
+			logrus.Errorf("Failed to set maxmemory: %v", err)
+			return err
+		}
+	} else {
+		logrus.Infof("✅ Set Redis maxmemory: %s", mo.maxMemory)
 	}
-	logrus.Infof("✅ Set Redis maxmemory: %s", mo.maxMemory)
 
 	// Set eviction policy
 	policyStr := string(mo.evictionPolicy)
 	if err := mo.redis.ConfigSet(ctx, "maxmemory-policy", policyStr).Err(); err != nil {
-		logrus.Errorf("Failed to set eviction policy: %v", err)
-		return err
+		if isConfigNotSupportedError(err) {
+			logrus.Warnf("⚠️ maxmemory-policy configuration not supported by Redis provider, skipping eviction policy")
+		} else {
+			logrus.Errorf("Failed to set eviction policy: %v", err)
+			return err
+		}
+	} else {
+		logrus.Infof("✅ Set eviction policy: %s", policyStr)
 	}
-	logrus.Infof("✅ Set eviction policy: %s", policyStr)
 
-	// Additional Redis optimizations
+	// Additional Redis optimizations (these are more likely to be supported)
 	optimizations := map[string]string{
 		"save":                       "",           // Disable RDB snapshotting for cache-only usage
 		"appendonly":                 "no",         // Disable AOF
@@ -149,6 +172,7 @@ func (mo *MemoryOptimizer) OptimizeMemory(ctx context.Context) error {
 
 // parseMemoryInfo parses Redis MEMORY INFO output
 func parseMemoryInfo(info string) map[string]interface{} {
+	_ = info // Parameter reserved for future implementation
 	stats := make(map[string]interface{})
 
 	// Basic parsing of Redis INFO memory section
@@ -175,6 +199,7 @@ func parseMemoryInfo(info string) map[string]interface{} {
 
 // parseStatsInfo parses Redis STATS INFO output
 func parseStatsInfo(info string) map[string]interface{} {
+	_ = info // Parameter reserved for future implementation
 	stats := make(map[string]interface{})
 
 	// Basic parsing of Redis INFO stats section

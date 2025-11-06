@@ -144,8 +144,8 @@ func (rpm *RAGPerformanceMonitor) RecordSearchTime(duration time.Duration) {
 	}
 }
 
-// RecordIndexingTime records indexing time
-func (rpm *RAGPerformanceMonitor) RecordIndexingTime(duration time.Duration) {
+// RecordIndexingTime records indexing time with optional document context
+func (rpm *RAGPerformanceMonitor) RecordIndexingTime(duration time.Duration, documentID ...string) {
 	rpm.mu.Lock()
 	defer rpm.mu.Unlock()
 	
@@ -157,12 +157,19 @@ func (rpm *RAGPerformanceMonitor) RecordIndexingTime(duration time.Duration) {
 		rpm.indexingTimes = rpm.indexingTimes[len(rpm.indexingTimes)-1000:]
 	}
 	
-	// Check performance threshold
+	// Check performance threshold - log as INFO instead of WARN for less prominence
 	if duration > rpm.maxIndexingTime {
-		logrus.WithFields(logrus.Fields{
+		fields := logrus.Fields{
 			"duration":  duration,
 			"threshold": rpm.maxIndexingTime,
-		}).Warn("⚠️ Indexing time exceeded threshold")
+		}
+		
+		// Include document ID if provided
+		if len(documentID) > 0 && documentID[0] != "" {
+			fields["document_id"] = documentID[0]
+		}
+		
+		logrus.WithFields(fields).Info("📊 Indexing time exceeded threshold")
 	}
 }
 
