@@ -1,4 +1,4 @@
-package knowledge
+package knowledge_test
 
 import (
 	"context"
@@ -8,11 +8,13 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
+	"selly-backend/internal/services/knowledge"
 )
 
 // TestBackgroundIndexerStart tests the indexer startup
 func TestBackgroundIndexerStart(t *testing.T) {
-	indexer := NewBackgroundIndexer()
+	indexer := knowledge.NewBackgroundIndexer()
 	assert.False(t, indexer.IsRunning, "Indexer should not be running initially")
 
 	indexer.Start(100)
@@ -24,7 +26,7 @@ func TestBackgroundIndexerStart(t *testing.T) {
 
 // TestBackgroundIndexerProgress tests progress tracking
 func TestBackgroundIndexerProgress(t *testing.T) {
-	indexer := NewBackgroundIndexer()
+	indexer := knowledge.NewBackgroundIndexer()
 	indexer.Start(100)
 
 	// Simulate processing 50 documents
@@ -36,7 +38,7 @@ func TestBackgroundIndexerProgress(t *testing.T) {
 
 // TestBackgroundIndexerCompletion tests completion
 func TestBackgroundIndexerCompletion(t *testing.T) {
-	indexer := NewBackgroundIndexer()
+	indexer := knowledge.NewBackgroundIndexer()
 	indexer.Start(100)
 
 	indexer.UpdateProgress(100, 0, 0)
@@ -48,7 +50,7 @@ func TestBackgroundIndexerCompletion(t *testing.T) {
 
 // TestBackgroundIndexerGetStats tests the stats export
 func TestBackgroundIndexerGetStats(t *testing.T) {
-	indexer := NewBackgroundIndexer()
+	indexer := knowledge.NewBackgroundIndexer()
 	indexer.Start(100)
 
 	// Simulate some processing
@@ -65,7 +67,7 @@ func TestBackgroundIndexerGetStats(t *testing.T) {
 
 // TestBackgroundIndexerErrorHandling tests error recording
 func TestBackgroundIndexerErrorHandling(t *testing.T) {
-	indexer := NewBackgroundIndexer()
+	indexer := knowledge.NewBackgroundIndexer()
 	indexer.Start(100)
 
 	testError := fmt.Errorf("test error occurred")
@@ -80,7 +82,7 @@ func TestBackgroundIndexerErrorHandling(t *testing.T) {
 
 // TestBackgroundIndexerIsReady tests readiness check
 func TestBackgroundIndexerIsReady(t *testing.T) {
-	indexer := NewBackgroundIndexer()
+	indexer := knowledge.NewBackgroundIndexer()
 	ctx := context.Background()
 
 	assert.True(t, indexer.IsReady(ctx), "Should be ready when not running")
@@ -94,7 +96,7 @@ func TestBackgroundIndexerIsReady(t *testing.T) {
 
 // TestBackgroundIndexerContextCancellation tests context cancellation
 func TestBackgroundIndexerContextCancellation(t *testing.T) {
-	indexer := NewBackgroundIndexer()
+	indexer := knowledge.NewBackgroundIndexer()
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Cancel immediately
@@ -106,7 +108,7 @@ func TestBackgroundIndexerContextCancellation(t *testing.T) {
 
 // TestBackgroundIndexerWaitForCompletion tests blocking wait
 func TestBackgroundIndexerWaitForCompletion(t *testing.T) {
-	indexer := NewBackgroundIndexer()
+	indexer := knowledge.NewBackgroundIndexer()
 	indexer.Start(100)
 
 	// Complete in background after 100ms
@@ -126,7 +128,7 @@ func TestBackgroundIndexerWaitForCompletion(t *testing.T) {
 
 // TestBackgroundIndexerWaitTimeout tests wait timeout
 func TestBackgroundIndexerWaitTimeout(t *testing.T) {
-	indexer := NewBackgroundIndexer()
+	indexer := knowledge.NewBackgroundIndexer()
 	indexer.Start(100)
 
 	// Never complete the indexer
@@ -140,7 +142,7 @@ func TestBackgroundIndexerWaitTimeout(t *testing.T) {
 
 // TestBackgroundIndexerThreadSafety tests thread-safe operations
 func TestBackgroundIndexerThreadSafety(t *testing.T) {
-	indexer := NewBackgroundIndexer()
+	indexer := knowledge.NewBackgroundIndexer()
 	indexer.Start(1000)
 
 	var wg sync.WaitGroup
@@ -171,7 +173,7 @@ func TestBackgroundIndexerThreadSafety(t *testing.T) {
 
 // TestBackgroundIndexerEstimatedCompletion tests estimated completion calculation
 func TestBackgroundIndexerEstimatedCompletion(t *testing.T) {
-	indexer := NewBackgroundIndexer()
+	indexer := knowledge.NewBackgroundIndexer()
 	indexer.Start(100)
 
 	// Simulate some processing with elapsed time
@@ -185,7 +187,7 @@ func TestBackgroundIndexerEstimatedCompletion(t *testing.T) {
 
 // BenchmarkBackgroundIndexer benchmarks indexer operations
 func BenchmarkBackgroundIndexer(b *testing.B) {
-	indexer := NewBackgroundIndexer()
+	indexer := knowledge.NewBackgroundIndexer()
 	indexer.Start(10000)
 
 	b.ResetTimer()
@@ -196,7 +198,7 @@ func BenchmarkBackgroundIndexer(b *testing.B) {
 
 // BenchmarkBackgroundIndexerGetStats benchmarks stats retrieval
 func BenchmarkBackgroundIndexerGetStats(b *testing.B) {
-	indexer := NewBackgroundIndexer()
+	indexer := knowledge.NewBackgroundIndexer()
 	indexer.Start(10000)
 	indexer.UpdateProgress(5000, 10, 5)
 

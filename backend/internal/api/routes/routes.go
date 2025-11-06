@@ -81,7 +81,7 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	setupCacheRoutes(router, cacheHandler, services.Auth)
 
 	// Chat routes (public and protected)
-	setupChatRoutes(router, chatHandler, services.Auth)
+	setupChatRoutes(router, chatHandler)
 
 	// Training data routes (protected)
 	setupTrainingRoutes(router, trainingHandler, services.Auth)
@@ -263,7 +263,7 @@ func setupAuthRoutes(router *gin.Engine, authService *auth.Service, dbService *d
 }
 
 // setupChatRoutes configures chat endpoints
-func setupChatRoutes(router *gin.Engine, handler *handlers.ChatHandler, authService *auth.Service) {
+func setupChatRoutes(router *gin.Engine, handler *handlers.ChatHandler) {
 	// SECURITY DECISION: Chat endpoints are PUBLIC with OPTIONAL authentication
 	// - Allows anonymous users to use the chat feature (public chatbot use case)
 	// - Authenticated users are tracked and associated with their sessions
