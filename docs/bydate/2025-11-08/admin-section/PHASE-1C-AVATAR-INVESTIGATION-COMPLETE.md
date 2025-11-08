@@ -202,23 +202,30 @@ All 9 Supabase log types reviewed:
 
 ## Next Steps
 
-### For User
-1. Read `QUICK-FIX-STORAGE-RLS-5-MINUTES.md`
-2. Apply 3 storage policies via Dashboard
-3. Test avatar upload
-4. Report success/failure
+### Implementation Resources (Now Available)
 
-### For Team Documentation
-1. Update Phase 1C completion report
-2. Add this investigation to knowledge base
-3. Create policy templates for future storage buckets
-4. Update architecture documentation
+1. **QUICK-FIX-STORAGE-RLS-5-MINUTES.md** - Fast summary guide
+2. **IMPLEMENTATION-GUIDE-STORAGE-RLS-STEP-BY-STEP.md** - Complete step-by-step with screenshots
+3. **Go Script** - `backend/scripts/setup-storage-policies/main.go` - Future automation
+4. **Migration 016** - Verification checks and audit logging
+
+### For Implementer (5-10 minutes)
+1. Read `IMPLEMENTATION-GUIDE-STORAGE-RLS-STEP-BY-STEP.md` Steps 1-3
+2. Follow Steps 4-6 in Supabase Dashboard (create 3 policies)
+3. Follow Steps 7-10 (verify and test)
+4. Report success/failure to team
+
+### For Team After Implementation
+1. Run verification queries from Migration 016 (Step 11)
+2. Apply migration 016 to add audit logging
+3. Mark Phase 1C as COMPLETE
+4. Update project status documentation
 
 ### For Future Phases
-1. Implement storage operation audit logging
-2. Add storage bucket policy versioning
+1. Use Go script to automate storage policy provisioning
+2. Implement storage operation audit logging (migration 016 ready)
 3. Create Terraform/infrastructure-as-code for policy deployment
-4. Implement automated testing for storage RLS policies
+4. Add automated testing for storage RLS policies in CI/CD
 
 ## References
 
@@ -228,17 +235,19 @@ All 9 Supabase log types reviewed:
 - `docs/backend/docs/reference/supabase-logs/06-storage-logs.json`
 
 **Implementation Guides**:
-- `docs/backend/docs/reference/ROOT-CAUSE-ANALYSIS-AVATAR-UPLOAD-FAILED.md`
-- `docs/backend/docs/reference/QUICK-FIX-STORAGE-RLS-5-MINUTES.md`
-- `docs/backend/docs/reference/TECHNICAL-REFERENCE-STORAGE-VS-DATABASE-RLS.md`
+- `docs/backend/docs/reference/ROOT-CAUSE-ANALYSIS-AVATAR-UPLOAD-FAILED.md` - Technical deep dive
+- `docs/backend/docs/reference/QUICK-FIX-STORAGE-RLS-5-MINUTES.md` - Quick summary
+- `docs/backend/docs/reference/IMPLEMENTATION-GUIDE-STORAGE-RLS-STEP-BY-STEP.md` - Complete step-by-step (NEW)
+- `docs/backend/docs/reference/TECHNICAL-REFERENCE-STORAGE-VS-DATABASE-RLS.md` - Architecture guide
 
 **Related Migrations**:
 - `backend/migrations/013_fix_profiles_fk_for_pending_users_approval.sql`
 - `backend/migrations/014_fix_rls_policies_for_user_privileges.sql`
 - `backend/migrations/015_fix_storage_bucket_rls_policies.sql`
+- `backend/migrations/016_verify_storage_rls_policies.sql` (NEW - verification & audit logging)
 
-**Frontend Code**:
-- `frontend/src/app/(protected)/profile/page.tsx` (lines 373-425)
+**Implementation Scripts**:
+- `backend/scripts/setup-storage-policies/main.go` (NEW - future automation)
 
 ---
 
