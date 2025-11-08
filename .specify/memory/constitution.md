@@ -1,43 +1,45 @@
 <!--
-Sync Impact Report - Constitution Update v1.1.1
+Sync Impact Report - Constitution Update v1.2.0
 ===============================================
-Version Change: 1.1.0 → 1.1.1 (PATCH - Documentation Path Clarification)
+Version Change: 1.1.1 → 1.2.0 (MINOR - New Principle VI: Supabase Infrastructure Documentation)
 Date: 2025-11-08
 
 Modified Principles:
-  - None (principles remain unchanged)
+  - None (all existing principles unchanged)
 
-Modified Sections:
-  - Development Workflow Standards > File Organization Standards
-    - Clarified dated workflow documentation path structure
-    - Changed from: `docs/bydate/YYYY-MM-DD-{TOPIC-NAME}/`
-    - Changed to: `docs/bydate/YYYY-MM-DD/{topic-name}/`
-    - Updated topic folder naming examples to reflect actual repository structure
-    - Noted that topic name can optionally include date prefix
+Added Principles:
+  - VI. Supabase Infrastructure Documentation (NON-NEGOTIABLE)
+    • Schema documentation requirements and locations
+    • RLS policy documentation mandate
+    • Environment configuration specifications
+    • New table/column procedures with immediate documentation requirement
+    • Current schema summary (17+ tables)
+    • Storage buckets reference
 
 Added Sections:
-  - None (clarification only)
+  - None (principle added to Core Principles section)
 
 Removed Sections:
   - None
 
 Templates Requiring Updates:
-  ✅ spec-template.md - No changes needed
-  ✅ plan-template.md - No changes needed
-  ✅ tasks-template.md - No changes needed
-  ✅ checklist-template.md - No changes needed
+  ✅ spec-template.md - No changes needed (user story model unchanged)
+  ✅ plan-template.md - No changes needed (performance benchmarks already added)
+  ✅ tasks-template.md - May benefit from schema documentation tasks (optional)
+  ✅ checklist-template.md - May benefit from schema compliance items (optional)
   ✅ agent-file-template.md - No changes needed
 
 Follow-up TODOs:
-  - None - Path structure now accurately documented
+  - Optional: Add schema documentation tasks to tasks-template.md for new features
+  - Optional: Add schema compliance items to checklist-template.md
   
 Bump Rationale:
-  PATCH version bump (1.1.0 → 1.1.1) because:
-  - Clarification of existing documentation path structure (not new guidance)
-  - Corrected path format to match actual repository structure
-  - No semantic changes (same organizational principle, just clarified notation)
-  - Typo/formatting correction level change
-  - Examples updated to reflect real paths in repository
+  MINOR version bump (1.1.1 → 1.2.0) because:
+  - Added new core principle (VI) governing Supabase infrastructure
+  - Non-negotiable requirement for schema documentation
+  - Significant new mandatory procedures (table/column documentation workflow)
+  - No breaking changes (existing principles remain unchanged)
+  - Backward compatible (establishes future requirements for undocumented schema items)
 -->
 
 # SELLICA Constitution
@@ -145,6 +147,64 @@ Testing Policy:
 - Load testing for production-critical features
 
 **Rationale**: Reduces maintenance burden, ensures consistency, speeds up development. Testing effort focuses on performance and integration rather than exhaustive unit coverage, aligning with project pragmatism.
+
+### VI. Supabase Infrastructure Documentation (NON-NEGOTIABLE)
+
+**All Supabase schema, policies, and configurations MUST be documented and kept in sync with live project.**
+
+Documentation Requirements:
+- Location: `docs/backend/docs/reference/supabase-reference/`
+- Schema documentation MANDATORY for:
+  - Tables: Column types, constraints, defaults (`table-reference.json`)
+  - Columns: All fields with data types, lengths, nullability (`column-reference.json`)
+  - RLS Policies: All security policies by table and command (`RLS-reference.json`)
+  - Storage Buckets: Bucket names, visibility, mime types, limits (`bucket-reference.json`)
+  - Database Functions: Custom functions and parameters (`functions-reference.json`)
+  - Triggers: Event-driven procedures (`trigger-reference.json`)
+
+Schema Access Protocol:
+- Developers MUST consult `docs/backend/docs/reference/supabase-reference/` when:
+  - Implementing new API endpoints that query Supabase
+  - Adding validation for RLS compliance
+  - Designing data models for features
+  - Debugging 401/403 authentication errors
+- Reference documentation before writing backend services (NOT after)
+- Validate against actual RLS policies to prevent permission errors
+
+New Table/Column Procedures:
+- When adding new tables/columns to Supabase:
+  1. Immediately update `table-reference.json` and `column-reference.json`
+  2. Document RLS policies in `RLS-reference.json` (MANDATORY)
+  3. Document storage buckets in `bucket-reference.json` if applicable
+  4. Document any custom functions/triggers used
+  5. Update commit message with schema documentation changes
+  6. Create migration script in `backend/migrations/` if needed
+
+Environment Configuration:
+- Supabase credentials stored in `.env` file (NOT in code)
+- Load via `internal/config/` using `godotenv.Load()`
+- Required variables:
+  - `SUPABASE_URL` - Project URL from Supabase dashboard
+  - `SUPABASE_SERVICE_ROLE_KEY` - Server-side authentication key
+  - `SUPABASE_JWT_SECRET` - JWT signing secret
+  - Additional variables documented in `backend/cmd/server/main.go`
+
+Current Schema Summary (17+ tables):
+- **Authentication**: `profiles` (user data with avatar_url, NIP, role)
+- **Civil Records**: `akta_kelahiran`, `adjudicate_record`, `salah_rekam`
+- **Activity Tracking**: `aktivitas_siak`, `aktivitas_user`, `status_history`
+- **Ticketing**: `silpana`, `ticket_communication`, `ticket_history`
+- **Admin**: `pending_users`, `duplicate_operator`
+- **Analytics**: `pengaduan_bulanan`, `pengajuan_bulanan`
+- **Documentation**: `dokumentasi`, `selly_chat_sessions`, `selly_chat_messages`
+
+Storage Buckets (2):
+- `avatars` - Public bucket for user profile pictures (public: true)
+- `dokumentasi-foto` - Public bucket for documentation photos (public: true)
+
+**Rationale**: Supabase RLS policies are the primary security mechanism. Undocumented policies cause debugging
+nightmares and security vulnerabilities. Schema documentation prevents developers from building features
+that violate RLS constraints. This principle ensures the live database is always a single source of truth.
 
 ## Technology Stack Constraints
 
@@ -382,4 +442,4 @@ For detailed runtime guidance, consult:
 - `.github/instructions/instructions.md` - Full development rules (1700+ lines)
 - `deployment/DEPLOYMENT-GUIDE.md` - Production deployment procedures
 
-**Version**: 1.1.1 | **Ratified**: 2025-11-08 | **Last Amended**: 2025-11-08
+**Version**: 1.2.0 | **Ratified**: 2025-11-08 | **Last Amended**: 2025-11-08
