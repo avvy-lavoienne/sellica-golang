@@ -68,6 +68,20 @@ Start here to fix the avatar upload issue:
 
 ---
 
+**[IMPLEMENTATION-GUIDE-STORAGE-RLS-STEP-BY-STEP.md](./IMPLEMENTATION-GUIDE-STORAGE-RLS-STEP-BY-STEP.md)** (NEW - COMPLETE GUIDE)
+- Step-by-step Dashboard instructions (Steps 1-7)
+- Screenshot and form field descriptions
+- Complete policy configurations for all 3 policies
+- Testing verification procedures (Steps 8-10)
+- SQL verification queries (Step 11)
+- Troubleshooting guide
+- Rollback instructions
+- Success checklist
+
+**→ Follow this to:** Implement all 3 storage policies in Supabase Dashboard
+
+---
+
 **[QUICK-FIX-STORAGE-RLS-5-MINUTES.md](./QUICK-FIX-STORAGE-RLS-5-MINUTES.md)**
 - Implementation guide
 - Step-by-step Dashboard instructions
@@ -102,7 +116,30 @@ All Supabase logs analyzed for this investigation:
 **Other Logs Reviewed** (no issues found):
 - Auth logs (05) - Empty, no auth problems
 - Realtime logs (07) - All 200 OK, no RLS blocks at realtime level
-- PostgREST, Pooler, Edge Functions, Cron - Not involved in avatar upload
+- - PostgREST, Pooler, Edge Functions, Cron - Not involved in avatar upload
+
+---
+
+### 3. Implementation Artifacts (NEW)
+
+**Go Script for Future Automation**:
+- File: `backend/scripts/setup-storage-policies/main.go`
+- Purpose: Programmatic policy provisioning via Supabase API (future use)
+- Status: Compiled and ready, but requires API endpoint availability
+- Usage: Will be used for automated deployments in Phase 2
+
+**Migration 016: Verification & Audit Logging**:
+- File: `backend/migrations/016_verify_storage_rls_policies.sql`
+- Purpose: Verification queries and audit logging setup
+- Status: Ready to apply after Dashboard configuration
+- Benefits:
+  - Verify policies are correctly configured
+  - Track storage operations in `storage_audit_log` table
+  - Help debug future storage issues
+
+---
+
+### 4. Evidence Files
 
 ---
 
@@ -124,6 +161,11 @@ All Supabase logs analyzed for this investigation:
 - Status: ✅ Documentation-only migration
 - Purpose: Document storage policies (cannot be created via SQL)
 - Related to: Phase 1C.2 - Storage RLS fixes
+
+**[backend/migrations/016_verify_storage_rls_policies.sql](../../../../backend/migrations/016_verify_storage_rls_policies.sql)** (NEW)
+- Status: ✅ Ready to apply after Dashboard configuration
+- Purpose: Verify policies are configured correctly and add audit logging
+- Related to: Phase 1C.2 - Storage RLS verification and debugging
 
 ### Frontend Code
 
