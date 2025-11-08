@@ -103,7 +103,9 @@ export default function UserApprovalPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ user }),
+        body: JSON.stringify({
+          pending_user_id: user.id,
+        }),
       });
 
       const result = await response.json();
@@ -123,6 +125,12 @@ export default function UserApprovalPage() {
   };
 
   const handleReject = async (user: PendingUser) => {
+    // Prompt for rejection reason
+    const rejectionReason = window.prompt('Masukkan alasan penolakan:', '');
+    if (!rejectionReason) {
+      return; // User cancelled
+    }
+
     setProcessingId(user.id);
     try {
       const response = await fetch('/api/admin/reject-user', {
@@ -130,7 +138,10 @@ export default function UserApprovalPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userId: user.id }),
+        body: JSON.stringify({
+          pending_user_id: user.id,
+          rejection_reason: rejectionReason,
+        }),
       });
 
       const result = await response.json();
