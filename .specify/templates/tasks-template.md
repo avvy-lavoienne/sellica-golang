@@ -162,6 +162,11 @@ Examples of foundational tasks (adjust based on your project):
 **Purpose**: Improvements that affect multiple user stories
 
 - [ ] TXXX [P] Documentation updates in docs/
+- [ ] TXXX [P] **[SUPABASE ONLY]** Consult `docs/backend/docs/reference/supabase-reference/` before implementation (Constitution Principle VI - MANDATORY)
+- [ ] TXXX [P] **[SUPABASE ONLY]** Update `table-reference.json` if any new tables added (Constitution Principle VI - MANDATORY)
+- [ ] TXXX [P] **[SUPABASE ONLY]** Update `column-reference.json` if any new columns added (Constitution Principle VI - MANDATORY)
+- [ ] TXXX **[SUPABASE ONLY]** Update `RLS-reference.json` with all new security policies (Constitution Principle VI - MANDATORY)
+- [ ] TXXX **[SUPABASE ONLY]** Create migration script in `backend/migrations/` if schema changes needed (Constitution Principle VI)
 - [ ] TXXX Code cleanup and refactoring
 - [ ] TXXX Performance optimization across all stories
 - [ ] TXXX [P] Additional unit tests (if requested) in tests/unit/

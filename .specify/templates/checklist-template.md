@@ -54,12 +54,25 @@
 - [ ] CC019 Health check endpoint implemented
 - [ ] CC020 Metrics integrated with monitoring service
 
+### Supabase Infrastructure Documentation (Principle VI - All Features)
+
+- [ ] CC021 Feature consults `docs/backend/docs/reference/supabase-reference/` before implementation
+- [ ] CC022 If adding new tables: `table-reference.json` updated immediately
+- [ ] CC023 If adding new columns: `column-reference.json` updated immediately
+- [ ] CC024 If using data operations: RLS policies verified in `RLS-reference.json`
+- [ ] CC025 If storing files: Storage buckets checked in `bucket-reference.json`
+- [ ] CC026 All RLS policies documented for new tables (MANDATORY)
+- [ ] CC027 Migration script created in `backend/migrations/` if needed
+- [ ] CC028 Schema documentation changes included in git commit message
+
 ### Technology Stack Compliance
 
-- [ ] CC021 Frontend uses pnpm (not npm/yarn) - verify `package.json` scripts
-- [ ] CC022 Frontend uses Flowbite components from `templates/` directory
-- [ ] CC023 Backend executable in `backend/exe/` directory
-- [ ] CC024 File organization follows standards (tests, docs, services)
+- [ ] CC029 Frontend uses pnpm (not npm/yarn) - verify `package.json` scripts
+- [ ] CC030 Frontend uses Flowbite components from `templates/` directory
+- [ ] CC031 Backend executable in `backend/exe/` directory
+- [ ] CC032 File organization follows standards (tests, docs, services)
+- [ ] CC033 Environment variables configured in `.env` (not hardcoded)
+- [ ] CC034 Supabase credentials NOT in code (loaded from config)
 
 ## [Category 1]
 
