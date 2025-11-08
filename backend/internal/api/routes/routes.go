@@ -531,6 +531,7 @@ func setupAdminRoutes(router *gin.Engine, authService *auth.Service, dbService *
 	// Protected admin endpoints (require authentication and admin role)
 	adminGroup := router.Group("/admin")
 	adminGroup.Use(middleware.AuthMiddleware(authService))
+	adminGroup.Use(middleware.RequireRole("admin"))
 	{
 		// Get all pending users (for admin review)
 		adminGroup.GET("/pending-users", adminHandler.GetPendingUsers)

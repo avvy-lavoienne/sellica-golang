@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { useProtectedAuth } from '@/app/(protected)/auth-context';
+import { GoAuthAPI } from '@/lib/api/goAuth';
 import { AdminHeader } from '@/components/admin/shared/AdminHeader';
 import { LoadingState, DataSection, EmptyState } from '@/components/admin/shared/DataDisplay';
 import { Table, ActionCell } from '@/components/admin/shared/Table';
@@ -48,14 +49,10 @@ export default function UserApprovalPage() {
 
   const fetchPendingUsers = async () => {
     try {
-      const token = localStorage.getItem('selly_auth_token') ||
-        sessionStorage.getItem('selly_auth_token') ||
-        contextUser?.token;
-
       const response = await fetch('/api/admin/pending-users', {
         method: 'GET',
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
+          ...GoAuthAPI.getAuthHeaders(),
           'Content-Type': 'application/json',
         },
       });
@@ -101,6 +98,7 @@ export default function UserApprovalPage() {
       const response = await fetch('/api/admin/approve-user', {
         method: 'POST',
         headers: {
+          ...GoAuthAPI.getAuthHeaders(),
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -136,6 +134,7 @@ export default function UserApprovalPage() {
       const response = await fetch('/api/admin/reject-user', {
         method: 'POST',
         headers: {
+          ...GoAuthAPI.getAuthHeaders(),
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
