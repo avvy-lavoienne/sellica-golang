@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -193,7 +194,8 @@ func (h *AdminHandler) ApproveUser(c *gin.Context) {
 		"name":    pendingUser.Name,
 	}).Info("Found pending user for approval")
 
-	// Create profile entry
+	// Create profile entry using pending_user ID
+	// Note: When a pending user is approved, their ID becomes their auth user ID
 	profile := map[string]interface{}{
 		"id":       pendingUser.ID,
 		"email":    pendingUser.Email,
@@ -217,6 +219,20 @@ func (h *AdminHandler) ApproveUser(c *gin.Context) {
 	_, _, err = client.From("profiles").Insert([]interface{}{profile}, false, "", "", "").Execute()
 	if err != nil {
 		logrus.WithError(err).Error("Failed to create profile")
+		
+		// Check if it's a foreign key violation
+		if errMsg := err.Error(); strings.Contains(errMsg, "23503") || strings.Contains(errMsg, "profiles_id_fkey") {
+			logrus.WithFields(logrus.Fields{
+				"user_id": pendingUser.ID,
+				"error":   err.Error(),
+			}).Error("Foreign key constraint violation - auth user may not exist")
+			c.JSON(http.StatusConflict, AdminResponse{
+				Success: false,
+				Error:   "Cannot approve user: authentication record not found. User may need to complete registration first.",
+			})
+			return
+		}
+		
 		c.JSON(http.StatusInternalServerError, AdminResponse{
 			Success: false,
 			Error:   "Failed to create user profile: " + err.Error(),
