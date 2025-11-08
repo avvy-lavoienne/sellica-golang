@@ -20,6 +20,47 @@
   ============================================================================
 -->
 
+## Constitution Compliance (MANDATORY for all features)
+
+### Indonesian Government Compliance (Principle IV)
+
+- [ ] CC001 All user-facing UI text is in Indonesian (bahasa baku)
+- [ ] CC002 Error messages display Indonesian for users, English in debug logs
+- [ ] CC003 User documentation (if any) is in Indonesian
+- [ ] CC004 Supabase region is `ap-southeast-1` or `ap-southeast-3` only
+- [ ] CC005 Data sovereignty requirements documented (if applicable)
+
+### Performance Requirements (Principle II - Backend Only)
+
+- [ ] CC006 Response time <50ms for API endpoints
+- [ ] CC007 Performance benchmarks included and passing
+- [ ] CC008 Load testing completed with 500+ concurrent users
+- [ ] CC009 Zero error rate under load
+- [ ] CC010 Memory usage <100MB per service
+
+### Component Reusability (Principle V)
+
+- [ ] CC011 Existing Flowbite components reused where possible
+- [ ] CC012 No redundant components created
+- [ ] CC013 Shared utilities extracted only if used 3+ times
+- [ ] CC014 Backend services reuse adapters (database, cache, monitoring)
+
+### Service-Oriented Architecture (Principle I - Backend Only)
+
+- [ ] CC015 Service created in `backend/internal/services/[name]/`
+- [ ] CC016 Adapter pattern implemented for external dependencies
+- [ ] CC017 Factory pattern used for initialization
+- [ ] CC018 Service registered in `initializeServices()` and `routes.GetServices()`
+- [ ] CC019 Health check endpoint implemented
+- [ ] CC020 Metrics integrated with monitoring service
+
+### Technology Stack Compliance
+
+- [ ] CC021 Frontend uses pnpm (not npm/yarn) - verify `package.json` scripts
+- [ ] CC022 Frontend uses Flowbite components from `templates/` directory
+- [ ] CC023 Backend executable in `backend/exe/` directory
+- [ ] CC024 File organization follows standards (tests, docs, services)
+
 ## [Category 1]
 
 - [ ] CHK001 First checklist item with clear action
@@ -38,3 +79,4 @@
 - Add comments or findings inline
 - Link to relevant resources or documentation
 - Items are numbered sequentially for easy reference
+- Constitution compliance items (CC###) are NON-NEGOTIABLE

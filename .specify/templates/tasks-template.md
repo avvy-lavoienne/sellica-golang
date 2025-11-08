@@ -51,6 +51,8 @@ description: "Task list template for feature implementation"
 - [ ] T001 Create project structure per implementation plan
 - [ ] T002 Initialize [language] project with [framework] dependencies
 - [ ] T003 [P] Configure linting and formatting tools
+- [ ] T004 [BACKEND ONLY] Setup performance benchmarking infrastructure (Constitution Principle II)
+- [ ] T005 [FRONTEND ONLY] Verify pnpm usage and Flowbite component availability (Constitution Principle V)
 
 ---
 
@@ -94,6 +96,15 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T015 [US1] Implement [endpoint/feature] in src/[location]/[file].py
 - [ ] T016 [US1] Add validation and error handling
 - [ ] T017 [US1] Add logging for user story 1 operations
+
+### Performance & Compliance for User Story 1 (BACKEND ONLY - Constitution Principles II, IV)
+
+- [ ] T017a [US1] Run baseline performance benchmarks: `cd backend; go test -bench=. ./scripts/load-testing/`
+- [ ] T017b [US1] Validate response time <50ms and zero error rate
+- [ ] T017c [US1] Run load test with 500+ concurrent users
+- [ ] T017d [US1] Verify cache hit ratio (target >85%)
+- [ ] T017e [US1] Verify all user-facing messages in Indonesian (bahasa baku)
+- [ ] T017f [US1] Document performance results in implementation report
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
