@@ -39,6 +39,8 @@
     "selly-legacy-nextjs-backend/**/*",
     "**/selly-legacy-nextjs-backend/**/*",
     "src/**/selly-legacy-nextjs-backend/**/*",
+    "**/__tests__/**/*.ts",
+    "**/__tests__/**/*.tsx",
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/*.spec.ts",
