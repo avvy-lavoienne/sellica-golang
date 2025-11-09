@@ -67,7 +67,7 @@ describe('profileAPI Client', () => {
 
       expect(result).toEqual(mockProfile)
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/v1/profiles'),
+        expect.stringContaining('/api/v1/profile'),
         expect.objectContaining({
           method: 'GET',
           headers: expect.objectContaining({
@@ -120,7 +120,7 @@ describe('profileAPI Client', () => {
 
       expect(result).toEqual(mockResponse)
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/v1/profiles'),
+        expect.stringContaining('/api/v1/profile'),
         expect.objectContaining({
           method: 'PATCH',
           body: JSON.stringify(updates),
@@ -183,7 +183,7 @@ describe('profileAPI Client', () => {
       expect(result.success).toBe(true)
       expect(result.avatar_url).toBeDefined()
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/v1/profiles/avatar'),
+        expect.stringContaining('/api/v1/profile/avatar'),
         expect.objectContaining({
           method: 'POST',
         }),
@@ -243,7 +243,7 @@ describe('profileAPI Client', () => {
       await expect(profileAPI.deleteAvatar()).resolves.not.toThrow()
 
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/v1/profiles/avatar'),
+        expect.stringContaining('/api/v1/profile/avatar'),
         expect.objectContaining({
           method: 'DELETE',
         }),

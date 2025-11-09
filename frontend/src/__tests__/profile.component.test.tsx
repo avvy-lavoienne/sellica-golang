@@ -5,13 +5,30 @@
  * Includes: rendering, data loading, editing, saving, avatar operations
  */
 
+/// <reference types="jest" />
+/// <reference types="@testing-library/jest-dom" />
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { toast } from 'react-toastify'
 import ProfileSection from '@/components/profile/ProfileSection'
 import { profileAPI } from '@/lib/api/profile'
 
 // Mock dependencies
-jest.mock('@/lib/api/profile')
+jest.mock('@/lib/api/profile', () => ({
+  profileAPI: {
+    getProfile: jest.fn(),
+    updateProfile: jest.fn(),
+    uploadAvatar: jest.fn(),
+    deleteAvatar: jest.fn(),
+    getAvatarUrl: jest.fn(),
+    setSessionToken: jest.fn(),
+  },
+  useProfileAPI: jest.fn(() => ({
+    updateToken: jest.fn(),
+    clearSession: jest.fn(),
+    sessionToken: 'test-token',
+  })),
+}))
 jest.mock('react-toastify')
 jest.mock('compressorjs')
 jest.mock('@/components/profile/ProfileAvatar', () => ({
@@ -115,15 +132,15 @@ describe('ProfileSection Component', () => {
       }),
     )
 
-    // Mock profileAPI
-    ;(profileAPI.getProfile as jest.Mock).mockResolvedValue(mockProfile)
-    ;(profileAPI.updateProfile as jest.Mock).mockResolvedValue(mockProfile)
-    ;(profileAPI.uploadAvatar as jest.Mock).mockResolvedValue({
+    // Mock profileAPI methods with resolved values
+    ;(profileAPI.getProfile as any).mockResolvedValue(mockProfile)
+    ;(profileAPI.updateProfile as any).mockResolvedValue(mockProfile)
+    ;(profileAPI.uploadAvatar as any).mockResolvedValue({
       success: true,
       avatar_url: 'https://example.com/new-avatar.jpg',
       message: 'Avatar uploaded',
     })
-    ;(profileAPI.deleteAvatar as jest.Mock).mockResolvedValue({
+    ;(profileAPI.deleteAvatar as any).mockResolvedValue({
       success: true,
     })
   })
