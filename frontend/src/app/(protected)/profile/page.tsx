@@ -691,10 +691,11 @@ export default function ProfilePage() {
                 >
                   <ProfileActions
                     isEditing={isEditing}
-                    loading={loading}
                     onEdit={() => setIsEditing(true)}
                     onSave={handleSave}
                     onCancel={handleCancel}
+                    onDeleteAvatar={() => console.log('Delete avatar')}
+                    hasAvatar={!!profile?.avatar_url}
                   />
                 </motion.div>
               </CardContent>

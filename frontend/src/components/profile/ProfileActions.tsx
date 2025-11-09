@@ -13,18 +13,20 @@ import {
 
 interface ProfileActionsProps {
   isEditing: boolean;
-  loading: boolean;
   onEdit: () => void;
   onSave: () => void;
   onCancel: () => void;
+  onDeleteAvatar: () => void;
+  hasAvatar: boolean;
 }
 
 export default function ProfileActions({
   isEditing,
-  loading,
   onEdit,
   onSave,
   onCancel,
+  onDeleteAvatar,
+  hasAvatar,
 }: ProfileActionsProps) {
   return (
     <TooltipProvider>
@@ -43,24 +45,15 @@ export default function ProfileActions({
                   <TooltipTrigger asChild>
                     <Button
                       onClick={onSave}
-                      disabled={loading}
                       size="lg"
                       className="min-w-[140px] gap-2 transition-all duration-200 hover:scale-105"
                     >
-                      {loading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <CheckCircle2 className="h-4 w-4" />
-                      )}
-                      <span>
-                        {loading ? "Menyimpan..." : "Simpan Perubahan"}
-                      </span>
+                      <CheckCircle2 className="h-4 w-4" />
+                      <span>Simpan Perubahan</span>
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    {loading
-                      ? "Sedang menyimpan perubahan..."
-                      : "Simpan semua perubahan profil"}
+                    Simpan semua perubahan profil
                   </TooltipContent>
                 </Tooltip>
 
@@ -68,7 +61,6 @@ export default function ProfileActions({
                   <TooltipTrigger asChild>
                     <Button
                       onClick={onCancel}
-                      disabled={loading}
                       variant="outline"
                       size="lg"
                       className="min-w-[120px] gap-2 transition-all duration-200 hover:scale-105"
