@@ -83,18 +83,24 @@ export default function DuplicateOperatorPage() {
     return nik.length === 16 && /^\d{16}$/.test(nik);
   };
 
+  // ✅ FIXED: Match PengajuanBulanan pattern for proper form data initialization
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         // User already authenticated via layout, use context data
         if (!contextUser) {
+          console.log("[DuplicateOperator] No contextUser available, redirecting to login");
           toast.error("Sesi tidak ditemukan. Silakan login kembali.");
           router.push("/");
           return;
         }
 
-        // Get user role from contextUser (using local variable, NOT setState yet)
+        // Get user role from contextUser
         let userRoleValue = contextUser.role || "user";
+        console.log(
+          "[DuplicateOperator] Full contextUser object:",
+          contextUser,
+        );
         console.log(
           "[DuplicateOperator] Initial role from contextUser:",
           contextUser.role,
@@ -106,18 +112,46 @@ export default function DuplicateOperatorPage() {
         const normalizedRole = userRoleValue.toLowerCase().trim();
         const isAdmin = ["admin", "superuser"].includes(normalizedRole);
 
-        // ✅ FIXED: Skip NIK validation for admin/superuser (they manage all records, not submit their own)
+        // ✅ For admin: use default admin NIK, For regular user: use their actual NIK
+        const nikValue = isAdmin 
+          ? (contextUser.nik || "9999999999999999")  // Default admin NIK
+          : (contextUser.nik || "");
+
+        // Get name with multiple fallbacks
+        const nameValue = contextUser.name || contextUser.full_name || contextUser.email || "Admin";
+        
+        console.log(
+          "[DuplicateOperator] Form data to be set:",
+          {
+            nikValue,
+            nameValue,
+            isAdmin,
+            contextUserNik: contextUser.nik,
+            contextUserName: contextUser.name,
+            contextUserFullName: contextUser.full_name,
+          }
+        );
+
+        // ✅ NOW set the form data with actual values from contextUser BEFORE setting other state
+        setFormData((prev) => ({
+          ...prev,
+          nik_pengaju: nikValue,
+          nama_pengaju: nameValue,
+        }));
+
+        // ✅ Now set user and role state
+        setUser(contextUser);
+        setUserRole(userRoleValue);
+
+        console.log(
+          "[DuplicateOperator] Form data updated, state committed"
+        );
+
+        // Skip further validation for admin
         if (isAdmin) {
           console.log(
             "[DuplicateOperator] Admin user detected, skipping NIK validation",
           );
-          setUser(contextUser);  // Set user state
-          setUserRole(userRoleValue);  // Now safe to call setState - effect won't loop
-          setFormData((prev) => ({
-            ...prev,
-            nik_pengaju: contextUser.nik || "",
-            nama_pengaju: contextUser.name,
-          }));
           return;
         }
 
@@ -134,14 +168,6 @@ export default function DuplicateOperatorPage() {
           router.push("/profile");
           return;
         }
-
-        setUser(contextUser);  // Set user state
-        setUserRole(userRoleValue);  // Now safe to call setState - effect won't loop
-        setFormData((prev) => ({
-          ...prev,
-          nik_pengaju: userNik,
-          nama_pengaju: contextUser.name,
-        }));
       } catch (error: any) {
         console.error("Error fetching user data:", error);
         toast.error(
@@ -151,11 +177,14 @@ export default function DuplicateOperatorPage() {
       }
     };
 
-    // Only fetch when context user is available and auth is not loading
-    if (!isLoadingAuth && contextUser) {
+    // Only fetch when context user is available
+    if (contextUser) {
+      console.log("[DuplicateOperator] Effect running with contextUser available");
       fetchUserData();
+    } else {
+      console.log("[DuplicateOperator] Effect running but contextUser not available yet");
     }
-  }, [contextUser, isLoadingAuth, router]);
+  }, [contextUser, router]);
 
   const fetchRekapData = useCallback(
     async (page = 1, query = "", statusFilter = "all") => {
@@ -336,13 +365,22 @@ export default function DuplicateOperatorPage() {
   const resetForm = () => {
     setIsEditing(false);
     setEditId(null);
+    
+    // ✅ Use contextUser for form reset, not profile (which is never set)
+    const normalizedRole = (contextUser?.role || "user").toLowerCase().trim();
+    const isAdmin = ["admin", "superuser"].includes(normalizedRole);
+    const nikValue = isAdmin 
+      ? (contextUser?.nik || "9999999999999999")
+      : (contextUser?.nik || "");
+    const nameValue = contextUser?.name || contextUser?.full_name || contextUser?.email || "";
+    
     setFormData({
       nik_duplicate: "",
       nama_duplicate: "",
       nik_operator: "",
       nama_operator: "",
-      nik_pengaju: profile?.nik ?? "",
-      nama_pengaju: profile?.name ?? "",
+      nik_pengaju: nikValue,
+      nama_pengaju: nameValue,
       tanggal_perekaman: "",
       tanggal_pengajuan: new Date().toISOString().split("T")[0],
       estimasi_tanggal_perekaman: "",

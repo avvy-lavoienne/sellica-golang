@@ -26,16 +26,18 @@ type AdjudicateRecordRow struct {
 }
 
 type DuplicateOperatorRow struct {
-	ID               string    `json:"id" db:"id"`
-	NikDuplicate     string    `json:"nik_duplicate" db:"nik_duplicate"`
-	NamaDuplicate    string    `json:"nama_duplicate" db:"nama_duplicate"`
-	NikOperator      string    `json:"nik_operator" db:"nik_operator"`
-	NamaOperator     string    `json:"nama_operator" db:"nama_operator"`
-	NikPengaju       string    `json:"nik_pengaju" db:"nik_pengaju"`
-	NamaPengaju      string    `json:"nama_pengaju" db:"nama_pengaju"`
-	TanggalPerekaman string    `json:"tanggal_perekaman" db:"tanggal_perekaman"`
-	IsReadyToRecord  bool      `json:"is_ready_to_record" db:"is_ready_to_record"`
-	CreatedAt        time.Time `json:"created_at" db:"created_at"`
+	ID                       string    `json:"id" db:"id"`
+	NikDuplicate             string    `json:"nik_duplicate" db:"nik_duplicate"`
+	NamaDuplicate            string    `json:"nama_duplicate" db:"nama_duplicate"`
+	NikOperator              string    `json:"nik_operator" db:"nik_operator"`
+	NamaOperator             string    `json:"nama_operator" db:"nama_operator"`
+	NikPengaju               string    `json:"nik_pengaju" db:"nik_pengaju"`
+	NamaPengaju              string    `json:"nama_pengaju" db:"nama_pengaju"`
+	TanggalPerekaman         string    `json:"tanggal_perekaman" db:"tanggal_perekaman"`
+	TanggalPengajuan         string    `json:"tanggal_pengajuan" db:"tanggal_pengajuan"`
+	EstimasiTanggalPerekaman string    `json:"estimasi_tanggal_perekaman" db:"estimasi_tanggal_perekaman"`
+	IsReadyToRecord          bool      `json:"is_ready_to_record" db:"is_ready_to_record"`
+	CreatedAt                time.Time `json:"created_at" db:"created_at"`
 }
 
 type PengajuanBulananRow struct {
@@ -175,8 +177,8 @@ func (s *Service) GetDuplicateOperatorList(ctx context.Context, filter DataRekam
 	queryBuilder := s.client.From("duplicate_operator").
 		Select(
 			"id,nik_duplicate,nama_duplicate,nik_operator,nama_operator,"+
-				"nik_pengaju,nama_pengaju,tanggal_perekaman,"+
-				"is_ready_to_record,created_at",
+				"nik_pengaju,nama_pengaju,tanggal_perekaman,tanggal_pengajuan,"+
+				"estimasi_tanggal_perekaman,is_ready_to_record,created_at",
 			"exact",
 			false,
 		)
