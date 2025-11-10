@@ -439,13 +439,32 @@ function PengajuanBulananContent() {
     if (!confirm("Apakah Anda yakin ingin menghapus pengajuan ini?")) return;
 
     try {
-      const { error } = await supabase
-        .from("pengajuan_bulanan")
-        .delete()
-        .eq("id", id);
+      // Get auth token from localStorage
+      const token = localStorage.getItem("selly_auth_token");
+      if (!token) {
+        throw new Error("Token tidak ditemukan. Silakan login kembali.");
+      }
 
-      if (error) {
-        throw new Error(`Gagal menghapus data: ${error.message}`);
+      // Call API endpoint with DELETE method
+      const response = await fetch("/api/data-rekam/pengajuan-bulanan", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const errorMsg = data.message || `HTTP ${response.status}`;
+        console.error("[PengajuanBulanan] Delete API error:", {
+          status: response.status,
+          errorMsg,
+          fullError: data,
+        });
+        throw new Error(errorMsg);
       }
 
       toast.success("Pengajuan berhasil dihapus!");
@@ -459,6 +478,7 @@ function PengajuanBulananContent() {
         setCurrentPage(currentPage - 1);
       }
     } catch (error: any) {
+      console.error("Error deleting data:", error);
       toast.error(error.message || "Gagal menghapus data. Silakan coba lagi.");
     }
   };

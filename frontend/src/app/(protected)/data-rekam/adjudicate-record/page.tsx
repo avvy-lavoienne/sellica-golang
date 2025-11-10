@@ -45,7 +45,7 @@ export default function AdjudicateRecordPage() {
     nama_adjudicate: "",
     nik_pengaju: "",
     nama_pengaju: "",
-    jenis_eksepsi: "",
+    jenis_eksepsi: "eksepsi total",
     tanggal_pengajuan: new Date().toISOString().split("T")[0],
     estimasi_tanggal_perekaman: "",
     is_ready_to_record: false,
@@ -100,6 +100,7 @@ export default function AdjudicateRecordPage() {
           console.log(
             "[AdjudicateRecord] Admin user detected, skipping NIK validation",
           );
+          setUser(contextUser);  // Set user state
           setUserRole(userRoleValue);  // Now safe to call setState - effect won't loop
           setFormData((prev) => ({
             ...prev,
@@ -123,6 +124,7 @@ export default function AdjudicateRecordPage() {
           return;
         }
 
+        setUser(contextUser);  // Set user state
         setUserRole(userRoleValue);  // Now safe to call setState - effect won't loop
         setFormData((prev) => ({
           ...prev,
@@ -255,7 +257,7 @@ export default function AdjudicateRecordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !profile) {
+    if (!user || !contextUser) {
       toast.error("Data pengguna tidak ditemukan. Silakan coba lagi.");
       return;
     }
@@ -299,23 +301,55 @@ export default function AdjudicateRecordPage() {
         is_ready_to_record: formData.is_ready_to_record || false,
       };
 
-      if (isEditing && editId) {
-        const { error } = await supabase
-          .from("adjudicate_record")
-          .update(dataToSave)
-          .eq("id", editId);
+      console.log("[AdjudicateRecord] Data to save:", dataToSave);
 
-        if (error) {
-          throw new Error(`Gagal memperbarui data: ${error.message}`);
-        }
+      // ✅ FIXED: Get token from localStorage (Go backend session)
+      const token = localStorage.getItem("selly_auth_token");
+      if (!token) {
+        console.warn("[AdjudicateRecord] Token not found in localStorage");
+        toast.error("Sesi autentikasi tidak ditemukan. Silakan login kembali.");
+        router.push("/login");
+        return;
+      }
+
+      // ✅ FIXED: Use API route instead of direct Supabase calls
+      const response = await fetch("/api/data-rekam/adjudicate", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataToSave),
+      });
+
+      if (response.status === 401) {
+        console.error("[AdjudicateRecord] Authentication failed (401)");
+        localStorage.removeItem("selly_auth_token");
+        localStorage.removeItem("selly_user_data");
+        toast.error("Sesi telah berakhir. Silakan login kembali.");
+        router.push("/login");
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMsg = errorData.message || errorData.error || `HTTP ${response.status}`;
+        console.error("[AdjudicateRecord] API error - Full Details:", {
+          status: response.status,
+          errorMsg,
+          fullError: errorData,
+          requestData: dataToSave,
+        });
+        throw new Error(errorMsg);
+      }
+
+      const result = await response.json();
+
+      if (isEditing && editId) {
+        console.log("[AdjudicateRecord] Record updated successfully");
         toast.success("Data berhasil diperbarui!");
       } else {
-        const { error } = await supabase
-          .from("adjudicate_record")
-          .insert(dataToSave);
-        if (error) {
-          throw new Error(`Gagal menyimpan data: ${error.message}`);
-        }
+        console.log("[AdjudicateRecord] Record created successfully");
         toast.success("Data berhasil diajukan!");
       }
 
@@ -325,9 +359,9 @@ export default function AdjudicateRecordPage() {
       setFormData({
         nik_adjudicate: "",
         nama_adjudicate: "",
-        nik_pengaju: profile.nik,
-        nama_pengaju: profile.name,
-        jenis_eksepsi: "",
+        nik_pengaju: "9999999999999999",
+        nama_pengaju: contextUser?.name || "",
+        jenis_eksepsi: "eksepsi total",
         tanggal_pengajuan: new Date().toISOString().split("T")[0],
         estimasi_tanggal_perekaman: "",
         is_ready_to_record: false,
@@ -360,7 +394,7 @@ export default function AdjudicateRecordPage() {
       nama_adjudicate: "",
       nik_pengaju: profile?.nik ?? "",
       nama_pengaju: profile?.name ?? "",
-      jenis_eksepsi: "",
+      jenis_eksepsi: "eksepsi total",
       tanggal_pengajuan: new Date().toISOString().split("T")[0],
       estimasi_tanggal_perekaman: "",
       is_ready_to_record: false,
@@ -398,14 +432,34 @@ export default function AdjudicateRecordPage() {
     if (!confirm("Apakah Anda yakin ingin menghapus pengajuan ini?")) return;
 
     try {
-      const { error } = await supabase
-        .from("adjudicate_record")
-        .delete()
-        .eq("id", id);
-
-      if (error) {
-        throw new Error(`Gagal menghapus data: ${error.message}`);
+      // Get auth token from localStorage
+      const token = localStorage.getItem("selly_auth_token");
+      if (!token) {
+        throw new Error("Token tidak ditemukan. Silakan login kembali.");
       }
+
+      // Call API endpoint with DELETE method
+      const response = await fetch("/api/data-rekam/adjudicate", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const errorMsg = data.message || `HTTP ${response.status}`;
+        console.error("[AdjudicateRecord] Delete API error:", {
+          status: response.status,
+          errorMsg,
+          fullError: data,
+        });
+        throw new Error(errorMsg);
+      }
+
       toast.success("Data berhasil dihapus!");
       const { totalCount } = await fetchRekapData(
         currentPage,
@@ -490,9 +544,9 @@ export default function AdjudicateRecordPage() {
                 setFormData({
                   nik_adjudicate: "",
                   nama_adjudicate: "",
-                  nik_pengaju: profile?.nik || "",
-                  nama_pengaju: profile?.name || "",
-                  jenis_eksepsi: "",
+                  nik_pengaju: "9999999999999999",
+                  nama_pengaju: contextUser?.name || "",
+                  jenis_eksepsi: "eksepsi total",
                   tanggal_pengajuan: new Date().toISOString().split("T")[0],
                   estimasi_tanggal_perekaman: "",
                   is_ready_to_record: false,
@@ -549,7 +603,7 @@ export default function AdjudicateRecordPage() {
                   >
                     {rekapData.length > 0 || isTableLoading ? (
                       <AdjudicateRecordTable
-                        rekapData={rekapData}
+                        adjudicateData={rekapData}
                         totalCount={totalCount}
                         currentPage={currentPage}
                         onPageChange={setCurrentPage}
@@ -560,6 +614,7 @@ export default function AdjudicateRecordPage() {
                         onDelete={handleDelete}
                         userRole={userRole}
                         loading={isTableLoading}
+                        rowsPerPage={5}
                       />
                     ) : (
                       <p className="py-10 text-center text-gray-500 dark:text-gray-400">

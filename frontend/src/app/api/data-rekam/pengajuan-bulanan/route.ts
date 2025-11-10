@@ -327,3 +327,115 @@ export async function GET(request: NextRequest) {
         );
     }
 }
+
+/**
+ * DELETE /api/data-rekam/pengajuan-bulanan
+ * 
+ * Deletes a pengajuan bulanan record by ID.
+ * 
+ * Required:
+ * - id: The UUID of the record to delete
+ * - Authorization header with Bearer token
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    // Step 1: Validate authorization header
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader) {
+      console.error('[pengajuan-bulanan-api] Missing authorization header');
+      return NextResponse.json(
+        { message: 'Unauthorized: Missing Bearer token' },
+        { status: 401 }
+      );
+    }
+
+    // Step 2: Parse and validate JWT token
+    const tokenParts = authHeader.split(' ');
+    if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
+      console.error('[pengajuan-bulanan-api] Invalid authorization format');
+      return NextResponse.json(
+        { message: 'Unauthorized: Invalid Bearer token format' },
+        { status: 401 }
+      );
+    }
+
+    // Step 3: Get record ID from request body
+    let body: any = {};
+    try {
+      body = await request.json();
+    } catch (e) {
+      console.error('[pengajuan-bulanan-api] Failed to parse request body');
+      return NextResponse.json(
+        { message: 'Invalid request body' },
+        { status: 400 }
+      );
+    }
+
+    const { id } = body;
+    if (!id) {
+      console.error('[pengajuan-bulanan-api] Missing record ID');
+      return NextResponse.json(
+        { message: 'Record ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Step 4: Verify Supabase configuration
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('[pengajuan-bulanan-api] Missing Supabase configuration');
+      return NextResponse.json(
+        { message: 'Internal server error: Database configuration missing' },
+        { status: 500 }
+      );
+    }
+
+    // Step 5: Create Supabase client with service role
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+
+    // Step 6: Delete the record
+    const { error } = await supabase
+      .from('pengajuan_bulanan')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('[pengajuan-bulanan-api] Delete error details:', {
+        message: error.message,
+        code: (error as any).code,
+        details: (error as any).details,
+        hint: (error as any).hint,
+      });
+      return NextResponse.json(
+        {
+          message: `Database error: ${error.message}`,
+          code: (error as any).code,
+          details: (error as any).details,
+        },
+        { status: 500 }
+      );
+    }
+
+    // Step 7: Return success response
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Record deleted successfully',
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('[pengajuan-bulanan-api] Delete error:', error);
+    return NextResponse.json(
+      {
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Internal server error',
+      },
+      { status: 500 }
+    );
+  }
+}
