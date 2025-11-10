@@ -63,6 +63,15 @@ export default function AdjudicateRecordPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
+  // Debug logging
+  useEffect(() => {
+    console.log("[AdjudicateRecord] Context state:", {
+      contextUser: contextUser ? { id: contextUser.id, email: contextUser.email, role: contextUser.role } : null,
+      isLoadingAuth,
+      timestamp: new Date().toLocaleTimeString()
+    });
+  }, [contextUser, isLoadingAuth]);
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
