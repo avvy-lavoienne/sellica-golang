@@ -158,7 +158,16 @@ export default function DataRekam() {
         return;
       }
 
-      console.log("[DataRekam] Token retrieved from GoAuthAPI");
+      // ✅ FIXED: Validate token format (JWT must start with "eyJ")
+      if (!token.startsWith("eyJ")) {
+        console.error("[DataRekam] Invalid token format detected");
+        localStorage.clear();
+        toast.error("Sesi autentikasi tidak valid. Silakan login kembali.");
+        window.location.href = "/login";
+        return;
+      }
+
+      console.log("[DataRekam] Token retrieved and validated from GoAuthAPI");
 
       // Build query parameters for dashboard stats
       const params = new URLSearchParams();
@@ -177,10 +186,8 @@ export default function DataRekam() {
         "Content-Type": "application/json",
       };
       
-      // Add token if available
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
+      // ✅ FIXED: Token already validated, no need for conditional
+      headers["Authorization"] = `Bearer ${token}`;
 
       const response = await fetch(apiUrl, {
         method: "GET",
@@ -189,16 +196,19 @@ export default function DataRekam() {
 
       console.log("[DataRekam] API Response status:", response.status);
 
-      // Handle auth errors
+      // ✅ FIXED: Handle auth errors with localStorage cleanup and redirect
       if (response.status === 401) {
-        console.error("[DataRekam] Unauthorized response from dashboard-stats");
-        setLoading(false);
+        console.error("[DataRekam] Unauthorized response - token expired or invalid");
+        localStorage.clear();
+        toast.error("Sesi autentikasi berakhir. Silakan login kembali.");
+        window.location.href = "/login";
         return;
       }
 
       if (response.status === 403) {
-        console.error("[DataRekam] Forbidden response from dashboard-stats");
-        setLoading(false);
+        console.error("[DataRekam] Forbidden response - insufficient permissions");
+        toast.error("Anda tidak memiliki akses ke halaman ini.");
+        window.location.href = "/dashboard";
         return;
       }
 
