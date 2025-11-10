@@ -79,20 +79,68 @@ function PengajuanBulananContent() {
 
         setUser(contextUser);
 
-        const userNik = contextUser.nik || "";
+        // ✅ FIXED: Get role from contextUser, fallback to localStorage for consistency
+        let userRoleValue = contextUser.role || "user";
+        console.log(
+          "[pengajuan-bulanan] Initial role from contextUser:",
+          contextUser.role,
+          "| defaulted to:",
+          userRoleValue,
+        );
 
-        if (!userNik || !validateNIK(userNik)) {
-          toast.error(
-            "NIK Anda tidak valid. Harap perbarui profil Anda terlebih dahulu.",
+        if (!userRoleValue || userRoleValue === "user") {
+          const storedUserInfo = localStorage.getItem("selly_user_info");
+          console.log(
+            "[pengajuan-bulanan] localStorage selly_user_info:",
+            storedUserInfo ? "found" : "not found",
           );
-          router.push("/profile");
-          return;
+          if (storedUserInfo) {
+            try {
+              const parsedInfo = JSON.parse(storedUserInfo);
+              userRoleValue = parsedInfo.role || userRoleValue;
+              console.log(
+                "[pengajuan-bulanan] Role from localStorage:",
+                userRoleValue,
+                "| full parsed info:",
+                parsedInfo,
+              );
+            } catch {
+              console.warn("[pengajuan-bulanan] Failed to parse selly_user_info");
+            }
+          }
         }
+        console.log(
+          "[pengajuan-bulanan] Final userRoleValue set to:",
+          userRoleValue,
+        );
+        setUserRole(userRoleValue);
 
-        setUserRole(contextUser.role || "user");
+        // ✅ FIXED: Only validate NIK for non-admin users
+        // Admin/superuser can view all records regardless of NIK
+        const normalizedRole = userRoleValue.toLowerCase().trim();
+        const isAdmin = ["admin", "superuser"].includes(normalizedRole);
+
+        if (!isAdmin) {
+          const userNik = contextUser.nik || "";
+          if (!userNik || !validateNIK(userNik)) {
+            console.warn(
+              "[pengajuan-bulanan] Non-admin user has invalid NIK:",
+              userNik,
+            );
+            toast.error(
+              "NIK Anda tidak valid. Harap perbarui profil Anda terlebih dahulu.",
+            );
+            router.push("/profile");
+            return;
+          }
+        } else {
+          console.log(
+            "[pengajuan-bulanan] Admin user detected, skipping NIK validation",
+          );
+        }
         setFormData((prev) => ({
           ...prev,
-          nik_pengaju: userNik,
+          nik_pengaju: contextUser.nik || "",
           nama_pengaju: contextUser.name || "",
         }));
       } catch (error: any) {
