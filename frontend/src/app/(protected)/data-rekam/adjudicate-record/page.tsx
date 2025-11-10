@@ -77,8 +77,25 @@ export default function AdjudicateRecordPage() {
           return;
         }
 
-        const userNik = contextUser.nik || "";
+        // Get user role first (before NIK validation)
+        const userRole = (contextUser.role || "user").toLowerCase().trim();
+        setUserRole(userRole);
 
+        // ✅ NEW: Skip NIK validation for admin/superuser (they manage all records, not submit their own)
+        if (userRole === "admin" || userRole === "superuser") {
+          console.log(
+            "[AdjudicateRecord] Admin user detected, skipping NIK validation",
+          );
+          setFormData((prev) => ({
+            ...prev,
+            nik_pengaju: contextUser.nik || "",
+            nama_pengaju: contextUser.name,
+          }));
+          return;
+        }
+
+        // Regular users MUST have valid NIK
+        const userNik = contextUser.nik || "";
         if (!userNik || !validateNIK(userNik)) {
           toast.error(
             "NIK Anda tidak valid. Harap perbarui profil Anda terlebih dahulu.",
@@ -92,7 +109,6 @@ export default function AdjudicateRecordPage() {
           nik_pengaju: userNik,
           nama_pengaju: contextUser.name,
         }));
-        setUserRole(contextUser.role || "user");
       } catch (error: any) {
         console.error("Error fetching user data:", error);
         toast.error(
