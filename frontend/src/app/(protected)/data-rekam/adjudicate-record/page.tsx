@@ -63,10 +63,6 @@ export default function AdjudicateRecordPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const validateNIK = (nik: string) => {
-    return nik.length === 16 && /^\d{16}$/.test(nik);
-  };
-
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -77,15 +73,25 @@ export default function AdjudicateRecordPage() {
           return;
         }
 
-        // Get user role first (before NIK validation)
-        const userRole = (contextUser.role || "user").toLowerCase().trim();
-        setUserRole(userRole);
+        // Get user role from contextUser (using local variable, NOT setState yet)
+        let userRoleValue = contextUser.role || "user";
+        console.log(
+          "[AdjudicateRecord] Initial role from contextUser:",
+          contextUser.role,
+          "| defaulted to:",
+          userRoleValue,
+        );
 
-        // ✅ NEW: Skip NIK validation for admin/superuser (they manage all records, not submit their own)
-        if (userRole === "admin" || userRole === "superuser") {
+        // Normalize role for comparison
+        const normalizedRole = userRoleValue.toLowerCase().trim();
+        const isAdmin = ["admin", "superuser"].includes(normalizedRole);
+
+        // ✅ FIXED: Skip NIK validation for admin/superuser (they manage all records, not submit their own)
+        if (isAdmin) {
           console.log(
             "[AdjudicateRecord] Admin user detected, skipping NIK validation",
           );
+          setUserRole(userRoleValue);  // Now safe to call setState - effect won't loop
           setFormData((prev) => ({
             ...prev,
             nik_pengaju: contextUser.nik || "",
@@ -97,6 +103,10 @@ export default function AdjudicateRecordPage() {
         // Regular users MUST have valid NIK
         const userNik = contextUser.nik || "";
         if (!userNik || !validateNIK(userNik)) {
+          console.warn(
+            "[AdjudicateRecord] Non-admin user has invalid NIK:",
+            userNik,
+          );
           toast.error(
             "NIK Anda tidak valid. Harap perbarui profil Anda terlebih dahulu.",
           );
@@ -104,6 +114,7 @@ export default function AdjudicateRecordPage() {
           return;
         }
 
+        setUserRole(userRoleValue);  // Now safe to call setState - effect won't loop
         setFormData((prev) => ({
           ...prev,
           nik_pengaju: userNik,
@@ -112,7 +123,7 @@ export default function AdjudicateRecordPage() {
       } catch (error: any) {
         console.error("Error fetching user data:", error);
         toast.error(
-          error.message || "Gagal memuat data pengguna. Silakan coba lagi.",
+          error.message || "Gagal memload data pengguna. Silakan coba lagi.",
         );
         router.push("/");
       }
@@ -122,7 +133,11 @@ export default function AdjudicateRecordPage() {
     if (!isLoadingAuth && contextUser) {
       fetchUserData();
     }
-  }, [contextUser, isLoadingAuth, router, validateNIK]);
+  }, [contextUser, isLoadingAuth, router]);
+
+  const validateNIK = (nik: string) => {
+    return nik.length === 16 && /^\d{16}$/.test(nik);
+  };
 
   const fetchRekapData = useCallback(
     async (
