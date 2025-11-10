@@ -136,16 +136,28 @@ function PengajuanBulananContent() {
           params.append("search", searchQuery);
         }
 
-        // Get auth token from session
-        const session = await supabase.auth.getSession();
-        const token = session.data.session?.access_token;
+        // ✅ FIXED: Get token from localStorage (Go backend session)
+        const token = localStorage.getItem("selly_auth_token");
         if (!token) {
-          toast.error("Token autentikasi tidak ditemukan. Silakan login kembali.");
+          console.warn("[pengajuan-bulanan] Token not found in localStorage");
+          toast.error("Sesi autentikasi tidak ditemukan. Silakan login kembali.");
           router.push("/login");
           return { totalCount: 0 };
         }
 
-        // Call backend API via Next.js proxy route
+        // Validate token format
+        if (!token.startsWith("eyJ")) {
+          console.error("[pengajuan-bulanan] Invalid token format detected");
+          localStorage.removeItem("selly_auth_token");
+          localStorage.removeItem("selly_user_data");
+          toast.error("Token autentikasi tidak valid. Silakan login kembali.");
+          router.push("/login");
+          return { totalCount: 0 };
+        }
+
+        console.log(`[pengajuan-bulanan] Fetching rekap data for page ${page}`);
+
+        // ✅ FIXED: Call API route with proper token
         const response = await fetch(
           `/api/data-rekam/pengajuan-bulanan?${params.toString()}`,
           {
@@ -159,19 +171,25 @@ function PengajuanBulananContent() {
 
         // Handle auth errors
         if (response.status === 401) {
+          console.error("[pengajuan-bulanan] Authentication failed (401)");
+          localStorage.removeItem("selly_auth_token");
+          localStorage.removeItem("selly_user_data");
           toast.error("Sesi telah berakhir. Silakan login kembali.");
           router.push("/login");
           return { totalCount: 0 };
         }
 
         if (response.status === 403) {
+          console.error("[pengajuan-bulanan] Authorization failed (403)");
           toast.error("Anda tidak memiliki izin untuk mengakses data ini.");
           return { totalCount: 0 };
         }
 
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Gagal memuat data");
+          const errorData = await response.json().catch(() => ({}));
+          const errorMsg = errorData.error || errorData.message || `HTTP ${response.status}`;
+          console.error("[pengajuan-bulanan] API error:", errorMsg);
+          throw new Error(errorMsg);
         }
 
         // Parse response
@@ -180,6 +198,8 @@ function PengajuanBulananContent() {
           throw new Error(result.error || "Gagal memuat data rekap");
         }
 
+        console.log(`[pengajuan-bulanan] Successfully fetched ${result.data?.length || 0} records`);
+
         const updatedData = (result.data || []).map((item: any) => ({
           ...item,
           created_at: item.created_at || new Date().toISOString(),
@@ -187,6 +207,7 @@ function PengajuanBulananContent() {
         setRekapData(updatedData);
         return { totalCount: result.total_count || 0 };
       } catch (error: any) {
+        console.error("[pengajuan-bulanan] fetchRekapData error:", error);
         toast.error(
           error.message || "Gagal mengambil data rekap. Silakan coba lagi.",
         );
@@ -212,7 +233,19 @@ function PengajuanBulananContent() {
     setLoading(true);
 
     try {
+      // ✅ FIXED: Get token from localStorage (Go backend session)
+      const token = localStorage.getItem("selly_auth_token");
+      if (!token) {
+        console.warn("[pengajuan-bulanan] Token not found in localStorage");
+        toast.error("Sesi autentikasi tidak ditemukan. Silakan login kembali.");
+        router.push("/login");
+        return;
+      }
+
+      console.log(`[pengajuan-bulanan] ${isEditing ? "Updating" : "Creating"} record`);
+
       const dataToSave = {
+        id: isEditing ? editData?.id : undefined,
         user_id: user.id,
         nik_pengajuan_hapus: data.nik_pengajuan_hapus.trim(),
         nama_pengajuan: data.nama_pengajuan.trim(),
@@ -225,42 +258,52 @@ function PengajuanBulananContent() {
         is_ready_to_record: data.is_ready_to_record || false,
       };
 
-      if (isEditing && editData) {
-        const { data: existingData, error: fetchError } = await supabase
-          .from("pengajuan_bulanan")
-          .select("id")
-          .eq("id", editData.id)
-          .maybeSingle();
+      // ✅ FIXED: Use API route instead of direct Supabase calls
+      const response = await fetch("/api/data-rekam/pengajuan-bulanan", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataToSave),
+      });
 
-        if (fetchError) {
-          throw new Error(`Gagal memeriksa data: ${fetchError.message}`);
-        }
+      if (response.status === 401) {
+        console.error("[pengajuan-bulanan] Authentication failed (401)");
+        localStorage.removeItem("selly_auth_token");
+        localStorage.removeItem("selly_user_data");
+        toast.error("Sesi telah berakhir. Silakan login kembali.");
+        router.push("/login");
+        return;
+      }
 
-        if (!existingData) {
-          throw new Error("Data tidak ditemukan atau tidak dapat diedit.");
-        }
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMsg = errorData.message || errorData.error || `HTTP ${response.status}`;
+        console.error("[pengajuan-bulanan] API error:", errorMsg);
+        throw new Error(errorMsg);
+      }
 
-        const { error } = await supabase
-          .from("pengajuan_bulanan")
-          .update(dataToSave)
-          .eq("id", editData.id);
+      const result = await response.json();
 
-        if (error) {
-          throw new Error(`Gagal mengedit data: ${error.message}`);
-        }
-
+      if (isEditing) {
+        console.log("[pengajuan-bulanan] Record updated successfully");
         toast.success("Data berhasil diedit!");
       } else {
-        const { error } = await supabase
-          .from("pengajuan_bulanan")
-          .insert(dataToSave);
-
-        if (error) {
-          throw new Error(`Gagal mengajukan data: ${error.message}`);
-        }
-
+        console.log("[pengajuan-bulanan] Record created successfully");
         toast.success("Data berhasil diajukan!");
       }
+
+      // ✅ FIXED: Emit event for cross-component updates
+      window.dispatchEvent(
+        new CustomEvent("pengajuan-bulanan-updated", {
+          detail: {
+            action: isEditing ? "updated" : "created",
+            data: result.data,
+            timestamp: new Date().toISOString(),
+          },
+        })
+      );
 
       setShowForm(false);
       setIsEditing(false);
@@ -288,6 +331,7 @@ function PengajuanBulananContent() {
         setShowRekap(true);
       }
     } catch (error: any) {
+      console.error("[pengajuan-bulanan] handleSubmit error:", error);
       toast.error(error.message || "Gagal menyimpan data. Silakan coba lagi.");
     } finally {
       setLoading(false);
