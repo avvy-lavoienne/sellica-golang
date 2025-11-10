@@ -1714,6 +1714,326 @@ export default function NewProtectedPage() {
    - Allowed admin to submit forms without real NIK
    - Maintained existing behavior for regular users
 
+7. **[LATEST]**: `fix(pagination): implement configurable page size and fix total count retrieval`
+   - Added page size selector (5, 10, 25, 50, 100 records per page)
+   - Fixed Supabase total count query by adding "exact" parameter to Select()
+   - Updated frontend to support dynamic page size changes
+   - Fixed backend data_rekam.go for all 4 list functions
+   - Result: Pagination now correctly shows "Menampilkan 1-10 dari X record"
+
+---
+
+## Issue #5: Pagination Not Working - Total Count Always Zero
+
+### Problem Description
+
+**User Report**: "Still no pagination at all. Shows '5 dari 0' or '10 dari 0'"
+
+**Symptoms**:
+- Page size selector showing but not affecting results
+- Total count always showing 0
+- Only one page displayed despite having 2,591+ records in database
+- Console logs showing: "Successfully fetched 10 records, total_count: 0"
+
+### Root Cause Analysis
+
+**Backend File**: `backend/internal/services/database/data_rekam.go`
+**Affected Functions**: 
+- `GetAdjudicateRecordList()`
+- `GetDuplicateOperatorList()`
+- `GetPengajuanBulananList()`
+- `GetSalahRekamList()`
+
+**Problematic Code**:
+```go
+// ❌ WRONG: Empty string for count parameter
+queryBuilder := s.client.From("pengajuan_bulanan").
+    Select(
+        "id,nik_pengajuan_hapus,nama_pengajuan,...",
+        "",  // ← This should be "exact" to get total count
+        false,
+    )
+```
+
+**Backend Error Logs**:
+```
+ERRO[2025-11-10 12:56:35] Failed to get pengajuan bulanan list
+error="(PGRST108) 'exact' is not an embedded resource in this request"
+```
+
+**Initial Incorrect Fix Attempt**:
+```go
+// ❌ WRONG: Tried to add "exact" to Range() method
+queryBuilder.Range(offset, offset+pageSize-1, "exact")
+// Result: PostgREST error - "exact" not valid in Range()
+```
+
+**Why This Failed**:
+1. Supabase Go client requires count parameter in `.Select()` method, not `.Range()`
+2. The second parameter of `.Select()` controls count behavior:
+   - `""` (empty) = No count returned, count will be 0
+   - `"exact"` = Return exact count of total matching rows
+   - `"planned"` = Return estimated count
+   - `"estimated"` = Return estimated count
+3. Without "exact", API returns data but totalCount=0
+4. Frontend pagination calculates totalPages from totalCount, so 0/pageSize = 0 pages
+
+### Solution Implemented
+
+**Changes Made**:
+
+#### 1. Fixed Supabase Query Count Parameter in Backend
+
+**File**: `backend/internal/services/database/data_rekam.go`
+
+**Before (4 functions affected)**:
+```go
+queryBuilder := s.client.From("pengajuan_bulanan").
+    Select(
+        "id,nik_pengajuan_hapus,nama_pengajuan,alasan_pengajuan,"+
+            "nik_pengaju,nama_pengaju,tanggal_pengajuan,estimasi_tanggal_perekaman,"+
+            "is_ready_to_record,created_at",
+        "",  // ❌ Empty count parameter
+        false,
+    )
+```
+
+**After**:
+```go
+queryBuilder := s.client.From("pengajuan_bulanan").
+    Select(
+        "id,nik_pengajuan_hapus,nama_pengajuan,alasan_pengajuan,"+
+            "nik_pengaju,nama_pengaju,tanggal_pengajuan,estimasi_tanggal_perekaman,"+
+            "is_ready_to_record,created_at",
+        "exact",  // ✅ Request exact count
+        false,
+    )
+```
+
+**Applied to all 4 functions**:
+1. `GetAdjudicateRecordList()` - Line ~97
+2. `GetDuplicateOperatorList()` - Line ~175
+3. `GetPengajuanBulananList()` - Line ~256
+4. `GetSalahRekamList()` - Line ~333
+
+#### 2. Added Page Size Selector to Frontend
+
+**File**: `frontend/src/components/dashboard/data-rekam/pengajuan-bulanan/PengajuanBulananTable.tsx`
+
+**Interface Changes**:
+```typescript
+interface PengajuanBulananTableProps {
+  // ... existing props
+  rowsPerPage?: number;           // ✅ NEW: Configurable page size
+  onPageSizeChange?: (pageSize: number) => void;  // ✅ NEW: Handler
+}
+```
+
+**Component Changes**:
+```typescript
+const PengajuanBulananTable: React.FC<PengajuanBulananTableProps> = ({
+  // ... existing props
+  rowsPerPage = 10,  // ✅ NEW: Default 10 (was hardcoded 5)
+  onPageSizeChange,
+}) => {
+  // ❌ REMOVED: const rowsPerPage = 5;
+  
+  // ✅ ADDED: Page size selector UI
+  <div className="space-y-2">
+    <label className="block text-sm font-medium text-gray-900 dark:text-white">
+      Tampilkan Per Halaman
+    </label>
+    <select
+      value={rowsPerPage}
+      onChange={(e) => onPageSizeChange?.(Number(e.target.value))}
+      disabled={loading || !onPageSizeChange}
+      className="block w-full px-3 py-2 text-sm..."
+    >
+      <option value={5}>5</option>
+      <option value={10}>10</option>
+      <option value={25}>25</option>
+      <option value={50}>50</option>
+      <option value={100}>100</option>
+    </select>
+  </div>
+}
+```
+
+**Enhanced Pagination Info Display**:
+```typescript
+// ❌ BEFORE: Simple page info
+<div>Halaman {currentPage} dari {totalPages}</div>
+
+// ✅ AFTER: Detailed range info
+<div>
+  Menampilkan <span>{((currentPage - 1) * rowsPerPage) + 1}</span> -{" "}
+  <span>{Math.min(currentPage * rowsPerPage, totalCount)}</span> dari{" "}
+  <span>{totalCount}</span> record
+  <span className="mx-2">•</span>
+  Halaman <span>{currentPage}</span> dari <span>{totalPages}</span>
+</div>
+```
+
+#### 3. Implemented Page Size Change Handler in Parent
+
+**File**: `frontend/src/app/(protected)/data-rekam/pengajuan-bulanan/page.tsx`
+
+**State Management**:
+```typescript
+// ❌ BEFORE: Hardcoded constant
+const itemsPerPage = 5;
+
+// ✅ AFTER: Stateful and configurable
+const [itemsPerPage, setItemsPerPage] = useState(10);
+```
+
+**Page Size Change Handler**:
+```typescript
+const handlePageSizeChange = useCallback(
+  async (newPageSize: number) => {
+    console.log(`[pengajuan-bulanan] Changing page size from ${itemsPerPage} to ${newPageSize}`);
+    setItemsPerPage(newPageSize);
+    setCurrentPage(1); // Reset to first page
+    
+    // Manually build params with new page size (state hasn't updated yet)
+    const params = new URLSearchParams();
+    params.append("page", "1");
+    params.append("page_size", newPageSize.toString());
+    if (statusFilter !== "all") {
+      params.append("status", statusFilter === "completed" ? "completed" : "pending");
+    }
+    if (searchQuery) {
+      params.append("search", searchQuery);
+    }
+
+    const token = localStorage.getItem("selly_auth_token");
+    if (!token) {
+      console.warn("[pengajuan-bulanan] Token not found");
+      return;
+    }
+
+    try {
+      setIsTableLoading(true);
+      const response = await fetch(
+        `/api/data-rekam/pengajuan-bulanan?${params.toString()}`,
+        {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        const updatedData = (result.data || []).map((item: any) => ({
+          ...item,
+          created_at: item.created_at || new Date().toISOString(),
+        }));
+        setRekapData(updatedData);
+        setTotalCount(result.total_count || 0);
+        console.log(`[pengajuan-bulanan] Page size changed, fetched ${result.data?.length || 0} records, total: ${result.total_count || 0}`);
+      }
+    } catch (error) {
+      console.error("[pengajuan-bulanan] Error changing page size:", error);
+    } finally {
+      setIsTableLoading(false);
+    }
+  },
+  [itemsPerPage, searchQuery, statusFilter]
+);
+```
+
+**Pass Props to Table**:
+```typescript
+<PengajuanBulananTable
+  // ... existing props
+  rowsPerPage={itemsPerPage}           // ✅ NEW
+  onPageSizeChange={handlePageSizeChange}  // ✅ NEW
+/>
+```
+
+#### 4. Updated fetchRekapData to Use Dynamic Page Size
+
+**Before**:
+```typescript
+params.append("page_size", "5");  // ❌ Hardcoded
+```
+
+**After**:
+```typescript
+params.append("page_size", itemsPerPage.toString());  // ✅ Dynamic
+```
+
+**Added to Dependencies**:
+```typescript
+const fetchRekapData = useCallback(
+  async (page = 1, searchQuery = "", statusFilter = "all") => {
+    // ... implementation
+  },
+  [contextUser, router, itemsPerPage],  // ✅ Added itemsPerPage
+);
+```
+
+### Testing Results
+
+**Before Fix**:
+```
+Console: Successfully fetched 10 records, total_count: 0
+UI: "5 dari 0" - No pagination buttons
+```
+
+**After Fix**:
+```
+Console: Successfully fetched 10 records, total_count: 5
+UI: "Menampilkan 1 - 10 dari 5 record • Halaman 1 dari 1"
+```
+
+**With 2591 Records** (duplicate_operator table):
+```
+Console: Successfully fetched 10 records, total_count: 2591
+UI: "Menampilkan 1 - 10 dari 2591 record • Halaman 1 dari 260"
+Pagination: Shows page 1, 2, 3 ... 260 with proper navigation
+```
+
+### Key Learnings
+
+1. **Supabase Go Client Count Parameter**:
+   - Count must be requested in `.Select()` method, not `.Range()`
+   - Second parameter: `""` = no count, `"exact"` = full count
+   - PostgREST returns `Content-Range` header with count when "exact" specified
+
+2. **State Update Timing Issue**:
+   - When changing page size, React state doesn't update immediately
+   - Handler must use the new value directly, not rely on state
+   - Alternative: Use effect to trigger refetch when state changes
+
+3. **User Experience Considerations**:
+   - Show record range (1-10 of 2591) not just page numbers
+   - Default page size should balance between too few (many clicks) and too many (slow loading)
+   - Reset to page 1 when changing page size to avoid confusion
+
+4. **Performance Impact**:
+   - "exact" count queries are slightly slower (full table scan)
+   - Consider caching total count for frequently accessed tables
+   - For very large tables (>100k records), use "estimated" instead
+
+### Files Modified
+
+1. **Backend**:
+   - `backend/internal/services/database/data_rekam.go` - Fixed 4 functions
+
+2. **Frontend**:
+   - `frontend/src/components/dashboard/data-rekam/pengajuan-bulanan/PengajuanBulananTable.tsx` - Added page size selector
+   - `frontend/src/app/(protected)/data-rekam/pengajuan-bulanan/page.tsx` - Implemented handler
+
+### Related Issues
+
+- Similar fix needed for other data-rekam pages (duplicate-operator, salah-rekam, adjudicate)
+- Consider extracting pagination logic into reusable hook
+- Document Supabase Go client count parameter behavior
+
 ---
 
 ## Related Documentation

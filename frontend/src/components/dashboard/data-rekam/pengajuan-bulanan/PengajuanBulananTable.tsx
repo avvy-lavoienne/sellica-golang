@@ -56,6 +56,10 @@ interface PengajuanBulananTableProps {
   userRole: string;
   /** Loading state */
   loading: boolean;
+  /** Rows per page */
+  rowsPerPage?: number;
+  /** Page size change handler */
+  onPageSizeChange?: (pageSize: number) => void;
   /** Custom className for styling */
   className?: string;
   /** Custom aria-label for accessibility */
@@ -75,6 +79,8 @@ const PengajuanBulananTable: React.FC<PengajuanBulananTableProps> = ({
   onAjukan,
   userRole,
   loading,
+  rowsPerPage = 10,
+  onPageSizeChange,
   className,
   "aria-label": ariaLabel,
 }) => {
@@ -161,7 +167,6 @@ const PengajuanBulananTable: React.FC<PengajuanBulananTableProps> = ({
     handleDateFilter();
   }, [startDate, endDate, handleDateFilter]);
 
-  const rowsPerPage = 5;
   const totalPages = Math.ceil(totalCount / rowsPerPage);
 
   const handleToggleChange = async (id: string, currentStatus: boolean) => {
@@ -426,7 +431,7 @@ const PengajuanBulananTable: React.FC<PengajuanBulananTableProps> = ({
             </div>
 
             {/* Date Filters and Status Filter */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-900 dark:text-white">
                   Tanggal Mulai
@@ -465,6 +470,24 @@ const PengajuanBulananTable: React.FC<PengajuanBulananTableProps> = ({
                   <option value="all">Semua Status</option>
                   <option value="completed">Selesai</option>
                   <option value="pending">Belum Selesai</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                  Tampilkan Per Halaman
+                </label>
+                <select
+                  value={rowsPerPage}
+                  onChange={(e) => onPageSizeChange?.(Number(e.target.value))}
+                  disabled={loading || !onPageSizeChange}
+                  className="block w-full px-3 py-2 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
                 </select>
               </div>
 
@@ -784,6 +807,10 @@ const PengajuanBulananTable: React.FC<PengajuanBulananTableProps> = ({
             <div className="px-6 py-4">
               <nav className="flex items-center justify-between" aria-label="Pagination">
                 <div className="text-sm text-gray-700 dark:text-gray-400">
+                  Menampilkan <span className="font-semibold text-gray-900 dark:text-white">{((currentPage - 1) * rowsPerPage) + 1}</span> -{" "}
+                  <span className="font-semibold text-gray-900 dark:text-white">{Math.min(currentPage * rowsPerPage, totalCount)}</span> dari{" "}
+                  <span className="font-semibold text-gray-900 dark:text-white">{totalCount}</span> record
+                  <span className="mx-2">•</span>
                   Halaman <span className="font-semibold text-gray-900 dark:text-white">{currentPage}</span> dari{" "}
                   <span className="font-semibold text-gray-900 dark:text-white">{totalPages}</span>
                 </div>

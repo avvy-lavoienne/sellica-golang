@@ -38,7 +38,7 @@ interface Profile {
 function PengajuanBulananContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const itemsPerPage = 5;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const { user: contextUser, loading: isLoadingAuth } = useProtectedAuth();
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<string>("user"); // Default to "user"
@@ -183,7 +183,7 @@ function PengajuanBulananContent() {
         // Build query parameters
         const params = new URLSearchParams();
         params.append("page", page.toString());
-        params.append("page_size", "5");
+        params.append("page_size", itemsPerPage.toString());
         if (statusFilter !== "all") {
           params.append("status", statusFilter === "completed" ? "completed" : "pending");
         }
@@ -210,7 +210,7 @@ function PengajuanBulananContent() {
           return { totalCount: 0 };
         }
 
-        console.log(`[pengajuan-bulanan] Fetching rekap data for page ${page}`);
+        console.log(`[pengajuan-bulanan] Fetching rekap data for page ${page} with page_size ${itemsPerPage}`);
 
         // ✅ FIXED: Call API route with proper token
         const response = await fetch(
@@ -223,6 +223,8 @@ function PengajuanBulananContent() {
             },
           }
         );
+
+        console.log(`[pengajuan-bulanan] API response status: ${response.status}`);
 
         // Handle auth errors
         if (response.status === 401) {
@@ -249,11 +251,13 @@ function PengajuanBulananContent() {
 
         // Parse response
         const result = await response.json();
+        console.log(`[pengajuan-bulanan] API response data:`, result);
+        
         if (!result.success) {
           throw new Error(result.error || "Gagal memuat data rekap");
         }
 
-        console.log(`[pengajuan-bulanan] Successfully fetched ${result.data?.length || 0} records`);
+        console.log(`[pengajuan-bulanan] Successfully fetched ${result.data?.length || 0} records, total_count: ${result.total_count || 0}`);
 
         const updatedData = (result.data || []).map((item: any) => ({
           ...item,
@@ -271,7 +275,7 @@ function PengajuanBulananContent() {
         setIsTableLoading(false);
       }
     },
-    [contextUser, router],
+    [contextUser, router, itemsPerPage],
   );
 
   const handleSubmit = async (data: PengajuanBulananFormData) => {
@@ -460,13 +464,16 @@ function PengajuanBulananContent() {
   };
 
   const handleRekapitulasi = useCallback(async () => {
+    console.log("[pengajuan-bulanan] handleRekapitulasi called");
     setShowRekap(true);
     setShowForm(false);
+    console.log("[pengajuan-bulanan] Fetching data with:", { currentPage, searchQuery, statusFilter, itemsPerPage });
     const { totalCount } = await fetchRekapData(
       currentPage,
       searchQuery,
       statusFilter,
     );
+    console.log("[pengajuan-bulanan] handleRekapitulasi received totalCount:", totalCount);
     setTotalCount(totalCount);
   }, [currentPage, searchQuery, statusFilter, fetchRekapData]);
 
@@ -512,6 +519,61 @@ function PengajuanBulananContent() {
     );
     setTotalCount(totalCount);
   }, [fetchRekapData, currentPage, searchQuery, statusFilter]);
+
+  const handlePageSizeChange = useCallback(
+    async (newPageSize: number) => {
+      console.log(`[pengajuan-bulanan] Changing page size from ${itemsPerPage} to ${newPageSize}`);
+      setItemsPerPage(newPageSize);
+      setCurrentPage(1); // Reset to first page when changing page size
+      
+      // Manually build params with new page size since state hasn't updated yet
+      const params = new URLSearchParams();
+      params.append("page", "1");
+      params.append("page_size", newPageSize.toString());
+      if (statusFilter !== "all") {
+        params.append("status", statusFilter === "completed" ? "completed" : "pending");
+      }
+      if (searchQuery) {
+        params.append("search", searchQuery);
+      }
+
+      const token = localStorage.getItem("selly_auth_token");
+      if (!token) {
+        console.warn("[pengajuan-bulanan] Token not found");
+        return;
+      }
+
+      try {
+        setIsTableLoading(true);
+        const response = await fetch(
+          `/api/data-rekam/pengajuan-bulanan?${params.toString()}`,
+          {
+            method: "GET",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (response.ok) {
+          const result = await response.json();
+          const updatedData = (result.data || []).map((item: any) => ({
+            ...item,
+            created_at: item.created_at || new Date().toISOString(),
+          }));
+          setRekapData(updatedData);
+          setTotalCount(result.total_count || 0);
+          console.log(`[pengajuan-bulanan] Page size changed, fetched ${result.data?.length || 0} records, total: ${result.total_count || 0}`);
+        }
+      } catch (error) {
+        console.error("[pengajuan-bulanan] Error changing page size:", error);
+      } finally {
+        setIsTableLoading(false);
+      }
+    },
+    [itemsPerPage, searchQuery, statusFilter]
+  );
 
   const handleCancel = () => {
     setShowForm(false);
@@ -654,6 +716,8 @@ function PengajuanBulananContent() {
                         }}
                         userRole={userRole}
                         loading={isTableLoading}
+                        rowsPerPage={itemsPerPage}
+                        onPageSizeChange={handlePageSizeChange}
                       />
                     ) : (
                       <EmptyState

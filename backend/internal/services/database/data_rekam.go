@@ -93,13 +93,13 @@ func (s *Service) GetAdjudicateRecordList(ctx context.Context, filter DataRekamF
 
 	offset := (filter.Page - 1) * filter.PageSize
 
-	// Build base query with explicit field selection (exclude sensitive fields)
+	// Build base query with explicit field selection and exact count (exclude sensitive fields)
 	queryBuilder := s.client.From("adjudicate_record").
 		Select(
 			"id,nik_adjudicate,nama_adjudicate,nik_pengaju,nama_pengaju,"+
 				"jenis_eksepsi,tanggal_pengajuan,estimasi_tanggal_perekaman,"+
 				"is_ready_to_record,created_at",
-			"",
+			"exact",
 			false,
 		)
 
@@ -171,13 +171,13 @@ func (s *Service) GetDuplicateOperatorList(ctx context.Context, filter DataRekam
 
 	offset := (filter.Page - 1) * filter.PageSize
 
-	// Build base query with explicit field selection
+	// Build base query with explicit field selection and exact count
 	queryBuilder := s.client.From("duplicate_operator").
 		Select(
 			"id,nik_duplicate,nama_duplicate,nik_operator,nama_operator,"+
 				"nik_pengaju,nama_pengaju,tanggal_perekaman,"+
 				"is_ready_to_record,created_at",
-			"",
+			"exact",
 			false,
 		)
 
@@ -251,13 +251,13 @@ func (s *Service) GetPengajuanBulananList(ctx context.Context, filter DataRekamF
 
 	offset := (filter.Page - 1) * filter.PageSize
 
-	// Build base query with explicit field selection
+	// Build base query with explicit field selection and exact count
 	queryBuilder := s.client.From("pengajuan_bulanan").
 		Select(
 			"id,nik_pengajuan_hapus,nama_pengajuan,alasan_pengajuan,"+
 				"nik_pengaju,nama_pengaju,tanggal_pengajuan,estimasi_tanggal_perekaman,"+
 				"is_ready_to_record,created_at",
-			"",
+			"exact",
 			false,
 		)
 
@@ -328,7 +328,7 @@ func (s *Service) GetSalahRekamList(ctx context.Context, filter DataRekamFilter)
 
 	offset := (filter.Page - 1) * filter.PageSize
 
-	// Build base query with explicit field selection
+	// Build base query with explicit field selection and exact count
 	queryBuilder := s.client.From("salah_rekam").
 		Select(
 			"id,nik_salah_rekam,nama_salah_rekam,"+
@@ -337,7 +337,7 @@ func (s *Service) GetSalahRekamList(ctx context.Context, filter DataRekamFilter)
 				"nik_petugas_rekam,nama_petugas_rekam,"+
 				"nik_pengaju,nama_pengaju,"+
 				"is_ready_to_record,created_at",
-			"",
+			"exact",
 			false,
 		)
 
@@ -456,7 +456,7 @@ func (s *Service) GetMonthlyBreakdown(ctx context.Context, startDate, endDate *s
 				// - TIMESTAMP columns: "2024-03-15T10:30:45+07:00" or "2024-03-15T10:30:45.123456Z"
 				var parsedTime time.Time
 				var err error
-				
+
 				// Format 1: Try RFC3339Nano first (timestamps with nanoseconds)
 				parsedTime, err = time.Parse(time.RFC3339Nano, dateStr)
 				if err != nil {
@@ -475,15 +475,15 @@ func (s *Service) GetMonthlyBreakdown(ctx context.Context, startDate, endDate *s
 						}
 					}
 				}
-				
+
 				// Extract year-month using time.Time methods (YYYY-MM format)
 				yearMonth := parsedTime.Format("2006-01")
-				
+
 				// Initialize month map if needed
 				if monthlyStatsByTable[yearMonth] == nil {
 					monthlyStatsByTable[yearMonth] = make(map[string]int)
 				}
-				
+
 				// Increment count for this table in this month
 				monthlyStatsByTable[yearMonth][tableInfo.key]++
 			}
@@ -496,7 +496,7 @@ func (s *Service) GetMonthlyBreakdown(ctx context.Context, startDate, endDate *s
 	for k := range monthlyStatsByTable {
 		keys = append(keys, k)
 	}
-	
+
 	// Sort keys (naturally sorted as YYYY-MM format)
 	for i := 0; i < len(keys)-1; i++ {
 		for j := i + 1; j < len(keys); j++ {
@@ -517,12 +517,12 @@ func (s *Service) GetMonthlyBreakdown(ctx context.Context, startDate, endDate *s
 		}
 
 		result = append(result, map[string]interface{}{
-			"year":                 year,
-			"month":                month,
-			"adjudicate_record":    monthlyStatsByTable[yearMonth]["adjudicate_record"],
-			"duplicate_operator":   monthlyStatsByTable[yearMonth]["duplicate_operator"],
-			"salah_rekam":          monthlyStatsByTable[yearMonth]["salah_rekam"],
-			"pengajuan_bulanan":    monthlyStatsByTable[yearMonth]["pengajuan_bulanan"],
+			"year":               year,
+			"month":              month,
+			"adjudicate_record":  monthlyStatsByTable[yearMonth]["adjudicate_record"],
+			"duplicate_operator": monthlyStatsByTable[yearMonth]["duplicate_operator"],
+			"salah_rekam":        monthlyStatsByTable[yearMonth]["salah_rekam"],
+			"pengajuan_bulanan":  monthlyStatsByTable[yearMonth]["pengajuan_bulanan"],
 		})
 	}
 
@@ -581,7 +581,7 @@ func (s *Service) GetYearlyBreakdown(ctx context.Context, startDate, endDate *st
 				// - TIMESTAMP columns: "2024-03-15T10:30:45+07:00" or "2024-03-15T10:30:45.123456Z"
 				var parsedTime time.Time
 				var err error
-				
+
 				// Format 1: Try RFC3339Nano first (timestamps with nanoseconds)
 				parsedTime, err = time.Parse(time.RFC3339Nano, dateStr)
 				if err != nil {
@@ -600,15 +600,15 @@ func (s *Service) GetYearlyBreakdown(ctx context.Context, startDate, endDate *st
 						}
 					}
 				}
-				
+
 				// Extract year using time.Time method
 				year := parsedTime.Year()
-				
+
 				// Initialize year map if needed
 				if yearlyStatsByTable[year] == nil {
 					yearlyStatsByTable[year] = make(map[string]int)
 				}
-				
+
 				// Increment count for this table in this year
 				yearlyStatsByTable[year][tableInfo.name]++
 			}
@@ -642,7 +642,7 @@ func (s *Service) GetYearlyBreakdown(ctx context.Context, startDate, endDate *st
 	}
 
 	return result, nil
-}// GetDashboardStats retrieves aggregated statistics for all data-rekam tables
+} // GetDashboardStats retrieves aggregated statistics for all data-rekam tables
 func (s *Service) GetDashboardStats(ctx context.Context, startDate, endDate *string) (map[string]interface{}, error) {
 	if !s.isHealthy {
 		return nil, ErrDatabaseNotHealthy
