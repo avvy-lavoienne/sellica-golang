@@ -138,9 +138,16 @@ function PengajuanBulananContent() {
             "[pengajuan-bulanan] Admin user detected, skipping NIK validation",
           );
         }
+        
+        // ✅ FIXED: For admin users, use default NIK if not available
+        // This allows admin to submit forms without having a real NIK
+        const nikValue = isAdmin 
+          ? (contextUser.nik || "9999999999999999")  // Default admin NIK
+          : (contextUser.nik || "");
+        
         setFormData((prev) => ({
           ...prev,
-          nik_pengaju: contextUser.nik || "",
+          nik_pengaju: nikValue,
           nama_pengaju: contextUser.name || "",
         }));
       } catch (error: any) {
