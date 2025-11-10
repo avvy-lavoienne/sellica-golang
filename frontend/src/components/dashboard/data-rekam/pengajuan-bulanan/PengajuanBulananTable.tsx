@@ -86,8 +86,16 @@ const PengajuanBulananTable: React.FC<PengajuanBulananTableProps> = ({
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [activeDateEdit, setActiveDateEdit] = useState<string | null>(null);
 
   const debouncedSearch = useDebounce(searchQuery, 500);
+
+  // ✅ Helper function to normalize and check admin role
+  const isAdminUser = (role: string): boolean => {
+    if (!role) return false;
+    const normalized = role.toLowerCase().trim();
+    return ["admin", "superuser"].includes(normalized);
+  };
 
   useEffect(() => {
     if (searchQuery === "" && (!startDate || !endDate)) {
@@ -157,24 +165,79 @@ const PengajuanBulananTable: React.FC<PengajuanBulananTableProps> = ({
   const totalPages = Math.ceil(totalCount / rowsPerPage);
 
   const handleToggleChange = async (id: string, currentStatus: boolean) => {
-    if (!["admin", "superuser"].includes(userRole)) {
+    if (!isAdminUser(userRole)) {
+      console.warn(
+        `[pengajuan-bulanan-table] Non-admin user (${userRole}) attempted toggle`
+      );
       toast.error("Hanya admin atau superuser yang dapat mengubah status.");
       return;
     }
 
     try {
-      const newStatus = !currentStatus;
-      const { error } = await supabase
-        .from("pengajuan_bulanan")
-        .update({ is_ready_to_record: newStatus })
-        .eq("id", id);
-
-      if (error) {
-        console.error("Error updating status:", error);
-        throw new Error(`Gagal mengubah status: ${error.message}`);
+      // ✅ Get token from localStorage
+      const token = localStorage.getItem("selly_auth_token");
+      if (!token) {
+        console.warn("[pengajuan-bulanan-table] Token not found in localStorage");
+        toast.error("Sesi autentikasi tidak ditemukan. Silakan login kembali.");
+        return;
       }
 
+      console.log(
+        `[pengajuan-bulanan-table] Toggling status for record ${id} from ${currentStatus}`
+      );
+
+      const newStatus = !currentStatus;
+
+      // ✅ Use API route instead of direct Supabase call
+      const response = await fetch(
+        "/api/data-rekam/pengajuan-bulanan/toggle-status",
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id, newStatus }),
+        }
+      );
+
+      if (response.status === 401) {
+        console.error("[pengajuan-bulanan-table] Authentication failed (401)");
+        localStorage.removeItem("selly_auth_token");
+        localStorage.removeItem("selly_user_data");
+        toast.error("Sesi telah berakhir. Silakan login kembali.");
+        return;
+      }
+
+      if (response.status === 403) {
+        console.error("[pengajuan-bulanan-table] Authorization failed (403)");
+        toast.error("Anda tidak memiliki izin untuk mengubah status.");
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMsg = errorData.message || `HTTP ${response.status}`;
+        console.error("[pengajuan-bulanan-table] API error:", errorMsg);
+        throw new Error(errorMsg);
+      }
+
+      const result = await response.json();
+
+      console.log(`[pengajuan-bulanan-table] Status toggle successful for ${id}`);
       toast.success("Status berhasil diubah!");
+
+      // ✅ Emit event for cross-component updates
+      window.dispatchEvent(
+        new CustomEvent("pengajuan-bulanan-status-updated", {
+          detail: {
+            id,
+            newStatus,
+            timestamp: new Date().toISOString(),
+          },
+        })
+      );
+
       // Use onDataRefresh to preserve pagination/filters, fallback to onRefresh
       if (onDataRefresh) {
         onDataRefresh();
@@ -182,7 +245,7 @@ const PengajuanBulananTable: React.FC<PengajuanBulananTableProps> = ({
         onRefresh();
       }
     } catch (error: any) {
-      console.error("Error updating status:", error);
+      console.error("[pengajuan-bulanan-table] Toggle error:", error);
       toast.error(error.message || "Gagal mengubah status. Silakan coba lagi.");
     }
   };
@@ -192,7 +255,10 @@ const PengajuanBulananTable: React.FC<PengajuanBulananTableProps> = ({
   };
 
   const handleSaveDate = async (id: string) => {
-    if (!["admin", "superuser"].includes(userRole)) {
+    if (!isAdminUser(userRole)) {
+      console.warn(
+        `[pengajuan-bulanan-table] Non-admin user (${userRole}) attempted date update`
+      );
       toast.error("Hanya admin atau superuser yang dapat mengubah tanggal.");
       return;
     }
@@ -206,30 +272,84 @@ const PengajuanBulananTable: React.FC<PengajuanBulananTableProps> = ({
     setSaving((prev) => ({ ...prev, [id]: true }));
 
     try {
-      const { error } = await supabase
-        .from("pengajuan_bulanan")
-        .update({ estimasi_tanggal_perekaman: newDate })
-        .eq("id", id);
+      // ✅ Get token from localStorage
+      const token = localStorage.getItem("selly_auth_token");
+      if (!token) {
+        console.warn("[pengajuan-bulanan-table] Token not found in localStorage");
+        toast.error("Sesi autentikasi tidak ditemukan. Silakan login kembali.");
+        return;
+      }
 
-      if (error) throw new Error(`Gagal menyimpan tanggal: ${error.message}`);
+      console.log(
+        `[pengajuan-bulanan-table] Updating date for record ${id} to ${newDate}`
+      );
 
+      // ✅ Use API route instead of direct Supabase call
+      const response = await fetch(
+        "/api/data-rekam/pengajuan-bulanan/update-date",
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id, newDate }),
+        }
+      );
+
+      if (response.status === 401) {
+        console.error("[pengajuan-bulanan-table] Authentication failed (401)");
+        localStorage.removeItem("selly_auth_token");
+        localStorage.removeItem("selly_user_data");
+        toast.error("Sesi telah berakhir. Silakan login kembali.");
+        return;
+      }
+
+      if (response.status === 403) {
+        console.error("[pengajuan-bulanan-table] Authorization failed (403)");
+        toast.error("Anda tidak memiliki izin untuk mengubah tanggal.");
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMsg = errorData.message || `HTTP ${response.status}`;
+        console.error("[pengajuan-bulanan-table] API error:", errorMsg);
+        throw new Error(errorMsg);
+      }
+
+      const result = await response.json();
+
+      console.log(`[pengajuan-bulanan-table] Date update successful for ${id}`);
       toast.success("Tanggal berhasil disimpan!");
+
+      // ✅ Emit event for cross-component updates
+      window.dispatchEvent(
+        new CustomEvent("pengajuan-bulanan-date-updated", {
+          detail: {
+            id,
+            newDate,
+            timestamp: new Date().toISOString(),
+          },
+        })
+      );
+
       // Use onDataRefresh to preserve pagination/filters, fallback to onRefresh
       if (onDataRefresh) {
         onDataRefresh();
       } else {
         onRefresh();
       }
+
       setEditedDates((prev) => {
         const newDates = { ...prev };
         delete newDates[id];
         return newDates;
       });
+      setActiveDateEdit(null);
     } catch (error: any) {
-      console.error("Error saving date:", error);
-      toast.error(
-        error.message || "Gagal menyimpan tanggal. Silakan coba lagi.",
-      );
+      console.error("[pengajuan-bulanan-table] Date save error:", error);
+      toast.error(error.message || "Gagal menyimpan tanggal. Silakan coba lagi.");
     } finally {
       setSaving((prev) => ({ ...prev, [id]: false }));
     }
