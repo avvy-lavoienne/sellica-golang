@@ -451,7 +451,8 @@ export default function AdjudicateRecordPage() {
     setTotalCount(totalCount);
   }, [fetchRekapData, currentPage, searchQuery, statusFilter]);
 
-  if (!user || !profile) {
+  // Show loading state while auth is being checked
+  if (isLoadingAuth) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 px-4 py-12 dark:from-gray-900 dark:to-gray-800 sm:px-6 lg:px-8">
         <motion.div
@@ -460,35 +461,15 @@ export default function AdjudicateRecordPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-8 w-8 text-red-600 dark:text-red-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600 dark:border-blue-700 dark:border-t-blue-400"></div>
           </div>
           <h2 className="mb-2 text-xl font-bold text-gray-900 dark:text-white">
-            Sesi Tidak Ditemukan
+            Memuat...
           </h2>
           <p className="mb-6 text-gray-600 dark:text-gray-300">
-            Sesi Anda telah berakhir atau Anda belum login. Silakan login
-            kembali untuk melanjutkan.
+            Mengverifikasi sesi Anda.
           </p>
-          <Link
-            href="/"
-            className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
-          >
-            Kembali ke Dashboard
-          </Link>
         </motion.div>
       </div>
     );
