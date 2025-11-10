@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
+import { GoAuthAPI } from "@/lib/api/goAuth";
 import type { AdjudicateRecordData } from "@/types/data-rekam/adjudicate-record";
 import { useDebounce } from "@/hooks/use-debounce";
 import {
@@ -237,6 +238,13 @@ const Label: React.FC<LabelProps> = ({ children, htmlFor, className = "", value 
   </label>
 );
 
+/**
+ * Check if user has admin or superuser role (case-insensitive)
+ */
+function isAdminUser(role: string): boolean {
+  return ['admin', 'superuser'].includes((role || '').toLowerCase().trim());
+}
+
 // Enhanced interface with enterprise-grade features
 interface AdjudicateRecordTableProps {
   rekapData: AdjudicateRecordData[];
@@ -339,21 +347,57 @@ const AdjudicateRecordTable: React.FC<AdjudicateRecordTableProps> = ({
 
   // Toggle status handler with permission checks
   const handleToggleChange = async (id: string, currentStatus: boolean) => {
-    if (!["admin", "superuser"].includes(userRole)) {
+    if (!isAdminUser(userRole)) {
       toast.error("Hanya admin atau superuser yang dapat mengubah status.");
       return;
     }
 
     try {
-      const newStatus = !currentStatus;
-      const { error } = await supabase
-        .from("adjudicate_record")
-        .update({ is_ready_to_record: newStatus })
-        .eq("id", id);
+      const token = GoAuthAPI.getToken();
+      if (!token) {
+        console.error("[AdjudicateRecord] No token found from GoAuthAPI");
+        toast.error("Token autentikasi tidak ditemukan. Silakan login kembali.");
+        return;
+      }
 
-      if (error) {
-        console.error("Error updating status:", error);
-        throw new Error(`Gagal mengubah status: ${error.message}`);
+      // Validate token format
+      if (!token.startsWith("eyJ")) {
+        console.error("[AdjudicateRecord] Invalid token format detected");
+        localStorage.clear();
+        toast.error("Sesi autentikasi tidak valid. Silakan login kembali.");
+        window.location.href = "/login";
+        return;
+      }
+
+      const newStatus = !currentStatus;
+      const response = await fetch('/api/data-rekam/adjudicate/toggle-status', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id, is_ready_to_record: newStatus }),
+      });
+
+      // Handle 401 Unauthorized
+      if (response.status === 401) {
+        console.error("[AdjudicateRecord] Unauthorized - token expired");
+        localStorage.clear();
+        toast.error("Sesi autentikasi berakhir. Silakan login kembali.");
+        window.location.href = "/login";
+        return;
+      }
+
+      // Handle 403 Forbidden
+      if (response.status === 403) {
+        console.error("[AdjudicateRecord] Forbidden - insufficient permissions");
+        toast.error("Anda tidak memiliki izin untuk mengubah status ini.");
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Gagal mengubah status");
       }
 
       toast.success("Status berhasil diubah!");
@@ -363,7 +407,7 @@ const AdjudicateRecordTable: React.FC<AdjudicateRecordTableProps> = ({
         onRefresh();
       }
     } catch (error: any) {
-      console.error("Error updating status:", error);
+      console.error("[AdjudicateRecord] Error updating status:", error);
       toast.error(error.message || "Gagal mengubah status. Silakan coba lagi.");
     }
   };
@@ -374,7 +418,7 @@ const AdjudicateRecordTable: React.FC<AdjudicateRecordTableProps> = ({
   };
 
   const handleSaveDate = async (id: string) => {
-    if (!["admin", "superuser"].includes(userRole)) {
+    if (!isAdminUser(userRole)) {
       toast.error("Hanya admin atau superuser yang dapat mengubah tanggal.");
       return;
     }
@@ -385,15 +429,62 @@ const AdjudicateRecordTable: React.FC<AdjudicateRecordTableProps> = ({
       return;
     }
 
+    // Validate date format (YYYY-MM-DD)
+    if (!newDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      toast.error("Format tanggal harus YYYY-MM-DD!");
+      return;
+    }
+
     setSaving((prev) => ({ ...prev, [id]: true }));
 
     try {
-      const { error } = await supabase
-        .from("adjudicate_record")
-        .update({ estimasi_tanggal_perekaman: newDate })
-        .eq("id", id);
+      const token = GoAuthAPI.getToken();
+      if (!token) {
+        console.error("[AdjudicateRecord] No token found from GoAuthAPI");
+        toast.error("Token autentikasi tidak ditemukan. Silakan login kembali.");
+        setSaving((prev) => ({ ...prev, [id]: false }));
+        return;
+      }
 
-      if (error) throw new Error(`Gagal menyimpan tanggal: ${error.message}`);
+      // Validate token format
+      if (!token.startsWith("eyJ")) {
+        console.error("[AdjudicateRecord] Invalid token format detected");
+        localStorage.clear();
+        toast.error("Sesi autentikasi tidak valid. Silakan login kembali.");
+        window.location.href = "/login";
+        return;
+      }
+
+      const response = await fetch('/api/data-rekam/adjudicate/update-date', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id, estimasi_tanggal_perekaman: newDate }),
+      });
+
+      // Handle 401 Unauthorized
+      if (response.status === 401) {
+        console.error("[AdjudicateRecord] Unauthorized - token expired");
+        localStorage.clear();
+        toast.error("Sesi autentikasi berakhir. Silakan login kembali.");
+        window.location.href = "/login";
+        return;
+      }
+
+      // Handle 403 Forbidden
+      if (response.status === 403) {
+        console.error("[AdjudicateRecord] Forbidden - insufficient permissions");
+        toast.error("Anda tidak memiliki izin untuk mengubah tanggal ini.");
+        setSaving((prev) => ({ ...prev, [id]: false }));
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Gagal menyimpan tanggal");
+      }
 
       toast.success("Tanggal berhasil disimpan!");
       if (onDataRefresh) {

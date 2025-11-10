@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
+import { GoAuthAPI } from "@/lib/api/goAuth";
 import { useProtectedAuth } from "@/app/(protected)/auth-context";
 import AdjudicateRecordHeader from "@/components/dashboard/data-rekam/adjudicate-record/AdjudicateRecordHeader";
 import AdjudicateRecordActions from "@/components/dashboard/data-rekam/adjudicate-record/AdjudicateRecordActions";
@@ -132,12 +133,21 @@ export default function AdjudicateRecordPage() {
           params.append("search", searchQuery);
         }
 
-        // Get auth token from session
-        const session = await supabase.auth.getSession();
-        const token = session.data.session?.access_token;
+        // Get auth token from localStorage (Go backend JWT)
+        const token = GoAuthAPI.getToken();
         if (!token) {
+          console.error("[AdjudicateRecord] No token found from GoAuthAPI");
           toast.error("Token autentikasi tidak ditemukan. Silakan login kembali.");
           router.push("/login");
+          return { totalCount: 0 };
+        }
+
+        // Validate token format (JWT should start with "eyJ")
+        if (!token.startsWith("eyJ")) {
+          console.error("[AdjudicateRecord] Invalid token format detected");
+          localStorage.clear();
+          toast.error("Sesi autentikasi tidak valid. Silakan login kembali.");
+          window.location.href = "/login";
           return { totalCount: 0 };
         }
 
@@ -153,20 +163,24 @@ export default function AdjudicateRecordPage() {
           }
         );
 
-        // Handle auth errors
+        // Handle 401 Unauthorized - Token expired or invalid
         if (response.status === 401) {
-          toast.error("Sesi telah berakhir. Silakan login kembali.");
-          router.push("/login");
+          console.error("[AdjudicateRecord] Unauthorized response - token expired or invalid");
+          localStorage.clear();
+          toast.error("Sesi autentikasi berakhir. Silakan login kembali.");
+          window.location.href = "/login";
           return { totalCount: 0 };
         }
 
+        // Handle 403 Forbidden - Insufficient permissions
         if (response.status === 403) {
+          console.error("[AdjudicateRecord] Forbidden response - insufficient permissions");
           toast.error("Anda tidak memiliki izin untuk mengakses data ini.");
           return { totalCount: 0 };
         }
 
         if (!response.ok) {
-          const errorData = await response.json();
+          const errorData = await response.json().catch(() => ({}));
           throw new Error(errorData.error || "Gagal memuat data");
         }
 
@@ -179,7 +193,7 @@ export default function AdjudicateRecordPage() {
         setRekapData(result.data || []);
         return { totalCount: result.total_count || 0 };
       } catch (error: any) {
-        console.error("Error fetching rekap data:", error);
+        console.error("[AdjudicateRecord] Error fetching rekap data:", error);
         toast.error(
           error.message || "Gagal memuat data rekap. Silakan coba lagi.",
         );
