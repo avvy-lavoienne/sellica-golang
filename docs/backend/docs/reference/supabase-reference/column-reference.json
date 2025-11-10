@@ -657,6 +657,38 @@
     "position": 9
   },
   {
+    "table_name": "pending_users",
+    "column_name": "rejected_by",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 10,
+    "description": "References profiles.id of the admin who rejected this user registration",
+    "foreign_key": "profiles(id)"
+  },
+  {
+    "table_name": "pending_users",
+    "column_name": "rejected_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 11,
+    "description": "Timestamp when the user registration was rejected"
+  },
+  {
+    "table_name": "pending_users",
+    "column_name": "rejection_reason",
+    "data_type": "text",
+    "max_length": 500,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 12,
+    "description": "Optional reason provided by admin for rejecting the user registration",
+    "constraint": "max length 500 characters"
+  },
+  {
     "table_name": "pengaduan_bulanan",
     "column_name": "id",
     "data_type": "uuid",

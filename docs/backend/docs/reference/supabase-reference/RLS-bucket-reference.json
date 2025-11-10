@@ -1,0 +1,114 @@
+[
+  {
+    "policy_name": "Admin and superuser can delete all files in dokumentasi-foto",
+    "schema_name": "storage",
+    "table_name": "objects",
+    "using_clause": "((bucket_id = 'dokumentasi-foto'::text) AND (auth.role() = ANY (ARRAY['admin'::text, 'superuser'::text])))",
+    "with_check_clause": null
+  },
+  {
+    "policy_name": "Admin and superuser can update all files in dokumentasi-foto",
+    "schema_name": "storage",
+    "table_name": "objects",
+    "using_clause": "((bucket_id = 'dokumentasi-foto'::text) AND (auth.role() = ANY (ARRAY['admin'::text, 'superuser'::text])))",
+    "with_check_clause": null
+  },
+  {
+    "policy_name": "Admin and superuser can view all files in dokumentasi-foto",
+    "schema_name": "storage",
+    "table_name": "objects",
+    "using_clause": "((bucket_id = 'dokumentasi-foto'::text) AND (auth.role() = ANY (ARRAY['admin'::text, 'superuser'::text])))",
+    "with_check_clause": null
+  },
+  {
+    "policy_name": "Authenticated users can upload",
+    "schema_name": "storage",
+    "table_name": "objects",
+    "using_clause": null,
+    "with_check_clause": "(bucket_id = 'dokumentasi-foto'::text)"
+  },
+  {
+    "policy_name": "Public read access to avatars",
+    "schema_name": "storage",
+    "table_name": "objects",
+    "using_clause": "(bucket_id = 'avatars'::text)",
+    "with_check_clause": null
+  },
+  {
+    "policy_name": "Users can delete their avatars",
+    "schema_name": "storage",
+    "table_name": "objects",
+    "using_clause": "((bucket_id = 'avatars'::text) AND (auth.role() = 'authenticated'::text))",
+    "with_check_clause": null
+  },
+  {
+    "policy_name": "Users can delete their own files in dokumentasi-foto",
+    "schema_name": "storage",
+    "table_name": "objects",
+    "using_clause": "((bucket_id = 'dokumentasi-foto'::text) AND (auth.role() = 'user'::text) AND (((metadata ->> 'created_by'::text))::uuid = auth.uid()))",
+    "with_check_clause": null
+  },
+  {
+    "policy_name": "Users can update their avatars",
+    "schema_name": "storage",
+    "table_name": "objects",
+    "using_clause": "((bucket_id = 'avatars'::text) AND (auth.role() = 'authenticated'::text))",
+    "with_check_clause": "((bucket_id = 'avatars'::text) AND (auth.role() = 'authenticated'::text))"
+  },
+  {
+    "policy_name": "Users can update their own files in dokumentasi-foto",
+    "schema_name": "storage",
+    "table_name": "objects",
+    "using_clause": "((bucket_id = 'dokumentasi-foto'::text) AND (auth.role() = 'user'::text) AND (((metadata ->> 'created_by'::text))::uuid = auth.uid()))",
+    "with_check_clause": null
+  },
+  {
+    "policy_name": "Users can upload avatars",
+    "schema_name": "storage",
+    "table_name": "objects",
+    "using_clause": null,
+    "with_check_clause": "((bucket_id = 'avatars'::text) AND (auth.role() = 'authenticated'::text))"
+  },
+  {
+    "policy_name": "Users can upload files to dokumentasi-foto",
+    "schema_name": "storage",
+    "table_name": "objects",
+    "using_clause": null,
+    "with_check_clause": "((bucket_id = 'dokumentasi-foto'::text) AND (((metadata ->> 'created_by'::text))::uuid = auth.uid()))"
+  },
+  {
+    "policy_name": "Users can view their own files in dokumentasi-foto",
+    "schema_name": "storage",
+    "table_name": "objects",
+    "using_clause": "((bucket_id = 'dokumentasi-foto'::text) AND (auth.role() = 'user'::text) AND (((metadata ->> 'created_by'::text))::uuid = auth.uid()))",
+    "with_check_clause": null
+  },
+  {
+    "policy_name": "authenticated_users_delete_avatars",
+    "schema_name": "storage",
+    "table_name": "objects",
+    "using_clause": "((bucket_id = 'avatars'::text) AND (EXISTS ( SELECT 1\n   FROM profiles\n  WHERE ((profiles.id = auth.uid()) AND (profiles.role = ANY (ARRAY['user'::text, 'admin'::text, 'superuser'::text]))))))",
+    "with_check_clause": null
+  },
+  {
+    "policy_name": "authenticated_users_insert_avatars",
+    "schema_name": "storage",
+    "table_name": "objects",
+    "using_clause": null,
+    "with_check_clause": "((bucket_id = 'avatars'::text) AND (EXISTS ( SELECT 1\n   FROM profiles\n  WHERE ((profiles.id = auth.uid()) AND (profiles.role = ANY (ARRAY['user'::text, 'admin'::text, 'superuser'::text]))))))"
+  },
+  {
+    "policy_name": "authenticated_users_update_avatars",
+    "schema_name": "storage",
+    "table_name": "objects",
+    "using_clause": "((bucket_id = 'avatars'::text) AND (EXISTS ( SELECT 1\n   FROM profiles\n  WHERE ((profiles.id = auth.uid()) AND (profiles.role = ANY (ARRAY['user'::text, 'admin'::text, 'superuser'::text]))))))",
+    "with_check_clause": "((bucket_id = 'avatars'::text) AND (EXISTS ( SELECT 1\n   FROM profiles\n  WHERE ((profiles.id = auth.uid()) AND (profiles.role = ANY (ARRAY['user'::text, 'admin'::text, 'superuser'::text]))))))"
+  },
+  {
+    "policy_name": "public_select_avatars",
+    "schema_name": "storage",
+    "table_name": "objects",
+    "using_clause": "(bucket_id = 'avatars'::text)",
+    "with_check_clause": null
+  }
+]

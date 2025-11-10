@@ -27,6 +27,37 @@
 **Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
 **Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
 
+## Performance Benchmarks (Backend Features Only)
+
+**REQUIRED for all backend API endpoints** (per Constitution Principle II):
+
+**Baseline Requirements**:
+- Response time: <50ms target (current baseline: 1.7-28ms)
+- Throughput: 20x improvement over Next.js baseline
+- Cache hit ratio: >85% target
+- Zero error rate under load (500+ concurrent users)
+- Memory usage: <100MB for Go services
+
+**Benchmark Command**:
+```powershell
+cd backend
+go test -bench=. -benchmem -count=3 ./scripts/load-testing/
+```
+
+**Metrics to Capture**:
+- Average response time (ms)
+- P95 response time (ms)
+- Requests per second (RPS)
+- Memory allocation per operation
+- Error rate percentage
+
+**Load Testing**:
+- Use `backend/scripts/load-testing/benchmark_test.go`
+- Test with 25, 100, 500 concurrent users
+- Document results in implementation report
+
+**Frontend features**: Performance validation only if spec explicitly requires it.
+
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*

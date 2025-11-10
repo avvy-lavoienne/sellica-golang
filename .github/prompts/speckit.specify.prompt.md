@@ -1,5 +1,5 @@
 ---
-description: Create or update the feature specification from a natural language feature description. Generate specification in topic-based folder structure (Principle IX).
+description: Create or update the feature specification from a natural language feature description.
 ---
 
 ## User Input
@@ -9,20 +9,6 @@ $ARGUMENTS
 ```
 
 You **MUST** consider the user input before proceeding (if not empty).
-
-## Documentation Output Structure (MANDATORY - Principle IX)
-
-**Feature specification output in topic-based folder structure with specify-command subfolder:**
-
-```
-docs/bydate/YYYY-MM-DD-{TOPIC-NAME}/
-└── speckit-specify/
-    ├── YYYY-MM-DD-feature-specification.md
-    ├── YYYY-MM-DD-api-definition.md
-    └── YYYY-MM-DD-acceptance-criteria.md
-```
-
-**All specification output goes to `docs/bydate/YYYY-MM-DD-{TOPIC}/speckit-specify/` directory (create if not exists).**
 
 ## Outline
 

@@ -1,5 +1,5 @@
 ---
-description: Perform a non-destructive cross-artifact consistency and quality analysis across spec.md, plan.md, and tasks.md after task generation. Generate analysis report in topic-based folder structure (Principle IX).
+description: Perform a non-destructive cross-artifact consistency and quality analysis across spec.md, plan.md, and tasks.md after task generation.
 ---
 
 ## User Input
@@ -9,20 +9,6 @@ $ARGUMENTS
 ```
 
 You **MUST** consider the user input before proceeding (if not empty).
-
-## Documentation Output Structure (MANDATORY - Principle IX)
-
-**Analysis report output in topic-based folder structure with specify-command subfolder:**
-
-```
-docs/bydate/YYYY-MM-DD-{TOPIC-NAME}/
-└── speckit-analyze/
-    ├── YYYY-MM-DD-root-cause-analysis.md
-    ├── YYYY-MM-DD-architecture-analysis.md
-    └── YYYY-MM-DD-impact-assessment.md
-```
-
-**All analysis output goes to `docs/bydate/YYYY-MM-DD-{TOPIC}/speckit-analyze/` directory (if topic folder exists from prior speckit commands).**
 
 ## Goal
 
@@ -43,7 +29,6 @@ Run `.specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -In
 - SPEC = FEATURE_DIR/spec.md
 - PLAN = FEATURE_DIR/plan.md
 - TASKS = FEATURE_DIR/tasks.md
-- TOPIC = Extract from FEATURE_DIR path if available (e.g., `2025-11-02-topnav-auth-display-bug`)
 
 Abort with an error message if any required file is missing (instruct the user to run missing prerequisite command).
 For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").

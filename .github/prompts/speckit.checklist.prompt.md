@@ -1,21 +1,6 @@
 ---
-description: Generate a custom checklist for the current feature based on user requirements. Generate checklists in topic-based folder structure (Principle IX).
+description: Generate a custom checklist for the current feature based on user requirements.
 ---
-
-## Documentation Output Structure (MANDATORY - Principle IX)
-
-**Checklist output in topic-based folder structure with specify-command subfolder:**
-
-```
-docs/bydate/YYYY-MM-DD-{TOPIC-NAME}/
-└── speckit-checklist/
-    ├── YYYY-MM-DD-phase-0-checklist.md
-    ├── YYYY-MM-DD-phase-1-checklist.md
-    ├── YYYY-MM-DD-phase-2-checklist.md
-    └── YYYY-MM-DD-phase-3-checklist.md
-```
-
-**All checklist output goes to `docs/bydate/YYYY-MM-DD-{TOPIC}/speckit-checklist/` directory (create if not exists).**
 
 ## Checklist Purpose: "Unit Tests for English"
 
@@ -48,7 +33,9 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Execution Steps
 
-1. **Setup**: Run `.specify/scripts/powershell/check-prerequisites.ps1 -Json` from repo root and parse JSON for FEATURE_DIR, AVAILABLE_DOCS, and extract TOPIC from FEATURE_DIR path.
+1. **Setup**: Run `.specify/scripts/powershell/check-prerequisites.ps1 -Json` from repo root and parse JSON for FEATURE_DIR and AVAILABLE_DOCS list.
+   - All file paths must be absolute.
+   - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
 2. **Clarify intent (dynamic)**: Derive up to THREE initial contextual clarifying questions (no pre-baked catalog). They MUST:
    - Be generated from the user's phrasing + extracted signals from spec/plan/tasks

@@ -1,0 +1,902 @@
+[
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authenticated: identity=\"supabase_admin\" method=scram-sha-256 (/etc/postgresql/pg_hba.conf:94)",
+    "hint": null,
+    "id": "bb723cef-828b-4fc4-b598-fdaef33f6bce",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611455963000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=undefined SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "39e8a4b6-21ff-4dad-8944-f4cd9d5f7518",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611455963000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authenticated: identity=\"supabase_admin\" method=scram-sha-256 (/etc/postgresql/pg_hba.conf:94)",
+    "hint": null,
+    "id": "e0bcc399-db7a-4a0e-b244-9cd71a0c29bb",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611455957000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=undefined SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "a6e5e311-2f9d-45e9-a43d-dcd1dd4f0243",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611455957000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=2406:da18:96a:8200:3f0f:5288:1d78:e9f7 port=33714",
+    "hint": null,
+    "id": "096be04a-c884-427b-bb58-fe61d5ef4337",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611455941000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=2406:da18:96a:8200:bee2:11dd:87e6:ab0 port=54356",
+    "hint": null,
+    "id": "7b71f10b-9749-438d-99cb-389fbcecbcff",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611455940000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=postgres_exporter",
+    "hint": null,
+    "id": "936b84de-8333-428e-9f70-0b66d3e35c4d",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611443560000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=::1 port=21687",
+    "hint": null,
+    "id": "f061dbc1-0c2e-469f-b4d1-198c0ccfc05e",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611443559000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=postgres_exporter",
+    "hint": null,
+    "id": "2b1ee8f7-74a9-4cbe-a3ad-808a8a48c19f",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611383563000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=::1 port=26053",
+    "hint": null,
+    "id": "a7e29a8f-d71f-4acd-96bd-3f99a6db22fa",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611383562000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=postgres_exporter",
+    "hint": null,
+    "id": "002c1833-b921-42b0-81b8-729fe05bb277",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611323572000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=::1 port=44621",
+    "hint": null,
+    "id": "d4739c71-77ac-4fad-9d84-af93b6185bb1",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611323572000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authenticated: identity=\"supabase_admin\" method=scram-sha-256 (/etc/postgresql/pg_hba.conf:94)",
+    "hint": null,
+    "id": "c7f01723-b927-4fb2-98b8-0e4c30010ee9",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611265483000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=undefined SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "df5aff48-a15c-4e5d-9054-1827f70bf143",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611265483000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authenticated: identity=\"supabase_admin\" method=scram-sha-256 (/etc/postgresql/pg_hba.conf:94)",
+    "hint": null,
+    "id": "881586fd-e38d-4274-9f3d-baa1009fe9e6",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611264883000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=undefined SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "7059c9eb-3823-4e44-b2dd-9d34fe9efbaa",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611264883000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authenticated: identity=\"supabase_admin\" method=scram-sha-256 (/etc/postgresql/pg_hba.conf:94)",
+    "hint": null,
+    "id": "125777e7-44a8-475a-92f8-66fa3f33587c",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611264867000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=undefined SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "9929835a-cda1-47e7-9545-1698862f8d8b",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611264867000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=undefined SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "febbb461-14c3-400e-9de2-89bee2031745",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611264847000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authenticated: identity=\"supabase_admin\" method=scram-sha-256 (/etc/postgresql/pg_hba.conf:94)",
+    "hint": null,
+    "id": "10313d45-3b5c-4961-8c49-cf137b82878f",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611264847000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=postgres_exporter",
+    "hint": null,
+    "id": "4895ab22-3aa1-498a-9401-2f5a8bb2b5d3",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611263587000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=::1 port=41611",
+    "hint": null,
+    "id": "8cfe90f3-1815-481d-9568-b0a68478198c",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611263586000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=psql SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "d4cfd5ad-eaba-479e-8866-cd4e35e5e441",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611230254000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=psql SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "35d28676-45e0-4692-97f7-b4a60ce4c1a8",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611230230000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=psql SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "4b2d4fed-cf8d-48f7-88b0-f59079ba7239",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611229757000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=::1 port=64379",
+    "hint": null,
+    "id": "a797e00f-8325-4d2e-9ddd-2390eaa9b6b0",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611229729000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=postgres_exporter",
+    "hint": null,
+    "id": "700cf938-2df7-481c-a319-46698019c3a6",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611203552000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=::1 port=10859",
+    "hint": null,
+    "id": "9034b436-809c-422f-8a22-284b78e5bf0b",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611203551000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=postgres_exporter",
+    "hint": null,
+    "id": "bd90883f-f0b4-4123-ad7c-0d90ef7359a1",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611143547000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=::1 port=39019",
+    "hint": null,
+    "id": "9a005ba6-1615-41f4-b26e-cb6e8fbccdb9",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611143546000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=postgres_exporter",
+    "hint": null,
+    "id": "87903f3b-9806-4fb5-bba8-63c6f81d9e21",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611083545000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=::1 port=27297",
+    "hint": null,
+    "id": "89edd7c8-886e-43b9-af8b-0477ce0ef5f6",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611083545000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=undefined SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "87a769be-605e-4fc2-8dcb-a2f10d8bd703",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611048969000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=undefined SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "259fb9cc-e492-4ca7-ac61-9d6715006ca4",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611048969000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authenticated: identity=\"supabase_admin\" method=scram-sha-256 (/etc/postgresql/pg_hba.conf:94)",
+    "hint": null,
+    "id": "e6afe902-3acf-4224-9a1a-0027a7b13b61",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611048969000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authenticated: identity=\"supabase_admin\" method=scram-sha-256 (/etc/postgresql/pg_hba.conf:94)",
+    "hint": null,
+    "id": "7c0bfc1c-d7f5-44c6-8644-b2f2d9fc9fdc",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611048969000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=2406:da18:96a:8200:888b:1e6d:61e7:179e port=43424",
+    "hint": null,
+    "id": "0691d9ad-4aff-481b-920c-cb36ae6d7bbf",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611048951000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=2406:da18:96a:8200:3f0f:5288:1d78:e9f7 port=48784",
+    "hint": null,
+    "id": "4e39375b-a94a-4fc6-9eee-1c3f7476e354",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611048951000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=postgres_exporter",
+    "hint": null,
+    "id": "3ac47c75-15c8-410e-84f0-e925bda3283f",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611023540000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=::1 port=41903",
+    "hint": null,
+    "id": "0b83fea2-d618-49c3-bb09-436d50539c5f",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762611023539000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authenticated: identity=\"supabase_admin\" method=scram-sha-256 (/etc/postgresql/pg_hba.conf:94)",
+    "hint": null,
+    "id": "57bcc96c-6d3a-49f6-973a-992770afa9f1",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610978224000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=undefined SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "090f0b3d-ef5c-430f-a0a7-3da03263a5f3",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610978224000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authenticated: identity=\"supabase_admin\" method=scram-sha-256 (/etc/postgresql/pg_hba.conf:94)",
+    "hint": null,
+    "id": "14290022-e5af-4f5b-ba90-86f0211d064a",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610978217000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=undefined SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "052ebb62-90d1-45ad-b057-a18cdc24a145",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610978217000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=2406:da18:96a:8200:e802:70ff:ee9c:70c3 port=53198",
+    "hint": null,
+    "id": "9a25f7d2-f70c-4ff9-ac85-18365e69bf0d",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610978207000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=2406:da18:96a:8200:7d2b:e879:bb0a:ab02 port=42260",
+    "hint": null,
+    "id": "c16f73f4-1751-4281-8470-8ff8c766e4f0",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610978204000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=::1 port=50539",
+    "hint": null,
+    "id": "4339b156-ddec-4d4c-b3ab-12b4c3eff93c",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610963536000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=postgres_exporter",
+    "hint": null,
+    "id": "7cc0d4f8-2263-453c-a711-cfa96841e506",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610963536000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=undefined SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "99dc9df8-e97e-4849-93f4-b88248d641fe",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610904085000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authenticated: identity=\"supabase_admin\" method=scram-sha-256 (/etc/postgresql/pg_hba.conf:94)",
+    "hint": null,
+    "id": "6201e651-f1f7-489a-bf6b-ff7a3c003a42",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610904085000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authenticated: identity=\"supabase_admin\" method=scram-sha-256 (/etc/postgresql/pg_hba.conf:94)",
+    "hint": null,
+    "id": "0e1481ed-0033-45d8-a805-1547fd3caaab",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610904083000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=undefined SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "59965ac7-5cf9-40d7-b273-6b5f965ed56c",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610904083000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=postgres_exporter",
+    "hint": null,
+    "id": "da6f2c35-180c-4ff0-8f7f-1e3a8a23091c",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610903531000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=::1 port=27845",
+    "hint": null,
+    "id": "c74fd6e4-a2ff-4eb0-a038-3bd133e1c2ed",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610903530000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=postgres_exporter",
+    "hint": null,
+    "id": "14cb18a9-1a2e-4025-9979-c31c842dac6a",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610843530000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=::1 port=59493",
+    "hint": null,
+    "id": "7cc3f09b-7bbf-4a4a-b56d-b84f40f7b139",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610843529000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=postgres_exporter",
+    "hint": null,
+    "id": "a7472a5f-a268-43e9-b764-d3bf2ac0414e",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610783520000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=::1 port=15551",
+    "hint": null,
+    "id": "90048906-99be-4a6a-9100-e2ac1ae876d5",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610783520000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=postgres_exporter",
+    "hint": null,
+    "id": "798c4524-1534-4cef-a2ec-68a6a65e50ce",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610723515000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=postgres_exporter",
+    "hint": null,
+    "id": "41e38ab8-68b7-401e-a056-7a5f883765e3",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610663511000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=::1 port=17981",
+    "hint": null,
+    "id": "5baae295-a63c-48ea-b62a-cfa7165b4d06",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610663511000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=postgres_exporter",
+    "hint": null,
+    "id": "feb3acf3-f153-4824-986a-df1f21bc7701",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610603513000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=::1 port=25461",
+    "hint": null,
+    "id": "49c45596-f105-4316-b859-099574139a92",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610603512000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=postgres_exporter",
+    "hint": null,
+    "id": "50f861f2-d5fc-45d6-b7c2-9e45f9d5ea4c",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610543572000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=::1 port=29687",
+    "hint": null,
+    "id": "cc23aca2-7391-484b-bfce-506e721660ee",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610543567000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=psql SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "98adfc9c-86f3-4905-99a5-857eb684dc02",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610536976000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=psql SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "a0f0cb2c-1ef2-4948-872d-890159d2797d",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610536951000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=psql SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "4ecaa69a-eac1-4ded-83a9-31c127b3a877",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610536425000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=::1 port=5219",
+    "hint": null,
+    "id": "f0131486-b348-4df9-bc3c-b996a79ccdd0",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610536387000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "checkpoint complete: wrote 69 buffers (0.2%); 0 WAL file(s) added, 0 removed, 0 recycled; write=6.841 s, sync=0.005 s, total=6.872 s; sync files=46, longest=0.003 s, average=0.001 s; distance=387 kB, estimate=455 kB",
+    "hint": null,
+    "id": "909f00c9-f29e-4689-bd25-f5f80e0801da",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610491554000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=postgres_exporter",
+    "hint": null,
+    "id": "8ae3a2fd-708c-4d3f-bce2-c08ec422b104",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610483515000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=::1 port=28833",
+    "hint": null,
+    "id": "f8edeaa3-66cf-415b-bb77-19e4cd78d35a",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610483514000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=postgres_exporter",
+    "hint": null,
+    "id": "2282b9b7-ae9f-4c68-86e5-a18307981ca5",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610423514000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=::1 port=21157",
+    "hint": null,
+    "id": "c55fab55-43ca-471d-a6bc-3662178fd22f",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610423513000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=postgres_exporter",
+    "hint": null,
+    "id": "bf8ffbcb-5c66-49f1-b541-b77889c3ca73",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610363515000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=::1 port=1403",
+    "hint": null,
+    "id": "70d08a6e-8794-4449-916f-cb85cb595c15",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610363515000
+  },
+  {
+    "detail": null,
+    "error_severity": "ERROR",
+    "event_message": "new row violates row-level security policy for table \"objects\"",
+    "hint": null,
+    "id": "0a3e3cf2-5092-49f4-86a9-8f0d88111577",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610305038000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=postgres_exporter",
+    "hint": null,
+    "id": "179b2db2-9cc6-452e-a103-8c4197950829",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610303515000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=::1 port=20545",
+    "hint": null,
+    "id": "209cfc3f-255e-4061-be07-fed40f296024",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610303514000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=undefined SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "3f7b9583-5cf6-4959-8d63-b6cc8420e93b",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610291337000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authenticated: identity=\"supabase_admin\" method=scram-sha-256 (/etc/postgresql/pg_hba.conf:94)",
+    "hint": null,
+    "id": "997b3cef-a61f-427e-9b78-815acb46cf3a",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610291337000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=undefined SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "58eb9d3e-abd0-4f95-bd5e-b5de3fc68e32",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610291334000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authenticated: identity=\"supabase_admin\" method=scram-sha-256 (/etc/postgresql/pg_hba.conf:94)",
+    "hint": null,
+    "id": "9f969d27-f93e-40e6-baff-a0413122e492",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610291334000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authenticated: identity=\"postgres\" method=scram-sha-256 (/etc/postgresql/pg_hba.conf:94)",
+    "hint": null,
+    "id": "3c985641-ec0c-45a1-808b-35747d9a9bfc",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610291190000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=postgres database=postgres application_name=supabase/dashboard SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "47786ecc-c2a2-44d7-9504-dde701331386",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610291190000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=2406:da18:96a:8201:9c90:e3b6:f05b:d559 port=45746",
+    "hint": null,
+    "id": "80fdac20-a3b1-48bf-a8ce-08d26a4310cc",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610291169000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authenticated: identity=\"supabase_admin\" method=scram-sha-256 (/etc/postgresql/pg_hba.conf:94)",
+    "hint": null,
+    "id": "6bd197b0-e1ef-479f-8a83-be33287257dc",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610283538000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=undefined SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "3a33bf78-6269-4dab-a412-f817cdfa8835",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610283538000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authenticated: identity=\"supabase_admin\" method=scram-sha-256 (/etc/postgresql/pg_hba.conf:94)",
+    "hint": null,
+    "id": "984dea12-da5e-46ed-9ae1-43b8031e7baa",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610283533000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=undefined SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "ebdb6e48-3e4d-4cb1-be43-c1c924d859ba",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610283533000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=authenticator database=postgres application_name=postgrest SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "947c8774-33b5-47bc-ad6c-75711f24866f",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610283370000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "statement: SET statement_timeout='58s'; SET idle_session_timeout='58s';-- Migration: Fix RLS Policies for User-Level Privileges\r\n-- Feature: 003-user-privilege-rls-adjustment\r\n-- Date: 2025-11-08\r\n-- Purpose: Allow regular users to manage their own profiles and activity records\r\n--\r\n-- Problem:\r\n-- - Users could not update their own profiles (avatar, name, position, etc)\r\n-- - Users could not create activity records\r\n-- - Policies were overly restrictive, requiring admin/superuser role for basic operations\r\n--\r\n-- Solution:\r\n-- - Add helper function to check admin status\r\n-- - Allow users to UPDATE their own profiles\r\n-- - Allow users to DELETE their own profiles\r\n-- - Allow users to INSERT/UPDATE their own activity records\r\n-- - Maintain admin override capability\r\n-- - Prevent privilege escalation\r\n\r\n-- BEGIN MIGRATION\r\n\r\n-- ============================================================================\r\n-- HELPER FUNCTION: Check if current user is admin\r\n-- ============================================================================\r\n\r\nCREATE OR REPLACE FUNCTION current_user_is_admin()\r\nRETURNS BOOLEAN AS $$\r\nBEGIN\r\n    RETURN EXISTS (\r\n        SELECT 1 FROM profiles \r\n        WHERE id = auth.uid() \r\n        AND role IN ('admin', 'superuser')\r\n    );\r\nEND;\r\n$$ LANGUAGE plpgsql SECURITY DEFINER;\r\n\r\nCOMMENT ON FUNCTION current_user_is_admin() IS 'Check if current authenticated user has admin or superuser role';\r\n\r\n-- ============================================================================\r\n-- PROFILES TABLE POLICIES\r\n-- ============================================================================\r\n\r\n-- Drop old overly-restrictive policies\r\nDROP POLICY IF EXISTS \"Allow admins and superusers to update profiles\" ON profiles;\r\nDROP POLICY IF EXISTS \"Allow admins and superusers to insert profiles\" ON profiles;\r\nDROP POLICY IF EXISTS \"Users can update their own profile\" ON profiles;\r\nDROP POLICY IF EXISTS \"Users can manage their own profile\" ON profiles;\r\nDROP POLICY IF EXISTS \"Users can view their own profile\" ON profiles;\r\n\r\n-- Policy: Users can view their own profile OR admins can view all\r\nCREATE POLICY \"profiles_select_own_or_admin\" ON profiles\r\nFOR SELECT USING (\r\n    auth.uid() = id OR  -- User sees their own\r\n    current_user_is_admin()  -- Admin sees all\r\n);\r\n\r\n-- Policy: Users can insert their own profile\r\n-- Note: After approval, admin creates profile with user's ID\r\nCREATE POLICY \"profiles_insert_own\" ON profiles\r\nFOR INSERT WITH CHECK (\r\n    auth.uid() = id OR  -- User inserts their own (if allowed)\r\n    current_user_is_admin()  -- Admin inserts any\r\n);\r\n\r\n-- Policy: Users can UPDATE their own profile (IMPORTANT FIX)\r\n-- Allows users to update avatar, name, position, nip, nik\r\n-- But prevents role changes (role is not in update check)\r\nCREATE POLICY \"profiles_update_own_or_admin\" ON profiles\r\nFOR UPDATE USING (\r\n    auth.uid() = id OR  -- User can update their own\r\n    current_user_is_admin()  -- Admin can update any\r\n)\r\nWITH CHECK (\r\n    -- User can only update their own\r\n    (auth.uid() = id AND role = 'user') OR\r\n    -- Admin can update anyone (but still cannot change role via RLS alone)\r\n    (current_user_is_admin())\r\n);\r\n\r\n-- Policy: Allow admin to delete profiles (users cannot delete their own)\r\nCREATE POLICY \"profiles_delete_admin_only\" ON profiles\r\nFOR DELETE USING (\r\n    current_user_is_admin()\r\n);\r\n\r\n-- ============================================================================\r\n-- AKTIVITAS_USER TABLE POLICIES\r\n-- ============================================================================\r\n\r\n-- Drop old overly-restrictive policies\r\nDROP POLICY IF EXISTS \"Users can delete their own aktivitas records\" ON aktivitas_user;\r\nDROP POLICY IF EXISTS \"Users can insert their own aktivitas records\" ON aktivitas_user;\r\nDROP POLICY IF EXISTS \"Users can update their own aktivitas records\" ON aktivitas_user;\r\n\r\n-- Policy: Allow read for all authenticated\r\nCREATE POLICY \"aktivitas_user_select_authenticated\" ON aktivitas_user\r\nFOR SELECT USING (auth.role() = 'authenticated');\r\n\r\n-- Policy: Users can INSERT their own activity records (IMPORTANT FIX)\r\nCREATE POLICY \"aktivitas_user_insert_own_or_admin\" ON aktivitas_user\r\nFOR INSERT WITH CHECK (\r\n    -- User can insert for themselves\r\n    (auth.uid() = user_id) OR\r\n    -- Admin can insert for anyone\r\n    (current_user_is_admin())\r\n);\r\n\r\n-- Policy: Users can UPDATE their own activity records (IMPORTANT FIX)\r\nCREATE POLICY \"aktivitas_user_update_own_or_admin\" ON aktivitas_user\r\nFOR UPDATE USING (\r\n    -- User can update their own\r\n    (auth.uid() = user_id) OR\r\n    -- Admin can update any\r\n    (current_user_is_admin())\r\n)\r\nWITH CHECK (\r\n    (auth.uid() = user_id) OR\r\n    (current_user_is_admin())\r\n);\r\n\r\n-- Policy: Users can DELETE their own activity records\r\nCREATE POLICY \"aktivitas_user_delete_own_or_admin\" ON aktivitas_user\r\nFOR DELETE USING (\r\n    -- User can delete their own\r\n    (auth.uid() = user_id) OR\r\n    -- Admin can delete any\r\n    (current_user_is_admin())\r\n);\r\n\r\n-- ============================================================================\r\n-- AKTIVITAS_SIAK TABLE POLICIES\r\n-- ============================================================================\r\n\r\n-- Drop old overly-restrictive policies\r\nDROP POLICY IF EXISTS \"Users can delete their own aktivitas_siak records\" ON aktivitas_siak;\r\nDROP POLICY IF EXISTS \"Users can insert their own aktivitas_siak records\" ON aktivitas_siak;\r\nDROP POLICY IF EXISTS \"Users can update their own aktivitas_siak records\" ON aktivitas_siak;\r\n\r\n-- Policy: Allow read for all authenticated\r\nCREATE POLICY \"aktivitas_siak_select_authenticated\" ON aktivitas_siak\r\nFOR SELECT USING (auth.role() = 'authenticated');\r\n\r\n-- Policy: Users can INSERT their own activity records (IMPORTANT FIX)\r\nCREATE POLICY \"aktivitas_siak_insert_own_or_admin\" ON aktivitas_siak\r\nFOR INSERT WITH CHECK (\r\n    -- User can insert for themselves\r\n    (auth.uid() = user_id) OR\r\n    -- Admin can insert for anyone\r\n    (current_user_is_admin())\r\n);\r\n\r\n-- Policy: Users can UPDATE their own activity records (IMPORTANT FIX)\r\nCREATE POLICY \"aktivitas_siak_update_own_or_admin\" ON aktivitas_siak\r\nFOR UPDATE USING (\r\n    -- User can update their own\r\n    (auth.uid() = user_id) OR\r\n    -- Admin can update any\r\n    (current_user_is_admin())\r\n)\r\nWITH CHECK (\r\n    (auth.uid() = user_id) OR\r\n    (current_user_is_admin())\r\n);\r\n\r\n-- Policy: Users can DELETE their own activity records\r\nCREATE POLICY \"aktivitas_siak_delete_own_or_admin\" ON aktivitas_siak\r\nFOR DELETE USING (\r\n    -- User can delete their own\r\n    (auth.uid() = user_id) OR\r\n    -- Admin can delete any\r\n    (current_user_is_admin())\r\n);\r\n\r\n-- ============================================================================\r\n-- DOCUMENTATION\r\n-- ============================================================================\r\n\r\nCOMMENT ON POLICY \"profiles_select_own_or_admin\" ON profiles IS 'Users see own profile, admins see all';\r\nCOMMENT ON POLICY \"profiles_insert_own\" ON profiles IS 'Users/admins can create profiles';\r\nCOMMENT ON POLICY \"profiles_update_own_or_admin\" ON profiles IS 'Users update own, admins update any - FIXED to allow user updates';\r\nCOMMENT ON POLICY \"profiles_delete_admin_only\" ON profiles IS 'Only admins can delete profiles';\r\n\r\nCOMMENT ON POLICY \"aktivitas_user_select_authenticated\" ON aktivitas_user IS 'All authenticated users can read';\r\nCOMMENT ON POLICY \"aktivitas_user_insert_own_or_admin\" ON aktivitas_user IS 'Users create own records, admins create any - FIXED';\r\nCOMMENT ON POLICY \"aktivitas_user_update_own_or_admin\" ON aktivitas_user IS 'Users update own, admins update any - FIXED';\r\nCOMMENT ON POLICY \"aktivitas_user_delete_own_or_admin\" ON aktivitas_user IS 'Users delete own, admins delete any - FIXED';\r\n\r\n-- END MIGRATION\r\n\r\n-- BEGIN ROLLBACK\r\n\r\n-- Drop new policies\r\nDROP POLICY IF EXISTS \"profiles_select_own_or_admin\" ON profiles;\r\nDROP POLICY IF EXISTS \"profiles_insert_own\" ON profiles;\r\nDROP POLICY IF EXISTS \"profiles_update_own_or_admin\" ON profiles;\r\nDROP POLICY IF EXISTS \"profiles_delete_admin_only\" ON profiles;\r\n\r\nDROP POLICY IF EXISTS \"aktivitas_user_select_authenticated\" ON aktivitas_user;\r\nDROP POLICY IF EXISTS \"aktivitas_user_insert_own_or_admin\" ON aktivitas_user;\r\nDROP POLICY IF EXISTS \"aktivitas_user_update_own_or_admin\" ON aktivitas_user;\r\nDROP POLICY IF EXISTS \"aktivitas_user_delete_own_or_admin\" ON aktivitas_user;\r\n\r\nDROP POLICY IF EXISTS \"aktivitas_siak_select_authenticated\" ON aktivitas_siak;\r\nDROP POLICY IF EXISTS \"aktivitas_siak_insert_own_or_admin\" ON aktivitas_siak;\r\nDROP POLICY IF EXISTS \"aktivitas_siak_update_own_or_admin\" ON aktivitas_siak;\r\nDROP POLICY IF EXISTS \"aktivitas_siak_delete_own_or_admin\" ON aktivitas_siak;\r\n\r\n-- Drop helper function\r\nDROP FUNCTION IF EXISTS current_user_is_admin();\r\n\r\n-- Restore original policies (approximate - may need manual adjustment)\r\nCREATE POLICY \"Allow admins and superusers to insert profiles\" ON profiles\r\nFOR INSERT WITH CHECK (auth.uid() = id AND (role = 'admin' OR role = 'superuser'));\r\n\r\nCREATE POLICY \"Allow admins and superusers to update profiles\" ON profiles\r\nFOR UPDATE USING (auth.uid() = id AND (role = 'admin' OR role = 'superuser'))\r\nWITH CHECK (auth.uid() = id AND (role = 'admin' OR role = 'superuser'));\r\n\r\nCREATE POLICY \"Users can view their own profile\" ON profiles\r\nFOR SELECT USING (auth.uid() = id);\r\n\r\n-- END ROLLBACK\r\n\n\n-- source: dashboard\n-- user: 70fdb48c-5d32-4d6d-87a2-4d290a3c25d2\n-- date: 2025-11-08T13:58:03.342Z",
+    "hint": null,
+    "id": "5ecd89e0-9edc-434a-b93a-c00526fed975",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610283323000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authenticated: identity=\"postgres\" method=scram-sha-256 (/etc/postgresql/pg_hba.conf:94)",
+    "hint": null,
+    "id": "4a72a271-9781-424b-8235-59d3ddcfbd85",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610283317000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=postgres database=postgres application_name=supabase/dashboard SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "c12cccf7-7d6b-4df4-a9d4-91bb0fbff139",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610283317000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection received: host=2406:da18:96a:8200:bee2:11dd:87e6:ab0 port=49548",
+    "hint": null,
+    "id": "82be472d-98dc-4839-bcd5-2c2d41d7e8cd",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610283295000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=authenticator database=postgres application_name=postgrest SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "66c229e2-f981-4950-84ac-62ad746b4697",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610272820000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=undefined SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "f2fb9e59-dcb4-46fe-b15d-cdbb004e74b5",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610272775000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authenticated: identity=\"supabase_admin\" method=scram-sha-256 (/etc/postgresql/pg_hba.conf:94)",
+    "hint": null,
+    "id": "f6ebfcb4-bb1e-4a99-b9f9-3decd430b5b6",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610272775000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authenticated: identity=\"supabase_admin\" method=scram-sha-256 (/etc/postgresql/pg_hba.conf:94)",
+    "hint": null,
+    "id": "6917bd4f-840c-4397-94ed-2a5742189bab",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610272769000
+  },
+  {
+    "detail": null,
+    "error_severity": "LOG",
+    "event_message": "connection authorized: user=supabase_admin database=postgres application_name=undefined SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)",
+    "hint": null,
+    "id": "e2273250-13ab-4633-9b62-7e095477526f",
+    "identifier": "yrssspoimsxpibcbeaca",
+    "timestamp": 1762610272769000
+  }
+]

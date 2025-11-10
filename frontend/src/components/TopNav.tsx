@@ -475,6 +475,53 @@ export default function TopNav({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]); // Remove user and setUser from dependencies to prevent infinite loop
 
+  // Listen for avatar updates from profile page
+  useEffect(() => {
+    const handleAvatarUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { avatar_url, userId } = customEvent.detail;
+
+      // Only update if this is for the current user
+      if (userId === user?.id && user?.id && typeof setUser === "function") {
+        const updatedUser: User = {
+          id: user.id,
+          email: user.email || "",
+          name: user.name,
+          role: user.role,
+          full_name: user.full_name,
+          avatar_url,
+        };
+        setUser(updatedUser);
+
+        // Also update displayUser state for immediate UI refresh
+        setDisplayUser((prevUser) => 
+          prevUser ? { ...prevUser, avatar_url } : prevUser
+        );
+
+        // Update localStorage
+        if (typeof window !== 'undefined') {
+          try {
+            const storedUserInfo = localStorage.getItem('selly_user_info');
+            if (storedUserInfo) {
+              const parsed = JSON.parse(storedUserInfo);
+              const updatedUser = { ...parsed, avatar_url };
+              localStorage.setItem('selly_user_info', JSON.stringify(updatedUser));
+            }
+          } catch (error) {
+            console.warn('Failed to update avatar in localStorage:', error);
+          }
+        }
+
+        console.log('✅ Avatar updated in TopNav:', avatar_url);
+      }
+    };
+
+    window.addEventListener('avatarUpdated', handleAvatarUpdate);
+    return () => {
+      window.removeEventListener('avatarUpdated', handleAvatarUpdate);
+    };
+  }, [user?.id, setUser]);
+
   return (
     <TooltipProvider>
       <nav
@@ -902,7 +949,7 @@ export default function TopNav({
                       <div className="hidden items-center md:flex">
                         <div className="text-left">
                           <p className="max-w-[120px] truncate text-sm font-medium text-foreground">
-                            {displayUser?.name || displayUser?.email?.split("@")[0] || displayUser?.id ? "User" : "Guest"}
+                            {displayUser?.name || displayUser?.email?.split("@")[0] || "Guest"}
                           </p>
                           {displayUser?.role && (
                             <p className="text-xs capitalize text-muted-foreground">

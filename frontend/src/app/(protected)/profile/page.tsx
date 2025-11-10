@@ -232,7 +232,6 @@ export default function ProfilePage() {
           );
         }
 
-        const fileName = `${contextUser.id}.${fileExt}`;
         const maxSizeInMB = 2;
         const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
         if (avatarFile.size > maxSizeInBytes) {
@@ -241,69 +240,64 @@ export default function ProfilePage() {
           );
         }
 
-        // Use context user instead of session
-        if (!contextUser || !contextUser.id) {
+        // Get auth token from localStorage
+        const token = localStorage.getItem("selly_auth_token");
+        if (!token) {
+          throw new Error("Token autentikasi tidak ditemukan. Silakan login kembali.");
+        }
+
+        // Upload via Next.js API route (server-side uses service role key to bypass RLS)
+        const avatarFormData = new FormData();
+        avatarFormData.append("avatar", avatarFile);
+
+        const uploadResponse = await fetch(`/api/v1/profile/avatar`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+          body: avatarFormData,
+        });
+
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json();
           throw new Error(
-            "Data pengguna tidak valid. Silakan login kembali.",
+            errorData.message || "Gagal mengunggah foto profil",
           );
         }
 
-        const { data: existingFiles, error: listError } = await supabase.storage
-          .from("avatars")
-          .list("", { limit: 100 });
-
-        if (listError)
-          throw new Error(
-            `Gagal memeriksa file avatar lama: ${listError.message}`,
-          );
-
-        const filesToDelete =
-          existingFiles
-            ?.filter((file) => file.name.startsWith(contextUser.id + "."))
-            .map((file) => file.name) || [];
-
-        if (filesToDelete.length > 0) {
-          const { error: deleteError } = await supabase.storage
-            .from("avatars")
-            .remove(filesToDelete);
-
-          if (deleteError)
-            throw new Error(
-              `Gagal menghapus avatar lama: ${deleteError.message}`,
-            );
-        }
-
-        const { error: uploadError } = await supabase.storage
-          .from("avatars")
-          .upload(fileName, avatarFile, { upsert: true });
-
-        if (uploadError)
-          throw new Error(`Gagal mengunggah foto: ${uploadError.message}`);
-
-        const { data: publicUrlData } = supabase.storage
-          .from("avatars")
-          .getPublicUrl(fileName);
-
-        if (!publicUrlData.publicUrl)
-          throw new Error("Gagal mendapatkan URL foto profil.");
-
-        avatarUrl = `${publicUrlData.publicUrl}?t=${new Date().getTime()}`;
+        const uploadData = await uploadResponse.json();
+        avatarUrl = uploadData.avatar_url;
       }
 
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({
+      // Get auth token from localStorage
+      const token = localStorage.getItem("selly_auth_token");
+      if (!token) {
+        throw new Error("Token autentikasi tidak ditemukan. Silakan login kembali.");
+      }
+
+      // Update profile via Next.js API route (server-side uses service role key)
+      const updateResponse = await fetch(`/api/v1/profile`, {
+        method: "PATCH",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           name: formData.name.trim(),
           nip: formData.nip.trim(),
           position: formData.position.trim(),
           nik: formData.nik.trim(),
-          avatar_url: avatarUrl,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", contextUser.id);
+        }),
+      });
 
-      if (updateError)
-        throw new Error(`Gagal memperbarui profil: ${updateError.message}`);
+      if (!updateResponse.ok) {
+        const errorData = await updateResponse.json();
+        throw new Error(
+          errorData.message || "Gagal memperbarui profil",
+        );
+      }
+
+      const updateData = await updateResponse.json();
 
       setProfile({
         ...profile,
@@ -339,27 +333,36 @@ export default function ProfilePage() {
     try {
       setLoading(true);
 
-      const fileName = profile.avatar_url.split("/").pop()?.split("?")[0];
-      if (!fileName) {
-        throw new Error("Gagal menemukan nama file avatar.");
+      // Get auth token from localStorage
+      const token = localStorage.getItem("selly_auth_token");
+      if (!token) {
+        throw new Error("Token autentikasi tidak ditemukan. Silakan login kembali.");
       }
 
-      const { error: deleteError } = await supabase.storage
-        .from("avatars")
-        .remove([fileName]);
-      if (deleteError) {
-        throw new Error(`Gagal menghapus foto profil: ${deleteError.message}`);
-      }
+      // Delete via Next.js API route (server-side uses service role key)
+      const response = await fetch(`/api/v1/profile/avatar`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({ avatar_url: null })
-        .eq("id", contextUser?.id);
-      if (updateError) {
-        throw new Error(`Gagal memperbarui profil: ${updateError.message}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "Gagal menghapus foto profil",
+        );
       }
 
       setProfile((prev) => (prev ? { ...prev, avatar_url: null } : null));
+      
+      // Dispatch custom event to notify other components (like TopNav) of avatar deletion
+      const event = new CustomEvent("avatarUpdated", {
+        detail: { avatar_url: null, userId: user?.id },
+      });
+      window.dispatchEvent(event);
+      
       toast.success("Foto profil berhasil dihapus.");
     } catch (error: any) {
       console.error("Error deleting avatar:", error);
@@ -392,35 +395,43 @@ export default function ProfilePage() {
         return;
       }
 
-      // Generate unique filename
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${contextUser.id}-${Date.now()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      // Upload via Go backend (uses service account to bypass RLS)
+      const formData = new FormData();
+      formData.append("avatar", file);
 
-      // Upload to storage
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, file);
+      // Get auth token from localStorage
+      const token = localStorage.getItem("selly_auth_token");
+      if (!token) {
+        throw new Error("Token autentikasi tidak ditemukan. Silakan login kembali.");
+      }
 
-      if (uploadError) throw uploadError;
+      const response = await fetch(`/api/v1/profile/avatar`, {
+        method: "POST",
+        body: formData,
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
 
-      // Get public URL
-      const { data: publicURL } = supabase.storage
-        .from("avatars")
-        .getPublicUrl(filePath);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "Gagal mengunggah foto profil",
+        );
+      }
 
-      // Update profile with avatar URL
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({ avatar_url: publicURL.publicUrl })
-        .eq("id", contextUser.id);
-
-      if (updateError) throw updateError;
+      const { avatar_url } = await response.json();
 
       // Update local state
       setProfile((prev) =>
-        prev ? { ...prev, avatar_url: publicURL.publicUrl } : null,
+        prev ? { ...prev, avatar_url } : null,
       );
+
+      // Dispatch custom event to notify other components (like TopNav) of avatar update
+      const event = new CustomEvent("avatarUpdated", {
+        detail: { avatar_url, userId: contextUser.id },
+      });
+      window.dispatchEvent(event);
 
       // Show success message
       toast.success("Foto profil berhasil diperbarui");
@@ -691,10 +702,11 @@ export default function ProfilePage() {
                 >
                   <ProfileActions
                     isEditing={isEditing}
-                    loading={loading}
                     onEdit={() => setIsEditing(true)}
                     onSave={handleSave}
                     onCancel={handleCancel}
+                    onDeleteAvatar={() => console.log('Delete avatar')}
+                    hasAvatar={!!profile?.avatar_url}
                   />
                 </motion.div>
               </CardContent>

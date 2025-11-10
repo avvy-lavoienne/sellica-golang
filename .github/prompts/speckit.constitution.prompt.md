@@ -1,5 +1,5 @@
 ---
-description: Create or update the project constitution from interactive or provided principle inputs, ensuring all dependent templates stay in sync. Generate compliance reports in topic-based folder structure (Principle IX).
+description: Create or update the project constitution from interactive or provided principle inputs, ensuring all dependent templates stay in sync
 ---
 
 ## User Input
@@ -9,19 +9,6 @@ $ARGUMENTS
 ```
 
 You **MUST** consider the user input before proceeding (if not empty).
-
-## Documentation Output Structure (MANDATORY - Principle IX)
-
-**Constitution compliance output in topic-based folder structure with specify-command subfolder:**
-
-```
-docs/bydate/YYYY-MM-DD-{TOPIC-NAME}/
-└── speckit-constitution/
-    ├── YYYY-MM-DD-compliance-check.md
-    └── YYYY-MM-DD-principle-validation.md
-```
-
-**All constitution output goes to `docs/bydate/YYYY-MM-DD-{TOPIC}/speckit-constitution/` directory (create if not exists, if applicable to workflow).**
 
 ## Outline
 

@@ -1,5 +1,5 @@
 ---
-description: Execute the implementation plan by processing and executing all tasks defined in tasks.md. Generate implementation reports in topic-based folder structure (Principle IX).
+description: Execute the implementation plan by processing and executing all tasks defined in tasks.md
 ---
 
 ## User Input
@@ -10,23 +10,9 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
-## Documentation Output Structure (MANDATORY - Principle IX)
-
-**Implementation reports output in topic-based folder structure with specify-command subfolder:**
-
-```
-docs/bydate/YYYY-MM-DD-{TOPIC-NAME}/
-└── speckit-implement/
-    ├── YYYY-MM-DD-phase-1-implementation.md
-    ├── YYYY-MM-DD-phase-2-implementation.md
-    └── YYYY-MM-DD-build-verification.md
-```
-
-**All implementation output goes to `docs/bydate/YYYY-MM-DD-{TOPIC}/speckit-implement/` directory (create if not exists).**
-
 ## Outline
 
-1. Run `.specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. Extract TOPIC from FEATURE_DIR path. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+1. Run `.specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
 2. **Check checklists status** (if FEATURE_DIR/checklists/ exists):
    - Scan all checklist files in the checklists/ directory
