@@ -90,6 +90,8 @@ export default function DataRekam() {
   ]);
   const [tempStartDate, setTempStartDate] = useState<Date | null>(null);
   const [tempEndDate, setTempEndDate] = useState<Date | null>(null);
+  const [sparklineDataMonthlyByYear, setSparklineDataMonthlyByYear] = useState<{ [year: string]: SparklineData[] }>({});
+  const [sparklineDataYearly, setSparklineDataYearly] = useState<SparklineData[]>([]);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   // Debounce the temporary dates
@@ -624,7 +626,8 @@ export default function DataRekam() {
         monthlyDatasets: finalChartData.monthly.datasets.length,
       });
 
-      setChartData(finalChartData);
+      // Note: Chart data is now stored in sparklineDataMonthlyByYear and sparklineDataYearly states
+      // The useChartAggregation hook manages its own chartData state separately
       
       console.log("[DataRekam] fetchUserAndStats completed successfully");
     } catch (error: any) {
