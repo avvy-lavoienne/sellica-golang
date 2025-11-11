@@ -85,6 +85,38 @@ export default function SalahRekamPage() {
           contextUser.role?.toLowerCase() || ""
         );
 
+        // Skip further validation for admin
+        if (isAdmin) {
+          console.log(
+            "[SalahRekam] Admin user detected, skipping NIK validation",
+          );
+          
+          const nameValue = contextUser.name || 
+            contextUser.full_name || 
+            contextUser.email || 
+            "Admin";
+
+          // Set form data for admin (use default admin NIK)
+          setFormData((prev) => ({
+            ...prev,
+            nik_pengaju: "9999999999999999",
+            nama_pengaju: nameValue,
+          }));
+
+          // Then other state
+          setUser(contextUser);
+          setUserRole("admin");
+          
+          console.log("[SalahRekam] useEffect initialized (admin):", {
+            userEmail: contextUser.email,
+            isAdmin,
+            nameValue,
+          });
+          setIsFetchingUser(false);
+          return;
+        }
+
+        // Regular users MUST have valid NIK
         const userNik = contextUser.nik || "";
         if (!userNik || !validateNIK(userNik)) {
           toast.error(
@@ -108,9 +140,9 @@ export default function SalahRekamPage() {
 
         // Then other state
         setUser(contextUser);
-        setUserRole(isAdmin ? "admin" : "user");
+        setUserRole("user");
 
-        console.log("[SalahRekam] useEffect initialized:", {
+        console.log("[SalahRekam] useEffect initialized (user):", {
           userEmail: contextUser.email,
           isAdmin,
           userNik,
