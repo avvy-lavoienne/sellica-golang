@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from "@supabase/supabase-js";
 
 /**
  * GET /api/data-rekam/salah-rekam
@@ -89,7 +90,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(data, { status: 200 });
 
     } catch (error) {
-        console.error('API route error:', error);
+        console.error('[salah-rekam-api] API route error:', error);
         
         return NextResponse.json(
             {
@@ -100,3 +101,475 @@ export async function GET(request: NextRequest) {
         );
     }
 }
+
+/**
+ * POST /api/data-rekam/salah-rekam
+ * 
+ * Creates a new salah rekam record using Supabase.
+ * This is a secure API route that:
+ * 1. Validates user authentication via JWT token
+ * 2. Extracts user ID from token payload
+ * 3. Validates request body fields
+ * 4. Performs insert operation using Supabase service role
+ * 5. Returns the created record
+ * 
+ * Request Body:
+ * - user_id: UUID of the user
+ * - nik_salah_rekam: NIK of incorrect recording person
+ * - nama_salah_rekam: Name of incorrect recording person
+ * - nik_pemilik_biometric: NIK of biometric owner
+ * - nama_pemilik_biometric: Name of biometric owner
+ * - nik_pemilik_foto: NIK of photo owner
+ * - nama_pemilik_foto: Name of photo owner
+ * - nik_petugas_rekam: NIK of recording officer
+ * - nama_petugas_rekam: Name of recording officer
+ * - nik_pengaju: NIK of requestor
+ * - nama_pengaju: Name of requestor
+ * - tanggal_perekaman: Recording date (YYYY-MM-DD)
+ * - estimasi_tanggal_perekaman: Estimated recording date (optional)
+ * - is_ready_to_record: Is ready to record (boolean)
+ */
+export async function POST(request: NextRequest) {
+  try {
+    // ✅ STEP 1: Validate Authorization header
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { message: "Unauthorized: Missing Bearer token" },
+        { status: 401 }
+      );
+    }
+
+    // ✅ STEP 2: Extract and verify JWT token format
+    const token = authHeader.substring(7);
+    const parts = token.split(".");
+    if (parts.length !== 3) {
+      return NextResponse.json(
+        { message: "Unauthorized: Invalid token format" },
+        { status: 401 }
+      );
+    }
+
+    // ✅ STEP 3: Decode and parse JWT payload
+    let payload: any;
+    try {
+      payload = JSON.parse(Buffer.from(parts[1], "base64").toString());
+    } catch (e) {
+      return NextResponse.json(
+        { message: "Unauthorized: Invalid token payload" },
+        { status: 401 }
+      );
+    }
+
+    // ✅ STEP 4: Extract user ID from token
+    const userId = payload.sub;
+    if (!userId) {
+      return NextResponse.json(
+        { message: "Unauthorized: Missing user ID in token" },
+        { status: 401 }
+      );
+    }
+
+    // ✅ STEP 5: Parse and validate request body
+    let body;
+    try {
+      body = await request.json();
+    } catch (e) {
+      return NextResponse.json(
+        { message: "Bad request: Invalid JSON" },
+        { status: 400 }
+      );
+    }
+
+    // ✅ STEP 6: Validate required fields
+    const requiredFields = [
+      "nik_salah_rekam",
+      "nama_salah_rekam",
+      "nik_pemilik_biometric",
+      "nama_pemilik_biometric",
+      "nik_pemilik_foto",
+      "nama_pemilik_foto",
+      "nik_petugas_rekam",
+      "nama_petugas_rekam",
+      "nik_pengaju",
+      "nama_pengaju",
+      "tanggal_perekaman",
+    ];
+
+    for (const field of requiredFields) {
+      if (!body[field] || String(body[field]).trim() === "") {
+        console.error(
+          `[salah-rekam-api] Missing or empty required field: ${field}`
+        );
+        return NextResponse.json(
+          { message: `Bad request: ${field} is required` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // ✅ STEP 7: Create Supabase client with service role
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceRoleKey) {
+      console.error("[salah-rekam-api] Missing Supabase configuration");
+      return NextResponse.json(
+        { message: "Internal server error: Database configuration missing" },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+
+    // ✅ STEP 8: Prepare data for insert
+    const dataToSave = {
+      user_id: body.user_id || userId,
+      nik_salah_rekam: String(body.nik_salah_rekam).trim(),
+      nama_salah_rekam: String(body.nama_salah_rekam).trim(),
+      nik_pemilik_biometric: String(body.nik_pemilik_biometric).trim(),
+      nama_pemilik_biometric: String(body.nama_pemilik_biometric).trim(),
+      nik_pemilik_foto: String(body.nik_pemilik_foto).trim(),
+      nama_pemilik_foto: String(body.nama_pemilik_foto).trim(),
+      nik_petugas_rekam: String(body.nik_petugas_rekam).trim(),
+      nama_petugas_rekam: String(body.nama_petugas_rekam).trim(),
+      nik_pengaju: String(body.nik_pengaju).trim(),
+      nama_pengaju: String(body.nama_pengaju).trim(),
+      tanggal_perekaman: body.tanggal_perekaman,
+      estimasi_tanggal_perekaman: body.estimasi_tanggal_perekaman || null,
+      is_ready_to_record: body.is_ready_to_record || false,
+    };
+
+    // ✅ STEP 9: Insert new record
+    const { data, error } = await supabase
+      .from("salah_rekam")
+      .insert([dataToSave])
+      .select();
+
+    if (error) {
+      console.error("[salah-rekam-api] Insert error details:", {
+        message: error.message,
+        code: (error as any).code,
+        details: (error as any).details,
+        hint: (error as any).hint,
+        fullError: error,
+        dataToSave,
+      });
+      return NextResponse.json(
+        { 
+          message: `Database error: ${error.message}`,
+          code: (error as any).code,
+          details: (error as any).details,
+        },
+        { status: 500 }
+      );
+    }
+
+    // ✅ STEP 10: Return success response
+    return NextResponse.json(
+      {
+        success: true,
+        data: data?.[0] || null,
+        message: "Record created successfully",
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("[salah-rekam-api] Error:", error);
+    return NextResponse.json(
+      {
+        message:
+          error instanceof Error
+            ? error.message
+            : "Internal server error",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * PUT /api/data-rekam/salah-rekam
+ * 
+ * Updates an existing salah rekam record using Supabase.
+ * This is a secure API route that:
+ * 1. Validates user authentication via JWT token
+ * 2. Extracts user ID from token payload
+ * 3. Validates request body fields including record ID
+ * 4. Performs update operation using Supabase service role
+ * 5. Returns the updated record
+ * 
+ * Request Body:
+ * - id: UUID of the record to update
+ * - (same fields as POST)
+ */
+export async function PUT(request: NextRequest) {
+  try {
+    // ✅ STEP 1: Validate Authorization header
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { message: "Unauthorized: Missing Bearer token" },
+        { status: 401 }
+      );
+    }
+
+    // ✅ STEP 2: Extract and verify JWT token format
+    const token = authHeader.substring(7);
+    const parts = token.split(".");
+    if (parts.length !== 3) {
+      return NextResponse.json(
+        { message: "Unauthorized: Invalid token format" },
+        { status: 401 }
+      );
+    }
+
+    // ✅ STEP 3: Decode and parse JWT payload
+    let payload: any;
+    try {
+      payload = JSON.parse(Buffer.from(parts[1], "base64").toString());
+    } catch (e) {
+      return NextResponse.json(
+        { message: "Unauthorized: Invalid token payload" },
+        { status: 401 }
+      );
+    }
+
+    // ✅ STEP 4: Extract user ID from token
+    const userId = payload.sub;
+    if (!userId) {
+      return NextResponse.json(
+        { message: "Unauthorized: Missing user ID in token" },
+        { status: 401 }
+      );
+    }
+
+    // ✅ STEP 5: Parse and validate request body
+    let body;
+    try {
+      body = await request.json();
+    } catch (e) {
+      return NextResponse.json(
+        { message: "Bad request: Invalid JSON" },
+        { status: 400 }
+      );
+    }
+
+    // ✅ STEP 6: Validate record ID
+    if (!body.id) {
+      console.error("[salah-rekam-api] Missing record ID for update");
+      return NextResponse.json(
+        { message: "Bad request: id is required for update" },
+        { status: 400 }
+      );
+    }
+
+    // ✅ STEP 7: Validate required fields for update
+    const requiredFields = [
+      "nik_salah_rekam",
+      "nama_salah_rekam",
+      "nik_pemilik_biometric",
+      "nama_pemilik_biometric",
+      "nik_pemilik_foto",
+      "nama_pemilik_foto",
+      "nik_petugas_rekam",
+      "nama_petugas_rekam",
+      "nik_pengaju",
+      "nama_pengaju",
+      "tanggal_perekaman",
+    ];
+
+    for (const field of requiredFields) {
+      if (!body[field] || String(body[field]).trim() === "") {
+        console.error(
+          `[salah-rekam-api] Missing or empty required field for update: ${field}`
+        );
+        return NextResponse.json(
+          { message: `Bad request: ${field} is required` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // ✅ STEP 8: Create Supabase client with service role
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceRoleKey) {
+      console.error("[salah-rekam-api] Missing Supabase configuration");
+      return NextResponse.json(
+        { message: "Internal server error: Database configuration missing" },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+
+    // ✅ STEP 9: Prepare data for update
+    const dataToSave = {
+      user_id: body.user_id || userId,
+      nik_salah_rekam: String(body.nik_salah_rekam).trim(),
+      nama_salah_rekam: String(body.nama_salah_rekam).trim(),
+      nik_pemilik_biometric: String(body.nik_pemilik_biometric).trim(),
+      nama_pemilik_biometric: String(body.nama_pemilik_biometric).trim(),
+      nik_pemilik_foto: String(body.nik_pemilik_foto).trim(),
+      nama_pemilik_foto: String(body.nama_pemilik_foto).trim(),
+      nik_petugas_rekam: String(body.nik_petugas_rekam).trim(),
+      nama_petugas_rekam: String(body.nama_petugas_rekam).trim(),
+      nik_pengaju: String(body.nik_pengaju).trim(),
+      nama_pengaju: String(body.nama_pengaju).trim(),
+      tanggal_perekaman: body.tanggal_perekaman,
+      estimasi_tanggal_perekaman: body.estimasi_tanggal_perekaman || null,
+      is_ready_to_record: body.is_ready_to_record || false,
+    };
+
+    // ✅ STEP 10: Update existing record
+    const { data, error } = await supabase
+      .from("salah_rekam")
+      .update(dataToSave)
+      .eq("id", body.id)
+      .select();
+
+    if (error) {
+      console.error("[salah-rekam-api] Update error:", error);
+      return NextResponse.json(
+        { message: `Database error: ${error.message}` },
+        { status: 500 }
+      );
+    }
+
+    // ✅ STEP 11: Return success response
+    return NextResponse.json(
+      {
+        success: true,
+        data: data?.[0] || null,
+        message: "Record updated successfully",
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("[salah-rekam-api] Error:", error);
+    return NextResponse.json(
+      {
+        message:
+          error instanceof Error
+            ? error.message
+            : "Internal server error",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * DELETE /api/data-rekam/salah-rekam
+ * 
+ * Deletes a salah rekam record by ID.
+ * 
+ * Required:
+ * - id: The UUID of the record to delete (in request body)
+ * - Authorization header with Bearer token
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    // Step 1: Validate authorization header
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader) {
+      console.error('[salah-rekam-api] Missing authorization header');
+      return NextResponse.json(
+        { message: 'Unauthorized: Missing Bearer token' },
+        { status: 401 }
+      );
+    }
+
+    // Step 2: Parse and validate JWT token
+    const tokenParts = authHeader.split(' ');
+    if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
+      console.error('[salah-rekam-api] Invalid authorization format');
+      return NextResponse.json(
+        { message: 'Unauthorized: Invalid Bearer token format' },
+        { status: 401 }
+      );
+    }
+
+    // Step 3: Get record ID from request body
+    let body: any = {};
+    try {
+      body = await request.json();
+    } catch (e) {
+      console.error('[salah-rekam-api] Failed to parse request body');
+      return NextResponse.json(
+        { message: 'Invalid request body' },
+        { status: 400 }
+      );
+    }
+
+    const { id } = body;
+    if (!id) {
+      console.error('[salah-rekam-api] Missing record ID');
+      return NextResponse.json(
+        { message: 'Record ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Step 4: Verify Supabase configuration
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('[salah-rekam-api] Missing Supabase configuration');
+      return NextResponse.json(
+        { message: 'Internal server error: Database configuration missing' },
+        { status: 500 }
+      );
+    }
+
+    // Step 5: Create Supabase client with service role
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+
+    // Step 6: Delete the record
+    const { error } = await supabase
+      .from('salah_rekam')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('[salah-rekam-api] Delete error details:', {
+        message: error.message,
+        code: (error as any).code,
+        details: (error as any).details,
+        hint: (error as any).hint,
+      });
+      return NextResponse.json(
+        {
+          message: `Database error: ${error.message}`,
+          code: (error as any).code,
+          details: (error as any).details,
+        },
+        { status: 500 }
+      );
+    }
+
+    // Step 7: Return success response
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Record deleted successfully',
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('[salah-rekam-api] Delete error:', error);
+    return NextResponse.json(
+      {
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Internal server error',
+      },
+      { status: 500 }
+    );
+  }
+}
+
