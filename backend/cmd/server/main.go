@@ -26,6 +26,7 @@ import (
 	"selly-backend/internal/services/knowledge"
 	"selly-backend/internal/services/monitoring"
 	"selly-backend/internal/services/rag"
+	"selly-backend/internal/services/salah_rekam"
 	"selly-backend/internal/services/silpana"
 	"selly-backend/internal/services/supabase_analyzer"
 	"selly-backend/internal/services/training"
@@ -83,6 +84,7 @@ func main() {
 		services.AktivitasSiak,
 		services.SessionManager,
 		services.Knowledge,
+		services.SalahRekam,
 	)
 	routes.SetupRoutes(router, routeServices)
 
@@ -145,6 +147,7 @@ type Services struct {
 	Silpana           silpana.ServiceInterface
 	AktivitasSiak     aktivitas_siak.Service
 	DuplicateOperator duplicate_operator.Service
+	SalahRekam        salah_rekam.Service
 
 	// Real-time Services
 	WebSocketHub       *websocket.Hub
@@ -418,6 +421,11 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	duplicateOperatorService := duplicate_operator.NewService(duplicateOperatorAdapter)
 	logrus.Info("✅ Duplicate Operator service initialized successfully")
 
+	// Initialize Salah Rekam service
+	salahRekamAdapter := salah_rekam.NewSupabaseAdapter(supabaseClient)
+	salahRekamService := salah_rekam.NewService(salahRekamAdapter)
+	logrus.Info("✅ Salah Rekam service initialized successfully")
+
 	// Initialize WebSocket hub for real-time features
 	logrus.Info("🔌 Initializing WebSocket hub...")
 	wsHub := websocket.NewHub(websocket.DefaultConfig())
@@ -498,6 +506,7 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		Silpana:           silpanaService,
 		AktivitasSiak:     aktivitasSiakService,
 		DuplicateOperator: duplicateOperatorService,
+		SalahRekam:        salahRekamService,
 
 		// Real-time Services
 		WebSocketHub:       wsHub,
