@@ -547,15 +547,23 @@ func setupDataRekamRoutes(router *gin.Engine, authService *auth.Service, dbServi
 	{
 		// Adjudicate record endpoints
 		dataRekamGroup.GET("/adjudicate", dataRekamHandler.GetAdjudicateRecords)
+		dataRekamGroup.PATCH("/adjudicate/:id/toggle-status", dataRekamHandler.ToggleAdjudicateRecordStatus)
+		dataRekamGroup.PATCH("/adjudicate/:id/update-date", dataRekamHandler.UpdateAdjudicateRecordDate)
 
 		// Duplicate operator endpoints
 		dataRekamGroup.GET("/duplicate-operator", dataRekamHandler.GetDuplicateOperatorRecords)
+		dataRekamGroup.PATCH("/duplicate-operator/:id/toggle-status", dataRekamHandler.ToggleDuplicateOperatorStatus)
+		dataRekamGroup.PATCH("/duplicate-operator/:id/update-date", dataRekamHandler.UpdateDuplicateOperatorDate)
 
 		// Pengajuan bulanan endpoints
 		dataRekamGroup.GET("/pengajuan-bulanan", dataRekamHandler.GetPengajuanBulananRecords)
+		dataRekamGroup.PATCH("/pengajuan-bulanan/:id/toggle-status", dataRekamHandler.TogglePengajuanBulananStatus)
+		dataRekamGroup.PATCH("/pengajuan-bulanan/:id/update-date", dataRekamHandler.UpdatePengajuanBulananDate)
 
 		// Salah rekam endpoints
 		dataRekamGroup.GET("/salah-rekam", dataRekamHandler.GetSalahRekamRecords)
+		dataRekamGroup.PATCH("/salah-rekam/:id/toggle-status", dataRekamHandler.ToggleSalahRekamStatus)
+		dataRekamGroup.PATCH("/salah-rekam/:id/update-date", dataRekamHandler.UpdateSalahRekamDate)
 
 		// Dashboard statistics endpoint
 		dataRekamGroup.GET("/dashboard-stats", dataRekamHandler.GetDashboardStats)
