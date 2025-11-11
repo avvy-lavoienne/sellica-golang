@@ -71,9 +71,10 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Extract and normalize role
-    const userRole = (decoded.user_role || '').toLowerCase().trim();
+    // Check both possible claim names: 'user_role' and 'role'
+    const userRole = (decoded.user_role || decoded.role || '').toLowerCase().trim();
     if (!['admin', 'superuser'].includes(userRole)) {
-      console.error('[ToggleStatus] Insufficient permissions - role:', userRole);
+      console.error('[ToggleStatus] Insufficient permissions - role:', userRole, 'decoded:', decoded);
       return NextResponse.json(
         { success: false, error: 'Insufficient permissions: admin role required' },
         { status: 403 }
