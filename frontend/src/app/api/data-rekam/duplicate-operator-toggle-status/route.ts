@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * PATCH /api/data-rekam/adjudicate/toggle-status
+ * PATCH /api/data-rekam/duplicate-operator-toggle-status
  * 
- * Toggles the is_ready_to_record status for an adjudicate record.
+ * Toggles the is_ready_to_record status for a duplicate operator record.
  * Only admin or superuser roles are allowed.
  * 
  * Request Body:
@@ -39,7 +39,7 @@ export async function PATCH(request: NextRequest) {
 
     // Validate token format
     if (!token.startsWith('eyJ')) {
-      console.error('[ToggleStatus] Invalid token format detected');
+      console.error('[DuplicateOperatorToggleStatus] Invalid token format detected');
       return NextResponse.json(
         { success: false, error: 'Invalid token format' },
         { status: 401 }
@@ -47,8 +47,6 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Decode JWT manually to extract role claim
-    // JWT structure: header.payload.signature
-    // We only need the payload (claims)
     let decoded: any;
     try {
       const parts = token.split('.');
@@ -56,14 +54,12 @@ export async function PATCH(request: NextRequest) {
         throw new Error('Invalid JWT structure');
       }
 
-      // Decode the payload (second part)
       const payload = parts[1];
-      // Add padding if needed
       const padded = payload + '='.repeat((4 - (payload.length % 4)) % 4);
       const decoded_str = Buffer.from(padded, 'base64').toString('utf-8');
       decoded = JSON.parse(decoded_str);
     } catch (e) {
-      console.error('[ToggleStatus] Failed to decode JWT:', e);
+      console.error('[DuplicateOperatorToggleStatus] Failed to decode JWT:', e);
       return NextResponse.json(
         { success: false, error: 'Invalid token' },
         { status: 401 }
@@ -71,20 +67,19 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Extract and normalize role
-    // Check both possible claim names: 'user_role' and 'role'
     const userRole = (decoded.user_role || decoded.role || '').toLowerCase().trim();
     if (!['admin', 'superuser'].includes(userRole)) {
-      console.error('[ToggleStatus] Insufficient permissions - role:', userRole, 'decoded:', decoded);
+      console.error('[DuplicateOperatorToggleStatus] Insufficient permissions - role:', userRole);
       return NextResponse.json(
         { success: false, error: 'Insufficient permissions: admin role required' },
         { status: 403 }
       );
     }
 
-    // Call Go backend with the token (backend has service role access)
+    // Call Go backend with the token
     const goBackendUrl = process.env.NEXT_PUBLIC_GO_BACKEND_URL || 'http://localhost:8080';
     const response = await fetch(
-      `${goBackendUrl}/data-rekam/adjudicate/${id}/toggle-status`,
+      `${goBackendUrl}/data-rekam/duplicate-operator/${id}/toggle-status`,
       {
         method: 'PATCH',
         headers: {
@@ -98,7 +93,7 @@ export async function PATCH(request: NextRequest) {
     // Pass through response from Go backend
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('[ToggleStatus] Go backend error:', {
+      console.error('[DuplicateOperatorToggleStatus] Go backend error:', {
         status: response.status,
         error: errorData
       });
@@ -112,7 +107,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json(data, { status: 200 });
 
   } catch (error) {
-    console.error('[ToggleStatus] API error:', error);
+    console.error('[DuplicateOperatorToggleStatus] API error:', error);
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }

@@ -90,14 +90,14 @@ export async function PATCH(request: NextRequest) {
     // Call Go backend with the token
     const goBackendUrl = process.env.NEXT_PUBLIC_GO_BACKEND_URL || 'http://localhost:8080';
     const response = await fetch(
-      `${goBackendUrl}/api/v1/data-rekam/adjudicate/${id}/update-date`,
+      `${goBackendUrl}/data-rekam/adjudicate/${id}/update-date`,
       {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ estimasi_tanggal_perekaman }),
+        body: JSON.stringify({ id, estimasi_tanggal_perekaman }),
       }
     );
 
