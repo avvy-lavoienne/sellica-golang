@@ -1,27 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * PATCH /api/data-rekam/adjudicate/toggle-status
+ * PATCH /api/data-rekam/salah-rekam-update-date
  * 
- * Toggles the is_ready_to_record status for an adjudicate record.
+ * Updates the estimasi_tanggal_perekaman for a salah rekam record.
  * Only admin or superuser roles are allowed.
  * 
  * Request Body:
  * {
  *   id: string,
- *   is_ready_to_record: boolean
+ *   estimasi_tanggal_perekaman: string (YYYY-MM-DD format)
  * }
  * 
  * Authorization: Bearer <JWT_TOKEN>
  */
 export async function PATCH(request: NextRequest) {
   try {
-    const { id, is_ready_to_record } = await request.json();
+    const { id, estimasi_tanggal_perekaman } = await request.json();
 
     // Validate request body
-    if (!id || typeof is_ready_to_record !== 'boolean') {
+    if (!id || !estimasi_tanggal_perekaman) {
       return NextResponse.json(
-        { success: false, error: 'Missing required fields: id, is_ready_to_record' },
+        { success: false, error: 'Missing required fields: id, estimasi_tanggal_perekaman' },
+        { status: 400 }
+      );
+    }
+
+    // Validate date format (YYYY-MM-DD)
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(estimasi_tanggal_perekaman)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid date format. Use YYYY-MM-DD' },
         { status: 400 }
       );
     }
@@ -39,7 +48,7 @@ export async function PATCH(request: NextRequest) {
 
     // Validate token format
     if (!token.startsWith('eyJ')) {
-      console.error('[ToggleStatus] Invalid token format detected');
+      console.error('[SalahRekamUpdateDate] Invalid token format detected');
       return NextResponse.json(
         { success: false, error: 'Invalid token format' },
         { status: 401 }
@@ -47,8 +56,6 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Decode JWT manually to extract role claim
-    // JWT structure: header.payload.signature
-    // We only need the payload (claims)
     let decoded: any;
     try {
       const parts = token.split('.');
@@ -56,14 +63,12 @@ export async function PATCH(request: NextRequest) {
         throw new Error('Invalid JWT structure');
       }
 
-      // Decode the payload (second part)
       const payload = parts[1];
-      // Add padding if needed
       const padded = payload + '='.repeat((4 - (payload.length % 4)) % 4);
       const decoded_str = Buffer.from(padded, 'base64').toString('utf-8');
       decoded = JSON.parse(decoded_str);
     } catch (e) {
-      console.error('[ToggleStatus] Failed to decode JWT:', e);
+      console.error('[SalahRekamUpdateDate] Failed to decode JWT:', e);
       return NextResponse.json(
         { success: false, error: 'Invalid token' },
         { status: 401 }
@@ -71,38 +76,38 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Extract and normalize role
-    const userRole = (decoded.user_role || '').toLowerCase().trim();
+    const userRole = (decoded.user_role || decoded.role || '').toLowerCase().trim();
     if (!['admin', 'superuser'].includes(userRole)) {
-      console.error('[ToggleStatus] Insufficient permissions - role:', userRole);
+      console.error('[SalahRekamUpdateDate] Insufficient permissions - role:', userRole);
       return NextResponse.json(
         { success: false, error: 'Insufficient permissions: admin role required' },
         { status: 403 }
       );
     }
 
-    // Call Go backend with the token (backend has service role access)
+    // Call Go backend with the token
     const goBackendUrl = process.env.NEXT_PUBLIC_GO_BACKEND_URL || 'http://localhost:8080';
     const response = await fetch(
-      `${goBackendUrl}/api/v1/data-rekam/adjudicate/${id}/toggle-status`,
+      `${goBackendUrl}/data-rekam/salah-rekam/${id}/update-date`,
       {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ is_ready_to_record }),
+        body: JSON.stringify({ id, estimasi_tanggal_perekaman }),
       }
     );
 
     // Pass through response from Go backend
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('[ToggleStatus] Go backend error:', {
+      console.error('[SalahRekamUpdateDate] Go backend error:', {
         status: response.status,
         error: errorData
       });
       return NextResponse.json(
-        { success: false, error: errorData.error || 'Failed to update status' },
+        { success: false, error: errorData.error || 'Failed to update date' },
         { status: response.status }
       );
     }
@@ -111,7 +116,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json(data, { status: 200 });
 
   } catch (error) {
-    console.error('[ToggleStatus] API error:', error);
+    console.error('[SalahRekamUpdateDate] API error:', error);
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }

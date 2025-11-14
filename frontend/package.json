@@ -5,7 +5,7 @@
   "scripts": {
     "dev:frontend": "next dev",
     "dev:backend": "cd ../backend && go run ./cmd/server/main.go",
-    "dev": "pm2 start ecosystem.config.js --env development",
+    "dev": "next dev",
     "dev:stop": "pm2 stop sellica-development",
     "dev:logs": "pm2 logs sellica-development",
     "dev:delete": "pm2 delete sellica-development",

@@ -154,17 +154,47 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
     }
 
     try {
-      const newStatus = !currentStatus;
-      const { error } = await supabase
-        .from("salah_rekam")
-        .update({ is_ready_to_record: newStatus })
-        .eq("id", id);
-
-      if (error) {
-        throw new Error(`Gagal mengubah status: ${error.message}`);
+      const token = localStorage.getItem("selly_auth_token");
+      if (!token) {
+        toast.error("Sesi autentikasi tidak ditemukan. Silakan login kembali.");
+        return;
       }
 
+      const newStatus = !currentStatus;
+
+      const response = await fetch(
+        "/api/data-rekam/salah-rekam-toggle-status",
+        {
+          method: "PATCH",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id, is_ready_to_record: newStatus }),
+        }
+      );
+
+      if (response.status === 401) {
+        localStorage.removeItem("selly_auth_token");
+        localStorage.removeItem("selly_user_info");
+        toast.error("Sesi telah berakhir. Silakan login kembali.");
+        return;
+      }
+
+      if (response.status === 403) {
+        toast.error("Anda tidak memiliki izin untuk mengubah status.");
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMsg = errorData.message || `HTTP ${response.status}`;
+        throw new Error(errorMsg);
+      }
+
+      await response.json();
       toast.success("Status berhasil diubah!");
+
       // Use onDataRefresh to preserve pagination/filters, fallback to onRefresh
       if (onDataRefresh) {
         onDataRefresh();
@@ -196,20 +226,52 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
     setSaving((prev) => ({ ...prev, [id]: true }));
 
     try {
-      const { error } = await supabase
-        .from("salah_rekam")
-        .update({ estimasi_tanggal_perekaman: newDate })
-        .eq("id", id);
+      const token = localStorage.getItem("selly_auth_token");
+      if (!token) {
+        toast.error("Sesi autentikasi tidak ditemukan. Silakan login kembali.");
+        return;
+      }
 
-      if (error) throw new Error(`Gagal menyimpan tanggal: ${error.message}`);
+      const response = await fetch(
+        "/api/data-rekam/salah-rekam-update-date",
+        {
+          method: "PATCH",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id, estimasi_tanggal_perekaman: newDate }),
+        }
+      );
 
+      if (response.status === 401) {
+        localStorage.removeItem("selly_auth_token");
+        localStorage.removeItem("selly_user_info");
+        toast.error("Sesi telah berakhir. Silakan login kembali.");
+        return;
+      }
+
+      if (response.status === 403) {
+        toast.error("Anda tidak memiliki izin untuk mengubah tanggal.");
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMsg = errorData.message || `HTTP ${response.status}`;
+        throw new Error(errorMsg);
+      }
+
+      await response.json();
       toast.success("Tanggal berhasil disimpan!");
+
       // Use onDataRefresh to preserve pagination/filters, fallback to onRefresh
       if (onDataRefresh) {
         onDataRefresh();
       } else {
         onRefresh();
       }
+
       setEditedDates((prev) => {
         const newDates = { ...prev };
         delete newDates[id];

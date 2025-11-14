@@ -195,7 +195,7 @@ const PengajuanBulananTable: React.FC<PengajuanBulananTableProps> = ({
 
       // ✅ Use API route instead of direct Supabase call
       const response = await fetch(
-        "/api/data-rekam/pengajuan-bulanan/toggle-status",
+        "/api/data-rekam/pengajuan-bulanan-toggle-status",
         {
           method: "POST",
           headers: {
@@ -291,7 +291,7 @@ const PengajuanBulananTable: React.FC<PengajuanBulananTableProps> = ({
 
       // ✅ Use API route instead of direct Supabase call
       const response = await fetch(
-        "/api/data-rekam/pengajuan-bulanan/update-date",
+        "/api/data-rekam/pengajuan-bulanan-update-date",
         {
           method: "POST",
           headers: {

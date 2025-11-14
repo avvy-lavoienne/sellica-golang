@@ -168,14 +168,14 @@ const AdjudicateRecordTable: React.FC<AdjudicateRecordTableProps> = ({
       const newStatus = !currentStatus;
 
       const response = await fetch(
-        "/api/data-rekam/adjudicate-record/toggle-status",
+        "/api/data-rekam/adjudicate-toggle-status",
         {
-          method: "POST",
+          method: "PATCH",
           headers: {
             "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id, newStatus }),
+          body: JSON.stringify({ id, is_ready_to_record: newStatus }),
         }
       );
 
@@ -246,14 +246,14 @@ const AdjudicateRecordTable: React.FC<AdjudicateRecordTableProps> = ({
       }
 
       const response = await fetch(
-        "/api/data-rekam/adjudicate-record/update-date",
+        "/api/data-rekam/adjudicate-update-date",
         {
-          method: "POST",
+          method: "PATCH",
           headers: {
             "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id, newDate }),
+          body: JSON.stringify({ id, estimasi_tanggal_perekaman: newDate }),
         }
       );
 

@@ -1,35 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * PATCH /api/data-rekam/adjudicate/update-date
+ * PATCH /api/data-rekam/adjudicate/toggle-status
  * 
- * Updates the estimasi_tanggal_perekaman for an adjudicate record.
+ * Toggles the is_ready_to_record status for an adjudicate record.
  * Only admin or superuser roles are allowed.
  * 
  * Request Body:
  * {
  *   id: string,
- *   estimasi_tanggal_perekaman: string (YYYY-MM-DD format)
+ *   is_ready_to_record: boolean
  * }
  * 
  * Authorization: Bearer <JWT_TOKEN>
  */
 export async function PATCH(request: NextRequest) {
   try {
-    const { id, estimasi_tanggal_perekaman } = await request.json();
+    const { id, is_ready_to_record } = await request.json();
 
     // Validate request body
-    if (!id || !estimasi_tanggal_perekaman) {
+    if (!id || typeof is_ready_to_record !== 'boolean') {
       return NextResponse.json(
-        { success: false, error: 'Missing required fields: id, estimasi_tanggal_perekaman' },
-        { status: 400 }
-      );
-    }
-
-    // Validate date format (YYYY-MM-DD)
-    if (!estimasi_tanggal_perekaman.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid date format. Expected YYYY-MM-DD' },
+        { success: false, error: 'Missing required fields: id, is_ready_to_record' },
         { status: 400 }
       );
     }
@@ -47,7 +39,7 @@ export async function PATCH(request: NextRequest) {
 
     // Validate token format
     if (!token.startsWith('eyJ')) {
-      console.error('[UpdateDate] Invalid token format detected');
+      console.error('[ToggleStatus] Invalid token format detected');
       return NextResponse.json(
         { success: false, error: 'Invalid token format' },
         { status: 401 }
@@ -55,6 +47,8 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Decode JWT manually to extract role claim
+    // JWT structure: header.payload.signature
+    // We only need the payload (claims)
     let decoded: any;
     try {
       const parts = token.split('.');
@@ -69,7 +63,7 @@ export async function PATCH(request: NextRequest) {
       const decoded_str = Buffer.from(padded, 'base64').toString('utf-8');
       decoded = JSON.parse(decoded_str);
     } catch (e) {
-      console.error('[UpdateDate] Failed to decode JWT:', e);
+      console.error('[ToggleStatus] Failed to decode JWT:', e);
       return NextResponse.json(
         { success: false, error: 'Invalid token' },
         { status: 401 }
@@ -77,38 +71,39 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Extract and normalize role
-    const userRole = (decoded.user_role || '').toLowerCase().trim();
+    // Check both possible claim names: 'user_role' and 'role'
+    const userRole = (decoded.user_role || decoded.role || '').toLowerCase().trim();
     if (!['admin', 'superuser'].includes(userRole)) {
-      console.error('[UpdateDate] Insufficient permissions - role:', userRole);
+      console.error('[ToggleStatus] Insufficient permissions - role:', userRole, 'decoded:', decoded);
       return NextResponse.json(
         { success: false, error: 'Insufficient permissions: admin role required' },
         { status: 403 }
       );
     }
 
-    // Call Go backend with the token
+    // Call Go backend with the token (backend has service role access)
     const goBackendUrl = process.env.NEXT_PUBLIC_GO_BACKEND_URL || 'http://localhost:8080';
     const response = await fetch(
-      `${goBackendUrl}/api/v1/data-rekam/adjudicate/${id}/update-date`,
+      `${goBackendUrl}/data-rekam/adjudicate/${id}/toggle-status`,
       {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ estimasi_tanggal_perekaman }),
+        body: JSON.stringify({ id, is_ready_to_record }),
       }
     );
 
     // Pass through response from Go backend
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('[UpdateDate] Go backend error:', {
+      console.error('[ToggleStatus] Go backend error:', {
         status: response.status,
         error: errorData
       });
       return NextResponse.json(
-        { success: false, error: errorData.error || 'Failed to update date' },
+        { success: false, error: errorData.error || 'Failed to update status' },
         { status: response.status }
       );
     }
@@ -117,7 +112,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json(data, { status: 200 });
 
   } catch (error) {
-    console.error('[UpdateDate] API error:', error);
+    console.error('[ToggleStatus] API error:', error);
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
