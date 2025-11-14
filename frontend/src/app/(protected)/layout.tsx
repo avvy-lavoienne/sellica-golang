@@ -47,6 +47,17 @@ export default function ProtectedLayout({
           // Prefer getUserInfo (from localStorage) first, then fall back to JWT parsing
           const goUser = GoAuthAPI.getUserInfo() || GoAuthAPI.getUserFromToken();
           logger.debug('Go user retrieved:', { email: goUser?.email, id: goUser?.id, name: goUser?.name });
+          
+          // DEBUG: Check what's actually in localStorage
+          if (typeof window !== 'undefined') {
+            const storedToken = localStorage.getItem('selly_auth_token');
+            const storedUserInfo = localStorage.getItem('selly_user_info');
+            logger.debug('localStorage check:', {
+              hasToken: !!storedToken,
+              hasUserInfo: !!storedUserInfo,
+              userInfoContent: storedUserInfo ? JSON.parse(storedUserInfo) : null
+            });
+          }
 
           if (isGoAuthValid && goUser) {
             logger.info('✅ Go backend authentication valid, setting user:', { email: goUser.email });

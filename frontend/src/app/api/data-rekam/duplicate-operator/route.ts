@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from "@supabase/supabase-js";
 
 /**
  * GET /api/data-rekam/duplicate-operator
@@ -99,4 +100,319 @@ export async function GET(request: NextRequest) {
             { status: 500 }
         );
     }
+}
+
+/**
+ * POST /api/data-rekam/duplicate-operator
+ * 
+ * Creates or updates a duplicate operator record using Supabase.
+ * This is a secure API route that:
+ * 1. Validates user authentication via JWT token
+ * 2. Extracts user ID from token payload
+ * 3. Validates request body fields
+ * 4. Performs insert or update operation using Supabase service role
+ * 5. Returns the created/updated record
+ * 
+ * Request Body:
+ * - id (optional): For update operations
+ * - nik_duplicate: NIK of the duplicate person
+ * - nama_duplicate: Name of the duplicate person
+ * - nik_operator: NIK of the operator
+ * - nama_operator: Name of the operator
+ * - nik_pengaju: NIK of the requestor
+ * - nama_pengaju: Name of the requestor
+ * - tanggal_perekaman: Date of recording (YYYY-MM-DD)
+ * - tanggal_pengajuan: Date of request (YYYY-MM-DD)
+ * - estimasi_tanggal_perekaman: Estimated recording date (YYYY-MM-DD)
+ * - is_ready_to_record: Is ready to record (boolean)
+ */
+export async function POST(request: NextRequest) {
+  try {
+    // ✅ STEP 1: Validate Authorization header
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized: Missing Bearer token" },
+        { status: 401 }
+      );
+    }
+
+    // ✅ STEP 2: Extract and verify JWT token format
+    const token = authHeader.substring(7);
+    const parts = token.split(".");
+    if (parts.length !== 3) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized: Invalid token format" },
+        { status: 401 }
+      );
+    }
+
+    // ✅ STEP 3: Decode and parse JWT payload
+    let payload: any;
+    try {
+      payload = JSON.parse(Buffer.from(parts[1], "base64").toString());
+    } catch (e) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized: Invalid token payload" },
+        { status: 401 }
+      );
+    }
+
+    // ✅ STEP 4: Extract user ID from token
+    const userId = payload.sub;
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized: Missing user ID in token" },
+        { status: 401 }
+      );
+    }
+
+    // ✅ STEP 5: Parse and validate request body
+    let body;
+    try {
+      body = await request.json();
+    } catch (e) {
+      return NextResponse.json(
+        { success: false, error: "Bad request: Invalid JSON" },
+        { status: 400 }
+      );
+    }
+
+    // ✅ STEP 6: Validate required fields
+    const requiredFields = [
+      "nik_duplicate",
+      "nama_duplicate",
+      "nik_operator",
+      "nama_operator",
+      "nik_pengaju",
+      "nama_pengaju",
+      "tanggal_pengajuan",
+    ];
+
+    for (const field of requiredFields) {
+      if (!body[field] || String(body[field]).trim() === "") {
+        console.error(
+          `[duplicate-operator-api] Missing or empty required field: ${field}`
+        );
+        return NextResponse.json(
+          { success: false, error: `Bad request: ${field} is required` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // ✅ STEP 7: Create Supabase client with service role
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceRoleKey) {
+      console.error("[duplicate-operator-api] Missing Supabase configuration");
+      return NextResponse.json(
+        { success: false, error: "Internal server error: Database configuration missing" },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+
+    // ✅ STEP 8: Prepare data for insert/update
+    const dataToSave = {
+      user_id: body.user_id || userId,
+      nik_duplicate: String(body.nik_duplicate).trim(),
+      nama_duplicate: String(body.nama_duplicate).trim(),
+      nik_operator: String(body.nik_operator).trim(),
+      nama_operator: String(body.nama_operator).trim(),
+      nik_pengaju: String(body.nik_pengaju).trim(),
+      nama_pengaju: String(body.nama_pengaju).trim(),
+      tanggal_perekaman: body.tanggal_perekaman || null,
+      tanggal_pengajuan: body.tanggal_pengajuan,
+      estimasi_tanggal_perekaman: body.estimasi_tanggal_perekaman || null,
+      is_ready_to_record: body.is_ready_to_record || false,
+    };
+
+    // ✅ STEP 9: Perform insert or update
+    let result;
+    if (body.id) {
+      // Update existing record
+      const { data, error } = await supabase
+        .from("duplicate_operator")
+        .update(dataToSave)
+        .eq("id", body.id)
+        .select();
+
+      if (error) {
+        console.error("[duplicate-operator-api] Update error:", error);
+        return NextResponse.json(
+          { success: false, error: `Database error: ${error.message}` },
+          { status: 500 }
+        );
+      }
+
+      result = data;
+    } else {
+      // Insert new record
+      const { data, error } = await supabase
+        .from("duplicate_operator")
+        .insert([dataToSave])
+        .select();
+
+      if (error) {
+        console.error("[duplicate-operator-api] Insert error details:", {
+          message: error.message,
+          code: (error as any).code,
+          details: (error as any).details,
+          hint: (error as any).hint,
+          fullError: error,
+          dataToSave,
+        });
+        return NextResponse.json(
+          { 
+            success: false,
+            error: `Database error: ${error.message}`,
+            code: (error as any).code,
+            details: (error as any).details,
+          },
+          { status: 500 }
+        );
+      }
+
+      result = data;
+    }
+
+    // ✅ STEP 10: Return success response
+    return NextResponse.json(
+      {
+        success: true,
+        data: result?.[0] || null,
+        message: body.id ? "Record updated successfully" : "Record created successfully",
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("[duplicate-operator-api] Error:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Internal server error",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * DELETE /api/data-rekam/duplicate-operator
+ * 
+ * Deletes a duplicate operator record by ID.
+ * 
+ * Required:
+ * - id: The UUID of the record to delete
+ * - Authorization header with Bearer token
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    // Step 1: Validate authorization header
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader) {
+      console.error('[duplicate-operator-api] Missing authorization header');
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Missing Bearer token' },
+        { status: 401 }
+      );
+    }
+
+    // Step 2: Parse and validate JWT token
+    const tokenParts = authHeader.split(' ');
+    if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
+      console.error('[duplicate-operator-api] Invalid authorization format');
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Invalid Bearer token format' },
+        { status: 401 }
+      );
+    }
+
+    // Step 3: Get record ID from request body
+    let body: any = {};
+    try {
+      body = await request.json();
+    } catch (e) {
+      console.error('[duplicate-operator-api] Failed to parse request body');
+      return NextResponse.json(
+        { success: false, error: 'Invalid request body' },
+        { status: 400 }
+      );
+    }
+
+    const { id } = body;
+    if (!id) {
+      console.error('[duplicate-operator-api] Missing record ID');
+      return NextResponse.json(
+        { success: false, error: 'Record ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Step 4: Verify Supabase configuration
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('[duplicate-operator-api] Missing Supabase configuration');
+      return NextResponse.json(
+        { success: false, error: 'Internal server error: Database configuration missing' },
+        { status: 500 }
+      );
+    }
+
+    // Step 5: Create Supabase client with service role
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+
+    // Step 6: Delete the record
+    const { error } = await supabase
+      .from('duplicate_operator')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('[duplicate-operator-api] Delete error details:', {
+        message: error.message,
+        code: (error as any).code,
+        details: (error as any).details,
+        hint: (error as any).hint,
+      });
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Database error: ${error.message}`,
+          code: (error as any).code,
+          details: (error as any).details,
+        },
+        { status: 500 }
+      );
+    }
+
+    // Step 7: Return success response
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Record deleted successfully',
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('[duplicate-operator-api] Delete error:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Internal server error',
+      },
+      { status: 500 }
+    );
+  }
 }

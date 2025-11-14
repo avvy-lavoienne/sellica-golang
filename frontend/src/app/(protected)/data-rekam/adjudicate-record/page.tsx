@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
+import { GoAuthAPI } from "@/lib/api/goAuth";
 import { useProtectedAuth } from "@/app/(protected)/auth-context";
 import AdjudicateRecordHeader from "@/components/dashboard/data-rekam/adjudicate-record/AdjudicateRecordHeader";
 import AdjudicateRecordActions from "@/components/dashboard/data-rekam/adjudicate-record/AdjudicateRecordActions";
@@ -44,7 +45,7 @@ export default function AdjudicateRecordPage() {
     nama_adjudicate: "",
     nik_pengaju: "",
     nama_pengaju: "",
-    jenis_eksepsi: "",
+    jenis_eksepsi: "eksepsi total",
     tanggal_pengajuan: new Date().toISOString().split("T")[0],
     estimasi_tanggal_perekaman: "",
     is_ready_to_record: false,
@@ -62,9 +63,14 @@ export default function AdjudicateRecordPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const validateNIK = (nik: string) => {
-    return nik.length === 16 && /^\d{16}$/.test(nik);
-  };
+  // Debug logging
+  useEffect(() => {
+    console.log("[AdjudicateRecord] Context state:", {
+      contextUser: contextUser ? { id: contextUser.id, email: contextUser.email, role: contextUser.role } : null,
+      isLoadingAuth,
+      timestamp: new Date().toLocaleTimeString()
+    });
+  }, [contextUser, isLoadingAuth]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -76,9 +82,41 @@ export default function AdjudicateRecordPage() {
           return;
         }
 
-        const userNik = contextUser.nik || "";
+        // Get user role from contextUser (using local variable, NOT setState yet)
+        let userRoleValue = contextUser.role || "user";
+        console.log(
+          "[AdjudicateRecord] Initial role from contextUser:",
+          contextUser.role,
+          "| defaulted to:",
+          userRoleValue,
+        );
 
+        // Normalize role for comparison
+        const normalizedRole = userRoleValue.toLowerCase().trim();
+        const isAdmin = ["admin", "superuser"].includes(normalizedRole);
+
+        // ✅ FIXED: Skip NIK validation for admin/superuser (they manage all records, not submit their own)
+        if (isAdmin) {
+          console.log(
+            "[AdjudicateRecord] Admin user detected, skipping NIK validation",
+          );
+          setUser(contextUser);  // Set user state
+          setUserRole(userRoleValue);  // Now safe to call setState - effect won't loop
+          setFormData((prev) => ({
+            ...prev,
+            nik_pengaju: contextUser.nik || "",
+            nama_pengaju: contextUser.name,
+          }));
+          return;
+        }
+
+        // Regular users MUST have valid NIK
+        const userNik = contextUser.nik || "";
         if (!userNik || !validateNIK(userNik)) {
+          console.warn(
+            "[AdjudicateRecord] Non-admin user has invalid NIK:",
+            userNik,
+          );
           toast.error(
             "NIK Anda tidak valid. Harap perbarui profil Anda terlebih dahulu.",
           );
@@ -86,16 +124,17 @@ export default function AdjudicateRecordPage() {
           return;
         }
 
+        setUser(contextUser);  // Set user state
+        setUserRole(userRoleValue);  // Now safe to call setState - effect won't loop
         setFormData((prev) => ({
           ...prev,
           nik_pengaju: userNik,
           nama_pengaju: contextUser.name,
         }));
-        setUserRole(contextUser.role || "user");
       } catch (error: any) {
         console.error("Error fetching user data:", error);
         toast.error(
-          error.message || "Gagal memuat data pengguna. Silakan coba lagi.",
+          error.message || "Gagal memload data pengguna. Silakan coba lagi.",
         );
         router.push("/");
       }
@@ -105,7 +144,11 @@ export default function AdjudicateRecordPage() {
     if (!isLoadingAuth && contextUser) {
       fetchUserData();
     }
-  }, [contextUser, isLoadingAuth, router, validateNIK]);
+  }, [contextUser, isLoadingAuth, router]);
+
+  const validateNIK = (nik: string) => {
+    return nik.length === 16 && /^\d{16}$/.test(nik);
+  };
 
   const fetchRekapData = useCallback(
     async (
@@ -132,12 +175,21 @@ export default function AdjudicateRecordPage() {
           params.append("search", searchQuery);
         }
 
-        // Get auth token from session
-        const session = await supabase.auth.getSession();
-        const token = session.data.session?.access_token;
+        // Get auth token from localStorage (Go backend JWT)
+        const token = GoAuthAPI.getToken();
         if (!token) {
+          console.error("[AdjudicateRecord] No token found from GoAuthAPI");
           toast.error("Token autentikasi tidak ditemukan. Silakan login kembali.");
           router.push("/login");
+          return { totalCount: 0 };
+        }
+
+        // Validate token format (JWT should start with "eyJ")
+        if (!token.startsWith("eyJ")) {
+          console.error("[AdjudicateRecord] Invalid token format detected");
+          localStorage.clear();
+          toast.error("Sesi autentikasi tidak valid. Silakan login kembali.");
+          window.location.href = "/login";
           return { totalCount: 0 };
         }
 
@@ -153,20 +205,24 @@ export default function AdjudicateRecordPage() {
           }
         );
 
-        // Handle auth errors
+        // Handle 401 Unauthorized - Token expired or invalid
         if (response.status === 401) {
-          toast.error("Sesi telah berakhir. Silakan login kembali.");
-          router.push("/login");
+          console.error("[AdjudicateRecord] Unauthorized response - token expired or invalid");
+          localStorage.clear();
+          toast.error("Sesi autentikasi berakhir. Silakan login kembali.");
+          window.location.href = "/login";
           return { totalCount: 0 };
         }
 
+        // Handle 403 Forbidden - Insufficient permissions
         if (response.status === 403) {
+          console.error("[AdjudicateRecord] Forbidden response - insufficient permissions");
           toast.error("Anda tidak memiliki izin untuk mengakses data ini.");
           return { totalCount: 0 };
         }
 
         if (!response.ok) {
-          const errorData = await response.json();
+          const errorData = await response.json().catch(() => ({}));
           throw new Error(errorData.error || "Gagal memuat data");
         }
 
@@ -179,7 +235,7 @@ export default function AdjudicateRecordPage() {
         setRekapData(result.data || []);
         return { totalCount: result.total_count || 0 };
       } catch (error: any) {
-        console.error("Error fetching rekap data:", error);
+        console.error("[AdjudicateRecord] Error fetching rekap data:", error);
         toast.error(
           error.message || "Gagal memuat data rekap. Silakan coba lagi.",
         );
@@ -201,7 +257,7 @@ export default function AdjudicateRecordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !profile) {
+    if (!user || !contextUser) {
       toast.error("Data pengguna tidak ditemukan. Silakan coba lagi.");
       return;
     }
@@ -245,23 +301,55 @@ export default function AdjudicateRecordPage() {
         is_ready_to_record: formData.is_ready_to_record || false,
       };
 
-      if (isEditing && editId) {
-        const { error } = await supabase
-          .from("adjudicate_record")
-          .update(dataToSave)
-          .eq("id", editId);
+      console.log("[AdjudicateRecord] Data to save:", dataToSave);
 
-        if (error) {
-          throw new Error(`Gagal memperbarui data: ${error.message}`);
-        }
+      // ✅ FIXED: Get token from localStorage (Go backend session)
+      const token = localStorage.getItem("selly_auth_token");
+      if (!token) {
+        console.warn("[AdjudicateRecord] Token not found in localStorage");
+        toast.error("Sesi autentikasi tidak ditemukan. Silakan login kembali.");
+        router.push("/login");
+        return;
+      }
+
+      // ✅ FIXED: Use API route instead of direct Supabase calls
+      const response = await fetch("/api/data-rekam/adjudicate", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataToSave),
+      });
+
+      if (response.status === 401) {
+        console.error("[AdjudicateRecord] Authentication failed (401)");
+        localStorage.removeItem("selly_auth_token");
+        localStorage.removeItem("selly_user_data");
+        toast.error("Sesi telah berakhir. Silakan login kembali.");
+        router.push("/login");
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMsg = errorData.message || errorData.error || `HTTP ${response.status}`;
+        console.error("[AdjudicateRecord] API error - Full Details:", {
+          status: response.status,
+          errorMsg,
+          fullError: errorData,
+          requestData: dataToSave,
+        });
+        throw new Error(errorMsg);
+      }
+
+      const result = await response.json();
+
+      if (isEditing && editId) {
+        console.log("[AdjudicateRecord] Record updated successfully");
         toast.success("Data berhasil diperbarui!");
       } else {
-        const { error } = await supabase
-          .from("adjudicate_record")
-          .insert(dataToSave);
-        if (error) {
-          throw new Error(`Gagal menyimpan data: ${error.message}`);
-        }
+        console.log("[AdjudicateRecord] Record created successfully");
         toast.success("Data berhasil diajukan!");
       }
 
@@ -271,9 +359,9 @@ export default function AdjudicateRecordPage() {
       setFormData({
         nik_adjudicate: "",
         nama_adjudicate: "",
-        nik_pengaju: profile.nik,
-        nama_pengaju: profile.name,
-        jenis_eksepsi: "",
+        nik_pengaju: "9999999999999999",
+        nama_pengaju: contextUser?.name || "",
+        jenis_eksepsi: "eksepsi total",
         tanggal_pengajuan: new Date().toISOString().split("T")[0],
         estimasi_tanggal_perekaman: "",
         is_ready_to_record: false,
@@ -306,7 +394,7 @@ export default function AdjudicateRecordPage() {
       nama_adjudicate: "",
       nik_pengaju: profile?.nik ?? "",
       nama_pengaju: profile?.name ?? "",
-      jenis_eksepsi: "",
+      jenis_eksepsi: "eksepsi total",
       tanggal_pengajuan: new Date().toISOString().split("T")[0],
       estimasi_tanggal_perekaman: "",
       is_ready_to_record: false,
@@ -344,14 +432,34 @@ export default function AdjudicateRecordPage() {
     if (!confirm("Apakah Anda yakin ingin menghapus pengajuan ini?")) return;
 
     try {
-      const { error } = await supabase
-        .from("adjudicate_record")
-        .delete()
-        .eq("id", id);
-
-      if (error) {
-        throw new Error(`Gagal menghapus data: ${error.message}`);
+      // Get auth token from localStorage
+      const token = localStorage.getItem("selly_auth_token");
+      if (!token) {
+        throw new Error("Token tidak ditemukan. Silakan login kembali.");
       }
+
+      // Call API endpoint with DELETE method
+      const response = await fetch("/api/data-rekam/adjudicate", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const errorMsg = data.message || `HTTP ${response.status}`;
+        console.error("[AdjudicateRecord] Delete API error:", {
+          status: response.status,
+          errorMsg,
+          fullError: data,
+        });
+        throw new Error(errorMsg);
+      }
+
       toast.success("Data berhasil dihapus!");
       const { totalCount } = await fetchRekapData(
         currentPage,
@@ -397,7 +505,8 @@ export default function AdjudicateRecordPage() {
     setTotalCount(totalCount);
   }, [fetchRekapData, currentPage, searchQuery, statusFilter]);
 
-  if (!user || !profile) {
+  // Show loading state while auth is being checked
+  if (isLoadingAuth) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 px-4 py-12 dark:from-gray-900 dark:to-gray-800 sm:px-6 lg:px-8">
         <motion.div
@@ -406,35 +515,15 @@ export default function AdjudicateRecordPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-8 w-8 text-red-600 dark:text-red-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600 dark:border-blue-700 dark:border-t-blue-400"></div>
           </div>
           <h2 className="mb-2 text-xl font-bold text-gray-900 dark:text-white">
-            Sesi Tidak Ditemukan
+            Memuat...
           </h2>
           <p className="mb-6 text-gray-600 dark:text-gray-300">
-            Sesi Anda telah berakhir atau Anda belum login. Silakan login
-            kembali untuk melanjutkan.
+            Mengverifikasi sesi Anda.
           </p>
-          <Link
-            href="/"
-            className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
-          >
-            Kembali ke Dashboard
-          </Link>
         </motion.div>
       </div>
     );
@@ -455,9 +544,9 @@ export default function AdjudicateRecordPage() {
                 setFormData({
                   nik_adjudicate: "",
                   nama_adjudicate: "",
-                  nik_pengaju: profile?.nik || "",
-                  nama_pengaju: profile?.name || "",
-                  jenis_eksepsi: "",
+                  nik_pengaju: "9999999999999999",
+                  nama_pengaju: contextUser?.name || "",
+                  jenis_eksepsi: "eksepsi total",
                   tanggal_pengajuan: new Date().toISOString().split("T")[0],
                   estimasi_tanggal_perekaman: "",
                   is_ready_to_record: false,
@@ -514,7 +603,7 @@ export default function AdjudicateRecordPage() {
                   >
                     {rekapData.length > 0 || isTableLoading ? (
                       <AdjudicateRecordTable
-                        rekapData={rekapData}
+                        adjudicateData={rekapData}
                         totalCount={totalCount}
                         currentPage={currentPage}
                         onPageChange={setCurrentPage}
@@ -525,6 +614,7 @@ export default function AdjudicateRecordPage() {
                         onDelete={handleDelete}
                         userRole={userRole}
                         loading={isTableLoading}
+                        rowsPerPage={5}
                       />
                     ) : (
                       <p className="py-10 text-center text-gray-500 dark:text-gray-400">

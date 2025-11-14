@@ -26,6 +26,7 @@ import (
 	"selly-backend/internal/services/knowledge"
 	"selly-backend/internal/services/monitoring"
 	"selly-backend/internal/services/rag"
+	"selly-backend/internal/services/salah_rekam"
 	"selly-backend/internal/services/silpana"
 	"selly-backend/internal/services/supabase_analyzer"
 	"selly-backend/internal/services/training"
@@ -83,6 +84,7 @@ func main() {
 		services.AktivitasSiak,
 		services.SessionManager,
 		services.Knowledge,
+		services.SalahRekam,
 	)
 	routes.SetupRoutes(router, routeServices)
 
@@ -145,12 +147,13 @@ type Services struct {
 	Silpana           silpana.ServiceInterface
 	AktivitasSiak     aktivitas_siak.Service
 	DuplicateOperator duplicate_operator.Service
+	SalahRekam        salah_rekam.Service
 
 	// Real-time Services
-	WebSocketHub        *websocket.Hub
-	SilpanaBroadcaster  *silpana.WebSocketBroadcaster
-	SupabaseAnalyzer    *supabase_analyzer.Service
-	SessionManager      *auth.SessionManager // Session manager for SILPANA operations
+	WebSocketHub       *websocket.Hub
+	SilpanaBroadcaster *silpana.WebSocketBroadcaster
+	SupabaseAnalyzer   *supabase_analyzer.Service
+	SessionManager     *auth.SessionManager // Session manager for SILPANA operations
 
 	// Advanced Cache Services (Phase 3A - Optimization)
 	InvalidationManager *cache.InvalidationManager
@@ -312,7 +315,13 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	// Initialize RAG service
 	ragService := rag.NewRedisRAGService(cacheService.GetRedisClient())
 
-	// Initialize RAG service
+	// Configure RAG performance monitor with settings from config
+	ragService.ConfigurePerformanceMonitor(
+		cfg.RAG.MaxEmbeddingTime,
+		cfg.RAG.MaxSearchTime,
+		cfg.RAG.MaxIndexingTime,
+		cfg.RAG.LogThresholdWarnings,
+	) // Initialize RAG service
 	if err := ragService.Initialize(context.Background()); err != nil {
 		return nil, fmt.Errorf("failed to initialize RAG service: %w", err)
 	}
@@ -346,9 +355,9 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	// Configure JSON processing if enabled
 	if cfg.Knowledge.JSONProcessing.Enabled {
 		logrus.WithFields(logrus.Fields{
-			"supported_types":    cfg.Knowledge.JSONProcessing.SupportedTypes,
-			"auto_load":         cfg.Knowledge.JSONProcessing.AutoLoadOnStartup,
-			"validation":        cfg.Knowledge.JSONProcessing.ValidationEnabled,
+			"supported_types": cfg.Knowledge.JSONProcessing.SupportedTypes,
+			"auto_load":       cfg.Knowledge.JSONProcessing.AutoLoadOnStartup,
+			"validation":      cfg.Knowledge.JSONProcessing.ValidationEnabled,
 		}).Info("📄 JSON training data processing enabled")
 
 		// Note: JSON processing is already enabled in the service methods
@@ -411,6 +420,11 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	duplicateOperatorAdapter := duplicate_operator.NewSupabaseAdapter(supabaseClient)
 	duplicateOperatorService := duplicate_operator.NewService(duplicateOperatorAdapter)
 	logrus.Info("✅ Duplicate Operator service initialized successfully")
+
+	// Initialize Salah Rekam service
+	salahRekamAdapter := salah_rekam.NewSupabaseAdapter(supabaseClient)
+	salahRekamService := salah_rekam.NewService(salahRekamAdapter)
+	logrus.Info("✅ Salah Rekam service initialized successfully")
 
 	// Initialize WebSocket hub for real-time features
 	logrus.Info("🔌 Initializing WebSocket hub...")
@@ -492,6 +506,7 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		Silpana:           silpanaService,
 		AktivitasSiak:     aktivitasSiakService,
 		DuplicateOperator: duplicateOperatorService,
+		SalahRekam:        salahRekamService,
 
 		// Real-time Services
 		WebSocketHub:       wsHub,

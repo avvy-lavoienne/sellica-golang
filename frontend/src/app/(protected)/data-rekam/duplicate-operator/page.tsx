@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
@@ -21,6 +21,12 @@ import EmptyState from "@/components/dashboard/data-rekam/duplicate-operator/Emp
 import LoadingState from "@/components/dashboard/data-rekam/duplicate-operator/LoadingState";
 import ErrorState from "@/components/dashboard/data-rekam/duplicate-operator/ErrorState";
 import Link from "next/link";
+
+enum ActiveMode {
+  Form = "form",
+  Table = "table",
+  None = "none",
+}
 
 interface User {
   id: string;
@@ -62,60 +68,123 @@ export default function DuplicateOperatorPage() {
   const [userRole, setUserRole] = useState<string>("user");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [isFetchingUser, setIsFetchingUser] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const validateNIK = useMemo(() => {
-    return (nik: string) => nik.length === 16 && /^\d{16}$/.test(nik);
-  }, []);
+  // Debug logging
+  useEffect(() => {
+    console.log("[DuplicateOperator] Context state:", {
+      contextUser: contextUser ? { id: contextUser.id, email: contextUser.email, role: contextUser.role } : null,
+      isLoadingAuth,
+      timestamp: new Date().toLocaleTimeString()
+    });
+  }, [contextUser, isLoadingAuth]);
 
+  const validateNIK = (nik: string) => {
+    return nik.length === 16 && /^\d{16}$/.test(nik);
+  };
+
+  // ✅ FIXED: Match PengajuanBulanan pattern for proper form data initialization
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        setIsFetchingUser(true);
-        setError(null);
-
         // User already authenticated via layout, use context data
         if (!contextUser) {
-          throw new Error("Sesi tidak ditemukan");
+          console.log("[DuplicateOperator] No contextUser available, redirecting to login");
+          toast.error("Sesi tidak ditemukan. Silakan login kembali.");
+          router.push("/");
+          return;
         }
 
+        // Get user role from contextUser
+        let userRoleValue = contextUser.role || "user";
+        console.log(
+          "[DuplicateOperator] Full contextUser object:",
+          contextUser,
+        );
+        console.log(
+          "[DuplicateOperator] Initial role from contextUser:",
+          contextUser.role,
+          "| defaulted to:",
+          userRoleValue,
+        );
+
+        // Normalize role for comparison
+        const normalizedRole = userRoleValue.toLowerCase().trim();
+        const isAdmin = ["admin", "superuser"].includes(normalizedRole);
+
+        // ✅ For admin: use default admin NIK, For regular user: use their actual NIK
+        const nikValue = isAdmin 
+          ? (contextUser.nik || "9999999999999999")  // Default admin NIK
+          : (contextUser.nik || "");
+
+        // Get name with multiple fallbacks
+        const nameValue = contextUser.name || contextUser.full_name || contextUser.email || "Admin";
+        
+        console.log(
+          "[DuplicateOperator] Form data to be set:",
+          {
+            nikValue,
+            nameValue,
+            isAdmin,
+            contextUserNik: contextUser.nik,
+            contextUserName: contextUser.name,
+            contextUserFullName: contextUser.full_name,
+          }
+        );
+
+        // ✅ NOW set the form data with actual values from contextUser BEFORE setting other state
+        setFormData((prev) => ({
+          ...prev,
+          nik_pengaju: nikValue,
+          nama_pengaju: nameValue,
+        }));
+
+        // ✅ Now set user and role state
         setUser(contextUser);
+        setUserRole(userRoleValue);
 
+        console.log(
+          "[DuplicateOperator] Form data updated, state committed"
+        );
+
+        // Skip further validation for admin
+        if (isAdmin) {
+          console.log(
+            "[DuplicateOperator] Admin user detected, skipping NIK validation",
+          );
+          return;
+        }
+
+        // Regular users MUST have valid NIK
         const userNik = contextUser.nik || "";
-
         if (!userNik || !validateNIK(userNik)) {
+          console.warn(
+            "[DuplicateOperator] Non-admin user has invalid NIK:",
+            userNik,
+          );
           toast.error(
             "NIK Anda tidak valid. Harap perbarui profil Anda terlebih dahulu.",
           );
           router.push("/profile");
           return;
         }
-
-        setFormData((prev) => ({
-          ...prev,
-          nik_pengaju: userNik,
-          nama_pengaju: contextUser.name,
-        }));
-        setUserRole(contextUser.role || "user");
       } catch (error: any) {
-        console.error("Error fetching user:", error);
-        setError(
-          error.message || "Gagal memuat data pengguna. Silakan coba lagi.",
-        );
+        console.error("Error fetching user data:", error);
         toast.error(
-          error.message || "Gagal memuat data pengguna. Silakan coba lagi.",
+          error.message || "Gagal memload data pengguna. Silakan coba lagi.",
         );
-      } finally {
-        setIsFetchingUser(false);
+        router.push("/");
       }
     };
 
-    // Only fetch when context user is available and auth is not loading
-    if (!isLoadingAuth && contextUser) {
+    // Only fetch when context user is available
+    if (contextUser) {
+      console.log("[DuplicateOperator] Effect running with contextUser available");
       fetchUserData();
+    } else {
+      console.log("[DuplicateOperator] Effect running but contextUser not available yet");
     }
-  }, [contextUser, isLoadingAuth, router, validateNIK]);
+  }, [contextUser, router]);
 
   const fetchRekapData = useCallback(
     async (page = 1, query = "", statusFilter = "all") => {
@@ -139,9 +208,8 @@ export default function DuplicateOperatorPage() {
           params.append("search", query);
         }
 
-        // Get auth token from session
-        const session = await supabase.auth.getSession();
-        const token = session.data.session?.access_token;
+        // Get JWT token from localStorage (Go backend session)
+        const token = localStorage.getItem("selly_auth_token");
         if (!token) {
           toast.error("Token autentikasi tidak ditemukan. Silakan login kembali.");
           router.push("/login");
@@ -210,7 +278,7 @@ export default function DuplicateOperatorPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user || !profile) {
+    if (!user) {
       toast.error("Data pengguna tidak ditemukan. Silakan coba lagi.");
       return;
     }
@@ -224,8 +292,14 @@ export default function DuplicateOperatorPage() {
     setError(null);
 
     try {
+      // Get JWT token from localStorage (Go backend session)
+      const token = localStorage.getItem("selly_auth_token");
+      if (!token) {
+        throw new Error("Token autentikasi tidak ditemukan. Silakan login kembali.");
+      }
+
       const dataToSave = {
-        user_id: user.id,
+        id: isEditing && editId ? editId : undefined,
         nik_duplicate: formData.nik_duplicate.trim(),
         nama_duplicate: formData.nama_duplicate.trim(),
         nik_operator: formData.nik_operator.trim(),
@@ -238,28 +312,37 @@ export default function DuplicateOperatorPage() {
         is_ready_to_record: formData.is_ready_to_record || false,
       };
 
-      if (isEditing && editId) {
-        const { error } = await supabase
-          .from("duplicate_operator")
-          .update(dataToSave)
-          .eq("id", editId);
+      // Call API endpoint with JWT token
+      const response = await fetch("/api/data-rekam/duplicate-operator", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataToSave),
+      });
 
-        if (error) {
-          throw new Error(`Gagal memperbarui data: ${error.message}`);
-        }
-
-        toast.success("Data berhasil diperbarui!");
-      } else {
-        const { error } = await supabase
-          .from("duplicate_operator")
-          .insert(dataToSave);
-
-        if (error) {
-          throw new Error(`Gagal menyimpan data: ${error.message}`);
-        }
-
-        toast.success("Data berhasil diajukan!");
+      if (response.status === 401) {
+        throw new Error("Sesi telah berakhir. Silakan login kembali.");
       }
+
+      if (response.status === 403) {
+        throw new Error("Anda tidak memiliki izin untuk operasi ini.");
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Gagal menyimpan data");
+      }
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || "Gagal menyimpan data");
+      }
+
+      toast.success(
+        isEditing ? "Data berhasil diperbarui!" : "Data berhasil diajukan!",
+      );
 
       resetForm();
       setViewState("table");
@@ -282,13 +365,22 @@ export default function DuplicateOperatorPage() {
   const resetForm = () => {
     setIsEditing(false);
     setEditId(null);
+    
+    // ✅ Use contextUser for form reset, not profile (which is never set)
+    const normalizedRole = (contextUser?.role || "user").toLowerCase().trim();
+    const isAdmin = ["admin", "superuser"].includes(normalizedRole);
+    const nikValue = isAdmin 
+      ? (contextUser?.nik || "9999999999999999")
+      : (contextUser?.nik || "");
+    const nameValue = contextUser?.name || contextUser?.full_name || contextUser?.email || "";
+    
     setFormData({
       nik_duplicate: "",
       nama_duplicate: "",
       nik_operator: "",
       nama_operator: "",
-      nik_pengaju: profile?.nik ?? "",
-      nama_pengaju: profile?.name ?? "",
+      nik_pengaju: nikValue,
+      nama_pengaju: nameValue,
       tanggal_perekaman: "",
       tanggal_pengajuan: new Date().toISOString().split("T")[0],
       estimasi_tanggal_perekaman: "",
@@ -341,15 +433,38 @@ export default function DuplicateOperatorPage() {
     try {
       setError(null);
 
-      const { data, error } = await supabase
-        .from("duplicate_operator")
-        .delete()
-        .eq("id", id)
-        .select()
-        .maybeSingle();
+      // Get JWT token from localStorage (Go backend session)
+      const token = localStorage.getItem("selly_auth_token");
+      if (!token) {
+        throw new Error("Token autentikasi tidak ditemukan. Silakan login kembali.");
+      }
 
-      if (error) {
-        throw new Error(`Gagal menghapus data: ${error.message}`);
+      // Call DELETE API endpoint
+      const response = await fetch("/api/data-rekam/duplicate-operator", {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      if (response.status === 401) {
+        throw new Error("Sesi telah berakhir. Silakan login kembali.");
+      }
+
+      if (response.status === 403) {
+        throw new Error("Anda tidak memiliki izin untuk operasi ini.");
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Gagal menghapus data");
+      }
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || "Gagal menghapus data");
       }
 
       toast.success("Data berhasil dihapus!");
@@ -419,11 +534,11 @@ export default function DuplicateOperatorPage() {
     setViewState("table");
   };
 
-  if (isFetchingUser) {
+  if (isLoadingAuth) {
     return <LoadingState />;
   }
 
-  if (!user || !profile) {
+  if (!user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 px-4 py-12 dark:from-gray-900 dark:to-gray-800 sm:px-6 lg:px-8">
         <motion.div

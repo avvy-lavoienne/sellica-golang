@@ -20,6 +20,7 @@ import (
 	"selly-backend/internal/services/eventbus"
 	"selly-backend/internal/services/knowledge"
 	"selly-backend/internal/services/monitoring"
+	"selly-backend/internal/services/salah_rekam"
 	"selly-backend/internal/services/silpana"
 	"selly-backend/internal/services/supabase_analyzer"
 	"selly-backend/internal/services/training"
@@ -40,6 +41,7 @@ type Services struct {
 	SilpanaBroadcaster  *silpana.WebSocketBroadcaster
 	SupabaseAnalyzer    *supabase_analyzer.Service
 	AktivitasSiak       aktivitas_siak.Service
+	SalahRekam          salah_rekam.Service
 	SessionManager      *auth.SessionManager // Session manager for SILPANA operations
 	Knowledge           *knowledge.DocumentLoaderService
 }
@@ -112,6 +114,11 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	// Aktivitas SIAK routes (protected)
 	if services.AktivitasSiak != nil {
 		setupAktivitasSiakRoutes(router, services.AktivitasSiak, services.Auth)
+	}
+
+	// Salah Rekam routes (protected - require authentication)
+	if services.SalahRekam != nil {
+		setupSalahRekamRoutes(router, services.SalahRekam, services.Auth)
 	}
 
 	// Supabase analyzer routes (admin only - CRITICAL FIX)
@@ -361,7 +368,7 @@ func setupAktivitasSiakRoutes(router *gin.Engine, aktivitasSiakService aktivitas
 }
 
 // GetServices creates and returns the services struct for dependency injection
-func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service, silpanaService silpana.ServiceInterface, silpanaBroadcaster *silpana.WebSocketBroadcaster, supabaseAnalyzer *supabase_analyzer.Service, aktivitasSiakService aktivitas_siak.Service, sessionManager *auth.SessionManager, knowledgeService *knowledge.DocumentLoaderService) *Services {
+func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service, silpanaService silpana.ServiceInterface, silpanaBroadcaster *silpana.WebSocketBroadcaster, supabaseAnalyzer *supabase_analyzer.Service, aktivitasSiakService aktivitas_siak.Service, sessionManager *auth.SessionManager, knowledgeService *knowledge.DocumentLoaderService, salahRekamService salah_rekam.Service) *Services {
 	return &Services{
 		EventBus:            eventBus,
 		Database:            db,
@@ -375,6 +382,7 @@ func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cach
 		SilpanaBroadcaster:  silpanaBroadcaster,
 		SupabaseAnalyzer:    supabaseAnalyzer,
 		AktivitasSiak:       aktivitasSiakService,
+		SalahRekam:          salahRekamService,
 		SessionManager:      sessionManager,
 		Knowledge:           knowledgeService,
 	}
@@ -495,6 +503,38 @@ func (h *WebSocketTicketHandler) Handle(c *gin.Context) {
 	log.Printf("✅ New WebSocket connection established for user: %s (admin: %v)", userID, isAdmin)
 }
 
+// setupSalahRekamRoutes configures salah-rekam endpoints
+// All routes require authentication and extract user context from JWT
+func setupSalahRekamRoutes(router *gin.Engine, salahRekamService salah_rekam.Service, authService *auth.Service) {
+	// Create salah-rekam handler
+	salahRekamHandler := handlers.NewSalahRekamHandler(salahRekamService)
+
+	// Protected salah-rekam endpoints (require authentication)
+	salahRekamGroup := router.Group("/api/v1/salah-rekam")
+	salahRekamGroup.Use(middleware.AuthMiddleware(authService))
+	{
+		// List records with pagination and filtering
+		salahRekamGroup.GET("", salahRekamHandler.ListRecords) // GET /api/v1/salah-rekam
+
+		// Search records
+		salahRekamGroup.GET("/search", salahRekamHandler.SearchRecords) // GET /api/v1/salah-rekam/search
+
+		// Get single record
+		salahRekamGroup.GET("/:id", salahRekamHandler.GetRecord) // GET /api/v1/salah-rekam/:id
+
+		// Create new record
+		salahRekamGroup.POST("", salahRekamHandler.CreateRecord) // POST /api/v1/salah-rekam
+
+		// Update existing record
+		salahRekamGroup.PUT("/:id", salahRekamHandler.UpdateRecord) // PUT /api/v1/salah-rekam/:id
+
+		// Delete record
+		salahRekamGroup.DELETE("/:id", salahRekamHandler.DeleteRecord) // DELETE /api/v1/salah-rekam/:id
+	}
+
+	logrus.Info("✅ Salah Rekam routes configured successfully")
+}
+
 // setupDataRekamRoutes configures data-rekam endpoints
 // All routes require authentication and extract user context from JWT
 func setupDataRekamRoutes(router *gin.Engine, authService *auth.Service, dbService *database.Service) {
@@ -507,15 +547,23 @@ func setupDataRekamRoutes(router *gin.Engine, authService *auth.Service, dbServi
 	{
 		// Adjudicate record endpoints
 		dataRekamGroup.GET("/adjudicate", dataRekamHandler.GetAdjudicateRecords)
+		dataRekamGroup.PATCH("/adjudicate/:id/toggle-status", dataRekamHandler.ToggleAdjudicateRecordStatus)
+		dataRekamGroup.PATCH("/adjudicate/:id/update-date", dataRekamHandler.UpdateAdjudicateRecordDate)
 
 		// Duplicate operator endpoints
 		dataRekamGroup.GET("/duplicate-operator", dataRekamHandler.GetDuplicateOperatorRecords)
+		dataRekamGroup.PATCH("/duplicate-operator/:id/toggle-status", dataRekamHandler.ToggleDuplicateOperatorStatus)
+		dataRekamGroup.PATCH("/duplicate-operator/:id/update-date", dataRekamHandler.UpdateDuplicateOperatorDate)
 
 		// Pengajuan bulanan endpoints
 		dataRekamGroup.GET("/pengajuan-bulanan", dataRekamHandler.GetPengajuanBulananRecords)
+		dataRekamGroup.PATCH("/pengajuan-bulanan/:id/toggle-status", dataRekamHandler.TogglePengajuanBulananStatus)
+		dataRekamGroup.PATCH("/pengajuan-bulanan/:id/update-date", dataRekamHandler.UpdatePengajuanBulananDate)
 
 		// Salah rekam endpoints
 		dataRekamGroup.GET("/salah-rekam", dataRekamHandler.GetSalahRekamRecords)
+		dataRekamGroup.PATCH("/salah-rekam/:id/toggle-status", dataRekamHandler.ToggleSalahRekamStatus)
+		dataRekamGroup.PATCH("/salah-rekam/:id/update-date", dataRekamHandler.UpdateSalahRekamDate)
 
 		// Dashboard statistics endpoint
 		dataRekamGroup.GET("/dashboard-stats", dataRekamHandler.GetDashboardStats)
@@ -531,11 +579,14 @@ func setupAdminRoutes(router *gin.Engine, authService *auth.Service, dbService *
 	// Protected admin endpoints (require authentication and admin role)
 	adminGroup := router.Group("/admin")
 	adminGroup.Use(middleware.AuthMiddleware(authService))
+	adminGroup.Use(middleware.RequireRole("admin"))
 	{
 		// Get all pending users (for admin review)
 		adminGroup.GET("/pending-users", adminHandler.GetPendingUsers)
 		// Approve a pending user registration
 		adminGroup.POST("/approve-user", adminHandler.ApproveUser)
+		// Reject a pending user registration
+		adminGroup.POST("/reject-user", adminHandler.RejectPendingUser)
 	}
 }
 

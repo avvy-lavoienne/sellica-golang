@@ -5,7 +5,7 @@
   "scripts": {
     "dev:frontend": "next dev",
     "dev:backend": "cd ../backend && go run ./cmd/server/main.go",
-    "dev": "pm2 start ecosystem.config.js --env development",
+    "dev": "next dev",
     "dev:stop": "pm2 stop sellica-development",
     "dev:logs": "pm2 logs sellica-development",
     "dev:delete": "pm2 delete sellica-development",
@@ -117,6 +117,7 @@
     "next-intl": "^4.4.0",
     "next-themes": "^0.4.6",
     "nextjs-toploader": "^3.8.16",
+    "node-fetch": "^3.3.2",
     "papaparse": "^5.5.3",
     "postcss": "^8.5.6",
     "qrcode": "^1.5.4",

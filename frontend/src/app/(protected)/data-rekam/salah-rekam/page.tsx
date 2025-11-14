@@ -74,17 +74,49 @@ export default function SalahRekamPage() {
       try {
         // User already authenticated via layout, use context data
         if (!contextUser) {
-          console.error("No context user found");
+          console.error("[SalahRekam] No context user found");
           toast.error("Sesi tidak ditemukan. Silakan login kembali.");
           router.push("/");
           return;
         }
 
-        setUser(contextUser);
+        // Calculate values FIRST
+        const isAdmin = ["admin", "superuser"].includes(
+          contextUser.role?.toLowerCase() || ""
+        );
 
-        // Go backend includes role and nik in user data
-        setUserRole(contextUser.role || "user");
-        
+        // Skip further validation for admin
+        if (isAdmin) {
+          console.log(
+            "[SalahRekam] Admin user detected, skipping NIK validation",
+          );
+          
+          const nameValue = contextUser.name || 
+            contextUser.full_name || 
+            contextUser.email || 
+            "Admin";
+
+          // Set form data for admin (use default admin NIK)
+          setFormData((prev) => ({
+            ...prev,
+            nik_pengaju: "9999999999999999",
+            nama_pengaju: nameValue,
+          }));
+
+          // Then other state
+          setUser(contextUser);
+          setUserRole("admin");
+          
+          console.log("[SalahRekam] useEffect initialized (admin):", {
+            userEmail: contextUser.email,
+            isAdmin,
+            nameValue,
+          });
+          setIsFetchingUser(false);
+          return;
+        }
+
+        // Regular users MUST have valid NIK
         const userNik = contextUser.nik || "";
         if (!userNik || !validateNIK(userNik)) {
           toast.error(
@@ -94,14 +126,30 @@ export default function SalahRekamPage() {
           return;
         }
 
-        setUserRole(contextUser.role || "user");
+        const nameValue = contextUser.name || 
+          contextUser.full_name || 
+          contextUser.email || 
+          "";
+
+        // Set form data FIRST (critical!)
         setFormData((prev) => ({
           ...prev,
-          nik_pengaju: userNik || "",
-          nama_pengaju: contextUser.name || "",
+          nik_pengaju: userNik,
+          nama_pengaju: nameValue,
         }));
+
+        // Then other state
+        setUser(contextUser);
+        setUserRole("user");
+
+        console.log("[SalahRekam] useEffect initialized (user):", {
+          userEmail: contextUser.email,
+          isAdmin,
+          userNik,
+          nameValue,
+        });
       } catch (error: any) {
-        console.error("Error fetching user:", error);
+        console.error("[SalahRekam] Error in fetchUserData:", error);
         toast.error(
           error.message || "Gagal memuat data pengguna. Silakan coba lagi.",
         );
@@ -111,11 +159,11 @@ export default function SalahRekamPage() {
       }
     };
 
-    // Only fetch when context user is available and auth is not loading
+    // Only fetch when context user is available
     if (!isLoadingAuth && contextUser) {
       fetchUserData();
     }
-  }, [contextUser, isLoadingAuth, router]);
+  }, [contextUser, router]); // Simplified: only essential dependencies
 
   const validateNIK = (nik: string) => {
     return nik.length === 16 && /^\d{16}$/.test(nik);
@@ -142,10 +190,10 @@ export default function SalahRekamPage() {
           params.append("search", searchQuery);
         }
 
-        // Get auth token from session
-        const session = await supabase.auth.getSession();
-        const token = session.data.session?.access_token;
+        // Get auth token from localStorage (Go backend session storage)
+        const token = localStorage.getItem("selly_auth_token");
         if (!token) {
+          console.error("[SalahRekam] Token not found in localStorage");
           toast.error("Token autentikasi tidak ditemukan. Silakan login kembali.");
           router.push("/login");
           return { totalCount: 0 };
@@ -165,12 +213,14 @@ export default function SalahRekamPage() {
 
         // Handle auth errors
         if (response.status === 401) {
+          console.error("[SalahRekam] Unauthorized (401) response");
           toast.error("Sesi telah berakhir. Silakan login kembali.");
           router.push("/login");
           return { totalCount: 0 };
         }
 
         if (response.status === 403) {
+          console.error("[SalahRekam] Forbidden (403) response");
           toast.error("Anda tidak memiliki izin untuk mengakses data ini.");
           return { totalCount: 0 };
         }
@@ -193,6 +243,7 @@ export default function SalahRekamPage() {
         setRekapData(updatedData);
         return { totalCount: result.total_count || 0 };
       } catch (error: any) {
+        console.error("[SalahRekam] Fetch error:", error);
         toast.error(
           error.message || "Gagal mengambil data rekap. Silakan coba lagi.",
         );
@@ -203,6 +254,38 @@ export default function SalahRekamPage() {
     },
     [contextUser, router],
   );
+
+  const resetForm = () => {
+    // Use contextUser to recalculate user fields
+    const isAdmin = ["admin", "superuser"].includes(
+      contextUser?.role?.toLowerCase() || ""
+    );
+    
+    const nikValue = contextUser?.nik || "";
+    const nameValue = 
+      contextUser?.name || 
+      contextUser?.full_name || 
+      contextUser?.email || 
+      "";
+
+    setFormData({
+      nik_salah_rekam: "",
+      nama_salah_rekam: "",
+      nik_pemilik_biometric: "",
+      nama_pemilik_biometric: "",
+      nik_pemilik_foto: "",
+      nama_pemilik_foto: "",
+      nik_petugas_rekam: "",
+      nama_petugas_rekam: "",
+      nik_pengaju: nikValue,
+      nama_pengaju: nameValue,
+      tanggal_perekaman: "",
+      estimasi_tanggal_perekaman: "",
+      is_ready_to_record: false,
+    });
+
+    console.log("[SalahRekam] Form reset:", { nikValue, nameValue });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -227,6 +310,15 @@ export default function SalahRekamPage() {
     setLoading(true);
 
     try {
+      // Get token from localStorage
+      const token = localStorage.getItem("selly_auth_token");
+      if (!token) {
+        console.error("[SalahRekam] Token not found in localStorage");
+        toast.error("Token autentikasi tidak ditemukan. Silakan login kembali.");
+        router.push("/login");
+        return;
+      }
+
       const dataToSave = {
         user_id: user.id,
         nik_salah_rekam: formData.nik_salah_rekam,
@@ -244,45 +336,50 @@ export default function SalahRekamPage() {
         is_ready_to_record: formData.is_ready_to_record || false,
       };
 
-      if (isEditing && editData) {
-        const { error } = await supabase
-          .from("salah_rekam")
-          .update(dataToSave)
-          .eq("id", editData.id);
+      // Call API endpoint instead of direct Supabase
+      const response = await fetch("/api/data-rekam/salah-rekam", {
+        method: isEditing ? "PUT" : "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(
+          isEditing && editData 
+            ? { ...dataToSave, id: editData.id } 
+            : dataToSave
+        ),
+      });
 
-        if (error) {
-          throw new Error(`Gagal mengedit data: ${error.message}`);
-        }
-
-        toast.success("Data berhasil diedit!");
-      } else {
-        const { error } = await supabase.from("salah_rekam").insert(dataToSave);
-
-        if (error) {
-          throw new Error(`Gagal mengajukan data: ${error.message}`);
-        }
-
-        toast.success("Data berhasil diajukan!");
+      // Handle auth errors
+      if (response.status === 401) {
+        console.error("[SalahRekam] Unauthorized (401) response");
+        toast.error("Sesi telah berakhir. Silakan login kembali.");
+        router.push("/login");
+        return;
       }
+
+      if (response.status === 403) {
+        console.error("[SalahRekam] Forbidden (403) response");
+        toast.error("Anda tidak memiliki izin untuk operasi ini.");
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Gagal menyimpan data");
+      }
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.message || "Gagal menyimpan data");
+      }
+
+      toast.success(isEditing ? "Data berhasil diedit!" : "Data berhasil diajukan!");
 
       setShowForm(false);
       setIsEditing(false);
       setEditData(null);
-      setFormData({
-        nik_salah_rekam: "",
-        nama_salah_rekam: "",
-        nik_pemilik_biometric: "",
-        nama_pemilik_biometric: "",
-        nik_pemilik_foto: "",
-        nama_pemilik_foto: "",
-        nik_petugas_rekam: "",
-        nama_petugas_rekam: "",
-        nik_pengaju: formData.nik_pengaju,
-        nama_pengaju: formData.nama_pengaju,
-        tanggal_perekaman: "",
-        estimasi_tanggal_perekaman: "",
-        is_ready_to_record: false,
-      });
+      resetForm(); // Use resetForm to clear form but keep user fields
 
       if (showRekap) {
         const { totalCount } = await fetchRekapData(
@@ -295,6 +392,7 @@ export default function SalahRekamPage() {
         setShowRekap(true);
       }
     } catch (error: any) {
+      console.error("[SalahRekam] Submit error:", error);
       toast.error(error.message || "Gagal menyimpan data. Silakan coba lagi.");
     } finally {
       setLoading(false);
@@ -348,26 +446,60 @@ export default function SalahRekamPage() {
     if (!confirm("Apakah Anda yakin ingin menghapus pengajuan ini?")) return;
 
     try {
-      const { error } = await supabase
-        .from("salah_rekam")
-        .delete()
-        .eq("id", id);
+      // Get token from localStorage
+      const token = localStorage.getItem("selly_auth_token");
+      if (!token) {
+        console.error("[SalahRekam] Token not found in localStorage");
+        toast.error("Token autentikasi tidak ditemukan. Silakan login kembali.");
+        router.push("/login");
+        return;
+      }
 
-      if (error) {
-        throw new Error(`Gagal menghapus data: ${error.message}`);
+      // Call API endpoint to delete
+      const response = await fetch("/api/data-rekam/salah-rekam", {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      // Handle auth errors
+      if (response.status === 401) {
+        console.error("[SalahRekam] Unauthorized (401) response");
+        toast.error("Sesi telah berakhir. Silakan login kembali.");
+        router.push("/login");
+        return;
+      }
+
+      if (response.status === 403) {
+        console.error("[SalahRekam] Forbidden (403) response");
+        toast.error("Anda tidak memiliki izin untuk menghapus data ini.");
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Gagal menghapus data");
       }
 
       toast.success("Pengajuan berhasil dihapus!");
+      
+      // Refresh table
       const { totalCount } = await fetchRekapData(
         currentPage,
         searchQuery,
         statusFilter,
       );
       setTotalCount(totalCount);
+      
+      // Handle pagination if only item on page
       if (rekapData.length === 1 && currentPage > 1) {
         setCurrentPage(currentPage - 1);
       }
     } catch (error: any) {
+      console.error("[SalahRekam] Delete error:", error);
       toast.error(error.message || "Gagal menghapus data. Silakan coba lagi.");
     }
   };
@@ -430,21 +562,7 @@ export default function SalahRekamPage() {
     setShowForm(false);
     setIsEditing(false);
     setEditData(null);
-    setFormData({
-      nik_salah_rekam: "",
-      nama_salah_rekam: "",
-      nik_pemilik_biometric: "",
-      nama_pemilik_biometric: "",
-      nik_pemilik_foto: "",
-      nama_pemilik_foto: "",
-      nik_petugas_rekam: "",
-      nama_petugas_rekam: "",
-      nik_pengaju: formData.nik_pengaju,
-      nama_pengaju: formData.nama_pengaju,
-      tanggal_perekaman: "",
-      estimasi_tanggal_perekaman: "",
-      is_ready_to_record: false,
-    });
+    resetForm(); // Use resetForm to preserve user fields
     setShowRekap(true);
   };
 
