@@ -82,6 +82,7 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [updatedDates, setUpdatedDates] = useState<{ [key: string]: string }>({});
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
@@ -143,6 +144,35 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
   useEffect(() => {
     handleDateFilter();
   }, [startDate, endDate, handleDateFilter]);
+
+  // Clear updatedDates after a delay to show the visual indicator briefly
+  useEffect(() => {
+    if (Object.keys(updatedDates).length > 0) {
+      const timer = setTimeout(() => {
+        setUpdatedDates({});
+      }, 3000); // Show indicator for 3 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [updatedDates]);
+
+  // Log when rekapData changes to debug data flow
+  useEffect(() => {
+    if (rekapData.length > 0) {
+      console.log("[SalahRekamTable] rekapData updated:", {
+        count: rekapData.length,
+        first_item: rekapData[0], // Log entire first item
+        samples: rekapData.slice(0, 2).map(item => ({
+          id: item.id,
+          nama_salah_rekam: item.nama_salah_rekam,
+          tanggal_perekaman: item.tanggal_perekaman,
+          estimasi_tanggal_perekaman: item.estimasi_tanggal_perekaman,
+          created_at: item.created_at,
+        })),
+        // Also verify the type
+        first_item_keys: Object.keys(rekapData[0] || {}),
+      });
+    }
+  }, [rekapData]);
 
   const rowsPerPage = 5;
   const totalPages = Math.ceil(totalCount / rowsPerPage);
@@ -223,6 +253,13 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
       return;
     }
 
+    console.log("[SalahRekamTable] Saving date:", {
+      record_id: id,
+      date_value: newDate,
+      date_type: typeof newDate,
+      date_length: newDate?.length,
+    });
+
     setSaving((prev) => ({ ...prev, [id]: true }));
 
     try {
@@ -258,25 +295,33 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const errorMsg = errorData.message || `HTTP ${response.status}`;
+        const errorMsg = errorData.error || errorData.message || `HTTP ${response.status}`;
         throw new Error(errorMsg);
       }
 
       await response.json();
       toast.success("Tanggal berhasil disimpan!");
 
-      // Use onDataRefresh to preserve pagination/filters, fallback to onRefresh
-      if (onDataRefresh) {
-        onDataRefresh();
-      } else {
-        onRefresh();
-      }
+      console.log("[SalahRekamTable] Date saved successfully, calling onDataRefresh");
 
+      // Immediately update the UI with the new date
+      setUpdatedDates((prev) => ({ ...prev, [id]: newDate }));
+
+      // Clear the edited date from local state
       setEditedDates((prev) => {
         const newDates = { ...prev };
         delete newDates[id];
         return newDates;
       });
+
+      // Use onDataRefresh to preserve pagination/filters, fallback to onRefresh
+      if (onDataRefresh) {
+        console.log("[SalahRekamTable] Calling onDataRefresh");
+        onDataRefresh();
+      } else {
+        console.log("[SalahRekamTable] Calling onRefresh");
+        onRefresh();
+      }
     } catch (error: any) {
       console.error("Error saving date:", error);
       toast.error(
@@ -285,6 +330,28 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
     } finally {
       setSaving((prev) => ({ ...prev, [id]: false }));
     }
+  };
+
+  const formatDateForInput = (dateStr?: string) => {
+    if (!dateStr) return "";
+    // If it already looks like YYYY-MM-DD, return as-is
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      return dateStr;
+    }
+    // If it's a full ISO date, extract just the date part
+    if (/^\d{4}-\d{2}-\d{2}T/.test(dateStr)) {
+      return dateStr.split("T")[0];
+    }
+    // If it's a JavaScript Date object string, parse it
+    try {
+      const date = new Date(dateStr);
+      if (date instanceof Date && !isNaN(date.getTime())) {
+        return date.toISOString().split("T")[0];
+      }
+    } catch (e) {
+      // Fall through
+    }
+    return "";
   };
 
   const formatDate = (dateStr?: string) => {
@@ -716,15 +783,23 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
 
                                   {/* Estimasi Tanggal Perekaman */}
                                   <div className="space-y-2">
-                                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Estimasi Perekaman:</span>
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Estimasi Perekaman:</span>
+                                      {updatedDates[item.id] && (
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                          ✓ Diperbarui
+                                        </span>
+                                      )}
+                                    </div>
                                     {["admin", "superuser"].includes(userRole) ? (
                                       <div className="flex items-center space-x-2">
                                         <input
                                           type="date"
-                                          value={editedDates[item.id] || item.estimasi_tanggal_perekaman || ""}
+                                          value={editedDates[item.id] || formatDateForInput(updatedDates[item.id] || item.estimasi_tanggal_perekaman) || ""}
                                           onChange={(e) => handleDateChange(item.id, e.target.value)}
                                           className="h-8 text-xs px-2 py-1 border border-gray-300 rounded dark:bg-gray-600 dark:border-gray-500 dark:text-white"
                                           disabled={saving[item.id]}
+                                          title={`Current value: ${formatDateForInput(updatedDates[item.id] || item.estimasi_tanggal_perekaman) || "(empty)"}`}
                                         />
                                         <button
                                           onClick={() => handleSaveDate(item.id)}
@@ -740,7 +815,7 @@ const SalahRekamTable: React.FC<SalahRekamTableProps> = ({
                                       </div>
                                     ) : (
                                       <span className="text-xs text-gray-900 dark:text-white">
-                                        {formatDate(item.estimasi_tanggal_perekaman || undefined)}
+                                        {formatDate(updatedDates[item.id] || item.estimasi_tanggal_perekaman || undefined)}
                                       </span>
                                     )}
                                   </div>

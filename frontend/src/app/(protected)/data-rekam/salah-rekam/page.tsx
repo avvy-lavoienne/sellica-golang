@@ -236,10 +236,31 @@ export default function SalahRekamPage() {
           throw new Error(result.error || "Gagal memuat data rekap");
         }
 
+        console.log("[SalahRekam] Data fetched from backend:", {
+          total_count: result.total_count,
+          data_count: result.data?.length,
+          first_item: result.data?.[0], // Log entire first item
+          samples: result.data?.slice(0, 2).map((item: any) => ({
+            id: item.id,
+            nama_salah_rekam: item.nama_salah_rekam,
+            tanggal_perekaman: item.tanggal_perekaman,
+            estimasi_tanggal_perekaman: item.estimasi_tanggal_perekaman,
+            created_at: item.created_at,
+          }))
+        });
+
         const updatedData = (result.data || []).map((item: any) => ({
           ...item,
           created_at: item.created_at || new Date().toISOString(),
         }));
+        
+        console.log("[SalahRekam] After mapping, first item:", {
+          id: updatedData[0]?.id,
+          tanggal_perekaman: updatedData[0]?.tanggal_perekaman,
+          estimasi_tanggal_perekaman: updatedData[0]?.estimasi_tanggal_perekaman,
+          created_at: updatedData[0]?.created_at,
+        });
+        
         setRekapData(updatedData);
         return { totalCount: result.total_count || 0 };
       } catch (error: any) {

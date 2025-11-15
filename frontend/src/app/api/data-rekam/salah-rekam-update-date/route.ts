@@ -18,8 +18,15 @@ export async function PATCH(request: NextRequest) {
   try {
     const { id, estimasi_tanggal_perekaman } = await request.json();
 
+    console.log('[SalahRekamUpdateDate] Request received:', {
+      id,
+      estimasi_tanggal_perekaman,
+      type_of_date: typeof estimasi_tanggal_perekaman,
+    });
+
     // Validate request body
     if (!id || !estimasi_tanggal_perekaman) {
+      console.error('[SalahRekamUpdateDate] Missing required fields');
       return NextResponse.json(
         { success: false, error: 'Missing required fields: id, estimasi_tanggal_perekaman' },
         { status: 400 }
@@ -29,6 +36,7 @@ export async function PATCH(request: NextRequest) {
     // Validate date format (YYYY-MM-DD)
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(estimasi_tanggal_perekaman)) {
+      console.error('[SalahRekamUpdateDate] Invalid date format:', estimasi_tanggal_perekaman);
       return NextResponse.json(
         { success: false, error: 'Invalid date format. Use YYYY-MM-DD' },
         { status: 400 }
@@ -87,6 +95,11 @@ export async function PATCH(request: NextRequest) {
 
     // Call Go backend with the token
     const goBackendUrl = process.env.NEXT_PUBLIC_GO_BACKEND_URL || 'http://localhost:8080';
+    console.log('[SalahRekamUpdateDate] Calling Go backend:', {
+      url: `${goBackendUrl}/data-rekam/salah-rekam/${id}/update-date`,
+      body: { id, estimasi_tanggal_perekaman },
+    });
+
     const response = await fetch(
       `${goBackendUrl}/data-rekam/salah-rekam/${id}/update-date`,
       {
@@ -113,6 +126,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const data = await response.json();
+    console.log('[SalahRekamUpdateDate] Success:', data);
     return NextResponse.json(data, { status: 200 });
 
   } catch (error) {

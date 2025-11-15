@@ -117,7 +117,6 @@ export async function POST(request: NextRequest) {
       .from("pengajuan_bulanan")
       .update({
         is_ready_to_record: body.newStatus,
-        updated_at: new Date().toISOString(),
       })
       .eq("id", body.id)
       .select()
@@ -136,17 +135,6 @@ export async function POST(request: NextRequest) {
 
     console.log(
       `[toggle-status-api] Status toggle successful for record ${body.id}`
-    );
-
-    // ✅ STEP 12: Emit event for cross-component updates
-    window?.dispatchEvent?.(
-      new CustomEvent("pengajuan-bulanan-status-updated", {
-        detail: {
-          id: body.id,
-          newStatus: body.newStatus,
-          timestamp: new Date().toISOString(),
-        },
-      })
     );
 
     return NextResponse.json(

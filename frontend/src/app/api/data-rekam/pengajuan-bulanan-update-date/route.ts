@@ -139,7 +139,6 @@ export async function POST(request: NextRequest) {
       .from("pengajuan_bulanan")
       .update({
         estimasi_tanggal_perekaman: body.newDate,
-        updated_at: new Date().toISOString(),
       })
       .eq("id", body.id)
       .select()
@@ -159,19 +158,6 @@ export async function POST(request: NextRequest) {
     console.log(
       `[update-date-api] Date update successful for record ${body.id}`
     );
-
-    // ✅ STEP 13: Emit event for cross-component updates
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(
-        new CustomEvent("pengajuan-bulanan-date-updated", {
-          detail: {
-            id: body.id,
-            newDate: body.newDate,
-            timestamp: new Date().toISOString(),
-          },
-        })
-      );
-    }
 
     return NextResponse.json(
       {

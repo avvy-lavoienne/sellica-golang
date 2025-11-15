@@ -500,6 +500,15 @@ func (h *DataRekamHandler) ToggleAdjudicateRecordStatus(c *gin.Context) {
 		return
 	}
 
+	// Validate that IsReadyToRecord is provided and not nil
+	if req.IsReadyToRecord == nil {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: is_ready_to_record is required",
+		})
+		return
+	}
+
 	// Update database using Supabase
 	client := h.dbService.GetClient()
 	if client == nil {
@@ -513,7 +522,7 @@ func (h *DataRekamHandler) ToggleAdjudicateRecordStatus(c *gin.Context) {
 
 	_, _, err := client.From("adjudicate_record").
 		Update(map[string]interface{}{
-			"is_ready_to_record": req.IsReadyToRecord,
+			"is_ready_to_record": *req.IsReadyToRecord,
 		}, "", "").
 		Eq("id", req.ID).
 		Execute()
@@ -578,6 +587,25 @@ func (h *DataRekamHandler) UpdateAdjudicateRecordDate(c *gin.Context) {
 		return
 	}
 
+	// Validate that EstimasiTanggalPerekaman is provided and not nil
+	if req.EstimasiTanggalPerekaman == nil || *req.EstimasiTanggalPerekaman == "" {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: estimasi_tanggal_perekaman is required",
+		})
+		return
+	}
+
+	// Validate date format (YYYY-MM-DD)
+	dateStr := *req.EstimasiTanggalPerekaman
+	if len(dateStr) != 10 || dateStr[4] != '-' || dateStr[7] != '-' {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid date format: use YYYY-MM-DD",
+		})
+		return
+	}
+
 	client := h.dbService.GetClient()
 	if client == nil {
 		logrus.Error("Supabase client not initialized")
@@ -590,7 +618,7 @@ func (h *DataRekamHandler) UpdateAdjudicateRecordDate(c *gin.Context) {
 
 	_, _, err := client.From("adjudicate_record").
 		Update(map[string]interface{}{
-			"estimasi_tanggal_perekaman": req.EstimasiTanggalPerekaman,
+			"estimasi_tanggal_perekaman": dateStr,
 		}, "", "").
 		Eq("id", req.ID).
 		Execute()
@@ -598,6 +626,7 @@ func (h *DataRekamHandler) UpdateAdjudicateRecordDate(c *gin.Context) {
 	if err != nil {
 		logrus.WithError(err).WithFields(logrus.Fields{
 			"record_id": req.ID,
+			"date":      dateStr,
 			"user_id":   userID,
 		}).Error("Failed to update adjudicate record date")
 		c.JSON(http.StatusInternalServerError, DataRekamResponse{
@@ -609,7 +638,7 @@ func (h *DataRekamHandler) UpdateAdjudicateRecordDate(c *gin.Context) {
 
 	logrus.WithFields(logrus.Fields{
 		"record_id": req.ID,
-		"date":      req.EstimasiTanggalPerekaman,
+		"date":      dateStr,
 		"user_id":   userID,
 	}).Info("Adjudicate record date updated")
 
@@ -655,6 +684,15 @@ func (h *DataRekamHandler) TogglePengajuanBulananStatus(c *gin.Context) {
 		return
 	}
 
+	// Validate that IsReadyToRecord is provided and not nil
+	if req.IsReadyToRecord == nil {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: is_ready_to_record is required",
+		})
+		return
+	}
+
 	client := h.dbService.GetClient()
 	if client == nil {
 		logrus.Error("Supabase client not initialized")
@@ -667,7 +705,7 @@ func (h *DataRekamHandler) TogglePengajuanBulananStatus(c *gin.Context) {
 
 	_, _, err := client.From("pengajuan_bulanan").
 		Update(map[string]interface{}{
-			"is_ready_to_record": req.IsReadyToRecord,
+			"is_ready_to_record": *req.IsReadyToRecord,
 		}, "", "").
 		Eq("id", req.ID).
 		Execute()
@@ -732,6 +770,25 @@ func (h *DataRekamHandler) UpdatePengajuanBulananDate(c *gin.Context) {
 		return
 	}
 
+	// Validate that EstimasiTanggalPerekaman is provided and not nil
+	if req.EstimasiTanggalPerekaman == nil || *req.EstimasiTanggalPerekaman == "" {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: estimasi_tanggal_perekaman is required",
+		})
+		return
+	}
+
+	// Validate date format (YYYY-MM-DD)
+	dateStr := *req.EstimasiTanggalPerekaman
+	if len(dateStr) != 10 || dateStr[4] != '-' || dateStr[7] != '-' {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid date format: use YYYY-MM-DD",
+		})
+		return
+	}
+
 	client := h.dbService.GetClient()
 	if client == nil {
 		logrus.Error("Supabase client not initialized")
@@ -744,7 +801,7 @@ func (h *DataRekamHandler) UpdatePengajuanBulananDate(c *gin.Context) {
 
 	_, _, err := client.From("pengajuan_bulanan").
 		Update(map[string]interface{}{
-			"estimasi_tanggal_perekaman": req.EstimasiTanggalPerekaman,
+			"estimasi_tanggal_perekaman": dateStr,
 		}, "", "").
 		Eq("id", req.ID).
 		Execute()
@@ -752,6 +809,7 @@ func (h *DataRekamHandler) UpdatePengajuanBulananDate(c *gin.Context) {
 	if err != nil {
 		logrus.WithError(err).WithFields(logrus.Fields{
 			"record_id": req.ID,
+			"date":      dateStr,
 			"user_id":   userID,
 		}).Error("Failed to update pengajuan bulanan date")
 		c.JSON(http.StatusInternalServerError, DataRekamResponse{
@@ -763,7 +821,7 @@ func (h *DataRekamHandler) UpdatePengajuanBulananDate(c *gin.Context) {
 
 	logrus.WithFields(logrus.Fields{
 		"record_id": req.ID,
-		"date":      req.EstimasiTanggalPerekaman,
+		"date":      dateStr,
 		"user_id":   userID,
 	}).Info("Pengajuan bulanan date updated")
 
@@ -809,6 +867,15 @@ func (h *DataRekamHandler) ToggleDuplicateOperatorStatus(c *gin.Context) {
 		return
 	}
 
+	// Validate that IsReadyToRecord is provided and not nil
+	if req.IsReadyToRecord == nil {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: is_ready_to_record is required",
+		})
+		return
+	}
+
 	client := h.dbService.GetClient()
 	if client == nil {
 		logrus.Error("Supabase client not initialized")
@@ -821,7 +888,7 @@ func (h *DataRekamHandler) ToggleDuplicateOperatorStatus(c *gin.Context) {
 
 	_, _, err := client.From("duplicate_operator").
 		Update(map[string]interface{}{
-			"is_ready_to_record": req.IsReadyToRecord,
+			"is_ready_to_record": *req.IsReadyToRecord,
 		}, "", "").
 		Eq("id", req.ID).
 		Execute()
@@ -886,6 +953,25 @@ func (h *DataRekamHandler) UpdateDuplicateOperatorDate(c *gin.Context) {
 		return
 	}
 
+	// Validate that EstimasiTanggalPerekaman is provided and not nil
+	if req.EstimasiTanggalPerekaman == nil || *req.EstimasiTanggalPerekaman == "" {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: estimasi_tanggal_perekaman is required",
+		})
+		return
+	}
+
+	// Validate date format (YYYY-MM-DD)
+	dateStr := *req.EstimasiTanggalPerekaman
+	if len(dateStr) != 10 || dateStr[4] != '-' || dateStr[7] != '-' {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid date format: use YYYY-MM-DD",
+		})
+		return
+	}
+
 	client := h.dbService.GetClient()
 	if client == nil {
 		logrus.Error("Supabase client not initialized")
@@ -898,7 +984,7 @@ func (h *DataRekamHandler) UpdateDuplicateOperatorDate(c *gin.Context) {
 
 	_, _, err := client.From("duplicate_operator").
 		Update(map[string]interface{}{
-			"estimasi_tanggal_perekaman": req.EstimasiTanggalPerekaman,
+			"estimasi_tanggal_perekaman": dateStr,
 		}, "", "").
 		Eq("id", req.ID).
 		Execute()
@@ -906,6 +992,7 @@ func (h *DataRekamHandler) UpdateDuplicateOperatorDate(c *gin.Context) {
 	if err != nil {
 		logrus.WithError(err).WithFields(logrus.Fields{
 			"record_id": req.ID,
+			"date":      dateStr,
 			"user_id":   userID,
 		}).Error("Failed to update duplicate operator date")
 		c.JSON(http.StatusInternalServerError, DataRekamResponse{
@@ -917,7 +1004,7 @@ func (h *DataRekamHandler) UpdateDuplicateOperatorDate(c *gin.Context) {
 
 	logrus.WithFields(logrus.Fields{
 		"record_id": req.ID,
-		"date":      req.EstimasiTanggalPerekaman,
+		"date":      dateStr,
 		"user_id":   userID,
 	}).Info("Duplicate operator date updated")
 
@@ -963,6 +1050,15 @@ func (h *DataRekamHandler) ToggleSalahRekamStatus(c *gin.Context) {
 		return
 	}
 
+	// Validate that IsReadyToRecord is provided and not nil
+	if req.IsReadyToRecord == nil {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: is_ready_to_record is required",
+		})
+		return
+	}
+
 	client := h.dbService.GetClient()
 	if client == nil {
 		logrus.Error("Supabase client not initialized")
@@ -975,7 +1071,7 @@ func (h *DataRekamHandler) ToggleSalahRekamStatus(c *gin.Context) {
 
 	_, _, err := client.From("salah_rekam").
 		Update(map[string]interface{}{
-			"is_ready_to_record": req.IsReadyToRecord,
+			"is_ready_to_record": *req.IsReadyToRecord,
 		}, "", "").
 		Eq("id", req.ID).
 		Execute()
@@ -1033,9 +1129,36 @@ func (h *DataRekamHandler) UpdateSalahRekamDate(c *gin.Context) {
 
 	var req UpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		logrus.WithError(err).Error("[UpdateSalahRekamDate] Failed to bind JSON request")
 		c.JSON(http.StatusBadRequest, DataRekamResponse{
 			Success: false,
 			Error:   "Invalid request: id and estimasi_tanggal_perekaman are required",
+		})
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"record_id":      req.ID,
+		"date_field":     req.EstimasiTanggalPerekaman,
+		"date_is_nil":    req.EstimasiTanggalPerekaman == nil,
+	}).Debug("[UpdateSalahRekamDate] Received update-date request")
+
+	// Validate that EstimasiTanggalPerekaman is provided and not nil
+	if req.EstimasiTanggalPerekaman == nil || *req.EstimasiTanggalPerekaman == "" {
+		logrus.WithField("record_id", req.ID).Warn("[UpdateSalahRekamDate] Missing estimasi_tanggal_perekaman field")
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: estimasi_tanggal_perekaman is required",
+		})
+		return
+	}
+
+	// Validate date format (YYYY-MM-DD)
+	dateStr := *req.EstimasiTanggalPerekaman
+	if len(dateStr) != 10 || dateStr[4] != '-' || dateStr[7] != '-' {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid date format: use YYYY-MM-DD",
 		})
 		return
 	}
@@ -1052,7 +1175,7 @@ func (h *DataRekamHandler) UpdateSalahRekamDate(c *gin.Context) {
 
 	_, _, err := client.From("salah_rekam").
 		Update(map[string]interface{}{
-			"estimasi_tanggal_perekaman": req.EstimasiTanggalPerekaman,
+			"estimasi_tanggal_perekaman": dateStr,
 		}, "", "").
 		Eq("id", req.ID).
 		Execute()
@@ -1060,6 +1183,7 @@ func (h *DataRekamHandler) UpdateSalahRekamDate(c *gin.Context) {
 	if err != nil {
 		logrus.WithError(err).WithFields(logrus.Fields{
 			"record_id": req.ID,
+			"date":      dateStr,
 			"user_id":   userID,
 		}).Error("Failed to update salah rekam date")
 		c.JSON(http.StatusInternalServerError, DataRekamResponse{
@@ -1071,7 +1195,7 @@ func (h *DataRekamHandler) UpdateSalahRekamDate(c *gin.Context) {
 
 	logrus.WithFields(logrus.Fields{
 		"record_id": req.ID,
-		"date":      req.EstimasiTanggalPerekaman,
+		"date":      dateStr,
 		"user_id":   userID,
 	}).Info("Salah rekam date updated")
 
