@@ -32,6 +32,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RefreshCw, Filter } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useChartAggregation } from "@/hooks/useChartAggregation";
 
 interface Stat {
   month: string;
@@ -59,12 +60,6 @@ export default function DataRekam() {
   const [pengajuanBulananStats, setPengajuanBulananStats] = useState<Stat[]>(
     [],
   );
-  const [sparklineDataYearly, setSparklineDataYearly] = useState<
-    SparklineData[]
-  >([]);
-  const [sparklineDataMonthlyByYear, setSparklineDataMonthlyByYear] = useState<{
-    [year: string]: SparklineData[];
-  }>({});
   const [totalPengajuanAdjudicate, setTotalPengajuanAdjudicate] =
     useState<number>(0);
   const [totalSelesaiAdjudicate, setTotalSelesaiAdjudicate] =
@@ -93,34 +88,10 @@ export default function DataRekam() {
     "2024",
     "2025",
   ]);
-  const [chartData, setChartData] = useState<ChartData>({
-    yearly: {
-      labels: [],
-      datasets: [
-        {
-          label: "",
-          data: [],
-          borderColor: "",
-          backgroundColor: "",
-          tension: 0,
-        },
-      ],
-    },
-    monthly: {
-      labels: [],
-      datasets: [
-        {
-          label: "",
-          data: [],
-          borderColor: "",
-          backgroundColor: "",
-          tension: 0,
-        },
-      ],
-    },
-  });
   const [tempStartDate, setTempStartDate] = useState<Date | null>(null);
   const [tempEndDate, setTempEndDate] = useState<Date | null>(null);
+  const [sparklineDataMonthlyByYear, setSparklineDataMonthlyByYear] = useState<{ [year: string]: SparklineData[] }>({});
+  const [sparklineDataYearly, setSparklineDataYearly] = useState<SparklineData[]>([]);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   // Debounce the temporary dates
@@ -149,6 +120,7 @@ export default function DataRekam() {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const { user: contextUser, loading: isLoadingAuth } = useProtectedAuth();
+  const { chartData, loading: chartLoading, error: chartError, fetchChartData } = useChartAggregation();
 
   const fetchUserAndStats = useCallback(async () => {
     try {
@@ -188,7 +160,16 @@ export default function DataRekam() {
         return;
       }
 
-      console.log("[DataRekam] Token retrieved from GoAuthAPI");
+      // ✅ FIXED: Validate token format (JWT must start with "eyJ")
+      if (!token.startsWith("eyJ")) {
+        console.error("[DataRekam] Invalid token format detected");
+        localStorage.clear();
+        toast.error("Sesi autentikasi tidak valid. Silakan login kembali.");
+        window.location.href = "/login";
+        return;
+      }
+
+      console.log("[DataRekam] Token retrieved and validated from GoAuthAPI");
 
       // Build query parameters for dashboard stats
       const params = new URLSearchParams();
@@ -207,10 +188,8 @@ export default function DataRekam() {
         "Content-Type": "application/json",
       };
       
-      // Add token if available
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
+      // ✅ FIXED: Token already validated, no need for conditional
+      headers["Authorization"] = `Bearer ${token}`;
 
       const response = await fetch(apiUrl, {
         method: "GET",
@@ -219,16 +198,19 @@ export default function DataRekam() {
 
       console.log("[DataRekam] API Response status:", response.status);
 
-      // Handle auth errors
+      // ✅ FIXED: Handle auth errors with localStorage cleanup and redirect
       if (response.status === 401) {
-        console.error("[DataRekam] Unauthorized response from dashboard-stats");
-        setLoading(false);
+        console.error("[DataRekam] Unauthorized response - token expired or invalid");
+        localStorage.clear();
+        toast.error("Sesi autentikasi berakhir. Silakan login kembali.");
+        window.location.href = "/login";
         return;
       }
 
       if (response.status === 403) {
-        console.error("[DataRekam] Forbidden response from dashboard-stats");
-        setLoading(false);
+        console.error("[DataRekam] Forbidden response - insufficient permissions");
+        toast.error("Anda tidak memiliki akses ke halaman ini.");
+        window.location.href = "/dashboard";
         return;
       }
 
@@ -303,6 +285,7 @@ export default function DataRekam() {
         }
 
         // Process actual data
+        let processedCount = 0;
         data.forEach((item) => {
           if (!item.created_at) {
             console.warn("Missing created_at for item:", item);
@@ -323,25 +306,106 @@ export default function DataRekam() {
           if (item.is_ready_to_record === true) {
             monthlyStats[month].selesai += 1;
           }
+          processedCount++;
         });
 
-        return Object.values(monthlyStats).sort((a, b) =>
+        const result = Object.values(monthlyStats).sort((a, b) =>
           a.month.localeCompare(b.month),
         );
+        
+        console.log('[processMonthlyStats] Processed:', { inputCount: data.length, processedCount, resultCount: result.length, nonZeroMonths: result.filter(r => r.pengajuan > 0).length });
+        
+        return result;
       };
 
-      // Process data for each category - but don't pass the summary stats as individual records
-      // These are summary objects, not individual records, so we create empty arrays for the actual data
-      const adjudicateStats = processMonthlyStats([]);
-      const duplicateStats = processMonthlyStats([]);
-      const salahRekamStatsProcessed = processMonthlyStats([]);
-      const pengajuanStats = processMonthlyStats([]);
+      // Fetch individual records for each category to populate monthly chart data
+      let adjudicateStats: Stat[] = [];
+      let duplicateStats: Stat[] = [];
+      let salahRekamStatsProcessed: Stat[] = [];
+      let pengajuanStats: Stat[] = [];
 
-      // Update states with processed data (these are summary statistics, not individual records)
-      setAdjudicateRecordStats(adjudicateStats);
-      setDuplicateOperatorStats(duplicateStats);
-      setSalahRekamStats(salahRekamStatsProcessed);
-      setPengajuanBulananStats(pengajuanStats);
+      try {
+        const [adjudicateRecords, duplicateRecords, salahRekamRecords, pengajuanRecords] = await Promise.all([
+          fetch(`/api/data-rekam/adjudicate${params.toString() ? '?' + params.toString() : ''}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }).then(r => r.json()).then(d => {
+            if (d.success && d.data) {
+              return Array.isArray(d.data) ? d.data : [];
+            }
+            return [];
+          }).catch(e => {
+            console.warn('[DataRekam] Failed to fetch adjudicate records for charts:', e);
+            return [];
+          }),
+          fetch(`/api/data-rekam/duplicate-operator${params.toString() ? '?' + params.toString() : ''}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }).then(r => r.json()).then(d => {
+            if (d.success && d.data) {
+              return Array.isArray(d.data) ? d.data : [];
+            }
+            return [];
+          }).catch(e => {
+            console.warn('[DataRekam] Failed to fetch duplicate-operator records for charts:', e);
+            return [];
+          }),
+          fetch(`/api/data-rekam/salah-rekam${params.toString() ? '?' + params.toString() : ''}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }).then(r => r.json()).then(d => {
+            if (d.success && d.data) {
+              return Array.isArray(d.data) ? d.data : [];
+            }
+            return [];
+          }).catch(e => {
+            console.warn('[DataRekam] Failed to fetch salah-rekam records for charts:', e);
+            return [];
+          }),
+          fetch(`/api/data-rekam/pengajuan-bulanan${params.toString() ? '?' + params.toString() : ''}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }).then(r => r.json()).then(d => {
+            if (d.success && d.data) {
+              return Array.isArray(d.data) ? d.data : [];
+            }
+            return [];
+          }).catch(e => {
+            console.warn('[DataRekam] Failed to fetch pengajuan-bulanan records for charts:', e);
+            return [];
+          }),
+        ]);
+
+        // Debug: Log first record structure
+        if (adjudicateRecords.length > 0) {
+          console.log('[DataRekam] Sample adjudicate record:', adjudicateRecords[0]);
+        }
+        if (duplicateRecords.length > 0) {
+          console.log('[DataRekam] Sample duplicate record:', duplicateRecords[0]);
+        }
+
+        // Process data for each category with the actual records
+        adjudicateStats = processMonthlyStats(adjudicateRecords);
+        duplicateStats = processMonthlyStats(duplicateRecords);
+        salahRekamStatsProcessed = processMonthlyStats(salahRekamRecords);
+        pengajuanStats = processMonthlyStats(pengajuanRecords);
+
+        console.log('[DataRekam] Chart data records fetched:', {
+          adjudicate: adjudicateRecords.length,
+          duplicate: duplicateRecords.length,
+          salahRekam: salahRekamRecords.length,
+          pengajuan: pengajuanRecords.length,
+        });
+
+        // Update states with processed data
+        setAdjudicateRecordStats(adjudicateStats);
+        setDuplicateOperatorStats(duplicateStats);
+        setSalahRekamStats(salahRekamStatsProcessed);
+        setPengajuanBulananStats(pengajuanStats);
+      } catch (error) {
+        console.warn('[DataRekam] Error fetching chart records:', error);
+        // Fall back to empty stats
+        setAdjudicateRecordStats([]);
+        setDuplicateOperatorStats([]);
+        setSalahRekamStats([]);
+        setPengajuanBulananStats([]);
+      }
 
       // Update totals with actual counts from the backend
       setTotalPengajuanAdjudicate(adjudicateCount);
@@ -423,28 +487,147 @@ export default function DataRekam() {
         monthlyDataByYear[year].sort((a, b) => a.label.localeCompare(b.label));
       });
 
+      const yearlyChartData = Object.entries(monthlyDataByYear).map(([year, data]) => ({
+        label: year,
+        adjudicateRecord: data.reduce(
+          (sum, curr) => sum + curr.adjudicateRecord,
+          0,
+        ),
+        duplicateOperator: data.reduce(
+          (sum, curr) => sum + curr.duplicateOperator,
+          0,
+        ),
+        salahRekam: data.reduce((sum, curr) => sum + curr.salahRekam, 0),
+        pengajuanBulanan: data.reduce(
+          (sum, curr) => sum + curr.pengajuanBulanan,
+          0,
+        ),
+      }));
+
+      console.log('[DataRekam] Chart data before state update:', {
+        monthlyDataYears: Object.keys(monthlyDataByYear),
+        monthlyDataSample: monthlyDataByYear['2025']?.slice(0, 3),
+        yearlyChartData: yearlyChartData,
+        totalRecordsInMonthly: Object.values(monthlyDataByYear).flat().filter(d => d.adjudicateRecord + d.duplicateOperator + d.salahRekam + d.pengajuanBulanan > 0).length,
+      });
+
       setSparklineDataMonthlyByYear(monthlyDataByYear);
-      setSparklineDataYearly(
-        Object.entries(monthlyDataByYear).map(([year, data]) => ({
-          label: year,
-          adjudicateRecord: data.reduce(
-            (sum, curr) => sum + curr.adjudicateRecord,
-            0,
-          ),
-          duplicateOperator: data.reduce(
-            (sum, curr) => sum + curr.duplicateOperator,
-            0,
-          ),
-          salahRekam: data.reduce((sum, curr) => sum + curr.salahRekam, 0),
-          pengajuanBulanan: data.reduce(
-            (sum, curr) => sum + curr.pengajuanBulanan,
-            0,
-          ),
-        })),
-      );
+      setSparklineDataYearly(yearlyChartData);
 
       // Set available years based on data
       setAvailableYears(Object.keys(monthlyDataByYear).sort());
+
+      // Build ChartData from sparkline data
+      const yearlyLabels = yearlyChartData.map(y => y.label);
+      const yearlyDatasets = [
+        {
+          label: 'Adjudicate Record',
+          data: yearlyChartData.map(y => y.adjudicateRecord),
+          borderColor: '#3B82F6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          tension: 0.4,
+        },
+        {
+          label: 'Duplicate Operator',
+          data: yearlyChartData.map(y => y.duplicateOperator),
+          borderColor: '#8B5CF6',
+          backgroundColor: 'rgba(139, 92, 246, 0.1)',
+          tension: 0.4,
+        },
+        {
+          label: 'Salah Rekam',
+          data: yearlyChartData.map(y => y.salahRekam),
+          borderColor: '#EF4444',
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          tension: 0.4,
+        },
+        {
+          label: 'Pengajuan Bulanan',
+          data: yearlyChartData.map(y => y.pengajuanBulanan),
+          borderColor: '#10B981',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          tension: 0.4,
+        },
+      ];
+
+      // Build monthly chart data for current selected year
+      const currentYearData = monthlyDataByYear[selectedYear] || [];
+      const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const monthlyDatasets = [
+        {
+          label: 'Adjudicate Record',
+          data: monthLabels.map((_, monthIndex) => {
+            const monthData = currentYearData.find(d => {
+              const [year, month] = d.label.split('-');
+              return parseInt(month) === monthIndex + 1;
+            });
+            return monthData?.adjudicateRecord || 0;
+          }),
+          borderColor: '#3B82F6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          tension: 0.4,
+        },
+        {
+          label: 'Duplicate Operator',
+          data: monthLabels.map((_, monthIndex) => {
+            const monthData = currentYearData.find(d => {
+              const [year, month] = d.label.split('-');
+              return parseInt(month) === monthIndex + 1;
+            });
+            return monthData?.duplicateOperator || 0;
+          }),
+          borderColor: '#8B5CF6',
+          backgroundColor: 'rgba(139, 92, 246, 0.1)',
+          tension: 0.4,
+        },
+        {
+          label: 'Salah Rekam',
+          data: monthLabels.map((_, monthIndex) => {
+            const monthData = currentYearData.find(d => {
+              const [year, month] = d.label.split('-');
+              return parseInt(month) === monthIndex + 1;
+            });
+            return monthData?.salahRekam || 0;
+          }),
+          borderColor: '#EF4444',
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          tension: 0.4,
+        },
+        {
+          label: 'Pengajuan Bulanan',
+          data: monthLabels.map((_, monthIndex) => {
+            const monthData = currentYearData.find(d => {
+              const [year, month] = d.label.split('-');
+              return parseInt(month) === monthIndex + 1;
+            });
+            return monthData?.pengajuanBulanan || 0;
+          }),
+          borderColor: '#10B981',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          tension: 0.4,
+        },
+      ];
+
+      const finalChartData: ChartData = {
+        yearly: {
+          labels: yearlyLabels,
+          datasets: yearlyDatasets,
+        },
+        monthly: {
+          labels: monthLabels,
+          datasets: monthlyDatasets,
+        },
+      };
+
+      console.log('[DataRekam] Final chart data:', { 
+        yearlyLabels: finalChartData.yearly.labels,
+        yearlyDatasets: finalChartData.yearly.datasets.length,
+        monthlyLabels: finalChartData.monthly.labels,
+        monthlyDatasets: finalChartData.monthly.datasets.length,
+      });
+
+      // Note: Chart data is now stored in sparklineDataMonthlyByYear and sparklineDataYearly states
+      // The useChartAggregation hook manages its own chartData state separately
       
       console.log("[DataRekam] fetchUserAndStats completed successfully");
     } catch (error: any) {
@@ -471,6 +654,16 @@ export default function DataRekam() {
     setIsRefreshing(true);
     fetchUserAndStats().finally(() => setIsRefreshing(false));
   };
+
+  // Initial chart data fetch and fetch when dates change
+  useEffect(() => {
+    console.log("[DataRekam] Chart data useEffect triggered:", { startDate, endDate, selectedYear });
+    // Always fetch chart data - with or without date filters
+    // On initial load: startDate and endDate are null, so API gets all data
+    // When dates change: API gets filtered data
+    // When selectedYear changes: API filters monthly data by selected year
+    fetchChartData(startDate || undefined, endDate || undefined, selectedYear);
+  }, [startDate, endDate, selectedYear, fetchChartData]);
 
   const prepareChartData = useCallback(
     (rekamData: ChartDataResponse): ChartData => {
@@ -578,53 +771,6 @@ export default function DataRekam() {
     },
     [selectedYear, endDate, startDate, salahRekamStats], // eslint-disable-line react-hooks/exhaustive-deps
   );
-
-  useEffect(() => {
-    const fetchData = async () => {
-      // Skip fetching if dates are invalid
-      if (startDate && isNaN(startDate.getTime())) {
-        console.warn("Invalid start date, skipping fetch:", startDate);
-        return;
-      }
-      if (endDate && isNaN(endDate.getTime())) {
-        console.warn("Invalid end date, skipping fetch:", endDate);
-        return;
-      }
-
-      setLoading(true);
-      try {
-        // Use context user from layout instead of fetching again
-        if (!currentUser) {
-          toast.error("Session not found. Please login again.");
-          return;
-        }
-
-        const tables = [
-          "adjudicate_record",
-          "duplicate_operator",
-          "salah_rekam",
-          "pengajuan_bulanan",
-        ];
-        const results = await Promise.all(
-          tables.map(async (table) => {
-            // TODO: Migrate to backend API - temporarily disabled
-            return { table, data: [] };
-          }),
-        );
-
-        const rekamData: ChartDataResponse = { chartData: results };
-        const preparedData = prepareChartData(rekamData);
-        setChartData(preparedData);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        toast.error("An error occurred while fetching data.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [selectedYear, startDate, endDate, prepareChartData]);
 
   // Export to CSV
   const exportToCSV = () => {

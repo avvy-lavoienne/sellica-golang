@@ -27,6 +27,7 @@ interface TextInputProps {
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
+  readOnly?: boolean;
   className?: string;
   "aria-label"?: string;
   name?: string;
@@ -87,6 +88,7 @@ const TextInput: React.FC<TextInputProps> = ({
   placeholder,
   required,
   disabled,
+  readOnly,
   className = "",
   "aria-label": ariaLabel,
   name,
@@ -99,6 +101,7 @@ const TextInput: React.FC<TextInputProps> = ({
     placeholder={placeholder}
     required={required}
     disabled={disabled}
+    readOnly={readOnly}
     aria-label={ariaLabel}
     name={name}
     maxLength={maxLength}
@@ -210,8 +213,18 @@ const DuplicateOperatorForm: React.FC<DuplicateOperatorFormProps> = ({
         return;
       }
 
-      // Update form data
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      // ✅ Issue #1 Fix: Auto-fill admin name when special NIK entered
+      if (name === "nik_pengaju" && value === "9999999999999999") {
+        // Special admin NIK detected - auto-fill nama_pengaju with "Admin Name"
+        setFormData((prev) => ({
+          ...prev,
+          [name]: value,
+          nama_pengaju: "Admin Name",
+        }));
+      } else {
+        // Regular field update
+        setFormData((prev) => ({ ...prev, [name]: value }));
+      }
 
       // Clear validation error for this field
       if (validationErrors[name]) {
@@ -497,6 +510,11 @@ const DuplicateOperatorForm: React.FC<DuplicateOperatorFormProps> = ({
                   </span>
                   Data Pengaju
                 </h2>
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                  <p className="text-sm text-yellow-800 dark:text-yellow-300">
+                    ⚠️ Data pengaju diisi otomatis berdasarkan akun yang sedang login dan tidak dapat diubah.
+                  </p>
+                </div>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div>
                     <Label>NIK Pengaju</Label>
@@ -504,9 +522,11 @@ const DuplicateOperatorForm: React.FC<DuplicateOperatorFormProps> = ({
                       type="text"
                       name="nik_pengaju"
                       value={formData.nik_pengaju}
-                      disabled
+                      readOnly
                       aria-label="NIK Pengaju"
+                      className="bg-gray-100 dark:bg-gray-700"
                     />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Bidang ini terkunci dan diisi otomatis dari profil Anda</p>
                   </div>
                   <div>
                     <Label>Nama Pengaju</Label>
@@ -514,9 +534,11 @@ const DuplicateOperatorForm: React.FC<DuplicateOperatorFormProps> = ({
                       type="text"
                       name="nama_pengaju"
                       value={formData.nama_pengaju}
-                      disabled
+                      readOnly
                       aria-label="Nama Pengaju"
+                      className="bg-gray-100 dark:bg-gray-700"
                     />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Bidang ini terkunci dan diisi otomatis dari profil Anda</p>
                   </div>
                 </div>
               </div>

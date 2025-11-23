@@ -26,6 +26,7 @@ import (
 	"selly-backend/internal/services/knowledge"
 	"selly-backend/internal/services/monitoring"
 	"selly-backend/internal/services/rag"
+	"selly-backend/internal/services/salah_rekam"
 	"selly-backend/internal/services/silpana"
 	"selly-backend/internal/services/supabase_analyzer"
 	"selly-backend/internal/services/training"
@@ -82,6 +83,8 @@ func main() {
 		services.SupabaseAnalyzer,
 		services.AktivitasSiak,
 		services.SessionManager,
+		services.Knowledge,
+		services.SalahRekam,
 	)
 	routes.SetupRoutes(router, routeServices)
 
@@ -144,12 +147,18 @@ type Services struct {
 	Silpana           silpana.ServiceInterface
 	AktivitasSiak     aktivitas_siak.Service
 	DuplicateOperator duplicate_operator.Service
+	SalahRekam        salah_rekam.Service
 
 	// Real-time Services
-	WebSocketHub        *websocket.Hub
-	SilpanaBroadcaster  *silpana.WebSocketBroadcaster
-	SupabaseAnalyzer    *supabase_analyzer.Service
-	SessionManager      *auth.SessionManager // Session manager for SILPANA operations
+	WebSocketHub       *websocket.Hub
+	SilpanaBroadcaster *silpana.WebSocketBroadcaster
+	SupabaseAnalyzer   *supabase_analyzer.Service
+	SessionManager     *auth.SessionManager // Session manager for SILPANA operations
+
+	// Advanced Cache Services (Phase 3A - Optimization)
+	InvalidationManager *cache.InvalidationManager
+	CacheWarmer         *cache.CacheWarmer
+	MemoryOptimizer     *cache.MemoryOptimizer
 
 	// Enhanced Services (Optimization Layer) - Placeholder interfaces
 	AI           interface{} // *ai.Service - To be implemented
@@ -241,6 +250,32 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		return nil, fmt.Errorf("failed to initialize cache service: %w", err)
 	}
 
+	// Initialize advanced cache services (Phase 3A - Optimization)
+	invalidationMgr := cache.NewInvalidationManager(cacheService.GetRedisClient(), true) // true = distributed mode
+	logrus.WithField("status", "initialized").Info("🔄 Cache invalidation manager initialized with namespace versioning")
+
+	warmingConfig := &cache.WarmingConfig{
+		Enabled:              true,
+		WorkerCount:          4,
+		WarmingInterval:      5 * time.Minute,
+		PredictionWindow:     1 * time.Hour,
+		MaxWarmingQueueSize:  1000,
+		PerformanceThreshold: 0.85,
+		MinPredictionScore:   0.7,
+		MaxPredictions:       100,
+		RateLimitPerMinute:   1000,
+		GovernmentServices:   []string{"silpana", "rekam-medis"},
+	}
+	cacheWarmerService := cache.NewCacheWarmer(cacheService, warmingConfig)
+	logrus.WithField("status", "initialized").Info("🔥 Cache warmer initialized for intelligent pre-loading")
+
+	memoryOptimizerService := cache.NewMemoryOptimizer(cacheService.GetRedisClient(), "200mb", cache.EvictLRU)
+	if err := memoryOptimizerService.Configure(context.Background()); err != nil {
+		logrus.WithError(err).Warn("⚠️ Warning: Failed to configure memory optimizer, continuing with defaults")
+	} else {
+		logrus.WithField("status", "configured").Info("💾 Memory optimizer initialized with maxmemory=200MB and LRU eviction")
+	}
+
 	// Initialize enhanced auth service with caching and audit logging
 	authService := auth.NewService(cfg.Auth.JWTSecret, dbService)
 
@@ -280,7 +315,13 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	// Initialize RAG service
 	ragService := rag.NewRedisRAGService(cacheService.GetRedisClient())
 
-	// Initialize RAG service
+	// Configure RAG performance monitor with settings from config
+	ragService.ConfigurePerformanceMonitor(
+		cfg.RAG.MaxEmbeddingTime,
+		cfg.RAG.MaxSearchTime,
+		cfg.RAG.MaxIndexingTime,
+		cfg.RAG.LogThresholdWarnings,
+	) // Initialize RAG service
 	if err := ragService.Initialize(context.Background()); err != nil {
 		return nil, fmt.Errorf("failed to initialize RAG service: %w", err)
 	}
@@ -314,9 +355,9 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	// Configure JSON processing if enabled
 	if cfg.Knowledge.JSONProcessing.Enabled {
 		logrus.WithFields(logrus.Fields{
-			"supported_types":    cfg.Knowledge.JSONProcessing.SupportedTypes,
-			"auto_load":         cfg.Knowledge.JSONProcessing.AutoLoadOnStartup,
-			"validation":        cfg.Knowledge.JSONProcessing.ValidationEnabled,
+			"supported_types": cfg.Knowledge.JSONProcessing.SupportedTypes,
+			"auto_load":       cfg.Knowledge.JSONProcessing.AutoLoadOnStartup,
+			"validation":      cfg.Knowledge.JSONProcessing.ValidationEnabled,
 		}).Info("📄 JSON training data processing enabled")
 
 		// Note: JSON processing is already enabled in the service methods
@@ -324,19 +365,17 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		knowledgeService.EnableJSONProcessing(cfg.Knowledge.JSONProcessing)
 	}
 
-	// Load all training documents on startup
-	logrus.Info("📚 Loading training documents...")
-	if err := knowledgeService.LoadAllDocuments(); err != nil {
-		logrus.WithError(err).Fatal("Failed to load training documents")
+	// Load all training documents on startup (async in background)
+	logrus.Info("� Starting background document indexing...")
+	if err := knowledgeService.StartBackgroundIndexing(context.Background()); err != nil {
+		logrus.WithError(err).Warn("Failed to start background indexing: will retry on next request")
 	}
 
 	// Log knowledge service status with detailed verification
-	knowledgeStats := knowledgeService.GetStats()
 	logrus.WithFields(logrus.Fields{
-		"documents_loaded":    knowledgeStats.DocumentsLoaded,
-		"json_files_processed": knowledgeStats.JSONFilesProcessed,
-		"paths_watched":       knowledgeStats.PathsWatched,
-	}).Info("✅ Document loading verification")
+		"indexing_enabled": true,
+		"background_mode":  "async",
+	}).Info("✅ Background document indexing started (server ready immediately)")
 
 	// Initialize chat service with RAG integration (after RAG service is ready)
 	chatService := chat.NewService(dbService, cacheService, authService, ragService)
@@ -381,6 +420,11 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	duplicateOperatorAdapter := duplicate_operator.NewSupabaseAdapter(supabaseClient)
 	duplicateOperatorService := duplicate_operator.NewService(duplicateOperatorAdapter)
 	logrus.Info("✅ Duplicate Operator service initialized successfully")
+
+	// Initialize Salah Rekam service
+	salahRekamAdapter := salah_rekam.NewSupabaseAdapter(supabaseClient)
+	salahRekamService := salah_rekam.NewService(salahRekamAdapter)
+	logrus.Info("✅ Salah Rekam service initialized successfully")
 
 	// Initialize WebSocket hub for real-time features
 	logrus.Info("🔌 Initializing WebSocket hub...")
@@ -462,12 +506,18 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		Silpana:           silpanaService,
 		AktivitasSiak:     aktivitasSiakService,
 		DuplicateOperator: duplicateOperatorService,
+		SalahRekam:        salahRekamService,
 
 		// Real-time Services
 		WebSocketHub:       wsHub,
 		SilpanaBroadcaster: silpanaBroadcaster,
 		SupabaseAnalyzer:   supabaseAnalyzer,
 		SessionManager:     sessionManager,
+
+		// Advanced Cache Services (Phase 3A - Optimization)
+		InvalidationManager: invalidationMgr,
+		CacheWarmer:         cacheWarmerService,
+		MemoryOptimizer:     memoryOptimizerService,
 
 		// Enhanced Services (placeholders)
 		AI:           aiService,

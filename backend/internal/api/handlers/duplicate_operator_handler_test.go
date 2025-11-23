@@ -947,11 +947,6 @@ func TestListRecordsServiceError(t *testing.T) {
 	assert.Contains(t, response["message"], "gagal mengambil data")
 }
 
-// Helper function for string pointer
-func stringPtr(s string) *string {
-	return &s
-}
-
 // TestMonitoringSetupValidation tests monitoring and metrics collection for handlers
 func TestMonitoringSetupValidation(t *testing.T) {
 	t.Run("Request Metrics Collection", func(t *testing.T) {
@@ -1096,12 +1091,6 @@ func TestMonitoringSetupValidation(t *testing.T) {
 		}
 
 		mockMonitoring := &MockMonitoringService{
-			RecordRequestFunc: func(duration time.Duration) {
-				assert.True(t, duration >= 0, "Duration should be non-negative")
-			},
-			RecordErrorFunc: func() {
-				// Error recorded
-			},
 			GetMetricsFunc: func() map[string]interface{} {
 				return map[string]interface{}{
 					"requestCount": int64(1),
@@ -1115,10 +1104,6 @@ func TestMonitoringSetupValidation(t *testing.T) {
 						},
 					},
 				}
-			},
-			UpdateServiceHealthFunc: func(serviceName string, health map[string]interface{}) {
-				assert.NotEmpty(t, serviceName)
-				assert.Contains(t, health, "status")
 			},
 		}
 
@@ -1146,26 +1131,6 @@ func TestMonitoringSetupValidation(t *testing.T) {
 		}
 
 		mockMonitoring := &MockMonitoringService{
-			RecordRequestFunc: func(duration time.Duration) {
-				assert.True(t, duration >= 0, "Duration should be non-negative")
-			},
-			RecordErrorFunc: func() {
-				// Error recorded
-			},
-			GetMetricsFunc: func() map[string]interface{} {
-				return map[string]interface{}{
-					"requestCount": int64(1),
-					"errorCount":   int64(0),
-					"systemMetrics": map[string]interface{}{
-						"cpuCount":       16,
-						"goroutineCount": 23,
-						"memoryUsage": map[string]interface{}{
-							"allocMB":     2.5,
-							"heapInUseMB": 4.0,
-						},
-					},
-				}
-			},
 			UpdateServiceHealthFunc: func(serviceName string, health map[string]interface{}) {
 				assert.NotEmpty(t, serviceName)
 				assert.Contains(t, health, "status")

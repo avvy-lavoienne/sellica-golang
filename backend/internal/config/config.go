@@ -17,6 +17,7 @@ type Config struct {
 	Monitoring MonitoringConfig
 	Logging    LoggingConfig
 	Knowledge  KnowledgeConfig
+	RAG        RAGConfig
 }
 
 // ServerConfig holds server-related configuration
@@ -41,10 +42,10 @@ type DatabaseConfig struct {
 
 // CacheConfig holds cache-related configuration
 type CacheConfig struct {
-	RedisURL     string
-	RedisDB      int
-	TTLSeconds   int
-	MemoryMaxMB  int
+	RedisURL    string
+	RedisDB     int
+	TTLSeconds  int
+	MemoryMaxMB int
 
 	// Smart TTL Configuration
 	SmartTTL SmartTTLConfig
@@ -55,7 +56,7 @@ type CacheConfig struct {
 
 // SmartTTLConfig holds intelligent TTL management configuration
 type SmartTTLConfig struct {
-	Enabled                    bool
+	Enabled                   bool
 	BaseTimeToLive            time.Duration
 	ConfidenceMultiplier      float64
 	ComplexityMultiplier      float64
@@ -69,8 +70,8 @@ type SmartTTLConfig struct {
 	DataFreshnessWeight       float64
 	QueryPatternWeight        float64
 	AccessFrequencyWeight     float64
-	TimeOfDayWeight          float64
-	UserBehaviorWeight       float64
+	TimeOfDayWeight           float64
+	UserBehaviorWeight        float64
 }
 
 // WarmingConfig holds intelligent cache warming configuration
@@ -89,9 +90,9 @@ type WarmingConfig struct {
 
 // AuthConfig holds authentication-related configuration
 type AuthConfig struct {
-	JWTSecret           string
-	TokenExpiryHours    int
-	RefreshExpiryDays   int
+	JWTSecret         string
+	TokenExpiryHours  int
+	RefreshExpiryDays int
 }
 
 // MonitoringConfig holds monitoring-related configuration
@@ -109,14 +110,14 @@ type LoggingConfig struct {
 
 // KnowledgeConfig holds knowledge base and document loading configuration
 type KnowledgeConfig struct {
-	DocumentsPath    string
-	AdditionalPaths  []string // Additional document paths for specialized training data
-	RecursiveScan    bool     // Enable recursive scanning of subdirectories (default: true)
-	AutoIndexing     bool
-	ChunkSize        int
-	OverlapSize      int
-	MaxConcurrency   int
-	JSONProcessing   JSONProcessingConfig // Configuration for JSON training data processing
+	DocumentsPath   string
+	AdditionalPaths []string // Additional document paths for specialized training data
+	RecursiveScan   bool     // Enable recursive scanning of subdirectories (default: true)
+	AutoIndexing    bool
+	ChunkSize       int
+	OverlapSize     int
+	MaxConcurrency  int
+	JSONProcessing  JSONProcessingConfig // Configuration for JSON training data processing
 }
 
 // JSONProcessingConfig holds configuration for JSON training data processing
@@ -125,6 +126,14 @@ type JSONProcessingConfig struct {
 	SupportedTypes    []string // Supported JSON training data types (e.g., "akta_kelahiran", "ktp")
 	AutoLoadOnStartup bool     // Automatically load JSON files on server startup
 	ValidationEnabled bool     // Enable JSON structure validation
+}
+
+// RAGConfig holds RAG service and performance monitoring configuration
+type RAGConfig struct {
+	MaxEmbeddingTime     time.Duration // Maximum allowed embedding time (default: 10ms)
+	MaxSearchTime        time.Duration // Maximum allowed search time (default: 20ms)
+	MaxIndexingTime      time.Duration // Maximum allowed indexing time (default: 500ms)
+	LogThresholdWarnings bool          // Log when thresholds are exceeded (default: false for less noise)
 }
 
 // Load loads configuration from environment variables with sensible defaults
@@ -152,7 +161,7 @@ func Load() *Config {
 			TTLSeconds:  getEnvAsInt("CACHE_TTL_SECONDS", 300),
 			MemoryMaxMB: getEnvAsInt("CACHE_MEMORY_MAX_MB", 100),
 			SmartTTL: SmartTTLConfig{
-				Enabled:                    getEnvAsBool("CACHE_SMART_TTL_ENABLED", true),
+				Enabled:                   getEnvAsBool("CACHE_SMART_TTL_ENABLED", true),
 				BaseTimeToLive:            getEnvAsDuration("CACHE_SMART_TTL_BASE", 5*time.Minute),
 				ConfidenceMultiplier:      getEnvAsFloat("CACHE_SMART_TTL_CONFIDENCE_MULT", 2.0),
 				ComplexityMultiplier:      getEnvAsFloat("CACHE_SMART_TTL_COMPLEXITY_MULT", 1.5),
@@ -166,8 +175,8 @@ func Load() *Config {
 				DataFreshnessWeight:       getEnvAsFloat("CACHE_SMART_TTL_FRESHNESS_WEIGHT", 0.3),
 				QueryPatternWeight:        getEnvAsFloat("CACHE_SMART_TTL_PATTERN_WEIGHT", 0.2),
 				AccessFrequencyWeight:     getEnvAsFloat("CACHE_SMART_TTL_ACCESS_FREQ_WEIGHT", 0.2),
-				TimeOfDayWeight:          getEnvAsFloat("CACHE_SMART_TTL_TIME_WEIGHT", 0.15),
-				UserBehaviorWeight:       getEnvAsFloat("CACHE_SMART_TTL_USER_WEIGHT", 0.15),
+				TimeOfDayWeight:           getEnvAsFloat("CACHE_SMART_TTL_TIME_WEIGHT", 0.15),
+				UserBehaviorWeight:        getEnvAsFloat("CACHE_SMART_TTL_USER_WEIGHT", 0.15),
 			},
 			Warming: WarmingConfig{
 				Enabled:              getEnvAsBool("CACHE_WARMING_ENABLED", true),
@@ -200,7 +209,7 @@ func Load() *Config {
 			Format: getEnv("LOG_FORMAT", "text"),
 		},
 		Knowledge: KnowledgeConfig{
-			DocumentsPath:  getEnv("KNOWLEDGE_DOCUMENTS_PATH", "data/training/documents"),
+			DocumentsPath: getEnv("KNOWLEDGE_DOCUMENTS_PATH", "data/training/documents"),
 			AdditionalPaths: []string{
 				// Legacy training document paths (maintain backward compatibility)
 				"data/training/documents/akta-kelahiran",
@@ -208,11 +217,11 @@ func Load() *Config {
 				"data/training/documents/ktp",
 				"data/training/documents/kk",
 				// New reference structure paths (Phase 4 implementation)
-				"docs/reference/selly-intelligence/services/civil-registration",
-				"docs/reference/selly-intelligence/services/identity-documents", 
-				"docs/reference/selly-intelligence/services/general-services",
-				"docs/reference/selly-intelligence/persona",
-				"docs/reference/selly-intelligence/profile",
+				"docs/backend/docs/reference/selly-intelligence/services/civil-registration",
+				"docs/backend/docs/reference/selly-intelligence/services/identity-documents",
+				"docs/backend/docs/reference/selly-intelligence/services/general-services",
+				"docs/backend/docs/reference/selly-intelligence/persona",
+				"docs/backend/docs/reference/selly-intelligence/profile",
 			},
 			RecursiveScan:  getEnvAsBool("KNOWLEDGE_RECURSIVE_SCAN", true), // Enable recursive scanning by default
 			AutoIndexing:   getEnvAsBool("KNOWLEDGE_AUTO_INDEXING", true),
@@ -225,6 +234,12 @@ func Load() *Config {
 				AutoLoadOnStartup: getEnvAsBool("KNOWLEDGE_JSON_AUTO_LOAD", true),
 				ValidationEnabled: getEnvAsBool("KNOWLEDGE_JSON_VALIDATION", true),
 			},
+		},
+		RAG: RAGConfig{
+			MaxEmbeddingTime:     getEnvAsDuration("RAG_MAX_EMBEDDING_TIME", 10*time.Millisecond),
+			MaxSearchTime:        getEnvAsDuration("RAG_MAX_SEARCH_TIME", 20*time.Millisecond),
+			MaxIndexingTime:      getEnvAsDuration("RAG_MAX_INDEXING_TIME", 500*time.Millisecond),
+			LogThresholdWarnings: getEnvAsBool("RAG_LOG_THRESHOLD_WARNINGS", false),
 		},
 	}
 

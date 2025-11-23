@@ -57,9 +57,10 @@ func (h *DuplicateOperatorHandler) ListRecords(c *gin.Context) {
 	filters := make(map[string]interface{})
 
 	if status := c.Query("status"); status != "" && status != "all" {
-		if status == "completed" {
+		switch status {
+		case "completed":
 			filters["is_ready_to_record"] = true
-		} else if status == "pending" {
+		case "pending":
 			filters["is_ready_to_record"] = false
 		}
 	}
@@ -446,9 +447,10 @@ func (h *DuplicateOperatorHandler) SearchRecords(c *gin.Context) {
 	filters := make(map[string]interface{})
 
 	if status := c.Query("status"); status != "" && status != "all" {
-		if status == "ready" {
+		switch status {
+		case "ready":
 			filters["is_ready_to_record"] = true
-		} else if status == "not_ready" {
+		case "not_ready":
 			filters["is_ready_to_record"] = false
 		}
 	}

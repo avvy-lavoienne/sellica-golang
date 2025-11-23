@@ -1,6 +1,7 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
-import { Inter } from "next/font/google"
+// NOTE: next/font/google conflicts with custom Babel config, using CSS variable instead
+// import { Inter } from "next/font/google"
 import { ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import NextTopLoader from "nextjs-toploader"
@@ -20,12 +21,13 @@ import { initializeServerForNextJS } from "@/lib/startup/ServerInitializer";
 // Phase 3: React Query for Advanced Caching
 import { QueryProvider } from "@/components/QueryProvider";
 
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-  variable: "--font-inter",
-});
+// NOTE: Using CSS variable for Inter font instead of next/font/google due to Babel conflict
+// const inter = Inter({
+//   subsets: ["latin"],
+//   weight: ["400", "500", "600", "700"],
+//   display: "swap",
+//   variable: "--font-inter",
+// });
 
 // Use the enhanced metadata from metadata.ts
 export const metadata: Metadata = siteMetadata;
@@ -53,6 +55,9 @@ export default async function RootLayout({
   return (
     <html lang="id" suppressHydrationWarning>
       <head>
+        {/* Font: Inter loaded via @import in global.css */}
+        {/* This ensures consistent typography across all components */}
+
         {/* Structured Data */}
         <script
           type="application/ld+json"
@@ -85,7 +90,7 @@ export default async function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} font-sans antialiased`}
+        className="font-sans antialiased"
         suppressHydrationWarning={true}
       >
         <ApiInterceptorProvider>

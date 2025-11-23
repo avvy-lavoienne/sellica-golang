@@ -1,25 +1,45 @@
-// Jest setup file for global test configuration
-import '@testing-library/jest-dom';
+/**
+ * Jest Setup File - Global Test Configuration
+ * 
+ * This file is loaded BEFORE each test and should:
+ * 1. Import jest-dom matchers
+ * 2. Configure global mocks (window.matchMedia, IntersectionObserver, etc.)
+ * 3. Set up global test utilities
+ */
 
-// Mock global objects for testing
-global.jest = jest;
-global.test = test;
-global.expect = expect;
-global.describe = describe;
-global.beforeEach = beforeEach;
-global.afterEach = afterEach;
-global.beforeAll = beforeAll;
-global.afterAll = afterAll;
-global.it = it;
+// ✅ Import jest-dom to extend jest matchers (toBeInTheDocument, etc.)
+require('@testing-library/jest-dom');
 
-// Mock fetch globally
-global.fetch = jest.fn();
+// ✅ Mock window.matchMedia for CSS media queries
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation((query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+});
 
-// Mock console methods to avoid noise in tests
-global.console = {
-  ...console,
-  // Keep log and warn for debugging, but mock error to avoid test noise
-  error: jest.fn(),
+// ✅ Mock IntersectionObserver for infinite scroll and lazy loading
+global.IntersectionObserver = class IntersectionObserver {
+  constructor() {}
+  disconnect() {}
+  observe() {}
+  takeRecords() {
+    return [];
+  }
+  unobserve() {}
 };
 
-// Add any other global mocks or setup here
+// ✅ Mock ResizeObserver for responsive components
+global.ResizeObserver = class ResizeObserver {
+  constructor() {}
+  disconnect() {}
+  observe() {}
+  unobserve() {}
+};

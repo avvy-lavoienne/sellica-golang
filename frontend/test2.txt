@@ -1,0 +1,290 @@
+ÔÇëWARNÔÇë Unsupported engine: wanted: {"node":"20.x"} (current: {"node":"v22.18.0","pnpm":"10.20.0"})
+
+> sellica@2.0 test D:\Journey Code\Project\lab\sellica-golang\frontend
+> jest "--" "src/__tests__/profile.component.test.tsx" "--no-coverage"
+
+FAIL src/__tests__/profile.component.test.tsx
+  ProfileSection Component
+    Component Rendering
+      ÔêÜ should render loading state on mount (52 ms)
+      ÔêÜ should render profile data after loading (28 ms)
+      ÔêÜ should render all sub-components (30 ms)
+      ÔêÜ should display error on load failure (16 ms)
+      ÔêÜ should have retry button on error (77 ms)
+    Edit Mode
+      ÔêÜ should toggle edit mode on Edit button click (46 ms)
+      ÔêÜ should exit edit mode on Cancel button click (46 ms)
+    Form Data Management
+      ÔêÜ should initialize form with profile data (30 ms)
+      ÔêÜ should update form data when input changes (48 ms)
+      ÔêÜ should preserve non-edited fields (44 ms)
+    Save Operation
+      ÔêÜ should save profile successfully (62 ms)
+      ÔêÜ should show loading state during save (30 ms)
+      ├ù should handle save error (1036 ms)
+      ÔêÜ should exit edit mode after successful save (35 ms)
+    Avatar Operations
+      ÔêÜ should handle avatar selection (33 ms)
+      ÔêÜ should upload avatar on save (44 ms)
+      ÔêÜ should delete avatar (17 ms)
+      ├ù should show success message after avatar upload (1033 ms)
+      ├ù should handle avatar upload error (1036 ms)
+    Session Management
+      ÔêÜ should update token from localStorage on mount (15 ms)
+      ÔêÜ should handle missing session gracefully (3 ms)
+      ÔêÜ should update session token on auth changes (7 ms)
+    Error Recovery
+      ÔêÜ should retry profile load on error (52 ms)
+      ÔêÜ should reset form on cancel after edit (62 ms)
+
+  ÔùÅ ProfileSection Component ÔÇ║ Save Operation ÔÇ║ should handle save error
+
+    expect(jest.fn()).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+    Ignored nodes: comments, script, style
+    <html>
+      <head />
+      <body>
+        <div>
+          <div
+            data-testid="profile-section"
+          >
+            <div
+              data-testid="profile-avatar"
+            >
+              <img
+                alt="avatar"
+                src="https://example.com/avatar.jpg"
+              />
+              <input
+                data-testid="avatar-input"
+                type="file"
+              />
+            </div>
+            <div
+              data-testid="profile-form"
+            >
+              <input
+                data-testid="name-input"
+                type="text"
+                value="John Doe"
+              />
+              <input
+                data-testid="position-input"
+                type="text"
+                value="Staff Member"
+              />
+            </div>
+            <div
+              data-testid="profile-actions"
+            >
+              <button
+                data-testid="save-btn"
+              >
+                Simpan
+              </button>
+              <button
+                data-testid="cancel-btn"
+              >
+                Batal
+              </button>
+              <button
+                data-testid="delete-avatar-btn"
+              >
+                Hapus Avatar
+              </button>
+            </div>
+            <div
+              data-testid="error-message"
+            >
+              Gagal menyimpan profil
+              <button
+                data-testid="retry-btn"
+              >
+                Coba Lagi
+              </button>
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>...
+
+      490 |
+      491 |       await waitFor(() => {
+    > 492 |         expect(toast.error).toHaveBeenCalled()
+          |                             ^
+      493 |       })
+      494 |     })
+      495 |
+
+      at toHaveBeenCalled (src/__tests__/profile.component.test.tsx:492:29)
+      at runWithExpensiveErrorDiagnosticsDisabled (node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:47:12)
+      at checkCallback (node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:124:77)
+      at checkRealTimersCallback (node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:118:16)
+      at Timeout.task [as _onTimeout] (node_modules/.pnpm/jsdom@26.1.0_canvas@3.1.2/node_modules/jsdom/lib/jsdom/browser/Window.js:579:19)
+
+  ÔùÅ ProfileSection Component ÔÇ║ Avatar Operations ÔÇ║ should show success message after avatar upload
+
+    expect(jest.fn()).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+    Ignored nodes: comments, script, style
+    <html>
+      <head />
+      <body>
+        <div>
+          <div
+            data-testid="profile-section"
+          >
+            <div
+              data-testid="profile-avatar"
+            >
+              <img
+                alt="avatar"
+                src="preview-url"
+              />
+              <input
+                data-testid="avatar-input"
+                type="file"
+              />
+            </div>
+            <div
+              data-testid="profile-form"
+            >
+              <div>
+                <p>
+                  John Doe
+                </p>
+                <p>
+                  Staff Member
+                </p>
+              </div>
+            </div>
+            <div
+              data-testid="profile-actions"
+            >
+              <button
+                data-testid="edit-btn"
+              >
+                Edit
+              </button>
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>...
+
+      580 |
+      581 |       await waitFor(() => {
+    > 582 |         expect(toast.success).toHaveBeenCalled()
+          |                               ^
+      583 |       })
+      584 |     })
+      585 |
+
+      at toHaveBeenCalled (src/__tests__/profile.component.test.tsx:582:31)
+      at runWithExpensiveErrorDiagnosticsDisabled (node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:47:12)
+      at checkCallback (node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:124:77)
+      at checkRealTimersCallback (node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:118:16)
+      at Timeout.task [as _onTimeout] (node_modules/.pnpm/jsdom@26.1.0_canvas@3.1.2/node_modules/jsdom/lib/jsdom/browser/Window.js:579:19)
+
+  ÔùÅ ProfileSection Component ÔÇ║ Avatar Operations ÔÇ║ should handle avatar upload error
+
+    expect(jest.fn()).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+    Ignored nodes: comments, script, style
+    <html>
+      <head />
+      <body>
+        <div>
+          <div
+            data-testid="profile-section"
+          >
+            <div
+              data-testid="profile-avatar"
+            >
+              <img
+                alt="avatar"
+                src="preview-url"
+              />
+              <input
+                data-testid="avatar-input"
+                type="file"
+              />
+            </div>
+            <div
+              data-testid="profile-form"
+            >
+              <input
+                data-testid="name-input"
+                type="text"
+                value="John Doe"
+              />
+              <input
+                data-testid="position-input"
+                type="text"
+                value="Staff Member"
+              />
+            </div>
+            <div
+              data-testid="profile-actions"
+            >
+              <button
+                data-testid="save-btn"
+              >
+                Simpan
+              </button>
+              <button
+                data-testid="cancel-btn"
+              >
+                Batal
+              </button>
+              <button
+                data-testid="delete-avatar-btn"
+              >
+                Hapus Avatar
+              </button>
+            </div>
+            <div
+              data-testid="error-message"
+            >
+              Gagal menyimpan profil
+              <button
+                data-testid="retry-btn"
+              >
+                Coba Lagi
+              </button>
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>...
+
+      603 |
+      604 |       await waitFor(() => {
+    > 605 |         expect(toast.error).toHaveBeenCalled()
+          |                             ^
+      606 |       })
+      607 |     })
+      608 |   })
+
+      at toHaveBeenCalled (src/__tests__/profile.component.test.tsx:605:29)
+      at runWithExpensiveErrorDiagnosticsDisabled (node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:47:12)
+      at checkCallback (node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:124:77)
+      at checkRealTimersCallback (node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:118:16)
+      at Timeout.task [as _onTimeout] (node_modules/.pnpm/jsdom@26.1.0_canvas@3.1.2/node_modules/jsdom/lib/jsdom/browser/Window.js:579:19)
+
+Test Suites: 1 failed, 1 total
+Tests:       3 failed, 21 passed, 24 total
+Snapshots:   0 total
+Time:        5.115 s
+Ran all test suites matching src/__tests__/profile.component.test.tsx|--no-coverage.
+ÔÇëELIFECYCLEÔÇë Test failed. See above for more details.

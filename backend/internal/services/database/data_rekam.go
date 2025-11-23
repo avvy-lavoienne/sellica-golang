@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -18,8 +19,8 @@ type AdjudicateRecordRow struct {
 	NikPengaju               string    `json:"nik_pengaju" db:"nik_pengaju"`
 	NamaPengaju              string    `json:"nama_pengaju" db:"nama_pengaju"`
 	JenisEksepsi             string    `json:"jenis_eksepsi" db:"jenis_eksepsi"`
-	TanggalPengajuan         string    `json:"tanggal_pengajuan" db:"tanggal_pengajuan"`
-	EstimasiTanggalPerekaman string    `json:"estimasi_tanggal_perekaman" db:"estimasi_tanggal_perekaman"`
+	TanggalPengajuan         *string   `json:"tanggal_pengajuan" db:"tanggal_pengajuan"`
+	EstimasiTanggalPerekaman *string   `json:"estimasi_tanggal_perekaman" db:"estimasi_tanggal_perekaman"`
 	IsReadyToRecord          bool      `json:"is_ready_to_record" db:"is_ready_to_record"`
 	CreatedAt                time.Time `json:"created_at" db:"created_at"`
 }
@@ -32,7 +33,9 @@ type DuplicateOperatorRow struct {
 	NamaOperator             string    `json:"nama_operator" db:"nama_operator"`
 	NikPengaju               string    `json:"nik_pengaju" db:"nik_pengaju"`
 	NamaPengaju              string    `json:"nama_pengaju" db:"nama_pengaju"`
-	TanggalPerekaman         string    `json:"tanggal_perekaman" db:"tanggal_perekaman"`
+	TanggalPerekaman         *string   `json:"tanggal_perekaman" db:"tanggal_perekaman"`
+	TanggalPengajuan         *string   `json:"tanggal_pengajuan" db:"tanggal_pengajuan"`
+	EstimasiTanggalPerekaman *string   `json:"estimasi_tanggal_perekaman" db:"estimasi_tanggal_perekaman"`
 	IsReadyToRecord          bool      `json:"is_ready_to_record" db:"is_ready_to_record"`
 	CreatedAt                time.Time `json:"created_at" db:"created_at"`
 }
@@ -44,26 +47,28 @@ type PengajuanBulananRow struct {
 	AlasanPengajuan          string    `json:"alasan_pengajuan" db:"alasan_pengajuan"`
 	NikPengaju               string    `json:"nik_pengaju" db:"nik_pengaju"`
 	NamaPengaju              string    `json:"nama_pengaju" db:"nama_pengaju"`
-	TanggalPengajuan         string    `json:"tanggal_pengajuan" db:"tanggal_pengajuan"`
-	EstimasiTanggalPerekaman string    `json:"estimasi_tanggal_perekaman" db:"estimasi_tanggal_perekaman"`
+	TanggalPengajuan         *string   `json:"tanggal_pengajuan" db:"tanggal_pengajuan"`
+	EstimasiTanggalPerekaman *string   `json:"estimasi_tanggal_perekaman" db:"estimasi_tanggal_perekaman"`
 	IsReadyToRecord          bool      `json:"is_ready_to_record" db:"is_ready_to_record"`
 	CreatedAt                time.Time `json:"created_at" db:"created_at"`
 }
 
 type SalahRekamRow struct {
-	ID                   string    `json:"id" db:"id"`
-	NikSalahRekam        string    `json:"nik_salah_rekam" db:"nik_salah_rekam"`
-	NamaSalahRekam       string    `json:"nama_salah_rekam" db:"nama_salah_rekam"`
-	NikPemilikBiometric  string    `json:"nik_pemilik_biometric" db:"nik_pemilik_biometric"`
-	NamaPemilikBiometric string    `json:"nama_pemilik_biometric" db:"nama_pemilik_biometric"`
-	NikPemilikFoto       string    `json:"nik_pemilik_foto" db:"nik_pemilik_foto"`
-	NamaPemilikFoto      string    `json:"nama_pemilik_foto" db:"nama_pemilik_foto"`
-	NikPetugasRekam      string    `json:"nik_petugas_rekam" db:"nik_petugas_rekam"`
-	NamaPetugasRekam     string    `json:"nama_petugas_rekam" db:"nama_petugas_rekam"`
-	NikPengaju           string    `json:"nik_pengaju" db:"nik_pengaju"`
-	NamaPengaju          string    `json:"nama_pengaju" db:"nama_pengaju"`
-	IsReadyToRecord      bool      `json:"is_ready_to_record" db:"is_ready_to_record"`
-	CreatedAt            time.Time `json:"created_at" db:"created_at"`
+	ID                        string    `json:"id" db:"id"`
+	NikSalahRekam             string    `json:"nik_salah_rekam" db:"nik_salah_rekam"`
+	NamaSalahRekam            string    `json:"nama_salah_rekam" db:"nama_salah_rekam"`
+	NikPemilikBiometric       string    `json:"nik_pemilik_biometric" db:"nik_pemilik_biometric"`
+	NamaPemilikBiometric      string    `json:"nama_pemilik_biometric" db:"nama_pemilik_biometric"`
+	NikPemilikFoto            string    `json:"nik_pemilik_foto" db:"nik_pemilik_foto"`
+	NamaPemilikFoto           string    `json:"nama_pemilik_foto" db:"nama_pemilik_foto"`
+	NikPetugasRekam           string    `json:"nik_petugas_rekam" db:"nik_petugas_rekam"`
+	NamaPetugasRekam          string    `json:"nama_petugas_rekam" db:"nama_petugas_rekam"`
+	NikPengaju                string    `json:"nik_pengaju" db:"nik_pengaju"`
+	NamaPengaju               string    `json:"nama_pengaju" db:"nama_pengaju"`
+	TanggalPerekaman          *string   `json:"tanggal_perekaman" db:"tanggal_perekaman"`
+	EstimasiTanggalPerekaman  *string   `json:"estimasi_tanggal_perekaman" db:"estimasi_tanggal_perekaman"`
+	IsReadyToRecord           bool      `json:"is_ready_to_record" db:"is_ready_to_record"`
+	CreatedAt                 time.Time `json:"created_at" db:"created_at"`
 }
 
 // DataRekamFilter for queries with authorization and filtering
@@ -74,8 +79,8 @@ type DataRekamFilter struct {
 	SearchQuery  string  // text search
 	StartDate    *string // optional date filter
 	EndDate      *string
-	UserNik      string  // for user-owned data filtering
-	IsAdmin      bool    // if true, show all; if false, show only user records
+	UserNik      string // for user-owned data filtering
+	IsAdmin      bool   // if true, show all; if false, show only user records
 }
 
 // QueryResult for paginated query responses
@@ -92,13 +97,13 @@ func (s *Service) GetAdjudicateRecordList(ctx context.Context, filter DataRekamF
 
 	offset := (filter.Page - 1) * filter.PageSize
 
-	// Build base query with explicit field selection (exclude sensitive fields)
+	// Build base query with explicit field selection and exact count (exclude sensitive fields)
 	queryBuilder := s.client.From("adjudicate_record").
 		Select(
 			"id,nik_adjudicate,nama_adjudicate,nik_pengaju,nama_pengaju,"+
 				"jenis_eksepsi,tanggal_pengajuan,estimasi_tanggal_perekaman,"+
 				"is_ready_to_record,created_at",
-			"",
+			"exact",
 			false,
 		)
 
@@ -150,9 +155,9 @@ func (s *Service) GetAdjudicateRecordList(ctx context.Context, filter DataRekamF
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"count":   len(records),
-		"total":   count,
-		"page":    filter.Page,
+		"count":    len(records),
+		"total":    count,
+		"page":     filter.Page,
 		"is_admin": filter.IsAdmin,
 	}).Debug("Retrieved adjudicate record list")
 
@@ -170,13 +175,13 @@ func (s *Service) GetDuplicateOperatorList(ctx context.Context, filter DataRekam
 
 	offset := (filter.Page - 1) * filter.PageSize
 
-	// Build base query with explicit field selection
+	// Build base query with explicit field selection and exact count
 	queryBuilder := s.client.From("duplicate_operator").
 		Select(
 			"id,nik_duplicate,nama_duplicate,nik_operator,nama_operator,"+
-				"nik_pengaju,nama_pengaju,tanggal_perekaman,"+
-				"is_ready_to_record,created_at",
-			"",
+				"nik_pengaju,nama_pengaju,tanggal_perekaman,tanggal_pengajuan,"+
+				"estimasi_tanggal_perekaman,is_ready_to_record,created_at",
+			"exact",
 			false,
 		)
 
@@ -250,13 +255,13 @@ func (s *Service) GetPengajuanBulananList(ctx context.Context, filter DataRekamF
 
 	offset := (filter.Page - 1) * filter.PageSize
 
-	// Build base query with explicit field selection
+	// Build base query with explicit field selection and exact count
 	queryBuilder := s.client.From("pengajuan_bulanan").
 		Select(
 			"id,nik_pengajuan_hapus,nama_pengajuan,alasan_pengajuan,"+
 				"nik_pengaju,nama_pengaju,tanggal_pengajuan,estimasi_tanggal_perekaman,"+
 				"is_ready_to_record,created_at",
-			"",
+			"exact",
 			false,
 		)
 
@@ -327,7 +332,7 @@ func (s *Service) GetSalahRekamList(ctx context.Context, filter DataRekamFilter)
 
 	offset := (filter.Page - 1) * filter.PageSize
 
-	// Build base query with explicit field selection
+	// Build base query with explicit field selection and exact count
 	queryBuilder := s.client.From("salah_rekam").
 		Select(
 			"id,nik_salah_rekam,nama_salah_rekam,"+
@@ -335,8 +340,9 @@ func (s *Service) GetSalahRekamList(ctx context.Context, filter DataRekamFilter)
 				"nik_pemilik_foto,nama_pemilik_foto,"+
 				"nik_petugas_rekam,nama_petugas_rekam,"+
 				"nik_pengaju,nama_pengaju,"+
+				"tanggal_perekaman,estimasi_tanggal_perekaman,"+
 				"is_ready_to_record,created_at",
-			"",
+			"exact",
 			false,
 		)
 
@@ -402,7 +408,246 @@ func (s *Service) GetSalahRekamList(ctx context.Context, filter DataRekamFilter)
 	}, nil
 }
 
-// GetDashboardStats retrieves aggregated statistics for all data-rekam tables
+// GetMonthlyBreakdown returns monthly breakdown with per-table counts
+func (s *Service) GetMonthlyBreakdown(ctx context.Context, startDate, endDate *string) ([]map[string]interface{}, error) {
+	if !s.isHealthy {
+		return nil, ErrDatabaseNotHealthy
+	}
+
+	// Define which date column to use for each table
+	tables := []struct {
+		name    string // Table name
+		dateCol string // Date column to query
+		key     string // JSON key for response
+	}{
+		{"adjudicate_record", "tanggal_pengajuan", "adjudicate_record"},
+		{"duplicate_operator", "tanggal_pengajuan", "duplicate_operator"},
+		{"salah_rekam", "created_at", "salah_rekam"},
+		{"pengajuan_bulanan", "tanggal_pengajuan", "pengajuan_bulanan"},
+	}
+
+	// Track monthly stats per table: map["YYYY-MM"]map[tableName]count
+	monthlyStatsByTable := make(map[string]map[string]int)
+
+	for _, tableInfo := range tables {
+		// SELECT the correct date column for each table
+		query := s.client.From(tableInfo.name).Select(tableInfo.dateCol, "exact", false)
+
+		if startDate != nil {
+			query = query.Gte(tableInfo.dateCol, *startDate)
+		}
+		if endDate != nil {
+			query = query.Lte(tableInfo.dateCol, *endDate)
+		}
+
+		data, _, err := query.Execute()
+		if err != nil {
+			logrus.WithError(err).WithField("table", tableInfo.name).Warn("Failed to get monthly breakdown")
+			continue
+		}
+
+		// Unmarshal raw JSON data
+		var records []map[string]interface{}
+		if err := json.Unmarshal(data, &records); err != nil {
+			logrus.WithError(err).WithField("table", tableInfo.name).Warn("Failed to unmarshal monthly breakdown data")
+			continue
+		}
+
+		// Process records to extract dates using the appropriate column for this table
+		for _, record := range records {
+			if dateStr, ok := record[tableInfo.dateCol].(string); ok {
+				// Parse date with multiple fallback formats to handle both:
+				// - DATE columns: "2024-03-15"
+				// - TIMESTAMP columns: "2024-03-15T10:30:45+07:00" or "2024-03-15T10:30:45.123456Z"
+				var parsedTime time.Time
+				var err error
+
+				// Format 1: Try RFC3339Nano first (timestamps with nanoseconds)
+				parsedTime, err = time.Parse(time.RFC3339Nano, dateStr)
+				if err != nil {
+					// Format 2: RFC3339 format (timestamps without nanoseconds)
+					parsedTime, err = time.Parse(time.RFC3339, dateStr)
+					if err != nil {
+						// Format 3: ISO8601 with timezone offset
+						parsedTime, err = time.Parse("2006-01-02T15:04:05Z07:00", dateStr)
+						if err != nil {
+							// Format 4: Simple date format (DATE columns like tanggal_pengajuan)
+							parsedTime, err = time.Parse("2006-01-02", dateStr)
+							if err != nil {
+								logrus.WithError(err).WithField("table", tableInfo.name).WithField("dateCol", tableInfo.dateCol).WithField("dateValue", dateStr).Debug("Failed to parse date in any format, skipping record")
+								continue
+							}
+						}
+					}
+				}
+
+				// Extract year-month using time.Time methods (YYYY-MM format)
+				yearMonth := parsedTime.Format("2006-01")
+
+				// Initialize month map if needed
+				if monthlyStatsByTable[yearMonth] == nil {
+					monthlyStatsByTable[yearMonth] = make(map[string]int)
+				}
+
+				// Increment count for this table in this month
+				monthlyStatsByTable[yearMonth][tableInfo.key]++
+			}
+		}
+	}
+
+	// Convert map to sorted slice
+	var result []map[string]interface{}
+	var keys []string
+	for k := range monthlyStatsByTable {
+		keys = append(keys, k)
+	}
+
+	// Sort keys (naturally sorted as YYYY-MM format)
+	for i := 0; i < len(keys)-1; i++ {
+		for j := i + 1; j < len(keys); j++ {
+			if keys[j] < keys[i] {
+				keys[i], keys[j] = keys[j], keys[i]
+			}
+		}
+	}
+
+	for _, yearMonth := range keys {
+		// Parse YYYY-MM format using strings.Split (more reliable than manual parsing)
+		parts := strings.Split(yearMonth, "-")
+		year := 0
+		month := 0
+		if len(parts) >= 2 {
+			fmt.Sscanf(parts[0], "%d", &year)
+			fmt.Sscanf(parts[1], "%d", &month)
+		}
+
+		result = append(result, map[string]interface{}{
+			"year":               year,
+			"month":              month,
+			"adjudicate_record":  monthlyStatsByTable[yearMonth]["adjudicate_record"],
+			"duplicate_operator": monthlyStatsByTable[yearMonth]["duplicate_operator"],
+			"salah_rekam":        monthlyStatsByTable[yearMonth]["salah_rekam"],
+			"pengajuan_bulanan":  monthlyStatsByTable[yearMonth]["pengajuan_bulanan"],
+		})
+	}
+
+	return result, nil
+}
+
+// GetYearlyBreakdown returns yearly aggregated count across all data-rekam tables combined
+func (s *Service) GetYearlyBreakdown(ctx context.Context, startDate, endDate *string) ([]map[string]interface{}, error) {
+	if !s.isHealthy {
+		return nil, ErrDatabaseNotHealthy
+	}
+
+	// Define which date column to use for each table
+	tables := []struct {
+		name    string // Table name
+		dateCol string // Date column to query
+	}{
+		{"adjudicate_record", "tanggal_pengajuan"},
+		{"duplicate_operator", "tanggal_pengajuan"},
+		{"salah_rekam", "created_at"},
+		{"pengajuan_bulanan", "tanggal_pengajuan"},
+	}
+
+	// Track yearly stats per table: map[year]map[tableName]count
+	yearlyStatsByTable := make(map[int]map[string]int)
+
+	for _, tableInfo := range tables {
+		// SELECT the correct date column for each table
+		query := s.client.From(tableInfo.name).Select(tableInfo.dateCol, "exact", false)
+
+		if startDate != nil {
+			query = query.Gte(tableInfo.dateCol, *startDate)
+		}
+		if endDate != nil {
+			query = query.Lte(tableInfo.dateCol, *endDate)
+		}
+
+		data, _, err := query.Execute()
+		if err != nil {
+			logrus.WithError(err).WithField("table", tableInfo.name).Warn("Failed to get yearly breakdown")
+			continue
+		}
+
+		// Unmarshal raw JSON data
+		var records []map[string]interface{}
+		if err := json.Unmarshal(data, &records); err != nil {
+			logrus.WithError(err).WithField("table", tableInfo.name).Warn("Failed to unmarshal yearly breakdown data")
+			continue
+		}
+
+		// Process records to extract dates using the appropriate column for this table
+		for _, record := range records {
+			if dateStr, ok := record[tableInfo.dateCol].(string); ok {
+				// Parse date with multiple fallback formats to handle both:
+				// - DATE columns: "2024-03-15"
+				// - TIMESTAMP columns: "2024-03-15T10:30:45+07:00" or "2024-03-15T10:30:45.123456Z"
+				var parsedTime time.Time
+				var err error
+
+				// Format 1: Try RFC3339Nano first (timestamps with nanoseconds)
+				parsedTime, err = time.Parse(time.RFC3339Nano, dateStr)
+				if err != nil {
+					// Format 2: RFC3339 format (timestamps without nanoseconds)
+					parsedTime, err = time.Parse(time.RFC3339, dateStr)
+					if err != nil {
+						// Format 3: ISO8601 with timezone offset
+						parsedTime, err = time.Parse("2006-01-02T15:04:05Z07:00", dateStr)
+						if err != nil {
+							// Format 4: Simple date format (DATE columns like tanggal_pengajuan)
+							parsedTime, err = time.Parse("2006-01-02", dateStr)
+							if err != nil {
+								logrus.WithError(err).WithField("table", tableInfo.name).WithField("dateCol", tableInfo.dateCol).WithField("dateValue", dateStr).Debug("Failed to parse date in any format, skipping record")
+								continue
+							}
+						}
+					}
+				}
+
+				// Extract year using time.Time method
+				year := parsedTime.Year()
+
+				// Initialize year map if needed
+				if yearlyStatsByTable[year] == nil {
+					yearlyStatsByTable[year] = make(map[string]int)
+				}
+
+				// Increment count for this table in this year
+				yearlyStatsByTable[year][tableInfo.name]++
+			}
+		}
+	}
+
+	// Convert map to sorted slice with per-table breakdown
+	var result []map[string]interface{}
+	var years []int
+	for y := range yearlyStatsByTable {
+		years = append(years, y)
+	}
+
+	// Sort years numerically
+	for i := 0; i < len(years)-1; i++ {
+		for j := i + 1; j < len(years); j++ {
+			if years[j] < years[i] {
+				years[i], years[j] = years[j], years[i]
+			}
+		}
+	}
+
+	for _, year := range years {
+		result = append(result, map[string]interface{}{
+			"year":               year,
+			"adjudicate_record":  yearlyStatsByTable[year]["adjudicate_record"],
+			"duplicate_operator": yearlyStatsByTable[year]["duplicate_operator"],
+			"salah_rekam":        yearlyStatsByTable[year]["salah_rekam"],
+			"pengajuan_bulanan":  yearlyStatsByTable[year]["pengajuan_bulanan"],
+		})
+	}
+
+	return result, nil
+} // GetDashboardStats retrieves aggregated statistics for all data-rekam tables
 func (s *Service) GetDashboardStats(ctx context.Context, startDate, endDate *string) (map[string]interface{}, error) {
 	if !s.isHealthy {
 		return nil, ErrDatabaseNotHealthy
@@ -470,6 +715,23 @@ func (s *Service) GetDashboardStats(ctx context.Context, startDate, endDate *str
 		stats[tableInfo.countKey] = int(totalCount)
 		stats[tableInfo.completedKey] = int(completedCount)
 	}
+
+	// Get time-series aggregation data for chart
+	monthlyData, err := s.GetMonthlyBreakdown(ctx, startDate, endDate)
+	if err != nil {
+		logrus.WithError(err).Warn("Failed to get monthly breakdown, continuing without it")
+		monthlyData = []map[string]interface{}{}
+	}
+
+	yearlyData, err := s.GetYearlyBreakdown(ctx, startDate, endDate)
+	if err != nil {
+		logrus.WithError(err).Warn("Failed to get yearly breakdown, continuing without it")
+		yearlyData = []map[string]interface{}{}
+	}
+
+	// Add time-series data to response
+	stats["MonthlyData"] = monthlyData
+	stats["YearlyData"] = yearlyData
 
 	logrus.WithField("stats", stats).Debug("Retrieved dashboard statistics")
 	return stats, nil

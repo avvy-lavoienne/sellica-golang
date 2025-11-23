@@ -119,7 +119,6 @@ func (h *DataRekamHandler) GetAdjudicateRecords(c *gin.Context) {
 	// Log successful retrieval
 	logrus.WithFields(logrus.Fields{
 		"user_id":     userID,
-		"record_count": len(result.Data.([]interface{})),
 		"total_count": result.TotalCount,
 		"page":        page,
 		"is_admin":    isAdmin,
@@ -215,11 +214,10 @@ func (h *DataRekamHandler) GetDuplicateOperatorRecords(c *gin.Context) {
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"user_id":      userID,
-		"record_count": len(result.Data.([]interface{})),
-		"total_count":  result.TotalCount,
-		"page":         page,
-		"is_admin":     isAdmin,
+		"user_id":     userID,
+		"total_count": result.TotalCount,
+		"page":        page,
+		"is_admin":    isAdmin,
 	}).Debug("Retrieved duplicate operator records")
 
 	c.JSON(http.StatusOK, DataRekamResponse{
@@ -308,11 +306,10 @@ func (h *DataRekamHandler) GetPengajuanBulananRecords(c *gin.Context) {
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"user_id":      userID,
-		"record_count": len(result.Data.([]interface{})),
-		"total_count":  result.TotalCount,
-		"page":         page,
-		"is_admin":     isAdmin,
+		"user_id":     userID,
+		"total_count": result.TotalCount,
+		"page":        page,
+		"is_admin":    isAdmin,
 	}).Debug("Retrieved pengajuan bulanan records")
 
 	c.JSON(http.StatusOK, DataRekamResponse{
@@ -401,11 +398,10 @@ func (h *DataRekamHandler) GetSalahRekamRecords(c *gin.Context) {
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"user_id":      userID,
-		"record_count": len(result.Data.([]interface{})),
-		"total_count":  result.TotalCount,
-		"page":         page,
-		"is_admin":     isAdmin,
+		"user_id":     userID,
+		"total_count": result.TotalCount,
+		"page":        page,
+		"is_admin":    isAdmin,
 	}).Debug("Retrieved salah rekam records")
 
 	c.JSON(http.StatusOK, DataRekamResponse{
@@ -458,5 +454,753 @@ func (h *DataRekamHandler) GetDashboardStats(c *gin.Context) {
 	c.JSON(http.StatusOK, DataRekamResponse{
 		Success: true,
 		Data:    stats,
+	})
+}
+
+// UpdateRequest represents the payload for toggle-status and update-date endpoints
+type UpdateRequest struct {
+	ID                            string `json:"id" binding:"required"`
+	IsReadyToRecord               *bool  `json:"is_ready_to_record"`
+	EstimasiTanggalPerekaman      *string `json:"estimasi_tanggal_perekaman"`
+}
+
+// ToggleAdjudicateRecordStatus handles PATCH /api/v1/data-rekam/adjudicate/:id/toggle-status
+func (h *DataRekamHandler) ToggleAdjudicateRecordStatus(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, DataRekamResponse{
+			Success: false,
+			Error:   "Unauthorized",
+		})
+		return
+	}
+
+	// Check admin role
+	isAdmin := false
+	if role, exists := c.Get("user_role"); exists {
+		roleStr := role.(string)
+		isAdmin = roleStr == "admin" || roleStr == "superuser"
+	}
+
+	if !isAdmin {
+		logrus.WithField("user_id", userID).Warn("Non-admin attempted to toggle adjudicate record status")
+		c.JSON(http.StatusForbidden, DataRekamResponse{
+			Success: false,
+			Error:   "Only admins can update status",
+		})
+		return
+	}
+
+	var req UpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: id and is_ready_to_record are required",
+		})
+		return
+	}
+
+	// Validate that IsReadyToRecord is provided and not nil
+	if req.IsReadyToRecord == nil {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: is_ready_to_record is required",
+		})
+		return
+	}
+
+	// Update database using Supabase
+	client := h.dbService.GetClient()
+	if client == nil {
+		logrus.Error("Supabase client not initialized")
+		c.JSON(http.StatusInternalServerError, DataRekamResponse{
+			Success: false,
+			Error:   "Gagal menyimpan perubahan",
+		})
+		return
+	}
+
+	_, _, err := client.From("adjudicate_record").
+		Update(map[string]interface{}{
+			"is_ready_to_record": *req.IsReadyToRecord,
+		}, "", "").
+		Eq("id", req.ID).
+		Execute()
+
+	if err != nil {
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"record_id": req.ID,
+			"user_id":   userID,
+		}).Error("Failed to update adjudicate record status")
+		c.JSON(http.StatusInternalServerError, DataRekamResponse{
+			Success: false,
+			Error:   "Gagal menyimpan perubahan status",
+		})
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"record_id": req.ID,
+		"status":    req.IsReadyToRecord,
+		"user_id":   userID,
+	}).Info("Adjudicate record status updated")
+
+	c.JSON(http.StatusOK, DataRekamResponse{
+		Success: true,
+		Message: "Status berhasil diperbarui",
+	})
+}
+
+// UpdateAdjudicateRecordDate handles PATCH /api/v1/data-rekam/adjudicate/:id/update-date
+func (h *DataRekamHandler) UpdateAdjudicateRecordDate(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, DataRekamResponse{
+			Success: false,
+			Error:   "Unauthorized",
+		})
+		return
+	}
+
+	// Check admin role
+	isAdmin := false
+	if role, exists := c.Get("user_role"); exists {
+		roleStr := role.(string)
+		isAdmin = roleStr == "admin" || roleStr == "superuser"
+	}
+
+	if !isAdmin {
+		logrus.WithField("user_id", userID).Warn("Non-admin attempted to update adjudicate record date")
+		c.JSON(http.StatusForbidden, DataRekamResponse{
+			Success: false,
+			Error:   "Only admins can update dates",
+		})
+		return
+	}
+
+	var req UpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: id and estimasi_tanggal_perekaman are required",
+		})
+		return
+	}
+
+	// Validate that EstimasiTanggalPerekaman is provided and not nil
+	if req.EstimasiTanggalPerekaman == nil || *req.EstimasiTanggalPerekaman == "" {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: estimasi_tanggal_perekaman is required",
+		})
+		return
+	}
+
+	// Validate date format (YYYY-MM-DD)
+	dateStr := *req.EstimasiTanggalPerekaman
+	if len(dateStr) != 10 || dateStr[4] != '-' || dateStr[7] != '-' {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid date format: use YYYY-MM-DD",
+		})
+		return
+	}
+
+	client := h.dbService.GetClient()
+	if client == nil {
+		logrus.Error("Supabase client not initialized")
+		c.JSON(http.StatusInternalServerError, DataRekamResponse{
+			Success: false,
+			Error:   "Gagal menyimpan perubahan",
+		})
+		return
+	}
+
+	_, _, err := client.From("adjudicate_record").
+		Update(map[string]interface{}{
+			"estimasi_tanggal_perekaman": dateStr,
+		}, "", "").
+		Eq("id", req.ID).
+		Execute()
+
+	if err != nil {
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"record_id": req.ID,
+			"date":      dateStr,
+			"user_id":   userID,
+		}).Error("Failed to update adjudicate record date")
+		c.JSON(http.StatusInternalServerError, DataRekamResponse{
+			Success: false,
+			Error:   "Gagal menyimpan tanggal",
+		})
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"record_id": req.ID,
+		"date":      dateStr,
+		"user_id":   userID,
+	}).Info("Adjudicate record date updated")
+
+	c.JSON(http.StatusOK, DataRekamResponse{
+		Success: true,
+		Message: "Tanggal berhasil diperbarui",
+	})
+}
+
+// TogglePengajuanBulananStatus handles PATCH /api/v1/data-rekam/pengajuan-bulanan/:id/toggle-status
+func (h *DataRekamHandler) TogglePengajuanBulananStatus(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, DataRekamResponse{
+			Success: false,
+			Error:   "Unauthorized",
+		})
+		return
+	}
+
+	// Check admin role
+	isAdmin := false
+	if role, exists := c.Get("user_role"); exists {
+		roleStr := role.(string)
+		isAdmin = roleStr == "admin" || roleStr == "superuser"
+	}
+
+	if !isAdmin {
+		logrus.WithField("user_id", userID).Warn("Non-admin attempted to toggle pengajuan bulanan status")
+		c.JSON(http.StatusForbidden, DataRekamResponse{
+			Success: false,
+			Error:   "Only admins can update status",
+		})
+		return
+	}
+
+	var req UpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: id and is_ready_to_record are required",
+		})
+		return
+	}
+
+	// Validate that IsReadyToRecord is provided and not nil
+	if req.IsReadyToRecord == nil {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: is_ready_to_record is required",
+		})
+		return
+	}
+
+	client := h.dbService.GetClient()
+	if client == nil {
+		logrus.Error("Supabase client not initialized")
+		c.JSON(http.StatusInternalServerError, DataRekamResponse{
+			Success: false,
+			Error:   "Gagal menyimpan perubahan",
+		})
+		return
+	}
+
+	_, _, err := client.From("pengajuan_bulanan").
+		Update(map[string]interface{}{
+			"is_ready_to_record": *req.IsReadyToRecord,
+		}, "", "").
+		Eq("id", req.ID).
+		Execute()
+
+	if err != nil {
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"record_id": req.ID,
+			"user_id":   userID,
+		}).Error("Failed to update pengajuan bulanan status")
+		c.JSON(http.StatusInternalServerError, DataRekamResponse{
+			Success: false,
+			Error:   "Gagal menyimpan perubahan status",
+		})
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"record_id": req.ID,
+		"status":    req.IsReadyToRecord,
+		"user_id":   userID,
+	}).Info("Pengajuan bulanan status updated")
+
+	c.JSON(http.StatusOK, DataRekamResponse{
+		Success: true,
+		Message: "Status berhasil diperbarui",
+	})
+}
+
+// UpdatePengajuanBulananDate handles PATCH /api/v1/data-rekam/pengajuan-bulanan/:id/update-date
+func (h *DataRekamHandler) UpdatePengajuanBulananDate(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, DataRekamResponse{
+			Success: false,
+			Error:   "Unauthorized",
+		})
+		return
+	}
+
+	// Check admin role
+	isAdmin := false
+	if role, exists := c.Get("user_role"); exists {
+		roleStr := role.(string)
+		isAdmin = roleStr == "admin" || roleStr == "superuser"
+	}
+
+	if !isAdmin {
+		logrus.WithField("user_id", userID).Warn("Non-admin attempted to update pengajuan bulanan date")
+		c.JSON(http.StatusForbidden, DataRekamResponse{
+			Success: false,
+			Error:   "Only admins can update dates",
+		})
+		return
+	}
+
+	var req UpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: id and estimasi_tanggal_perekaman are required",
+		})
+		return
+	}
+
+	// Validate that EstimasiTanggalPerekaman is provided and not nil
+	if req.EstimasiTanggalPerekaman == nil || *req.EstimasiTanggalPerekaman == "" {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: estimasi_tanggal_perekaman is required",
+		})
+		return
+	}
+
+	// Validate date format (YYYY-MM-DD)
+	dateStr := *req.EstimasiTanggalPerekaman
+	if len(dateStr) != 10 || dateStr[4] != '-' || dateStr[7] != '-' {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid date format: use YYYY-MM-DD",
+		})
+		return
+	}
+
+	client := h.dbService.GetClient()
+	if client == nil {
+		logrus.Error("Supabase client not initialized")
+		c.JSON(http.StatusInternalServerError, DataRekamResponse{
+			Success: false,
+			Error:   "Gagal menyimpan perubahan",
+		})
+		return
+	}
+
+	_, _, err := client.From("pengajuan_bulanan").
+		Update(map[string]interface{}{
+			"estimasi_tanggal_perekaman": dateStr,
+		}, "", "").
+		Eq("id", req.ID).
+		Execute()
+
+	if err != nil {
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"record_id": req.ID,
+			"date":      dateStr,
+			"user_id":   userID,
+		}).Error("Failed to update pengajuan bulanan date")
+		c.JSON(http.StatusInternalServerError, DataRekamResponse{
+			Success: false,
+			Error:   "Gagal menyimpan tanggal",
+		})
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"record_id": req.ID,
+		"date":      dateStr,
+		"user_id":   userID,
+	}).Info("Pengajuan bulanan date updated")
+
+	c.JSON(http.StatusOK, DataRekamResponse{
+		Success: true,
+		Message: "Tanggal berhasil diperbarui",
+	})
+}
+
+// ToggleDuplicateOperatorStatus handles PATCH /api/v1/data-rekam/duplicate-operator/:id/toggle-status
+func (h *DataRekamHandler) ToggleDuplicateOperatorStatus(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, DataRekamResponse{
+			Success: false,
+			Error:   "Unauthorized",
+		})
+		return
+	}
+
+	// Check admin role
+	isAdmin := false
+	if role, exists := c.Get("user_role"); exists {
+		roleStr := role.(string)
+		isAdmin = roleStr == "admin" || roleStr == "superuser"
+	}
+
+	if !isAdmin {
+		logrus.WithField("user_id", userID).Warn("Non-admin attempted to toggle duplicate operator status")
+		c.JSON(http.StatusForbidden, DataRekamResponse{
+			Success: false,
+			Error:   "Only admins can update status",
+		})
+		return
+	}
+
+	var req UpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: id and is_ready_to_record are required",
+		})
+		return
+	}
+
+	// Validate that IsReadyToRecord is provided and not nil
+	if req.IsReadyToRecord == nil {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: is_ready_to_record is required",
+		})
+		return
+	}
+
+	client := h.dbService.GetClient()
+	if client == nil {
+		logrus.Error("Supabase client not initialized")
+		c.JSON(http.StatusInternalServerError, DataRekamResponse{
+			Success: false,
+			Error:   "Gagal menyimpan perubahan",
+		})
+		return
+	}
+
+	_, _, err := client.From("duplicate_operator").
+		Update(map[string]interface{}{
+			"is_ready_to_record": *req.IsReadyToRecord,
+		}, "", "").
+		Eq("id", req.ID).
+		Execute()
+
+	if err != nil {
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"record_id": req.ID,
+			"user_id":   userID,
+		}).Error("Failed to update duplicate operator status")
+		c.JSON(http.StatusInternalServerError, DataRekamResponse{
+			Success: false,
+			Error:   "Gagal menyimpan perubahan status",
+		})
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"record_id": req.ID,
+		"status":    req.IsReadyToRecord,
+		"user_id":   userID,
+	}).Info("Duplicate operator status updated")
+
+	c.JSON(http.StatusOK, DataRekamResponse{
+		Success: true,
+		Message: "Status berhasil diperbarui",
+	})
+}
+
+// UpdateDuplicateOperatorDate handles PATCH /api/v1/data-rekam/duplicate-operator/:id/update-date
+func (h *DataRekamHandler) UpdateDuplicateOperatorDate(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, DataRekamResponse{
+			Success: false,
+			Error:   "Unauthorized",
+		})
+		return
+	}
+
+	// Check admin role
+	isAdmin := false
+	if role, exists := c.Get("user_role"); exists {
+		roleStr := role.(string)
+		isAdmin = roleStr == "admin" || roleStr == "superuser"
+	}
+
+	if !isAdmin {
+		logrus.WithField("user_id", userID).Warn("Non-admin attempted to update duplicate operator date")
+		c.JSON(http.StatusForbidden, DataRekamResponse{
+			Success: false,
+			Error:   "Only admins can update dates",
+		})
+		return
+	}
+
+	var req UpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: id and estimasi_tanggal_perekaman are required",
+		})
+		return
+	}
+
+	// Validate that EstimasiTanggalPerekaman is provided and not nil
+	if req.EstimasiTanggalPerekaman == nil || *req.EstimasiTanggalPerekaman == "" {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: estimasi_tanggal_perekaman is required",
+		})
+		return
+	}
+
+	// Validate date format (YYYY-MM-DD)
+	dateStr := *req.EstimasiTanggalPerekaman
+	if len(dateStr) != 10 || dateStr[4] != '-' || dateStr[7] != '-' {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid date format: use YYYY-MM-DD",
+		})
+		return
+	}
+
+	client := h.dbService.GetClient()
+	if client == nil {
+		logrus.Error("Supabase client not initialized")
+		c.JSON(http.StatusInternalServerError, DataRekamResponse{
+			Success: false,
+			Error:   "Gagal menyimpan perubahan",
+		})
+		return
+	}
+
+	_, _, err := client.From("duplicate_operator").
+		Update(map[string]interface{}{
+			"estimasi_tanggal_perekaman": dateStr,
+		}, "", "").
+		Eq("id", req.ID).
+		Execute()
+
+	if err != nil {
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"record_id": req.ID,
+			"date":      dateStr,
+			"user_id":   userID,
+		}).Error("Failed to update duplicate operator date")
+		c.JSON(http.StatusInternalServerError, DataRekamResponse{
+			Success: false,
+			Error:   "Gagal menyimpan tanggal",
+		})
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"record_id": req.ID,
+		"date":      dateStr,
+		"user_id":   userID,
+	}).Info("Duplicate operator date updated")
+
+	c.JSON(http.StatusOK, DataRekamResponse{
+		Success: true,
+		Message: "Tanggal berhasil diperbarui",
+	})
+}
+
+// ToggleSalahRekamStatus handles PATCH /api/v1/data-rekam/salah-rekam/:id/toggle-status
+func (h *DataRekamHandler) ToggleSalahRekamStatus(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, DataRekamResponse{
+			Success: false,
+			Error:   "Unauthorized",
+		})
+		return
+	}
+
+	// Check admin role
+	isAdmin := false
+	if role, exists := c.Get("user_role"); exists {
+		roleStr := role.(string)
+		isAdmin = roleStr == "admin" || roleStr == "superuser"
+	}
+
+	if !isAdmin {
+		logrus.WithField("user_id", userID).Warn("Non-admin attempted to toggle salah rekam status")
+		c.JSON(http.StatusForbidden, DataRekamResponse{
+			Success: false,
+			Error:   "Only admins can update status",
+		})
+		return
+	}
+
+	var req UpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: id and is_ready_to_record are required",
+		})
+		return
+	}
+
+	// Validate that IsReadyToRecord is provided and not nil
+	if req.IsReadyToRecord == nil {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: is_ready_to_record is required",
+		})
+		return
+	}
+
+	client := h.dbService.GetClient()
+	if client == nil {
+		logrus.Error("Supabase client not initialized")
+		c.JSON(http.StatusInternalServerError, DataRekamResponse{
+			Success: false,
+			Error:   "Gagal menyimpan perubahan",
+		})
+		return
+	}
+
+	_, _, err := client.From("salah_rekam").
+		Update(map[string]interface{}{
+			"is_ready_to_record": *req.IsReadyToRecord,
+		}, "", "").
+		Eq("id", req.ID).
+		Execute()
+
+	if err != nil {
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"record_id": req.ID,
+			"user_id":   userID,
+		}).Error("Failed to update salah rekam status")
+		c.JSON(http.StatusInternalServerError, DataRekamResponse{
+			Success: false,
+			Error:   "Gagal menyimpan perubahan status",
+		})
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"record_id": req.ID,
+		"status":    req.IsReadyToRecord,
+		"user_id":   userID,
+	}).Info("Salah rekam status updated")
+
+	c.JSON(http.StatusOK, DataRekamResponse{
+		Success: true,
+		Message: "Status berhasil diperbarui",
+	})
+}
+
+// UpdateSalahRekamDate handles PATCH /api/v1/data-rekam/salah-rekam/:id/update-date
+func (h *DataRekamHandler) UpdateSalahRekamDate(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, DataRekamResponse{
+			Success: false,
+			Error:   "Unauthorized",
+		})
+		return
+	}
+
+	// Check admin role
+	isAdmin := false
+	if role, exists := c.Get("user_role"); exists {
+		roleStr := role.(string)
+		isAdmin = roleStr == "admin" || roleStr == "superuser"
+	}
+
+	if !isAdmin {
+		logrus.WithField("user_id", userID).Warn("Non-admin attempted to update salah rekam date")
+		c.JSON(http.StatusForbidden, DataRekamResponse{
+			Success: false,
+			Error:   "Only admins can update dates",
+		})
+		return
+	}
+
+	var req UpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		logrus.WithError(err).Error("[UpdateSalahRekamDate] Failed to bind JSON request")
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: id and estimasi_tanggal_perekaman are required",
+		})
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"record_id":      req.ID,
+		"date_field":     req.EstimasiTanggalPerekaman,
+		"date_is_nil":    req.EstimasiTanggalPerekaman == nil,
+	}).Debug("[UpdateSalahRekamDate] Received update-date request")
+
+	// Validate that EstimasiTanggalPerekaman is provided and not nil
+	if req.EstimasiTanggalPerekaman == nil || *req.EstimasiTanggalPerekaman == "" {
+		logrus.WithField("record_id", req.ID).Warn("[UpdateSalahRekamDate] Missing estimasi_tanggal_perekaman field")
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid request: estimasi_tanggal_perekaman is required",
+		})
+		return
+	}
+
+	// Validate date format (YYYY-MM-DD)
+	dateStr := *req.EstimasiTanggalPerekaman
+	if len(dateStr) != 10 || dateStr[4] != '-' || dateStr[7] != '-' {
+		c.JSON(http.StatusBadRequest, DataRekamResponse{
+			Success: false,
+			Error:   "Invalid date format: use YYYY-MM-DD",
+		})
+		return
+	}
+
+	client := h.dbService.GetClient()
+	if client == nil {
+		logrus.Error("Supabase client not initialized")
+		c.JSON(http.StatusInternalServerError, DataRekamResponse{
+			Success: false,
+			Error:   "Gagal menyimpan perubahan",
+		})
+		return
+	}
+
+	_, _, err := client.From("salah_rekam").
+		Update(map[string]interface{}{
+			"estimasi_tanggal_perekaman": dateStr,
+		}, "", "").
+		Eq("id", req.ID).
+		Execute()
+
+	if err != nil {
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"record_id": req.ID,
+			"date":      dateStr,
+			"user_id":   userID,
+		}).Error("Failed to update salah rekam date")
+		c.JSON(http.StatusInternalServerError, DataRekamResponse{
+			Success: false,
+			Error:   "Gagal menyimpan tanggal",
+		})
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"record_id": req.ID,
+		"date":      dateStr,
+		"user_id":   userID,
+	}).Info("Salah rekam date updated")
+
+	c.JSON(http.StatusOK, DataRekamResponse{
+		Success: true,
+		Message: "Tanggal berhasil diperbarui",
 	})
 }

@@ -10,6 +10,8 @@ import TopNav from "@/components/TopNav";
 
 interface EnhancedDashboardLayoutProps {
   children: React.ReactNode;
+  user?: { id: string; email: string; name?: string; role?: string; avatar_url?: string } | null;
+  setUser?: (user: any) => void;
   userName?: string;
   userRole?: string;
   userAvatar?: string;
@@ -20,6 +22,8 @@ interface EnhancedDashboardLayoutProps {
 
 export function EnhancedDashboardLayout({
   children,
+  user = null,
+  setUser = () => {},
   userName = "User",
   userRole = "user",
   userAvatar,
@@ -57,8 +61,8 @@ export function EnhancedDashboardLayout({
       >
         {/* Top Navigation */}
         <TopNav
-          user={null}
-          setUser={() => {}}
+          user={user}
+          setUser={setUser}
           isMobileSidebarOpen={isMobileSidebarOpen}
           setIsMobileSidebarOpen={setIsMobileSidebarOpen}
         />

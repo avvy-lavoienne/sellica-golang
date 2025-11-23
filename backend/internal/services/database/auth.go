@@ -259,20 +259,65 @@ func (s *Service) GetPendingUsers(ctx context.Context) ([]PendingUser, error) {
 
 	// Query pending_users table - SELECT all fields except password for security
 	// Include all statuses (pending, approved, rejected) for admin view
+	// Using service role client (has admin privileges)
+	// Note: position, nip, nik are stored in user_metadata JSON field
 	data, _, err := s.client.From("pending_users").
-		Select("id,email,name,position,nip,nik,status,requested_at", "", false).
+		Select("id,email,name,status,requested_at,user_metadata", "", false).
 		Order("requested_at", nil).
 		Execute()
 
 	if err != nil {
-		logrus.WithError(err).Error("Failed to get pending users")
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"error": err.Error(),
+			"type":  fmt.Sprintf("%T", err),
+		}).Error("Failed to get pending users from Supabase")
 		return nil, err
 	}
 
-	var pendingUsers []PendingUser
-	if err := json.Unmarshal(data, &pendingUsers); err != nil {
+	if len(data) == 0 {
+		logrus.Warn("Supabase returned empty data for pending_users query")
+		return []PendingUser{}, nil
+	}
+
+	// Parse the raw response first
+	var rawUsers []map[string]interface{}
+	if err := json.Unmarshal(data, &rawUsers); err != nil {
 		logrus.WithError(err).Error("Failed to unmarshal pending users data")
 		return nil, err
+	}
+
+	// Transform to PendingUser with metadata extraction
+	var pendingUsers []PendingUser
+	for _, raw := range rawUsers {
+		user := PendingUser{
+			ID:        raw["id"].(string),
+			Email:     raw["email"].(string),
+			Name:      raw["name"].(string),
+			Status:    raw["status"].(string),
+			CreatedAt: time.Now(), // Will be overridden below
+		}
+
+		// Parse requested_at
+		if requestedAt, ok := raw["requested_at"].(string); ok {
+			if t, err := time.Parse(time.RFC3339, requestedAt); err == nil {
+				user.CreatedAt = t
+			}
+		}
+
+		// Extract metadata if present
+		if metadata, ok := raw["user_metadata"].(map[string]interface{}); ok {
+			if pos, ok := metadata["position"].(string); ok {
+				user.Position = pos
+			}
+			if nip, ok := metadata["nip"].(string); ok {
+				user.NIP = nip
+			}
+			if nik, ok := metadata["nik"].(string); ok {
+				user.NIK = nik
+			}
+		}
+
+		pendingUsers = append(pendingUsers, user)
 	}
 
 	logrus.WithField("count", len(pendingUsers)).Info("Retrieved pending users successfully")

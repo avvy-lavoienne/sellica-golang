@@ -1,0 +1,61 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Jest and testing types
+    "types": ["jest", "@testing-library/jest-dom", "@types/jest", "node"],
+
+    // Module resolution
+    "jsx": "react",
+    "lib": ["ES2015", "ES2017", "DOM", "DOM.Iterable", "ESNext"],
+    "target": "ES2020",
+
+    // Allow synthetic defaults and enable type checking
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+
+    // Enable strict mode for tests
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+
+    // Allow accessing globals without explicit imports
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // Module system settings
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+
+    // Path aliases match jest.config.mjs
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@components/*": ["./src/components/*"],
+      "@lib/*": ["./src/lib/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@types/*": ["./src/types/*"],
+      "@/__tests__/*": ["./src/__tests__/*"]
+    }
+  },
+  "include": [
+    "jest.setup.js",
+    "jest.canvas.setup.js",
+    "jest.config.mjs",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.spec.ts",
+    "src/**/*.spec.tsx",
+    "src/__tests__/**/*.ts",
+    "src/__tests__/**/*.tsx",
+    "jest-mocks/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "dist",
+    "build",
+    "coverage"
+  ]
+}

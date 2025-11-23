@@ -1,0 +1,102 @@
+[
+  {
+    "event_message": "Schema cache loaded 24 Relations, 23 Relationships, 5 Functions, 0 Domain Representations, 4 Media Type Handlers, 1194 Timezones",
+    "id": "2d4d1304-7569-42e0-b0fa-5e7ddc1ff785",
+    "timestamp": 1762610283621959
+  },
+  {
+    "event_message": "Schema cache queried in 7.2 milliseconds",
+    "id": "54aceb69-eecc-440c-992d-ec2f0035a275",
+    "timestamp": 1762610283621959
+  },
+  {
+    "event_message": "Config reloaded",
+    "id": "d62284a5-6533-464e-a5fb-598aa27c74ec",
+    "timestamp": 1762610283419631
+  },
+  {
+    "event_message": "Successfully connected to PostgreSQL 15.8 on aarch64-unknown-linux-gnu, compiled by gcc (GCC) 13.2.0, 64-bit",
+    "id": "5f84f48d-6d26-4f42-beb1-f5f8e562acd4",
+    "timestamp": 1762610283374095
+  },
+  {
+    "event_message": "Received a schema cache reload message on the \"pgrst\" channel",
+    "id": "bed7f4f7-24b2-4255-8fce-e4861e972ec4",
+    "timestamp": 1762610283359062
+  },
+  {
+    "event_message": "Schema cache loaded 24 Relations, 23 Relationships, 5 Functions, 0 Domain Representations, 4 Media Type Handlers, 1194 Timezones",
+    "id": "1196864e-dc0c-4541-96d8-6228619c3d0c",
+    "timestamp": 1762610273641912
+  },
+  {
+    "event_message": "Schema cache queried in 10.3 milliseconds",
+    "id": "470b19b1-ba4a-4876-a7d9-954bcee6e2af",
+    "timestamp": 1762610273617781
+  },
+  {
+    "event_message": "Config reloaded",
+    "id": "99e8ea70-4834-4af1-b2d1-de24fbe1fbcb",
+    "timestamp": 1762610272900277
+  },
+  {
+    "event_message": "Successfully connected to PostgreSQL 15.8 on aarch64-unknown-linux-gnu, compiled by gcc (GCC) 13.2.0, 64-bit",
+    "id": "80590894-e816-4e90-a071-637558afd9a4",
+    "timestamp": 1762610272830079
+  },
+  {
+    "event_message": "Received a schema cache reload message on the \"pgrst\" channel",
+    "id": "97b1c04d-5a8e-4e3d-a22e-25f9b5653bdc",
+    "timestamp": 1762610272710400
+  },
+  {
+    "event_message": "Schema cache loaded 24 Relations, 23 Relationships, 5 Functions, 0 Domain Representations, 4 Media Type Handlers, 1194 Timezones",
+    "id": "a19afa35-6560-48ba-bfd1-2fe17cca5948",
+    "timestamp": 1762609378242959
+  },
+  {
+    "event_message": "Schema cache queried in 11.2 milliseconds",
+    "id": "23f6721b-302d-4d46-b910-a4b004936d03",
+    "timestamp": 1762609378232332
+  },
+  {
+    "event_message": "Config reloaded",
+    "id": "f7220599-acfb-4bd4-b7d8-22164686872a",
+    "timestamp": 1762609377488513
+  },
+  {
+    "event_message": "Successfully connected to PostgreSQL 15.8 on aarch64-unknown-linux-gnu, compiled by gcc (GCC) 13.2.0, 64-bit",
+    "id": "e5908393-58af-4591-9636-00e40e29cbf4",
+    "timestamp": 1762609377389808
+  },
+  {
+    "event_message": "Received a schema cache reload message on the \"pgrst\" channel",
+    "id": "797ca0ef-9d6a-4b6a-9397-551e38e55a9b",
+    "timestamp": 1762609377288896
+  },
+  {
+    "event_message": "Schema cache loaded 24 Relations, 23 Relationships, 5 Functions, 0 Domain Representations, 4 Media Type Handlers, 1194 Timezones",
+    "id": "9e5370d5-7cd6-4738-9fdc-af192a0c3d8d",
+    "timestamp": 1762608053857061
+  },
+  {
+    "event_message": "Schema cache queried in 9.7 milliseconds",
+    "id": "a142547c-0ca8-45bb-a0ee-6b7179b398ac",
+    "timestamp": 1762608053850905
+  },
+  {
+    "event_message": "Config reloaded",
+    "id": "0da77cad-c7df-4733-ad6e-aba091cd0767",
+    "timestamp": 1762608053105315
+  },
+  {
+    "event_message": "Successfully connected to PostgreSQL 15.8 on aarch64-unknown-linux-gnu, compiled by gcc (GCC) 13.2.0, 64-bit",
+    "id": "cba72718-88a7-4c3f-9d2f-efa001b04910",
+    "timestamp": 1762608053040907
+  },
+  {
+    "event_message": "Received a schema cache reload message on the \"pgrst\" channel",
+    "id": "6b9973b3-7a29-4e7d-b25d-98c26d741b61",
+    "timestamp": 1762608052988674
+  }
+]

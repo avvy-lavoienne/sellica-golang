@@ -21,14 +21,15 @@ import (
 
 // DocumentLoaderService handles loading and indexing of training documents
 type DocumentLoaderService struct {
-	ragService      *rag.RedisRAGService
-	cache           *cache.Service
-	fileWatcher     *fsnotify.Watcher
-	indexManager    *IndexManager
-	documentsPath   string
-	additionalPaths []string // For persona, profile, and other directories
-	enabled         bool
-	recursiveScan   bool // Enable recursive scanning of subdirectories
+	ragService       *rag.RedisRAGService
+	cache            *cache.Service
+	fileWatcher      *fsnotify.Watcher
+	indexManager     *IndexManager
+	documentsPath    string
+	additionalPaths  []string // For persona, profile, and other directories
+	enabled          bool
+	recursiveScan    bool // Enable recursive scanning of subdirectories
+	backgroundIndexer *BackgroundIndexer
 }
 
 // DocumentChunk represents a chunk of a training document
@@ -87,6 +88,21 @@ type JSONTrainingDataFile struct {
 	LastUpdated time.Time          `json:"last_updated"`
 }
 
+// JSONTrainingDataIndex represents the index.json structure
+type JSONTrainingDataIndex struct {
+	Service            string                   `json:"service"`
+	ResearchMaterial   string                   `json:"research_material"`
+	TrainingCategories []map[string]interface{} `json:"training_categories"`
+	TotalTrainingPairs int                      `json:"total_training_pairs"`
+	LastUpdated        string                   `json:"last_updated"`
+}
+
+// JSONTrainingDataWrapper represents the ktp-training-pairs.json structure with metadata wrapper
+type JSONTrainingDataWrapper struct {
+	Metadata      map[string]interface{} `json:"metadata"`
+	TrainingPairs []JSONTrainingData     `json:"training_pairs"`
+}
+
 // NewDocumentLoaderService creates a new document loader service
 func NewDocumentLoaderService(ragService *rag.RedisRAGService, cache *cache.Service, documentsPath string) (*DocumentLoaderService, error) {
 	// Resolve the absolute path to ensure it works regardless of working directory
@@ -120,12 +136,13 @@ func NewDocumentLoaderService(ragService *rag.RedisRAGService, cache *cache.Serv
 	}
 
 	service := &DocumentLoaderService{
-		ragService:    ragService,
-		cache:         cache,
-		fileWatcher:   watcher,
-		indexManager:  indexManager,
-		documentsPath: absPath, // Use the resolved absolute path
-		enabled:       true,
+		ragService:        ragService,
+		cache:             cache,
+		fileWatcher:       watcher,
+		indexManager:      indexManager,
+		documentsPath:     absPath, // Use the resolved absolute path
+		enabled:           true,
+		backgroundIndexer: NewBackgroundIndexer(),
 	}
 
 	// Start file watching
@@ -727,12 +744,20 @@ func (dls *DocumentLoaderService) LoadJSONTrainingData(filePath string) error {
 	logrus.WithField("file_path", filePath).Debug("📖 Reading JSON training file...")
 	jsonData, err := dls.readJSONTrainingFile(filePath)
 	if err != nil {
-		logrus.WithError(err).WithField("file_path", filePath).Error("❌ Failed to read JSON training file")
-		return fmt.Errorf("failed to read JSON training file: %w", err)
+		logrus.WithError(err).WithField("file_path", filePath).Warn("⚠️ Could not parse JSON training file (may be index file, continuing)")
+		// Don't return error - some JSON files are just indices that reference other files
+		return nil  // Skip this file, not a fatal error
 	}
+
+	// Skip index files that have no training data
+	if len(jsonData.Data) == 0 {
+		logrus.WithField("file_path", filePath).Debug("ℹ️ Skipping JSON file with no training data (likely index metadata)")
+		return nil
+	}
+
 	logrus.WithFields(logrus.Fields{
-		"file_path": filePath,
-		"data_count": len(jsonData.Data),
+		"file_path":    filePath,
+		"data_count":   len(jsonData.Data),
 		"service_type": jsonData.ServiceType,
 	}).Debug("✅ JSON training file read successfully")
 
@@ -790,7 +815,8 @@ func (dls *DocumentLoaderService) LoadJSONTrainingData(filePath string) error {
 	return nil
 }
 
-// readJSONTrainingFile reads and parses a JSON training data file
+// readJSONTrainingFile reads and parses JSON training data files
+// Handles multiple JSON structures (index.json, training-pairs.json, etc.)
 func (dls *DocumentLoaderService) readJSONTrainingFile(filePath string) (*JSONTrainingDataFile, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -798,13 +824,87 @@ func (dls *DocumentLoaderService) readJSONTrainingFile(filePath string) (*JSONTr
 	}
 	defer file.Close()
 
-	var jsonData []JSONTrainingData
+	// Read raw JSON data to detect structure - could be array or object
+	file.Seek(0, 0) // Reset file pointer
 	decoder := json.NewDecoder(file)
-	if err := decoder.Decode(&jsonData); err != nil {
-		return nil, fmt.Errorf("failed to decode JSON: %w", err)
+
+	// First, try to detect if it's an array or object by peeking at the first token
+	token, err := decoder.Token()
+	if err != nil {
+		return nil, fmt.Errorf("failed to read JSON token: %w", err)
 	}
 
-	// Extract service type from filename
+	var jsonData []JSONTrainingData
+
+	// Check if JSON starts with array delimiter
+	if delim, ok := token.(json.Delim); ok && delim == '[' {
+		// JSON is an array of training data objects
+		file.Seek(0, 0) // Reset file pointer
+		if err := json.NewDecoder(file).Decode(&jsonData); err != nil {
+			return nil, fmt.Errorf("failed to decode JSON array: %w", err)
+		}
+		logrus.WithFields(logrus.Fields{
+			"file_path":   filePath,
+			"structure":   "array",
+			"items_count": len(jsonData),
+		}).Debug("📖 Parsed JSON array structure")
+	} else {
+		// JSON is an object - reset and parse as map
+		file.Seek(0, 0) // Reset file pointer
+		var rawData map[string]interface{}
+		decoder := json.NewDecoder(file)
+		if err := decoder.Decode(&rawData); err != nil {
+			return nil, fmt.Errorf("failed to decode JSON object: %w", err)
+		}
+
+		// Detect JSON structure based on top-level keys
+		if _, hasTrainingPairs := rawData["training_pairs"]; hasTrainingPairs {
+			// Structure 2: Object with training_pairs array (ktp-training-pairs.json)
+			jsonBytes, _ := json.Marshal(rawData)
+			var wrapper JSONTrainingDataWrapper
+			if err := json.Unmarshal(jsonBytes, &wrapper); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal training_pairs structure: %w", err)
+			}
+			jsonData = wrapper.TrainingPairs
+			logrus.WithFields(logrus.Fields{
+				"file_path":  filePath,
+				"structure":  "training_pairs_wrapper",
+				"pairs_count": len(jsonData),
+			}).Debug("📖 Parsed training_pairs JSON structure")
+		} else if _, hasTrainingCategories := rawData["training_categories"]; hasTrainingCategories {
+			// Structure 1: Index object (index.json) - extract categories
+			// Note: index.json references other files, so we log but don't extract data here
+			logrus.WithFields(logrus.Fields{
+				"file_path":   filePath,
+				"structure":   "index_metadata",
+				"categories":  len(rawData["training_categories"].([]interface{})),
+			}).Debug("📖 Parsed index metadata structure (training files referenced separately)")
+			jsonData = []JSONTrainingData{} // Empty for index files
+		} else if _, hasData := rawData["data"]; hasData {
+			// Structure 3: Direct data array wrapped in object (fallback)
+			jsonBytes, _ := json.Marshal(rawData["data"])
+			if err := json.Unmarshal(jsonBytes, &jsonData); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal data array structure: %w", err)
+			}
+			logrus.WithFields(logrus.Fields{
+				"file_path":   filePath,
+				"structure":   "data_array",
+				"items_count": len(jsonData),
+			}).Debug("📖 Parsed data array JSON structure")
+		} else {
+			// Try to unmarshal as direct array of JSONTrainingData (fallback for objects)
+			jsonBytes, _ := json.Marshal(rawData)
+			if err := json.Unmarshal(jsonBytes, &jsonData); err != nil {
+				logrus.WithFields(logrus.Fields{
+					"file_path":    filePath,
+					"available_keys": getMapKeys(rawData),
+					"error":        err.Error(),
+				}).Warn("⚠️ Could not determine JSON structure - skipping file")
+				return nil, fmt.Errorf("unknown JSON structure in file: %s", filePath)
+			}
+		}
+	}
+
 	serviceType := dls.extractServiceTypeFromJSONPath(filePath)
 
 	return &JSONTrainingDataFile{
@@ -813,6 +913,15 @@ func (dls *DocumentLoaderService) readJSONTrainingFile(filePath string) (*JSONTr
 		Data:        jsonData,
 		LastUpdated: time.Now(),
 	}, nil
+}
+
+// getMapKeys returns sorted list of map keys for debugging
+func getMapKeys(m map[string]interface{}) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
 }
 
 // extractServiceTypeFromJSONPath extracts service type from JSON file path
@@ -1044,4 +1153,125 @@ func (dls *DocumentLoaderService) GetStats() *KnowledgeStats {
 		PathsWatched:       watchedPaths,
 		LastUpdated:        time.Now(),
 	}
+}
+
+// StartBackgroundIndexing begins document indexing in a background goroutine
+func (dls *DocumentLoaderService) StartBackgroundIndexing(ctx context.Context) error {
+	if dls.backgroundIndexer.IsRunning {
+		logrus.Warn("⚠️ Background indexing already running, skipping start request")
+		return fmt.Errorf("indexing already in progress")
+	}
+
+	// Get total document count without loading
+	totalDocs := dls.countTotalDocuments()
+	
+	logrus.WithFields(map[string]interface{}{
+		"total_documents": totalDocs,
+		"timestamp":       time.Now(),
+	}).Info("🚀 Starting background document indexing")
+
+	// Start the indexing in background
+	go dls.backgroundIndexingWorker(ctx, totalDocs)
+	return nil
+}
+
+// countTotalDocuments counts all documents without loading them
+func (dls *DocumentLoaderService) countTotalDocuments() int {
+	count := 0
+
+	// Count markdown documents
+	if dls.recursiveScan {
+		filepath.Walk(dls.documentsPath, func(path string, info os.FileInfo, err error) error {
+			if err == nil && !info.IsDir() && (strings.HasSuffix(path, ".md") || strings.HasSuffix(path, ".markdown")) {
+				count++
+			}
+			return nil
+		})
+	} else {
+		entries, err := os.ReadDir(dls.documentsPath)
+		if err == nil {
+			for _, entry := range entries {
+				if !entry.IsDir() && (strings.HasSuffix(entry.Name(), ".md") || strings.HasSuffix(entry.Name(), ".markdown")) {
+					count++
+				}
+			}
+		}
+	}
+
+	// Count JSON documents
+	for _, additionalPath := range dls.additionalPaths {
+		if dls.recursiveScan {
+			filepath.Walk(additionalPath, func(path string, info os.FileInfo, err error) error {
+				if err == nil && !info.IsDir() && strings.HasSuffix(path, ".json") {
+					count++
+				}
+				return nil
+			})
+		} else {
+			entries, err := os.ReadDir(additionalPath)
+			if err == nil {
+				for _, entry := range entries {
+					if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".json") {
+						count++
+					}
+				}
+			}
+		}
+	}
+
+	return count
+}
+
+// backgroundIndexingWorker performs the actual indexing in background
+func (dls *DocumentLoaderService) backgroundIndexingWorker(ctx context.Context, totalDocs int) {
+	_ = ctx // Context available for future cancellation support
+	defer func() {
+		dls.backgroundIndexer.Complete()
+		logrus.WithFields(map[string]interface{}{
+			"docs_processed": dls.backgroundIndexer.DocsProcessed,
+			"total_docs":     dls.backgroundIndexer.TotalDocs,
+			"elapsed":        time.Since(dls.backgroundIndexer.StartTime),
+		}).Info("✅ Background document indexing completed")
+	}()
+
+	dls.backgroundIndexer.Start(totalDocs)
+	processed := 0
+	errorCount := 0
+	skippedDocs := 0
+
+	// Load all documents synchronously within the background goroutine
+	if err := dls.LoadAllDocuments(); err != nil {
+		dls.backgroundIndexer.SetError(err)
+		logrus.WithError(err).Error("Error loading documents in background")
+		errorCount++
+	}
+
+	// Count actual documents loaded
+	stats := dls.GetStats()
+	processed = stats.DocumentsLoaded
+
+	// Update final progress
+	dls.backgroundIndexer.UpdateProgress(processed, errorCount, skippedDocs)
+
+	logrus.WithFields(map[string]interface{}{
+		"processed":  processed,
+		"errors":     errorCount,
+		"skipped":    skippedDocs,
+		"duration":   time.Since(dls.backgroundIndexer.StartTime).Seconds(),
+	}).Info("📊 Background indexing statistics")
+}
+
+// GetBackgroundIndexingStatus returns the current status of background indexing
+func (dls *DocumentLoaderService) GetBackgroundIndexingStatus() IndexerStats {
+	return dls.backgroundIndexer.GetStats()
+}
+
+// IsIndexingComplete returns true if background indexing has finished
+func (dls *DocumentLoaderService) IsIndexingComplete() bool {
+	return !dls.backgroundIndexer.IsRunning
+}
+
+// WaitForIndexingComplete blocks until indexing is complete or context is cancelled
+func (dls *DocumentLoaderService) WaitForIndexingComplete(ctx context.Context) error {
+	return dls.backgroundIndexer.WaitForCompletion(ctx)
 }

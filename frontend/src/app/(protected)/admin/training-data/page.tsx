@@ -1,15 +1,17 @@
-import { TrainingDataManager } from '@/components/admin/TrainingDataManager';
-import type { Metadata } from 'next';
+'use client';
 
+import { TrainingDataManager } from '@/components/admin/TrainingDataManager';
+
+/**
+ * Training Data Management Page
+ *
+ * Displays the SELLY Training Data Manager component in a full-screen layout.
+ * Note: Metadata moved to layout.tsx for proper server-side rendering
+ */
 export default function TrainingDataPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <TrainingDataManager />
     </div>
   );
 }
-
-export const metadata: Metadata = {
-  title: 'SELLY Training Data Manager',
-  description: 'Manage SELLY training data and unanswered queries',
-};

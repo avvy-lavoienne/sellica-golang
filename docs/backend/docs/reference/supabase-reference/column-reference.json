@@ -898,5 +898,1904 @@
     "is_nullable": "YES",
     "default_value": null,
     "position": 5
+  },
+  {
+    "table_name": "profiles",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "CURRENT_TIMESTAMP",
+    "position": 6
+  },
+  {
+    "table_name": "profiles",
+    "column_name": "nik",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 7
+  },
+  {
+    "table_name": "profiles",
+    "column_name": "role",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "'user'::text",
+    "position": 8
+  },
+  {
+    "table_name": "profiles",
+    "column_name": "email",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 9
+  },
+  {
+    "table_name": "profiles",
+    "column_name": "selly_preferences",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "'{\"greeting_style\": \"adaptive\", \"cultural_context\": \"indonesian_formal\", \"address_preference\": \"auto\", \"response_verbosity\": \"balanced\", \"enable_personalization\": true, \"enable_conversation_memory\": true}'::jsonb",
+    "position": 10
+  },
+  {
+    "table_name": "profiles",
+    "column_name": "last_selly_interaction",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 11
+  },
+  {
+    "table_name": "profiles",
+    "column_name": "selly_conversation_count",
+    "data_type": "integer",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "0",
+    "position": 12
+  },
+  {
+    "table_name": "profiles",
+    "column_name": "selly_user_preferences",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "'{\"formality_level\": \"auto\", \"preferred_greeting_time\": \"adaptive\", \"enable_islamic_greetings\": true, \"enable_time_based_greetings\": true, \"conversation_continuity_preference\": true}'::jsonb",
+    "position": 13
+  },
+  {
+    "table_name": "salah_rekam",
+    "column_name": "id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "uuid_generate_v4()",
+    "position": 1
+  },
+  {
+    "table_name": "salah_rekam",
+    "column_name": "user_id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "salah_rekam",
+    "column_name": "nik_salah_rekam",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 3
+  },
+  {
+    "table_name": "salah_rekam",
+    "column_name": "nama_salah_rekam",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 4
+  },
+  {
+    "table_name": "salah_rekam",
+    "column_name": "nik_pemilik_biometric",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 5
+  },
+  {
+    "table_name": "salah_rekam",
+    "column_name": "nama_pemilik_biometric",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 6
+  },
+  {
+    "table_name": "salah_rekam",
+    "column_name": "nik_pemilik_foto",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 7
+  },
+  {
+    "table_name": "salah_rekam",
+    "column_name": "nama_pemilik_foto",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 8
+  },
+  {
+    "table_name": "salah_rekam",
+    "column_name": "nik_petugas_rekam",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 9
+  },
+  {
+    "table_name": "salah_rekam",
+    "column_name": "nama_petugas_rekam",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 10
+  },
+  {
+    "table_name": "salah_rekam",
+    "column_name": "tanggal_perekaman",
+    "data_type": "date",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 11
+  },
+  {
+    "table_name": "salah_rekam",
+    "column_name": "nik_pengaju",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 13
+  },
+  {
+    "table_name": "salah_rekam",
+    "column_name": "nama_pengaju",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 14
+  },
+  {
+    "table_name": "salah_rekam",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "now()",
+    "position": 18
+  },
+  {
+    "table_name": "salah_rekam",
+    "column_name": "is_ready_to_record",
+    "data_type": "boolean",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "false",
+    "position": 19
+  },
+  {
+    "table_name": "salah_rekam",
+    "column_name": "estimasi_tanggal_perekaman",
+    "data_type": "date",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 20
+  },
+  {
+    "table_name": "selly_chat_messages",
+    "column_name": "id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "gen_random_uuid()",
+    "position": 1
+  },
+  {
+    "table_name": "selly_chat_messages",
+    "column_name": "session_id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "selly_chat_messages",
+    "column_name": "message_type",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 3
+  },
+  {
+    "table_name": "selly_chat_messages",
+    "column_name": "content",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 4
+  },
+  {
+    "table_name": "selly_chat_messages",
+    "column_name": "timestamp",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "now()",
+    "position": 5
+  },
+  {
+    "table_name": "selly_chat_messages",
+    "column_name": "response_metadata",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "'{}'::jsonb",
+    "position": 6
+  },
+  {
+    "table_name": "selly_chat_messages",
+    "column_name": "processing_time_ms",
+    "data_type": "integer",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 7
+  },
+  {
+    "table_name": "selly_chat_messages",
+    "column_name": "confidence_score",
+    "data_type": "numeric",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 8
+  },
+  {
+    "table_name": "selly_chat_messages",
+    "column_name": "enhancement_layers",
+    "data_type": "ARRAY",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 9
+  },
+  {
+    "table_name": "selly_chat_messages",
+    "column_name": "user_feedback",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 10
+  },
+  {
+    "table_name": "selly_chat_messages",
+    "column_name": "feedback_timestamp",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 11
+  },
+  {
+    "table_name": "selly_chat_messages",
+    "column_name": "feedback_rating",
+    "data_type": "integer",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 12
+  },
+  {
+    "table_name": "selly_chat_messages",
+    "column_name": "anonymized_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 13
+  },
+  {
+    "table_name": "selly_chat_messages",
+    "column_name": "scheduled_deletion_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "(now() + '90 days'::interval)",
+    "position": 14
+  },
+  {
+    "table_name": "selly_chat_messages",
+    "column_name": "content_classification",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "'general'::text",
+    "position": 15
+  },
+  {
+    "table_name": "selly_chat_sessions",
+    "column_name": "id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "gen_random_uuid()",
+    "position": 1
+  },
+  {
+    "table_name": "selly_chat_sessions",
+    "column_name": "user_id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "selly_chat_sessions",
+    "column_name": "guest_uuid",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 3
+  },
+  {
+    "table_name": "selly_chat_sessions",
+    "column_name": "session_type",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 4
+  },
+  {
+    "table_name": "selly_chat_sessions",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "now()",
+    "position": 5
+  },
+  {
+    "table_name": "selly_chat_sessions",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "now()",
+    "position": 6
+  },
+  {
+    "table_name": "selly_chat_sessions",
+    "column_name": "last_interaction",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "now()",
+    "position": 7
+  },
+  {
+    "table_name": "selly_chat_sessions",
+    "column_name": "expires_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "(now() + '30 days'::interval)",
+    "position": 8
+  },
+  {
+    "table_name": "selly_chat_sessions",
+    "column_name": "conversation_context",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "'{}'::jsonb",
+    "position": 9
+  },
+  {
+    "table_name": "selly_chat_sessions",
+    "column_name": "user_preferences",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "'{}'::jsonb",
+    "position": 10
+  },
+  {
+    "table_name": "selly_chat_sessions",
+    "column_name": "session_metadata",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "'{}'::jsonb",
+    "position": 11
+  },
+  {
+    "table_name": "selly_chat_sessions",
+    "column_name": "message_count",
+    "data_type": "integer",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "0",
+    "position": 12
+  },
+  {
+    "table_name": "selly_chat_sessions",
+    "column_name": "total_processing_time",
+    "data_type": "integer",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "0",
+    "position": 13
+  },
+  {
+    "table_name": "selly_chat_sessions",
+    "column_name": "average_response_time",
+    "data_type": "integer",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "0",
+    "position": 14
+  },
+  {
+    "table_name": "service_type_performance",
+    "column_name": "service_type",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 1
+  },
+  {
+    "table_name": "service_type_performance",
+    "column_name": "total_queries",
+    "data_type": "bigint",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "service_type_performance",
+    "column_name": "avg_quality_score",
+    "data_type": "numeric",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 3
+  },
+  {
+    "table_name": "service_type_performance",
+    "column_name": "processed_count",
+    "data_type": "bigint",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 4
+  },
+  {
+    "table_name": "service_type_performance",
+    "column_name": "pending_count",
+    "data_type": "bigint",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 5
+  },
+  {
+    "table_name": "service_type_performance",
+    "column_name": "avg_processing_time",
+    "data_type": "numeric",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 6
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "gen_random_uuid()",
+    "position": 1
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "nama_pengaduan",
+    "data_type": "character varying",
+    "max_length": 200,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "kategori_pengaduan",
+    "data_type": "character varying",
+    "max_length": 100,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 3
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "alasan_pengaduan",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 4
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "nama_pelapor",
+    "data_type": "character varying",
+    "max_length": 100,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 5
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "nik_pengaduan",
+    "data_type": "character varying",
+    "max_length": 20,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 6
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "nomor_telepon",
+    "data_type": "character varying",
+    "max_length": 20,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 7
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "email",
+    "data_type": "character varying",
+    "max_length": 100,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 8
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "alamat",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 9
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "ticket_code",
+    "data_type": "character varying",
+    "max_length": 20,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 10
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "ticket_status",
+    "data_type": "character varying",
+    "max_length": 20,
+    "is_nullable": "NO",
+    "default_value": "'submitted'::character varying",
+    "position": 11
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "priority_level",
+    "data_type": "character varying",
+    "max_length": 10,
+    "is_nullable": "NO",
+    "default_value": "'medium'::character varying",
+    "position": 12
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "assigned_to",
+    "data_type": "character varying",
+    "max_length": 100,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 13
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "estimated_resolution",
+    "data_type": "timestamp without time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 14
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "actual_resolution",
+    "data_type": "timestamp without time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 15
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "resolution_notes",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 16
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "created_by_ip",
+    "data_type": "inet",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 17
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "created_at",
+    "data_type": "timestamp without time zone",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "now()",
+    "position": 18
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "updated_at",
+    "data_type": "timestamp without time zone",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "now()",
+    "position": 19
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "last_updated",
+    "data_type": "timestamp without time zone",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "now()",
+    "position": 20
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "sub_kategori_pengaduan",
+    "data_type": "character varying",
+    "max_length": 100,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 21
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "deskripsi_pengaduan",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 22
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "tindak_lanjut_pengaduan",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 23
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "tanggal_pengaduan",
+    "data_type": "date",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 24
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "is_anonymous",
+    "data_type": "boolean",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "false",
+    "position": 25
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "creator_name",
+    "data_type": "character varying",
+    "max_length": 100,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 26
+  },
+  {
+    "table_name": "silpana",
+    "column_name": "user_id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 27
+  },
+  {
+    "table_name": "status_history",
+    "column_name": "id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "uuid_generate_v4()",
+    "position": 1
+  },
+  {
+    "table_name": "status_history",
+    "column_name": "ticket_id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "status_history",
+    "column_name": "old_status",
+    "data_type": "character varying",
+    "max_length": 50,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 3
+  },
+  {
+    "table_name": "status_history",
+    "column_name": "new_status",
+    "data_type": "character varying",
+    "max_length": 50,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 4
+  },
+  {
+    "table_name": "status_history",
+    "column_name": "old_priority",
+    "data_type": "character varying",
+    "max_length": 20,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 5
+  },
+  {
+    "table_name": "status_history",
+    "column_name": "new_priority",
+    "data_type": "character varying",
+    "max_length": 20,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 6
+  },
+  {
+    "table_name": "status_history",
+    "column_name": "step_name",
+    "data_type": "character varying",
+    "max_length": 100,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 7
+  },
+  {
+    "table_name": "status_history",
+    "column_name": "step_order",
+    "data_type": "integer",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 8
+  },
+  {
+    "table_name": "status_history",
+    "column_name": "step_description",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 9
+  },
+  {
+    "table_name": "status_history",
+    "column_name": "changed_by",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 10
+  },
+  {
+    "table_name": "status_history",
+    "column_name": "changed_by_name",
+    "data_type": "character varying",
+    "max_length": 200,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 11
+  },
+  {
+    "table_name": "status_history",
+    "column_name": "change_reason",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 12
+  },
+  {
+    "table_name": "status_history",
+    "column_name": "guest_visible_message",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 13
+  },
+  {
+    "table_name": "status_history",
+    "column_name": "internal_notes",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 14
+  },
+  {
+    "table_name": "status_history",
+    "column_name": "occurred_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "now()",
+    "position": 15
+  },
+  {
+    "table_name": "status_history",
+    "column_name": "duration_in_previous_status",
+    "data_type": "interval",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 16
+  },
+  {
+    "table_name": "status_history",
+    "column_name": "metadata",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "'{}'::jsonb",
+    "position": 17
+  },
+  {
+    "table_name": "ticket_communication",
+    "column_name": "id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "gen_random_uuid()",
+    "position": 1
+  },
+  {
+    "table_name": "ticket_communication",
+    "column_name": "ticket_id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "ticket_communication",
+    "column_name": "message",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 3
+  },
+  {
+    "table_name": "ticket_communication",
+    "column_name": "sender_type",
+    "data_type": "character varying",
+    "max_length": 20,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 4
+  },
+  {
+    "table_name": "ticket_communication",
+    "column_name": "sender_name",
+    "data_type": "character varying",
+    "max_length": 100,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 5
+  },
+  {
+    "table_name": "ticket_communication",
+    "column_name": "attachments",
+    "data_type": "ARRAY",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 6
+  },
+  {
+    "table_name": "ticket_communication",
+    "column_name": "is_internal",
+    "data_type": "boolean",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "false",
+    "position": 7
+  },
+  {
+    "table_name": "ticket_communication",
+    "column_name": "created_at",
+    "data_type": "timestamp without time zone",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "now()",
+    "position": 8
+  },
+  {
+    "table_name": "ticket_communication",
+    "column_name": "updated_at",
+    "data_type": "timestamp without time zone",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "now()",
+    "position": 9
+  },
+  {
+    "table_name": "ticket_history",
+    "column_name": "id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "gen_random_uuid()",
+    "position": 1
+  },
+  {
+    "table_name": "ticket_history",
+    "column_name": "ticket_id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "ticket_history",
+    "column_name": "status_from",
+    "data_type": "character varying",
+    "max_length": 20,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 3
+  },
+  {
+    "table_name": "ticket_history",
+    "column_name": "status_to",
+    "data_type": "character varying",
+    "max_length": 20,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 4
+  },
+  {
+    "table_name": "ticket_history",
+    "column_name": "changed_by",
+    "data_type": "character varying",
+    "max_length": 100,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 5
+  },
+  {
+    "table_name": "ticket_history",
+    "column_name": "changed_at",
+    "data_type": "timestamp without time zone",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "now()",
+    "position": 6
+  },
+  {
+    "table_name": "ticket_history",
+    "column_name": "notes",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 7
+  },
+  {
+    "table_name": "ticket_history",
+    "column_name": "attachments",
+    "data_type": "ARRAY",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 8
+  },
+  {
+    "table_name": "ticket_history",
+    "column_name": "is_public",
+    "data_type": "boolean",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "true",
+    "position": 9
+  },
+  {
+    "table_name": "ticket_history",
+    "column_name": "created_at",
+    "data_type": "timestamp without time zone",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "now()",
+    "position": 10
+  },
+  {
+    "table_name": "ticket_progress",
+    "column_name": "id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "uuid_generate_v4()",
+    "position": 1
+  },
+  {
+    "table_name": "ticket_progress",
+    "column_name": "ticket_id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "ticket_progress",
+    "column_name": "current_step",
+    "data_type": "character varying",
+    "max_length": 100,
+    "is_nullable": "NO",
+    "default_value": "'submission_received'::character varying",
+    "position": 3
+  },
+  {
+    "table_name": "ticket_progress",
+    "column_name": "step_order",
+    "data_type": "integer",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "1",
+    "position": 4
+  },
+  {
+    "table_name": "ticket_progress",
+    "column_name": "total_steps",
+    "data_type": "integer",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "5",
+    "position": 5
+  },
+  {
+    "table_name": "ticket_progress",
+    "column_name": "completion_percentage",
+    "data_type": "integer",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "20",
+    "position": 6
+  },
+  {
+    "table_name": "ticket_progress",
+    "column_name": "estimated_completion_date",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 7
+  },
+  {
+    "table_name": "ticket_progress",
+    "column_name": "estimated_hours_remaining",
+    "data_type": "integer",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 8
+  },
+  {
+    "table_name": "ticket_progress",
+    "column_name": "assigned_to",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 9
+  },
+  {
+    "table_name": "ticket_progress",
+    "column_name": "assigned_to_name",
+    "data_type": "character varying",
+    "max_length": 200,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 10
+  },
+  {
+    "table_name": "ticket_progress",
+    "column_name": "assigned_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 11
+  },
+  {
+    "table_name": "ticket_progress",
+    "column_name": "status_description",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "'Tiket Anda telah diterima'::text",
+    "position": 12
+  },
+  {
+    "table_name": "ticket_progress",
+    "column_name": "internal_notes",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 13
+  },
+  {
+    "table_name": "ticket_progress",
+    "column_name": "guest_visible_notes",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "'Terima kasih! Tiket Anda sedang diproses.'::text",
+    "position": 14
+  },
+  {
+    "table_name": "ticket_progress",
+    "column_name": "required_documents",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "'[]'::jsonb",
+    "position": 15
+  },
+  {
+    "table_name": "ticket_progress",
+    "column_name": "uploaded_documents",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "'[]'::jsonb",
+    "position": 16
+  },
+  {
+    "table_name": "ticket_progress",
+    "column_name": "verified_documents",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "'[]'::jsonb",
+    "position": 17
+  },
+  {
+    "table_name": "ticket_progress",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "now()",
+    "position": 18
+  },
+  {
+    "table_name": "ticket_progress",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "now()",
+    "position": 19
+  },
+  {
+    "table_name": "ticket_progress",
+    "column_name": "updated_by",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 20
+  },
+  {
+    "table_name": "ticket_steps",
+    "column_name": "id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "uuid_generate_v4()",
+    "position": 1
+  },
+  {
+    "table_name": "ticket_steps",
+    "column_name": "category",
+    "data_type": "character varying",
+    "max_length": 100,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "ticket_steps",
+    "column_name": "step_order",
+    "data_type": "integer",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 3
+  },
+  {
+    "table_name": "ticket_steps",
+    "column_name": "step_name",
+    "data_type": "character varying",
+    "max_length": 100,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 4
+  },
+  {
+    "table_name": "ticket_steps",
+    "column_name": "step_code",
+    "data_type": "character varying",
+    "max_length": 50,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 5
+  },
+  {
+    "table_name": "ticket_steps",
+    "column_name": "step_title",
+    "data_type": "character varying",
+    "max_length": 200,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 6
+  },
+  {
+    "table_name": "ticket_steps",
+    "column_name": "step_description",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 7
+  },
+  {
+    "table_name": "ticket_steps",
+    "column_name": "estimated_duration_hours",
+    "data_type": "integer",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "24",
+    "position": 8
+  },
+  {
+    "table_name": "ticket_steps",
+    "column_name": "icon_name",
+    "data_type": "character varying",
+    "max_length": 50,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 9
+  },
+  {
+    "table_name": "ticket_steps",
+    "column_name": "color_scheme",
+    "data_type": "character varying",
+    "max_length": 20,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 10
+  },
+  {
+    "table_name": "ticket_steps",
+    "column_name": "required_documents",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "'[]'::jsonb",
+    "position": 11
+  },
+  {
+    "table_name": "ticket_steps",
+    "column_name": "requires_staff_action",
+    "data_type": "boolean",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "true",
+    "position": 12
+  },
+  {
+    "table_name": "ticket_steps",
+    "column_name": "requires_user_action",
+    "data_type": "boolean",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "false",
+    "position": 13
+  },
+  {
+    "table_name": "ticket_steps",
+    "column_name": "user_action_description",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 14
+  },
+  {
+    "table_name": "ticket_steps",
+    "column_name": "applicable_statuses",
+    "data_type": "ARRAY",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "ARRAY['pending'::text, 'in_progress'::text]",
+    "position": 15
+  },
+  {
+    "table_name": "ticket_steps",
+    "column_name": "is_active",
+    "data_type": "boolean",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "true",
+    "position": 16
+  },
+  {
+    "table_name": "ticket_steps",
+    "column_name": "display_order",
+    "data_type": "integer",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 17
+  },
+  {
+    "table_name": "ticket_steps",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "now()",
+    "position": 18
+  },
+  {
+    "table_name": "ticket_steps",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "now()",
+    "position": 19
+  },
+  {
+    "table_name": "training_analytics",
+    "column_name": "id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "gen_random_uuid()",
+    "position": 1
+  },
+  {
+    "table_name": "training_analytics",
+    "column_name": "date",
+    "data_type": "date",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "training_analytics",
+    "column_name": "total_queries",
+    "data_type": "integer",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "0",
+    "position": 3
+  },
+  {
+    "table_name": "training_analytics",
+    "column_name": "successful_responses",
+    "data_type": "integer",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "0",
+    "position": 4
+  },
+  {
+    "table_name": "training_analytics",
+    "column_name": "failed_responses",
+    "data_type": "integer",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "0",
+    "position": 5
+  },
+  {
+    "table_name": "training_analytics",
+    "column_name": "average_quality_score",
+    "data_type": "numeric",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 6
+  },
+  {
+    "table_name": "training_analytics",
+    "column_name": "top_service_types",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "'{}'::jsonb",
+    "position": 7
+  },
+  {
+    "table_name": "training_analytics",
+    "column_name": "improvement_suggestions",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "'[]'::jsonb",
+    "position": 8
+  },
+  {
+    "table_name": "training_analytics",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "now()",
+    "position": 9
+  },
+  {
+    "table_name": "training_data",
+    "column_name": "id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "gen_random_uuid()",
+    "position": 1
+  },
+  {
+    "table_name": "training_data",
+    "column_name": "query",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "training_data",
+    "column_name": "response",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 3
+  },
+  {
+    "table_name": "training_data",
+    "column_name": "user_id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 4
+  },
+  {
+    "table_name": "training_data",
+    "column_name": "session_id",
+    "data_type": "character varying",
+    "max_length": 255,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 5
+  },
+  {
+    "table_name": "training_data",
+    "column_name": "timestamp",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "now()",
+    "position": 6
+  },
+  {
+    "table_name": "training_data",
+    "column_name": "classification",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "'{}'::jsonb",
+    "position": 7
+  },
+  {
+    "table_name": "training_data",
+    "column_name": "metadata",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "'{}'::jsonb",
+    "position": 8
+  },
+  {
+    "table_name": "training_data",
+    "column_name": "quality",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "'{}'::jsonb",
+    "position": 9
+  },
+  {
+    "table_name": "training_data",
+    "column_name": "status",
+    "data_type": "character varying",
+    "max_length": 50,
+    "is_nullable": "YES",
+    "default_value": "'pending'::character varying",
+    "position": 10
+  },
+  {
+    "table_name": "training_data",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "now()",
+    "position": 11
+  },
+  {
+    "table_name": "training_data",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "now()",
+    "position": 12
+  },
+  {
+    "table_name": "training_data_with_classification",
+    "column_name": "id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 1
+  },
+  {
+    "table_name": "training_data_with_classification",
+    "column_name": "query",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "training_data_with_classification",
+    "column_name": "response",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 3
+  },
+  {
+    "table_name": "training_data_with_classification",
+    "column_name": "user_id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 4
+  },
+  {
+    "table_name": "training_data_with_classification",
+    "column_name": "session_id",
+    "data_type": "character varying",
+    "max_length": 255,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 5
+  },
+  {
+    "table_name": "training_data_with_classification",
+    "column_name": "timestamp",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 6
+  },
+  {
+    "table_name": "training_data_with_classification",
+    "column_name": "classification",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 7
+  },
+  {
+    "table_name": "training_data_with_classification",
+    "column_name": "metadata",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 8
+  },
+  {
+    "table_name": "training_data_with_classification",
+    "column_name": "quality",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 9
+  },
+  {
+    "table_name": "training_data_with_classification",
+    "column_name": "status",
+    "data_type": "character varying",
+    "max_length": 50,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 10
+  },
+  {
+    "table_name": "training_data_with_classification",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 11
+  },
+  {
+    "table_name": "training_data_with_classification",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 12
+  },
+  {
+    "table_name": "training_data_with_classification",
+    "column_name": "service_type",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 13
+  },
+  {
+    "table_name": "training_data_with_classification",
+    "column_name": "intent",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 14
+  },
+  {
+    "table_name": "training_data_with_classification",
+    "column_name": "classification_confidence",
+    "data_type": "numeric",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 15
+  },
+  {
+    "table_name": "training_data_with_classification",
+    "column_name": "complexity",
+    "data_type": "text",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 16
+  },
+  {
+    "table_name": "training_data_with_classification",
+    "column_name": "priority",
+    "data_type": "integer",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 17
+  },
+  {
+    "table_name": "training_data_with_classification",
+    "column_name": "quality_score",
+    "data_type": "numeric",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 18
+  },
+  {
+    "table_name": "training_data_with_classification",
+    "column_name": "accuracy",
+    "data_type": "numeric",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 19
+  },
+  {
+    "table_name": "training_data_with_classification",
+    "column_name": "relevance",
+    "data_type": "numeric",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 20
+  },
+  {
+    "table_name": "training_data_with_classification",
+    "column_name": "completeness",
+    "data_type": "numeric",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 21
+  },
+  {
+    "table_name": "training_data_with_classification",
+    "column_name": "clarity",
+    "data_type": "numeric",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 22
+  },
+  {
+    "table_name": "training_sessions",
+    "column_name": "id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "gen_random_uuid()",
+    "position": 1
+  },
+  {
+    "table_name": "training_sessions",
+    "column_name": "session_id",
+    "data_type": "character varying",
+    "max_length": 255,
+    "is_nullable": "NO",
+    "default_value": null,
+    "position": 2
+  },
+  {
+    "table_name": "training_sessions",
+    "column_name": "user_id",
+    "data_type": "uuid",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": null,
+    "position": 3
+  },
+  {
+    "table_name": "training_sessions",
+    "column_name": "conversation_data",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "'{}'::jsonb",
+    "position": 4
+  },
+  {
+    "table_name": "training_sessions",
+    "column_name": "analytics",
+    "data_type": "jsonb",
+    "max_length": null,
+    "is_nullable": "NO",
+    "default_value": "'{}'::jsonb",
+    "position": 5
+  },
+  {
+    "table_name": "training_sessions",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "now()",
+    "position": 6
+  },
+  {
+    "table_name": "training_sessions",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "max_length": null,
+    "is_nullable": "YES",
+    "default_value": "now()",
+    "position": 7
   }
 ]

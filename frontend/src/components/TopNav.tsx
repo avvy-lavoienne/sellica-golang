@@ -6,23 +6,23 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import {
-  Bell,
-  Sun,
-  Moon,
-  User,
-  LogOut,
-  Settings,
-  HelpCircle,
-  Menu,
-  X,
-  ChevronDown,
-  Loader2,
-  AlertCircle,
-  Search,
-  Ticket,
-  Clock,
-  TrendingUp,
-} from "lucide-react";
+  FiBell as Bell,
+  FiSun as Sun,
+  FiMoon as Moon,
+  FiUser as User,
+  FiLogOut as LogOut,
+  FiSettings as Settings,
+  FiHelpCircle as HelpCircle,
+  FiMenu as Menu,
+  FiX as X,
+  FiChevronDown as ChevronDown,
+  FiLoader as Loader2,
+  FiAlertCircle as AlertCircle,
+  FiSearch as Search,
+  FiShoppingCart as Ticket,
+  FiClock as Clock,
+  FiTrendingUp as TrendingUp,
+} from "react-icons/fi";
 import { useOnClickOutside } from "@/hooks/use-click-outside";
 import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
@@ -103,6 +103,57 @@ export default function TopNav({
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  
+  // Local user state to handle localStorage fallback
+  const [displayUser, setDisplayUser] = useState<User | null>(user || null);
+
+  // Sync user from prop or localStorage if prop is incomplete
+  // CRITICAL: Ensures email field is always populated (never falls back to placeholder)
+  useEffect(() => {
+    let finalUser = user;
+
+    // Priority 1: Use prop if it has email (complete user object)
+    if (user?.email) {
+      // Check if we have avatar in localStorage that the prop doesn't have
+      if (typeof window !== 'undefined' && !user.avatar_url) {
+        try {
+          const storedUserInfo = localStorage.getItem('selly_user_info');
+          if (storedUserInfo) {
+            const parsed = JSON.parse(storedUserInfo);
+            // If localStorage has avatar_url and matches the current user, use it
+            if (parsed.email === user.email && parsed.avatar_url) {
+              finalUser = { ...user, avatar_url: parsed.avatar_url };
+            }
+          }
+        } catch (error) {
+          console.warn('Failed to merge avatar from stored user info:', error);
+        }
+      }
+      setDisplayUser(finalUser);
+      return;
+    }
+
+    // Priority 2: Try to retrieve complete user from localStorage
+    if (typeof window !== 'undefined') {
+      try {
+        const storedUserInfo = localStorage.getItem('selly_user_info');
+        if (storedUserInfo) {
+          const parsed = JSON.parse(storedUserInfo);
+          // CRITICAL: Only use localStorage if it has email field
+          if (parsed.email) {
+            setDisplayUser(parsed);
+            return;
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to parse stored user info:', error);
+      }
+    }
+
+    // Priority 3: Use incomplete prop or null
+    // This will trigger the error display in UI (showing auth is incomplete)
+    setDisplayUser(user || null);
+  }, [user]);
 
   // Refs for click outside detection
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -390,6 +441,23 @@ export default function TopNav({
               ...user,
               avatar_url: result.user.avatar_url,
             });
+            
+            // Also update localStorage to ensure fallback works
+            if (typeof window !== 'undefined') {
+              try {
+                const storedUserInfo = localStorage.getItem('selly_user_info');
+                if (storedUserInfo) {
+                  const parsed = JSON.parse(storedUserInfo);
+                  if (parsed.email) {
+                    const updatedUser = { ...parsed, avatar_url: result.user.avatar_url };
+                    localStorage.setItem('selly_user_info', JSON.stringify(updatedUser));
+                  }
+                }
+              } catch (error) {
+                console.warn('Failed to update stored user info:', error);
+              }
+            }
+            
             console.log('✅ Avatar loaded from Go backend');
           } else if (!result.success) {
             console.warn("Could not fetch avatar from Go backend:", result.error);
@@ -406,6 +474,53 @@ export default function TopNav({
     fetchUserProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]); // Remove user and setUser from dependencies to prevent infinite loop
+
+  // Listen for avatar updates from profile page
+  useEffect(() => {
+    const handleAvatarUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { avatar_url, userId } = customEvent.detail;
+
+      // Only update if this is for the current user
+      if (userId === user?.id && user?.id && typeof setUser === "function") {
+        const updatedUser: User = {
+          id: user.id,
+          email: user.email || "",
+          name: user.name,
+          role: user.role,
+          full_name: user.full_name,
+          avatar_url,
+        };
+        setUser(updatedUser);
+
+        // Also update displayUser state for immediate UI refresh
+        setDisplayUser((prevUser) => 
+          prevUser ? { ...prevUser, avatar_url } : prevUser
+        );
+
+        // Update localStorage
+        if (typeof window !== 'undefined') {
+          try {
+            const storedUserInfo = localStorage.getItem('selly_user_info');
+            if (storedUserInfo) {
+              const parsed = JSON.parse(storedUserInfo);
+              const updatedUser = { ...parsed, avatar_url };
+              localStorage.setItem('selly_user_info', JSON.stringify(updatedUser));
+            }
+          } catch (error) {
+            console.warn('Failed to update avatar in localStorage:', error);
+          }
+        }
+
+        console.log('✅ Avatar updated in TopNav:', avatar_url);
+      }
+    };
+
+    window.addEventListener('avatarUpdated', handleAvatarUpdate);
+    return () => {
+      window.removeEventListener('avatarUpdated', handleAvatarUpdate);
+    };
+  }, [user?.id, setUser]);
 
   return (
     <TooltipProvider>
@@ -808,12 +923,12 @@ export default function TopNav({
                       aria-expanded={isUserMenuOpen}
                       aria-label="User menu"
                     >
-                      {/* Enhanced Avatar */}
-                      {user?.avatar_url ? (
+                      {/* Enhanced Avatar - Use displayUser with synced email */}
+                      {displayUser?.avatar_url ? (
                         <div className="relative h-8 w-8 overflow-hidden rounded-full ring-2 ring-border transition-all duration-200 hover:ring-primary/50">
                           <Image
-                            src={user.avatar_url}
-                            alt={user?.name || "User avatar"}
+                            src={displayUser.avatar_url}
+                            alt={displayUser?.name || "User avatar"}
                             className="rounded-full object-cover"
                             fill
                             sizes="32px"
@@ -823,22 +938,22 @@ export default function TopNav({
                       ) : (
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary ring-2 ring-border transition-all duration-200 hover:ring-primary/50">
                           <span className="text-sm font-semibold">
-                            {user?.name?.charAt(0).toUpperCase() ||
-                              user?.email?.charAt(0).toUpperCase() ||
+                            {displayUser?.name?.charAt(0).toUpperCase() ||
+                              displayUser?.email?.charAt(0).toUpperCase() ||
                               "U"}
                           </span>
                         </div>
                       )}
 
-                      {/* Enhanced User Info */}
+                      {/* Enhanced User Info - Use displayUser with synced email */}
                       <div className="hidden items-center md:flex">
                         <div className="text-left">
                           <p className="max-w-[120px] truncate text-sm font-medium text-foreground">
-                            {user?.name || user?.email?.split("@")[0] || "User"}
+                            {displayUser?.name || displayUser?.email?.split("@")[0] || "Guest"}
                           </p>
-                          {user?.role && (
+                          {displayUser?.role && (
                             <p className="text-xs capitalize text-muted-foreground">
-                              {user.role}
+                              {displayUser.role}
                             </p>
                           )}
                         </div>
@@ -852,7 +967,7 @@ export default function TopNav({
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom">
-                    {user?.name || user?.email || "User menu"}
+                    {displayUser?.name || displayUser?.email || "User menu"}
                   </TooltipContent>
                 </Tooltip>
 
@@ -868,11 +983,11 @@ export default function TopNav({
                       {/* Enhanced User Info Header */}
                       <div className="border-b p-4">
                         <div className="flex items-center gap-3">
-                          {user?.avatar_url ? (
+                          {displayUser?.avatar_url ? (
                             <div className="relative h-10 w-10 overflow-hidden rounded-full ring-2 ring-border">
                               <Image
-                                src={user.avatar_url}
-                                alt={user?.name || "User avatar"}
+                                src={displayUser.avatar_url}
+                                alt={displayUser?.name || "User avatar"}
                                 className="rounded-full object-cover"
                                 fill
                                 sizes="40px"
@@ -881,25 +996,29 @@ export default function TopNav({
                           ) : (
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary ring-2 ring-border">
                               <span className="text-sm font-semibold">
-                                {user?.name?.charAt(0).toUpperCase() ||
-                                  user?.email?.charAt(0).toUpperCase() ||
+                                {displayUser?.name?.charAt(0).toUpperCase() ||
+                                  displayUser?.email?.charAt(0).toUpperCase() ||
                                   "U"}
                               </span>
                             </div>
                           )}
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-semibold text-foreground">
-                              {user?.name || "User"}
+                              {displayUser?.name && displayUser.name.trim() 
+                                ? displayUser.name 
+                                : displayUser?.full_name && displayUser.full_name.trim()
+                                  ? displayUser.full_name
+                                  : displayUser?.email?.split("@")[0] || "User"}
                             </p>
-                            <p className="truncate text-xs text-muted-foreground">
-                              {user?.email || "user@example.com"}
+                            <p className={`truncate text-xs ${displayUser?.email ? 'text-muted-foreground' : 'text-red-500 italic font-medium'}`}>
+                              {displayUser?.email || "[Email not available - authentication incomplete]"}
                             </p>
-                            {user?.role && (
+                            {displayUser?.role && (
                               <Badge
                                 variant="secondary"
                                 className="mt-1 text-xs capitalize"
                               >
-                                {user.role}
+                                {displayUser.role}
                               </Badge>
                             )}
                           </div>

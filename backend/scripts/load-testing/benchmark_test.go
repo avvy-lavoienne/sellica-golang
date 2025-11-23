@@ -20,8 +20,10 @@ import (
 	"selly-backend/internal/services/concurrent"
 	"selly-backend/internal/services/database"
 	"selly-backend/internal/services/eventbus"
+	"selly-backend/internal/services/knowledge"
 	"selly-backend/internal/services/monitoring"
 	"selly-backend/internal/services/silpana"
+	"selly-backend/internal/services/supabase_analyzer"
 	"selly-backend/internal/services/training"
 )
 
@@ -77,6 +79,8 @@ func setupTestServer() *gin.Engine {
 	silpanaService := (silpana.ServiceInterface)(nil)          // Mock SILPANA service
 	silpanaBroadcaster := (*silpana.WebSocketBroadcaster)(nil) // Mock WebSocket broadcaster
 	sessionManager := (*auth.SessionManager)(nil)              // Mock session manager
+	supabaseAnalyzer := (*supabase_analyzer.Service)(nil)      // Mock Supabase analyzer
+	knowledgeService := (*knowledge.DocumentLoaderService)(nil) // Mock knowledge service
 
 	services := routes.GetServices(
 		unifiedEventBus,
@@ -89,9 +93,10 @@ func setupTestServer() *gin.Engine {
 		concurrentService,
 		silpanaService,
 		silpanaBroadcaster,
-		nil, // supabaseAnalyzer - not needed for benchmark
+		supabaseAnalyzer,
 		nil, // aktivitasSiak - not needed for benchmark
 		sessionManager,
+		knowledgeService,
 	)
 
 	router := gin.New()

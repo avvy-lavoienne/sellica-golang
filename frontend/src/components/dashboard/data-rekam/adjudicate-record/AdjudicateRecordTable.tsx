@@ -1,263 +1,65 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/lib/conn/supabaseClient";
 import { toast } from "react-toastify";
-import type { AdjudicateRecordData } from "@/types/data-rekam/adjudicate-record";
 import { useDebounce } from "@/hooks/use-debounce";
+import type { AdjudicateRecordData } from "@/types/data-rekam/adjudicate-record";
+import TableSkeleton from "@/components/dashboard/data-rekam/adjudicate-record/TableSkeleton";
+import EmptyState from "@/components/dashboard/data-rekam/adjudicate-record/EmptyState";
 import {
   MagnifyingGlassIcon,
   PencilSquareIcon,
   TrashIcon,
-  ChevronUpIcon,
+  ArrowPathIcon,
   ChevronDownIcon,
-  CalendarIcon,
-  ShieldCheckIcon,
-  ExclamationTriangleIcon,
-  UserIcon,
-  DocumentTextIcon,
+  ChevronUpIcon,
   CheckCircleIcon,
   ClockIcon,
-  CloudArrowUpIcon,
+  CalendarIcon,
+  UserIcon,
+  DocumentTextIcon,
+  ClipboardIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   XMarkIcon,
-  ArrowPathIcon,
-  DocumentArrowDownIcon,
-  FunnelIcon,
-  ChartBarIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 
-// Flowbite Pro component interfaces (simplified for this implementation)
-// In a real Flowbite Pro setup, these would be imported from "flowbite-react"
-interface CardProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-interface TableProps {
-  children: React.ReactNode;
-  hoverable?: boolean;
-  className?: string;
-}
-
-interface TableHeadProps {
-  children: React.ReactNode;
-}
-
-interface TableHeadCellProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-interface TableBodyProps {
-  children: React.ReactNode;
-}
-
-interface TableRowProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-interface TableCellProps {
-  children: React.ReactNode;
-  className?: string;
-  colSpan?: number;
-}
-
-interface ButtonProps {
-  children: React.ReactNode;
-  onClick?: () => void;
-  disabled?: boolean;
-  color?: string;
-  size?: string;
-  className?: string;
-  type?: "button" | "submit" | "reset";
-}
-
-interface TextInputProps {
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  placeholder?: string;
-  icon?: React.ComponentType<any>;
-  className?: string;
-  disabled?: boolean;
-}
-
-interface BadgeProps {
-  children: React.ReactNode;
-  color?: string;
-  className?: string;
-}
-
-interface LabelProps {
-  children?: React.ReactNode;
-  htmlFor?: string;
-  className?: string;
-  value?: string;
-}
-
-// Simplified Flowbite Pro components (in production, import from "flowbite-react")
-const Card: React.FC<CardProps> = ({ children, className = "" }) => (
-  <div className={`bg-white rounded-lg border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700 ${className}`}>
-    {children}
-  </div>
-);
-
-const CardHeader: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = "" }) => (
-  <div className={`p-6 pb-4 ${className}`}>
-    {children}
-  </div>
-);
-
-const CardContent: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = "" }) => (
-  <div className={`p-6 ${className}`}>
-    {children}
-  </div>
-);
-
-const CardTitle: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = "" }) => (
-  <h3 className={`text-lg font-semibold text-gray-900 dark:text-white ${className}`}>
-    {children}
-  </h3>
-);
-
-const Table: React.FC<TableProps> = ({ children, hoverable = false, className = "" }) => (
-  <table className={`w-full text-sm text-left text-gray-500 dark:text-gray-400 ${hoverable ? 'hover' : ''} ${className}`}>
-    {children}
-  </table>
-);
-
-const TableHead: React.FC<TableHeadProps> = ({ children }) => (
-  <thead className="text-xs uppercase text-gray-700 bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-    {children}
-  </thead>
-);
-
-const TableHeadCell: React.FC<TableHeadCellProps> = ({ children, className = "" }) => (
-  <th className={`px-6 py-3 ${className}`}>
-    {children}
-  </th>
-);
-
-const TableBody: React.FC<TableBodyProps> = ({ children }) => (
-  <tbody>
-    {children}
-  </tbody>
-);
-
-const TableRow: React.FC<TableRowProps> = ({ children, className = "" }) => (
-  <tr className={`border-b dark:border-gray-700 ${className}`}>
-    {children}
-  </tr>
-);
-
-const TableCell: React.FC<TableCellProps> = ({ children, className = "", colSpan }) => (
-  <td className={`px-6 py-4 ${className}`} colSpan={colSpan}>
-    {children}
-  </td>
-);
-
-const Button: React.FC<ButtonProps> = ({
-  children,
-  onClick,
-  disabled = false,
-  color = "blue",
-  size = "md",
-  className = "",
-  type = "button"
-}) => {
-  const baseClasses = "inline-flex items-center rounded-lg font-medium focus:outline-none focus:ring-4 transition-all duration-200";
-  const colorClasses = {
-    blue: "bg-blue-700 hover:bg-blue-800 text-white focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800",
-    gray: "bg-gray-600 hover:bg-gray-700 text-white focus:ring-gray-300 dark:bg-gray-700 dark:hover:bg-gray-800 dark:focus:ring-gray-800",
-    red: "bg-red-600 hover:bg-red-700 text-white focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800",
-    green: "bg-green-600 hover:bg-green-700 text-white focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
-  };
-  const sizeClasses = {
-    xs: "px-3 py-2 text-xs",
-    sm: "px-5 py-2.5 text-sm",
-    md: "px-5 py-2.5 text-sm",
-    lg: "px-5 py-3 text-base"
-  };
-
-  return (
-    <button
-      type={type}
-      onClick={onClick}
-      disabled={disabled}
-      className={`${baseClasses} ${colorClasses[color as keyof typeof colorClasses]} ${sizeClasses[size as keyof typeof sizeClasses]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
-    >
-      {children}
-    </button>
-  );
-};
-
-const TextInput: React.FC<TextInputProps> = ({
-  value,
-  onChange,
-  placeholder = "",
-  icon: Icon,
-  className = "",
-  disabled = false
-}) => (
-  <div className={`relative ${className}`}>
-    {Icon && (
-      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-        <Icon className="h-5 w-5 text-gray-400" />
-      </div>
-    )}
-    <input
-      type="text"
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      disabled={disabled}
-      className={`block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 pl-10 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-    />
-  </div>
-);
-
-const Badge: React.FC<BadgeProps> = ({ children, color = "gray", className = "" }) => {
-  const colorClasses = {
-    success: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-    warning: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-    failure: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
-    gray: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
-  };
-
-  return (
-    <span className={`inline-flex items-center rounded px-2.5 py-0.5 text-xs font-medium ${colorClasses[color as keyof typeof colorClasses]} ${className}`}>
-      {children}
-    </span>
-  );
-};
-
-const Label: React.FC<LabelProps> = ({ children, htmlFor, className = "", value }) => (
-  <label htmlFor={htmlFor} className={`mb-2 block text-sm font-medium text-gray-900 dark:text-white ${className}`}>
-    {value || children}
-  </label>
-);
-
-// Enhanced interface with enterprise-grade features
 interface AdjudicateRecordTableProps {
-  rekapData: AdjudicateRecordData[];
+  /** Table data array */
+  adjudicateData: AdjudicateRecordData[];
+  /** Total count of records */
   totalCount: number;
+  /** Current page number */
   currentPage: number;
+  /** Page change handler */
   onPageChange: (page: number) => void;
+  /** Search handler */
   onSearch: (query: string, statusFilter?: string) => void;
+  /** Refresh handler (full refresh with reset) */
   onRefresh: () => void;
+  /** Data refresh handler (preserves pagination/filters) */
   onDataRefresh?: () => void;
+  /** Edit handler */
   onEdit: (data: AdjudicateRecordData) => void;
+  /** Delete handler */
   onDelete: (id: string) => void;
+  /** User role for permissions */
   userRole: string;
+  /** Loading state */
   loading: boolean;
+  /** Rows per page */
+  rowsPerPage?: number;
+  /** Page size change handler */
+  onPageSizeChange?: (pageSize: number) => void;
+  /** Custom className for styling */
   className?: string;
-  delay?: number;
-  disableAnimations?: boolean;
+  /** Custom aria-label for accessibility */
   "aria-label"?: string;
 }
 
 const AdjudicateRecordTable: React.FC<AdjudicateRecordTableProps> = ({
-  rekapData,
+  adjudicateData,
   totalCount,
   currentPage,
   onPageChange,
@@ -268,12 +70,11 @@ const AdjudicateRecordTable: React.FC<AdjudicateRecordTableProps> = ({
   onDelete,
   userRole,
   loading,
+  rowsPerPage = 10,
+  onPageSizeChange,
   className,
-  delay = 0,
-  disableAnimations = false,
   "aria-label": ariaLabel,
 }) => {
-  // Core state management for adjudicate record functionality
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [editedDates, setEditedDates] = useState<{ [key: string]: string }>({});
@@ -282,12 +83,14 @@ const AdjudicateRecordTable: React.FC<AdjudicateRecordTableProps> = ({
   const [endDate, setEndDate] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  // Debounced search and date filters for performance
-  const debouncedSearchQuery = useDebounce(searchQuery, 300);
-  const debouncedStartDate = useDebounce(startDate, 300);
-  const debouncedEndDate = useDebounce(endDate, 300);
+  const debouncedSearch = useDebounce(searchQuery, 500);
 
-  // Search effect with debouncing
+  const isAdminUser = (role: string): boolean => {
+    if (!role) return false;
+    const normalized = role.toLowerCase().trim();
+    return ["admin", "superuser"].includes(normalized);
+  };
+
   useEffect(() => {
     if (searchQuery === "" && (!startDate || !endDate)) {
       onSearch("", statusFilter);
@@ -295,31 +98,41 @@ const AdjudicateRecordTable: React.FC<AdjudicateRecordTableProps> = ({
     }
 
     const timeout = setTimeout(() => {
-      onSearch(debouncedSearchQuery, statusFilter);
+      onSearch(searchQuery, statusFilter);
     }, 500);
     return () => clearTimeout(timeout);
-  }, [
-    debouncedSearchQuery,
-    statusFilter,
-    onSearch,
-    endDate,
-    searchQuery,
-    startDate,
-  ]);
+  }, [searchQuery, statusFilter, onSearch, endDate, startDate]);
 
-  // Date filter handler with validation
   const handleDateFilter = useCallback(() => {
-    if (debouncedStartDate && debouncedEndDate) {
+    if (startDate && endDate) {
       try {
-        const start = new Date(debouncedStartDate);
-        const end = new Date(debouncedEndDate);
+        const start = new Date(startDate);
+        const end = new Date(endDate);
 
         if (isNaN(start.getTime()) || isNaN(end.getTime())) {
           return;
         }
 
-        const startISO = start.toISOString();
-        const endISO = end.toISOString();
+        const formattedStartDate = new Date(start);
+        formattedStartDate.setUTCHours(0, 0, 0, 0);
+
+        const formattedEndDate = new Date(end);
+        formattedEndDate.setUTCHours(23, 59, 59, 999);
+
+        const startYear = formattedStartDate.getUTCFullYear();
+        const endYear = formattedEndDate.getUTCFullYear();
+
+        if (
+          startYear < 1000 ||
+          startYear > 9999 ||
+          endYear < 1000 ||
+          endYear > 9999
+        ) {
+          return;
+        }
+
+        const startISO = formattedStartDate.toISOString();
+        const endISO = formattedEndDate.toISOString();
 
         onSearch(
           `created_at >= '${startISO}' AND created_at <= '${endISO}'`,
@@ -331,50 +144,88 @@ const AdjudicateRecordTable: React.FC<AdjudicateRecordTableProps> = ({
     } else {
       onSearch("", statusFilter);
     }
-  }, [debouncedStartDate, debouncedEndDate, statusFilter, onSearch]);
+  }, [startDate, endDate, statusFilter, onSearch]);
 
   useEffect(() => {
     handleDateFilter();
-  }, [debouncedStartDate, debouncedEndDate, handleDateFilter]);
+  }, [startDate, endDate, handleDateFilter]);
 
-  // Toggle status handler with permission checks
+  const totalPages = Math.ceil(totalCount / rowsPerPage);
+
   const handleToggleChange = async (id: string, currentStatus: boolean) => {
-    if (!["admin", "superuser"].includes(userRole)) {
+    if (!isAdminUser(userRole)) {
       toast.error("Hanya admin atau superuser yang dapat mengubah status.");
       return;
     }
 
     try {
-      const newStatus = !currentStatus;
-      const { error } = await supabase
-        .from("adjudicate_record")
-        .update({ is_ready_to_record: newStatus })
-        .eq("id", id);
-
-      if (error) {
-        console.error("Error updating status:", error);
-        throw new Error(`Gagal mengubah status: ${error.message}`);
+      const token = localStorage.getItem("selly_auth_token");
+      if (!token) {
+        toast.error("Sesi autentikasi tidak ditemukan. Silakan login kembali.");
+        return;
       }
 
+      const newStatus = !currentStatus;
+
+      const response = await fetch(
+        "/api/data-rekam/adjudicate-toggle-status",
+        {
+          method: "PATCH",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id, is_ready_to_record: newStatus }),
+        }
+      );
+
+      if (response.status === 401) {
+        localStorage.removeItem("selly_auth_token");
+        localStorage.removeItem("selly_user_info");
+        toast.error("Sesi telah berakhir. Silakan login kembali.");
+        return;
+      }
+
+      if (response.status === 403) {
+        toast.error("Anda tidak memiliki izin untuk mengubah status.");
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMsg = errorData.message || `HTTP ${response.status}`;
+        throw new Error(errorMsg);
+      }
+
+      await response.json();
       toast.success("Status berhasil diubah!");
+
+      window.dispatchEvent(
+        new CustomEvent("adjudicate-record-status-updated", {
+          detail: {
+            id,
+            newStatus,
+            timestamp: new Date().toISOString(),
+          },
+        })
+      );
+
       if (onDataRefresh) {
         onDataRefresh();
       } else {
         onRefresh();
       }
     } catch (error: any) {
-      console.error("Error updating status:", error);
       toast.error(error.message || "Gagal mengubah status. Silakan coba lagi.");
     }
   };
 
-  // Date editing handlers
   const handleDateChange = (id: string, value: string) => {
     setEditedDates((prev) => ({ ...prev, [id]: value }));
   };
 
   const handleSaveDate = async (id: string) => {
-    if (!["admin", "superuser"].includes(userRole)) {
+    if (!isAdminUser(userRole)) {
       toast.error("Hanya admin atau superuser yang dapat mengubah tanggal.");
       return;
     }
@@ -388,36 +239,74 @@ const AdjudicateRecordTable: React.FC<AdjudicateRecordTableProps> = ({
     setSaving((prev) => ({ ...prev, [id]: true }));
 
     try {
-      const { error } = await supabase
-        .from("adjudicate_record")
-        .update({ estimasi_tanggal_perekaman: newDate })
-        .eq("id", id);
+      const token = localStorage.getItem("selly_auth_token");
+      if (!token) {
+        toast.error("Sesi autentikasi tidak ditemukan. Silakan login kembali.");
+        return;
+      }
 
-      if (error) throw new Error(`Gagal menyimpan tanggal: ${error.message}`);
+      const response = await fetch(
+        "/api/data-rekam/adjudicate-update-date",
+        {
+          method: "PATCH",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id, estimasi_tanggal_perekaman: newDate }),
+        }
+      );
 
+      if (response.status === 401) {
+        localStorage.removeItem("selly_auth_token");
+        localStorage.removeItem("selly_user_info");
+        toast.error("Sesi telah berakhir. Silakan login kembali.");
+        return;
+      }
+
+      if (response.status === 403) {
+        toast.error("Anda tidak memiliki izin untuk mengubah tanggal.");
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMsg = errorData.message || `HTTP ${response.status}`;
+        throw new Error(errorMsg);
+      }
+
+      await response.json();
       toast.success("Tanggal berhasil disimpan!");
+
+      window.dispatchEvent(
+        new CustomEvent("adjudicate-record-date-updated", {
+          detail: {
+            id,
+            newDate,
+            timestamp: new Date().toISOString(),
+          },
+        })
+      );
+
       if (onDataRefresh) {
         onDataRefresh();
       } else {
         onRefresh();
       }
+
       setEditedDates((prev) => {
         const newDates = { ...prev };
         delete newDates[id];
         return newDates;
       });
     } catch (error: any) {
-      console.error("Error saving date:", error);
-      toast.error(
-        error.message || "Gagal menyimpan tanggal. Silakan coba lagi.",
-      );
+      toast.error(error.message || "Gagal menyimpan tanggal. Silakan coba lagi.");
     } finally {
       setSaving((prev) => ({ ...prev, [id]: false }));
     }
   };
 
-  // Indonesian date formatting utility
-  const formatDate = (dateStr?: string | null) => {
+  const formatDate = (dateStr?: string) => {
     if (!dateStr) return "-";
     const date = new Date(dateStr);
     return date.toString() !== "Invalid Date"
@@ -429,487 +318,493 @@ const AdjudicateRecordTable: React.FC<AdjudicateRecordTableProps> = ({
       : "Tanggal tidak valid";
   };
 
-  // Permission checks for role-based UI
-  const canEdit = ["admin", "superuser"].includes(userRole);
-  const canDelete = ["admin", "superuser"].includes(userRole);
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setStartDate("");
+    setEndDate("");
+    setStatusFilter("all");
+    onSearch("", "all");
+  };
 
-  // Loading state with skeleton
   if (loading) {
-    return (
-      <div className="space-y-6">
-        {/* Filters skeleton */}
-        <Card>
-          <CardHeader>
-            <div className="h-6 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="space-y-2">
-                  <div className="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-                  <div className="h-10 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Table skeleton */}
-        <Card>
-          <CardHeader>
-            <div className="h-6 w-64 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex space-x-4">
-                  <div className="h-10 w-10 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-                    <div className="h-3 w-1/2 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <TableSkeleton />;
   }
 
   return (
-    <div className={`space-y-6 ${className}`} role="table" aria-label={ariaLabel || "Tabel data adjudicate record"}>
-      {/* Enhanced Filters Section - Flowbite Card with search and filters */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+    <div className={`space-y-6 ${className || ""}`} role="region" aria-label={ariaLabel || "Tabel data adjudicate record"}>
+      {/* Filters Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
-              {/* Flowbite icon integration for filter section */}
-              <FunnelIcon className="h-5 w-5 text-blue-600" />
-              <CardTitle>Filter & Pencarian</CardTitle>
+              <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <MagnifyingGlassIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Filter & Pencarian
+              </h3>
             </div>
-            <Badge color="gray" className="text-xs">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
               {totalCount} total records
-            </Badge>
+            </span>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Search input - Flowbite TextInput with Heroicon */}
-            <div className="space-y-2">
-              <Label value="Pencarian" />
-              <div className="relative">
-                <TextInput
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Cari data (NIK, Nama, dll.)..."
-                  icon={MagnifyingGlassIcon}
+
+          <div className="space-y-4">
+            {/* Search Input */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Cari data (NIK, Nama, Jenis Eksepsi, dll.)..."
+                className="block w-full pl-10 pr-10 py-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                aria-label="Cari data di tabel"
+                disabled={loading}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  aria-label="Hapus pencarian"
                   disabled={loading}
-                  className="w-full"
+                >
+                  <XMarkIcon className="h-5 w-5" />
+                </button>
+              )}
+            </div>
+
+            {/* Date and Status Filters */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                  Tanggal Mulai
+                </label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  disabled={loading}
+                  className="block w-full px-3 py-2 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3"
-                    aria-label="Hapus pencarian"
-                  >
-                    <XMarkIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                  </button>
-                )}
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                  Tanggal Selesai
+                </label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  disabled={loading}
+                  className="block w-full px-3 py-2 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                  Status Filter
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  disabled={loading}
+                  className="block w-full px-3 py-2 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="all">Semua Status</option>
+                  <option value="completed">Selesai</option>
+                  <option value="pending">Belum Selesai</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                  Tampilkan Per Halaman
+                </label>
+                <select
+                  value={rowsPerPage}
+                  onChange={(e) => onPageSizeChange?.(Number(e.target.value))}
+                  disabled={loading || !onPageSizeChange}
+                  className="block w-full px-3 py-2 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
+
+              <div className="flex items-end space-x-2">
+                <button
+                  onClick={handleClearFilters}
+                  disabled={loading}
+                  className="flex-1 inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <XMarkIcon className="w-4 h-4 mr-2" />
+                  Reset
+                </button>
+                <button
+                  onClick={onRefresh}
+                  disabled={loading}
+                  className="flex-1 inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-700 border border-transparent rounded-lg hover:bg-blue-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <ArrowPathIcon className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <ArrowPathIcon className="w-4 h-4 mr-2" />
+                  )}
+                  Refresh
+                </button>
               </div>
             </div>
-
-            {/* Date filters - Native HTML5 inputs with Flowbite styling */}
-            <div className="space-y-2">
-              <Label value="Tanggal Mulai" />
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                disabled={loading}
-                className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label value="Tanggal Selesai" />
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                disabled={loading}
-                className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
-              />
-            </div>
-
-            {/* Status filter - Native select with Flowbite styling */}
-            <div className="space-y-2">
-              <Label value="Status Filter" />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                disabled={loading}
-                className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-              >
-                <option value="all">Semua Status</option>
-                <option value="completed">Selesai</option>
-                <option value="pending">Belum Selesai</option>
-              </select>
-            </div>
           </div>
+        </div>
+      </div>
 
-          {/* Refresh button - Flowbite Button with Heroicon */}
-          <div className="mt-4 flex justify-end">
-            <Button onClick={onRefresh} disabled={loading} color="gray" size="sm">
-              {loading ? (
-                <>
-                  <ArrowPathIcon className="mr-2 h-4 w-4 animate-spin" />
-                  Loading...
-                </>
-              ) : (
-                <>
-                  <ArrowPathIcon className="mr-2 h-4 w-4" />
-                  Refresh
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Enhanced Table Section - Flowbite Table with responsive design */}
-      <Card>
-        <CardHeader>
+      {/* Table Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              {/* Flowbite icon integration for table section */}
-              <ChartBarIcon className="h-5 w-5 text-blue-600" />
-              <CardTitle>Data Adjudicate Record</CardTitle>
+              <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <ShieldCheckIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Data Adjudicate Record
+              </h3>
             </div>
             <div className="flex items-center space-x-2">
-              <Badge color="gray" className="text-xs">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
                 Halaman {currentPage}
-              </Badge>
-              <Badge color="gray" className="text-xs">
-                {rekapData.length} dari {totalCount}
-              </Badge>
+              </span>
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                {(adjudicateData?.length ?? 0)} dari {totalCount}
+              </span>
             </div>
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table hoverable>
-              <TableHead>
-                <TableRow>
-                  <TableHeadCell className="w-16">No</TableHeadCell>
-                  <TableHeadCell>Tanggal Pengajuan</TableHeadCell>
-                  <TableHeadCell>NIK / Nama</TableHeadCell>
-                  <TableHeadCell>Jenis Eksepsi</TableHeadCell>
-                  <TableHeadCell>Status</TableHeadCell>
-                  <TableHeadCell className="text-right">Aksi</TableHeadCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rekapData.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-12">
-                      <div className="flex flex-col items-center space-y-3">
-                        <DocumentTextIcon className="h-12 w-12 text-gray-400 dark:text-gray-500" />
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">
-                          Tidak ada data yang ditemukan
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Coba ubah filter atau kata kunci pencarian
-                        </p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  rekapData.map((item, index) => {
-                    const rowNumber = (currentPage - 1) * 5 + index + 1;
-                    const isExpanded = expandedRow === item.id;
+        </div>
 
-                    return (
-                      <React.Fragment key={item.id}>
-                        <TableRow className="hover:bg-gray-50 dark:hover:bg-gray-600">
-                          <TableCell className="font-medium">
-                            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-                              {rowNumber}
-                            </div>
-                          </TableCell>
-                          <TableCell>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+              <tr>
+                <th scope="col" className="px-6 py-3">No</th>
+                <th scope="col" className="px-6 py-3">Tanggal Pengajuan</th>
+                <th scope="col" className="px-6 py-3">NIK / Nama Adjudicate</th>
+                <th scope="col" className="px-6 py-3">Jenis Eksepsi</th>
+                <th scope="col" className="px-6 py-3">Status</th>
+                <th scope="col" className="px-6 py-3 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {!adjudicateData || adjudicateData.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center space-y-3">
+                      <ShieldCheckIcon className="h-12 w-12 text-gray-400 dark:text-gray-500" />
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                        Tidak ada data yang ditemukan
+                      </h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Coba ubah filter atau kata kunci pencarian
+                      </p>
+                      <button
+                        onClick={handleClearFilters}
+                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-700 border border-transparent rounded-lg hover:bg-blue-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <ArrowPathIcon className="w-4 h-4 mr-2" />
+                        Reset Filters
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                adjudicateData.map((item, index) => {
+                  const rowNumber = (currentPage - 1) * rowsPerPage + index + 1;
+                  const isExpanded = expandedRow === item.id;
+
+                  return (
+                    <React.Fragment key={item.id}>
+                      <tr className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-xs font-semibold text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                            {rowNumber}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                          <div className="flex items-center space-x-2">
+                            <CalendarIcon className="h-4 w-4 text-gray-400" />
+                            <span>{formatDate(item.tanggal_pengajuan)}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                          <div className="space-y-1">
                             <div className="flex items-center space-x-2">
-                              <CalendarIcon className="h-4 w-4 text-gray-400" />
-                              <span>{formatDate(item.tanggal_pengajuan)}</span>
+                              <UserIcon className="h-4 w-4 text-gray-400" />
+                              <span className="font-medium">{item.nama_adjudicate || "-"}</span>
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <div className="flex items-center space-x-2">
-                                <ShieldCheckIcon className="h-4 w-4 text-gray-400" />
-                                <span className="font-medium">{item.nama_adjudicate || "-"}</span>
-                              </div>
-                              <div className="pl-6 text-xs text-gray-500 dark:text-gray-400">
-                                NIK: {item.nik_adjudicate || "-"}
-                              </div>
+                            <div className="pl-6 text-xs text-gray-500 dark:text-gray-400">
+                              NIK: {item.nik_adjudicate || "-"}
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center space-x-2">
-                              <ExclamationTriangleIcon className="h-4 w-4 text-gray-400" />
-                              <span className="max-w-xs truncate">{item.jenis_eksepsi || "-"}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              color={item.is_ready_to_record ? "success" : "warning"}
-                              className="inline-flex items-center space-x-1"
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                          <div className="flex items-center space-x-2">
+                            <ClipboardIcon className="h-4 w-4 text-gray-400" />
+                            <span className="max-w-xs truncate">{item.jenis_eksepsi || "-"}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            item.is_ready_to_record
+                              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                              : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                          }`}>
+                            {item.is_ready_to_record ? (
+                              <CheckCircleIcon className="w-3 h-3 mr-1" />
+                            ) : (
+                              <ClockIcon className="w-3 h-3 mr-1" />
+                            )}
+                            {item.is_ready_to_record ? "Selesai" : "Belum Selesai"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex justify-end space-x-1">
+                            <button
+                              onClick={() => setExpandedRow(isExpanded ? null : item.id)}
+                              className="inline-flex items-center p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                              title={isExpanded ? "Sembunyikan detail" : "Lihat detail"}
                             >
-                              {item.is_ready_to_record ? (
-                                <CheckCircleIcon className="h-3 w-3" />
+                              {isExpanded ? (
+                                <ChevronUpIcon className="h-4 w-4" />
                               ) : (
-                                <ClockIcon className="h-3 w-3" />
+                                <ChevronDownIcon className="h-4 w-4" />
                               )}
-                              <span>
-                                {item.is_ready_to_record ? "Selesai" : "Belum Selesai"}
-                              </span>
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end space-x-1">
-                              {/* Expand/collapse button - Flowbite button styling */}
-                              <button
-                                onClick={() => setExpandedRow(isExpanded ? null : item.id)}
-                                className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                                aria-label={isExpanded ? "Sembunyikan detail" : "Lihat detail"}
-                              >
-                                {isExpanded ? (
-                                  <ChevronUpIcon className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDownIcon className="h-4 w-4" />
-                                )}
-                              </button>
+                            </button>
 
-                              {/* Edit button - Flowbite button with permission check */}
-                              {canEdit && (
-                                <button
-                                  onClick={() => onEdit(item)}
-                                  className="rounded-lg p-2 text-blue-600 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-gray-700"
-                                  aria-label="Edit data"
-                                >
-                                  <PencilSquareIcon className="h-4 w-4" />
-                                </button>
-                              )}
+                            <button
+                              onClick={() => onEdit(item)}
+                              className="inline-flex items-center p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded-lg dark:text-blue-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-300"
+                              title="Edit data"
+                            >
+                              <PencilSquareIcon className="h-4 w-4" />
+                            </button>
 
-                              {/* Delete button - Flowbite button with permission check */}
-                              {canDelete && (
-                                <button
-                                  onClick={() => onDelete(item.id)}
-                                  className="rounded-lg p-2 text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-gray-700"
-                                  aria-label="Hapus data"
-                                >
-                                  <TrashIcon className="h-4 w-4" />
-                                </button>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
+                            <button
+                              onClick={() => onDelete(item.id)}
+                              className="inline-flex items-center p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300"
+                              title="Hapus data"
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
 
-                        {/* Expanded Row - Flowbite expandable content */}
-                        {isExpanded && (
-                          <TableRow>
-                            <TableCell colSpan={6} className="border-t border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800">
-                              <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-3">
-                                {/* Data Adjudicate Section */}
-                                <div className="space-y-3">
-                                  <div className="flex items-center space-x-2">
-                                    <ShieldCheckIcon className="h-4 w-4 text-blue-600" />
-                                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-                                      Data Adjudicate
-                                    </h4>
+                      {/* Expanded Row */}
+                      {isExpanded && (
+                        <tr className="border-b border-gray-200 dark:border-gray-700">
+                          <td colSpan={6} className="px-6 py-6 bg-gray-50 dark:bg-gray-700/50">
+                            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                              <div className="space-y-3">
+                                <div className="flex items-center space-x-2">
+                                  <ShieldCheckIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                  <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                                    Data Adjudicate
+                                  </h4>
+                                </div>
+                                <div className="space-y-2 pl-6">
+                                  <div className="flex justify-between">
+                                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400">NIK:</span>
+                                    <span className="text-xs text-gray-900 dark:text-white">{item.nik_adjudicate || "-"}</span>
                                   </div>
-                                  <div className="space-y-2 pl-6">
-                                    <div className="flex justify-between">
-                                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">NIK:</span>
-                                      <span className="text-xs text-gray-900 dark:text-white">{item.nik_adjudicate || "-"}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Nama:</span>
-                                      <span className="text-xs text-gray-900 dark:text-white">{item.nama_adjudicate || "-"}</span>
-                                    </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Nama:</span>
+                                    <span className="text-xs text-gray-900 dark:text-white">{item.nama_adjudicate || "-"}</span>
                                   </div>
                                 </div>
+                              </div>
 
-                                {/* Data Pengaju Section */}
-                                <div className="space-y-3">
-                                  <div className="flex items-center space-x-2">
-                                    <UserIcon className="h-4 w-4 text-blue-600" />
-                                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-                                      Data Pengaju
-                                    </h4>
+                              <div className="space-y-3">
+                                <div className="flex items-center space-x-2">
+                                  <UserIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                  <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                                    Data Pengaju
+                                  </h4>
+                                </div>
+                                <div className="space-y-2 pl-6">
+                                  <div className="flex justify-between">
+                                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400">NIK:</span>
+                                    <span className="text-xs text-gray-900 dark:text-white">{item.nik_pengaju || "-"}</span>
                                   </div>
-                                  <div className="space-y-2 pl-6">
-                                    <div className="flex justify-between">
-                                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">NIK:</span>
-                                      <span className="text-xs text-gray-900 dark:text-white">{item.nik_pengaju || "-"}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Nama:</span>
-                                      <span className="text-xs text-gray-900 dark:text-white">{item.nama_pengaju || "-"}</span>
-                                    </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Nama:</span>
+                                    <span className="text-xs text-gray-900 dark:text-white">{item.nama_pengaju || "-"}</span>
                                   </div>
                                 </div>
+                              </div>
 
-                                {/* Detail Pengajuan Section */}
-                                <div className="space-y-3">
-                                  <div className="flex items-center space-x-2">
-                                    <DocumentTextIcon className="h-4 w-4 text-blue-600" />
-                                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-                                      Detail Pengajuan
-                                    </h4>
+                              <div className="space-y-3">
+                                <div className="flex items-center space-x-2">
+                                  <DocumentTextIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                  <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                                    Detail Adjudicate
+                                  </h4>
+                                </div>
+                                <div className="space-y-2 pl-6">
+                                  <div className="flex justify-between">
+                                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Jenis:</span>
+                                    <span className="max-w-32 break-words text-right text-xs text-gray-900 dark:text-white">{item.jenis_eksepsi || "-"}</span>
                                   </div>
-                                  <div className="space-y-2 pl-6">
-                                    <div className="flex justify-between">
-                                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Jenis Eksepsi:</span>
-                                      <span className="max-w-32 break-words text-right text-xs text-gray-900 dark:text-white">
-                                        {item.jenis_eksepsi || "-"}
-                                      </span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Tanggal Pengajuan:</span>
-                                      <span className="text-xs text-gray-900 dark:text-white">
-                                        {formatDate(item.tanggal_pengajuan)}
-                                      </span>
-                                    </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Tanggal:</span>
+                                    <span className="text-xs text-gray-900 dark:text-white">{formatDate(item.tanggal_pengajuan)}</span>
+                                  </div>
 
-                                    {/* Date editing for admin - Flowbite input integration */}
-                                    {canEdit && (
-                                      <div className="space-y-2">
-                                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                          Estimasi Perekaman:
-                                        </span>
-                                        <div className="flex items-center space-x-2">
-                                          <input
-                                            type="date"
-                                            value={editedDates[item.id] || item.estimasi_tanggal_perekaman || ""}
-                                            onChange={(e) => handleDateChange(item.id, e.target.value)}
-                                            className="h-8 w-full rounded border border-gray-300 bg-white px-2 py-1 text-xs text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                            disabled={saving[item.id]}
-                                          />
-                                          <Button
-                                            size="xs"
-                                            onClick={() => handleSaveDate(item.id)}
-                                            disabled={saving[item.id] || !editedDates[item.id]}
-                                            className="h-8 w-8 p-0"
-                                          >
-                                            {saving[item.id] ? (
-                                              <ArrowPathIcon className="h-3 w-3 animate-spin" />
-                                            ) : (
-                                              <CloudArrowUpIcon className="h-3 w-3" />
-                                            )}
-                                          </Button>
-                                        </div>
+                                  {/* Estimasi Tanggal Perekaman */}
+                                  <div className="space-y-2">
+                                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Estimasi:</span>
+                                    {isAdminUser(userRole) ? (
+                                      <div className="flex items-center space-x-2">
+                                        <input
+                                          type="date"
+                                          value={editedDates[item.id] || item.estimasi_tanggal_perekaman || ""}
+                                          onChange={(e) => handleDateChange(item.id, e.target.value)}
+                                          className="h-8 text-xs px-2 py-1 border border-gray-300 rounded dark:bg-gray-600 dark:border-gray-500 dark:text-white"
+                                          disabled={saving[item.id]}
+                                        />
+                                        <button
+                                          onClick={() => handleSaveDate(item.id)}
+                                          disabled={saving[item.id] || !editedDates[item.id]}
+                                          className="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-blue-700 border border-transparent rounded hover:bg-blue-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+                                        >
+                                          {saving[item.id] ? (
+                                            <ArrowPathIcon className="w-3 h-3 animate-spin" />
+                                          ) : (
+                                            <CheckCircleIcon className="w-3 h-3" />
+                                          )}
+                                        </button>
                                       </div>
+                                    ) : (
+                                      <span className="text-xs text-gray-900 dark:text-white">
+                                        {formatDate(item.estimasi_tanggal_perekaman || undefined)}
+                                      </span>
                                     )}
                                   </div>
                                 </div>
                               </div>
+                            </div>
 
-                              {/* Status Toggle for Admin - Flowbite button integration */}
-                              {canEdit && (
-                                <div className="mt-6 flex items-center justify-between border-t border-gray-200 pt-4 dark:border-gray-700">
-                                  <div className="flex items-center space-x-2">
-                                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                      Status Perekaman:
-                                    </span>
-                                    <Badge
-                                      color={item.is_ready_to_record ? "success" : "warning"}
-                                    >
-                                      {item.is_ready_to_record ? "Selesai" : "Belum Selesai"}
-                                    </Badge>
-                                  </div>
-                                  <Button
-                                    color={item.is_ready_to_record ? "gray" : "blue"}
-                                    size="sm"
-                                    onClick={() => handleToggleChange(item.id, item.is_ready_to_record)}
-                                  >
-                                    {item.is_ready_to_record ? "Tandai Belum Selesai" : "Tandai Selesai"}
-                                  </Button>
+                            {/* Status Toggle */}
+                            {isAdminUser(userRole) && (
+                              <div className="mt-6 flex items-center justify-between border-t border-gray-200 dark:border-gray-600 pt-4">
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Status:</span>
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                    item.is_ready_to_record
+                                      ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                                      : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                                  }`}>
+                                    {item.is_ready_to_record ? "Selesai" : "Belum Selesai"}
+                                  </span>
                                 </div>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </React.Fragment>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                                <button
+                                  onClick={() => handleToggleChange(item.id, item.is_ready_to_record)}
+                                  className={`inline-flex items-center px-4 py-2 text-sm font-medium border border-transparent rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                                    item.is_ready_to_record
+                                      ? "text-gray-700 bg-white border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+                                      : "text-white bg-blue-700 hover:bg-blue-800"
+                                  }`}
+                                >
+                                  {item.is_ready_to_record ? "Tandai Belum Selesai" : "Tandai Selesai"}
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-      {/* Enhanced Pagination - Flowbite button integration */}
-      {Math.ceil(totalCount / 5) > 0 && (
+      {/* Pagination */}
+      {totalPages > 1 && (
         <div className="flex justify-center">
-          <Card>
-            <CardContent className="p-4">
-              <nav className="flex items-center space-x-2" aria-label="Pagination">
-                <Button
-                  color="gray"
-                  size="sm"
-                  onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronUpIcon className="h-4 w-4 rotate-90" />
-                </Button>
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+            <div className="px-6 py-4">
+              <nav className="flex items-center justify-between" aria-label="Pagination">
+                <div className="text-sm text-gray-700 dark:text-gray-400">
+                  Menampilkan <span className="font-semibold text-gray-900 dark:text-white">{((currentPage - 1) * rowsPerPage) + 1}</span> -{" "}
+                  <span className="font-semibold text-gray-900 dark:text-white">{Math.min(currentPage * rowsPerPage, totalCount)}</span> dari{" "}
+                  <span className="font-semibold text-gray-900 dark:text-white">{totalCount}</span> record
+                </div>
 
-                {Array.from({ length: Math.ceil(totalCount / 5) }, (_, i) => i + 1)
-                  .filter((page) => {
-                    const totalPages = Math.ceil(totalCount / 5);
-                    return (
-                      page === 1 ||
-                      page === totalPages ||
-                      (page >= currentPage - 1 && page <= currentPage + 1) ||
-                      (currentPage === 1 && page <= 3) ||
-                      (currentPage === totalPages && page >= totalPages - 2)
-                    );
-                  })
-                  .map((page, index, array) => {
-                    const totalPages = Math.ceil(totalCount / 5);
-                    const shouldShowEllipsis =
-                      index > 0 && page - array[index - 1] > 1;
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeftIcon className="w-4 h-4 mr-1" />
+                    Previous
+                  </button>
 
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page, index, pages) => {
+                    const prevPage = pages[index - 1];
+                    const nextPage = pages[index + 1];
+                    const showPage = page === 1 || page === totalPages || 
+                                      (page >= currentPage - 1 && page <= currentPage + 1) ||
+                                      (currentPage === 1 && page <= 3) || 
+                                      (currentPage === totalPages && page >= totalPages - 2);
+                    
+                    if (!showPage) return null;
+                    
+                    // Show ellipsis if there's a gap
+                    const showEllipsis = prevPage && page - prevPage > 1;
+                    
                     return (
                       <React.Fragment key={page}>
-                        {shouldShowEllipsis && (
-                          <span className="px-2 py-1 text-gray-500 dark:text-gray-400" aria-hidden="true">
-                            ...
-                          </span>
+                        {showEllipsis && (
+                          <span className="px-2 py-2 text-gray-400 dark:text-gray-500">...</span>
                         )}
-                        <Button
-                          color={currentPage === page ? "blue" : "gray"}
-                          size="sm"
+                        <button
                           onClick={() => onPageChange(page)}
+                          className={`inline-flex items-center px-3 py-2 text-sm font-medium border rounded-lg ${
+                            currentPage === page
+                              ? "text-white bg-blue-700 border-blue-700 hover:bg-blue-800"
+                              : "text-gray-500 bg-white border-gray-300 hover:bg-gray-50 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                          }`}
+                          aria-label={`Page ${page}`}
                           aria-current={currentPage === page ? "page" : undefined}
                         >
                           {page}
-                        </Button>
+                        </button>
                       </React.Fragment>
                     );
                   })}
 
-                <Button
-                  color="gray"
-                  size="sm"
-                  onClick={() => onPageChange(Math.min(Math.ceil(totalCount / 5), currentPage + 1))}
-                  disabled={currentPage === Math.ceil(totalCount / 5)}
-                >
-                  <ChevronUpIcon className="h-4 w-4 -rotate-90" />
-                </Button>
+                  <button
+                    onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                    aria-label="Next page"
+                  >
+                    Next
+                    <ChevronRightIcon className="w-4 h-4 ml-1" />
+                  </button>
+                </div>
               </nav>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       )}
     </div>

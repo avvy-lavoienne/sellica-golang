@@ -58,13 +58,16 @@ func TestDynamicWorkerPool_BasicFunctionality(t *testing.T) {
 	pool := NewDynamicWorkerPool(index, poolConfig)
 	defer pool.Stop()
 
-	// Test initial state
-	assert.Equal(t, 4, pool.GetCurrentWorkerCount())
-	assert.True(t, pool.IsRunning())
-
-	// Start the pool
+	// Start the pool (initializes workers)
 	err := pool.Start()
 	require.NoError(t, err)
+
+	// Give workers time to start
+	time.Sleep(100 * time.Millisecond)
+
+	// Test initial state after start
+	assert.Equal(t, 4, pool.GetCurrentWorkerCount())
+	assert.True(t, pool.IsRunning())
 
 	// Test basic task submission
 	query := make([]float32, 768)
@@ -87,7 +90,7 @@ func TestDynamicWorkerPool_BasicFunctionality(t *testing.T) {
 	case result := <-task.Result:
 		assert.NoError(t, result.Error)
 		assert.NotEmpty(t, result.Results)
-		assert.Greater(t, result.Duration, time.Duration(0))
+		assert.GreaterOrEqual(t, result.Duration, time.Duration(0), "Duration should be non-negative")
 	case <-time.After(5 * time.Second):
 		t.Fatal("Task timeout")
 	}

@@ -1,0 +1,181 @@
+[
+  {
+    "id": "9dd7faa8-9849-4c6d-b6d6-6e5c8c32c914",
+    "email": "karinfarm2@gmail.com",
+    "name": "Karin",
+    "password": "akuganteng1",
+    "requested_at": "2025-04-28 12:20:18.494+00",
+    "status": "approved",
+    "approved_at": "2025-04-28 12:23:44.081+00",
+    "approved_by": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+    "user_metadata": {
+      "nik": "3205330311100001",
+      "nip": "199311152025022001",
+      "position": "Kasi Pelayanan"
+    }
+  },
+  {
+    "id": "98a683cd-95f8-4fc5-b53d-4a2509facf92",
+    "email": "sigit.pratamaaaa@gmail.com",
+    "name": "Sigit Pratama",
+    "password": "3205S1G1T",
+    "requested_at": "2025-05-07 07:18:39.36+00",
+    "status": "approved",
+    "approved_at": "2025-05-07 07:54:41.264+00",
+    "approved_by": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+    "user_metadata": {
+      "nik": "3205021305890000",
+      "nip": "9999999999999999",
+      "position": "ADB"
+    }
+  },
+  {
+    "id": "1a753e11-d6c7-46fc-880b-100c3aabd379",
+    "email": "natasya_s1pendmas@mahasiswa.ung.ac.id",
+    "name": "Firman",
+    "password": "akuganteng1",
+    "requested_at": "2025-05-07 07:17:20.183+00",
+    "status": "approved",
+    "approved_at": "2025-05-07 07:55:05.662+00",
+    "approved_by": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+    "user_metadata": {
+      "nik": "3273052309950084",
+      "nip": "199509232020121018",
+      "position": "Pengelola SIAK"
+    }
+  },
+  {
+    "id": "c4737b75-d744-446e-9b15-74b63dfaa20a",
+    "email": "dewi.dukcapilgarut@gmail.com",
+    "name": "Dewi Maesaroh",
+    "password": "Sherina28",
+    "requested_at": "2025-05-07 08:40:29.402+00",
+    "status": "approved",
+    "approved_at": "2025-05-07 08:40:59.132+00",
+    "approved_by": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+    "user_metadata": {
+      "nik": "3204156810880001",
+      "nip": null,
+      "position": "Administrator Database Kependudukan"
+    }
+  },
+  {
+    "id": "0e2f090f-3d0d-4723-903c-b93e9d348392",
+    "email": "arisgristianto@gmail.com",
+    "name": "Aris Gristianto",
+    "password": "akuganteng1",
+    "requested_at": "2025-05-10 04:21:18.532+00",
+    "status": "approved",
+    "approved_at": "2025-05-10 04:22:08.263+00",
+    "approved_by": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+    "user_metadata": {
+      "nik": "3205011908780002",
+      "nip": "197808192008011003",
+      "position": "Pengelola SIAK"
+    }
+  },
+  {
+    "id": "d807268f-fbf0-47f1-b8ba-15ddd436bdf5",
+    "email": "rizkya.rafsya123@gmail.com",
+    "name": "Bayu Kusumawardani",
+    "password": "D134yu",
+    "requested_at": "2025-05-22 03:33:47.455+00",
+    "status": "approved",
+    "approved_at": "2025-05-22 03:34:03.954+00",
+    "approved_by": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+    "user_metadata": {
+      "nik": "3205050301850003",
+      "nip": "198501032010011001",
+      "position": "Pranata Komputer"
+    }
+  },
+  {
+    "id": "564e106f-0711-4806-9782-a0c05a2912a8",
+    "email": "sutiawan940@gmail.com",
+    "name": "Sutiawan",
+    "password": "Bismillah1.",
+    "requested_at": "2025-05-22 03:54:56.04+00",
+    "status": "approved",
+    "approved_at": "2025-05-22 03:55:20.663+00",
+    "approved_by": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+    "user_metadata": {
+      "nik": "3205020906830004",
+      "nip": "198306092025211007",
+      "position": "Operator SIAK"
+    }
+  },
+  {
+    "id": "46b9ef5b-255e-4e21-8ada-e3c9366b5eef",
+    "email": "asepabana@gmail.com",
+    "name": "Asep Ridwan Abana",
+    "password": "abana_3205",
+    "requested_at": "2025-05-26 02:31:15.712+00",
+    "status": "approved",
+    "approved_at": "2025-05-26 02:33:29.995+00",
+    "approved_by": "c395d8af-410d-4821-91f4-1fd8ec39b0e4",
+    "user_metadata": {
+      "nik": "3205051003770001",
+      "nip": "197703102025211003",
+      "position": "Penata Layanan Operasional"
+    }
+  },
+  {
+    "id": "de036c7e-adcb-4382-bb63-8543fc21e3d4",
+    "email": "testuser.207958768@example.com",
+    "name": "Ahmad Prasty",
+    "password": "$2a$10$KXyDAyk7JZk230ZbhMDhqOkprtnHgjI8vf12f8jKwDgJSKcYu2FSy",
+    "requested_at": "2025-10-17 09:11:28+00",
+    "status": "pending",
+    "approved_at": null,
+    "approved_by": null,
+    "user_metadata": {
+      "nik": "3273091954120001",
+      "nip": "198905011234567"
+    }
+  },
+  {
+    "id": "f0e19a41-8161-402f-9736-e5b45d82a35e",
+    "email": "johnnypee89@gmail.com",
+    "name": "Alvera Reischa",
+    "password": "$2a$10$.a15EeffYG0Vk79ro5pC6eCB51PcJZ7BkkZBuFmnYrdAm2pQR7CCK",
+    "requested_at": "2025-10-17 09:11:47+00",
+    "status": "pending",
+    "approved_at": null,
+    "approved_by": null,
+    "user_metadata": {
+      "nik": "3273052309950004",
+      "nip": "199509232020121019",
+      "position": "Kasi Pelayanan"
+    }
+  },
+  {
+    "id": "f756e1b1-0928-4ed8-9a8d-d42e0f0f0384",
+    "email": "newuser.808961603@test.com",
+    "name": "Siti Nurhaliza",
+    "password": "$2a$10$NFW53sbsnxqMESMk1bgemeejo4146H4LeBivupzfBvzxL4UWFb5Si",
+    "requested_at": "2025-10-17 09:12:04+00",
+    "status": "pending",
+    "approved_at": null,
+    "approved_by": null,
+    "user_metadata": {
+      "nik": "3275011967890123",
+      "nip": "198901234567",
+      "position": "Admin"
+    }
+  },
+  {
+    "id": "0d30413a-0611-445c-bbd1-2a542e6d58cb",
+    "email": "sulysulung@gmail.com",
+    "name": "Suly Sulung",
+    "password": "$2a$10$DK/xjeOw9GkMlHmRqv3Zy.uNEELnfhym239ms1bJLUgQnctpThno.",
+    "requested_at": "2025-11-04 12:43:01+00",
+    "status": "pending",
+    "approved_at": null,
+    "approved_by": null,
+    "user_metadata": {
+      "nik": "3201320132013201",
+      "nip": "199509232020211001",
+      "position": "PNS Paruh Waktu"
+    }
+  }
+]

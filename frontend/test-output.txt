@@ -1,0 +1,594 @@
+ÔÇëWARNÔÇë Unsupported engine: wanted: {"node":"20.x"} (current: {"node":"v22.18.0","pnpm":"10.20.0"})
+
+> sellica@2.0 test D:\Journey Code\Project\lab\sellica-golang\frontend
+> jest "--" "src/__tests__/profile.component.test.tsx" "--no-coverage"
+
+  console.error
+    An update to StatefulProfileSection inside a test was not wrapped in act(...).
+    
+    When testing, code that causes React state updates should be wrapped into act(...):
+    
+    act(() => {
+      /* fire events that update state */
+    });
+    /* assert on the output */
+    
+    This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+    [0m [90m 156 |[39m         [36mtry[39m {
+     [90m 157 |[39m           [36mconst[39m data [33m=[39m [36mawait[39m profileAPI[33m.[39mgetProfile()
+    [31m[1m>[22m[39m[90m 158 |[39m           setProfile(data)
+     [90m     |[39m           [31m[1m^[22m[39m
+     [90m 159 |[39m           setFormData({
+     [90m 160 |[39m             name[33m:[39m data[33m.[39mname[33m,[39m
+     [90m 161 |[39m             nip[33m:[39m data[33m.[39mnip [33m||[39m [32m''[39m[33m,[39m[0m
+
+      at node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:16023:19
+      at runWithFiberInDEV (node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:1522:13)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:16022:9)
+      at scheduleUpdateOnFiber (node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:14396:11)
+      at dispatchSetStateInternal (node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:6969:13)
+      at dispatchSetState (node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:6927:7)
+      at setProfile (src/__tests__/profile.component.test.tsx:158:11)
+
+  console.error
+    An update to StatefulProfileSection inside a test was not wrapped in act(...).
+    
+    When testing, code that causes React state updates should be wrapped into act(...):
+    
+    act(() => {
+      /* fire events that update state */
+    });
+    /* assert on the output */
+    
+    This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+    [0m [90m 157 |[39m           [36mconst[39m data [33m=[39m [36mawait[39m profileAPI[33m.[39mgetProfile()
+     [90m 158 |[39m           setProfile(data)
+    [31m[1m>[22m[39m[90m 159 |[39m           setFormData({
+     [90m     |[39m           [31m[1m^[22m[39m
+     [90m 160 |[39m             name[33m:[39m data[33m.[39mname[33m,[39m
+     [90m 161 |[39m             nip[33m:[39m data[33m.[39mnip [33m||[39m [32m''[39m[33m,[39m
+     [90m 162 |[39m             position[33m:[39m data[33m.[39mposition [33m||[39m [32m''[39m[33m,[39m[0m
+
+      at node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:16023:19
+      at runWithFiberInDEV (node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:1522:13)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:16022:9)
+      at scheduleUpdateOnFiber (node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:14396:11)
+      at dispatchSetStateInternal (node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:6969:13)
+      at dispatchSetState (node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:6927:7)
+      at setFormData (src/__tests__/profile.component.test.tsx:159:11)
+
+  console.error
+    An update to StatefulProfileSection inside a test was not wrapped in act(...).
+    
+    When testing, code that causes React state updates should be wrapped into act(...):
+    
+    act(() => {
+      /* fire events that update state */
+    });
+    /* assert on the output */
+    
+    This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+    [0m [90m 163 |[39m             nik[33m:[39m data[33m.[39mnik [33m||[39m [32m''[39m[33m,[39m
+     [90m 164 |[39m           })
+    [31m[1m>[22m[39m[90m 165 |[39m           setAvatarPreview(data[33m.[39mavatar_url)
+     [90m     |[39m           [31m[1m^[22m[39m
+     [90m 166 |[39m         } [36mcatch[39m (err) {
+     [90m 167 |[39m           setError([32m'Failed to load profile'[39m)
+     [90m 168 |[39m         } [36mfinally[39m {[0m
+
+      at node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:16023:19
+      at runWithFiberInDEV (node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:1522:13)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:16022:9)
+      at scheduleUpdateOnFiber (node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:14396:11)
+      at dispatchSetStateInternal (node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:6969:13)
+      at dispatchSetState (node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:6927:7)
+      at setAvatarPreview (src/__tests__/profile.component.test.tsx:165:11)
+
+  console.error
+    An update to StatefulProfileSection inside a test was not wrapped in act(...).
+    
+    When testing, code that causes React state updates should be wrapped into act(...):
+    
+    act(() => {
+      /* fire events that update state */
+    });
+    /* assert on the output */
+    
+    This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+    [0m [90m 167 |[39m           setError([32m'Failed to load profile'[39m)
+     [90m 168 |[39m         } [36mfinally[39m {
+    [31m[1m>[22m[39m[90m 169 |[39m           setIsLoading([36mfalse[39m)
+     [90m     |[39m           [31m[1m^[22m[39m
+     [90m 170 |[39m         }
+     [90m 171 |[39m       }
+     [90m 172 |[39m       loadProfile()[0m
+
+      at node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:16023:19
+      at runWithFiberInDEV (node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:1522:13)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:16022:9)
+      at scheduleUpdateOnFiber (node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:14396:11)
+      at dispatchSetStateInternal (node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:6969:13)
+      at dispatchSetState (node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:6927:7)
+      at setIsLoading (src/__tests__/profile.component.test.tsx:169:11)
+
+FAIL src/__tests__/profile.component.test.tsx (7.435 s)
+  ProfileSection Component
+    Component Rendering
+      ├ù should render loading state on mount (84 ms)
+      ÔêÜ should render profile data after loading (24 ms)
+      ÔêÜ should render all sub-components (30 ms)
+      ├ù should display error on load failure (1009 ms)
+      ├ù should have retry button on error (1003 ms)
+    Edit Mode
+      ÔêÜ should toggle edit mode on Edit button click (45 ms)
+      ÔêÜ should exit edit mode on Cancel button click (62 ms)
+    Form Data Management
+      ÔêÜ should initialize form with profile data (31 ms)
+      ÔêÜ should update form data when input changes (48 ms)
+      ÔêÜ should preserve non-edited fields (45 ms)
+    Save Operation
+      ÔêÜ should save profile successfully (61 ms)
+      ÔêÜ should show loading state during save (30 ms)
+      ├ù should handle save error (1036 ms)
+      ÔêÜ should exit edit mode after successful save (60 ms)
+    Avatar Operations
+      ÔêÜ should handle avatar selection (32 ms)
+      ÔêÜ should upload avatar on save (44 ms)
+      ÔêÜ should delete avatar (31 ms)
+      ├ù should show success message after avatar upload (1032 ms)
+      ├ù should handle avatar upload error (1050 ms)
+    Session Management
+      ÔêÜ should update token from localStorage on mount (14 ms)
+      ÔêÜ should handle missing session gracefully (15 ms)
+      ÔêÜ should update session token on auth changes (15 ms)
+    Error Recovery
+      ├ù should retry profile load on error (1004 ms)
+      ÔêÜ should reset form on cancel after edit (60 ms)
+
+  ÔùÅ ProfileSection Component ÔÇ║ Component Rendering ÔÇ║ should render loading state on mount
+
+    TestingLibraryElementError: Unable to find an element with the text: /memuat profil/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+    Ignored nodes: comments, script, style
+    <body>
+      <div>
+        <div
+          data-testid="loader"
+        >
+          Loading...
+        </div>
+      </div>
+    </body>
+
+      292 |
+      293 |       // Should show loader initially
+    > 294 |       expect(screen.getByText(/memuat profil/i)).toBeInTheDocument()
+          |                     ^
+      295 |
+      296 |       // Wait for profile to load
+      297 |       await waitFor(() => {
+
+      at Object.getElementError (node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19)
+      at node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+      at node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+      at node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+      at Object.getByText (src/__tests__/profile.component.test.tsx:294:21)
+
+  ÔùÅ ProfileSection Component ÔÇ║ Component Rendering ÔÇ║ should display error on load failure
+
+    Unable to find an element with the text: /gagal memuat profil/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+    Ignored nodes: comments, script, style
+    <body>
+      <div>
+        <div
+          data-testid="profile-section"
+        >
+          <div
+            data-testid="profile-avatar"
+          >
+            <img
+              alt="avatar"
+            />
+            <input
+              data-testid="avatar-input"
+              type="file"
+            />
+          </div>
+          <div
+            data-testid="profile-form"
+          >
+            <div>
+              <p />
+              <p />
+            </div>
+          </div>
+          <div
+            data-testid="profile-actions"
+          >
+            <button
+              data-testid="edit-btn"
+            >
+              Edit
+            </button>
+          </div>
+          <div
+            data-testid="error-message"
+          >
+            Failed to load profile
+          </div>
+        </div>
+      </div>
+    </body>
+
+      326 |       render(<ProfileSection />)
+      327 |
+    > 328 |       await waitFor(() => {
+          |                    ^
+      329 |         expect(screen.getByText(/gagal memuat profil/i)).toBeInTheDocument()
+      330 |         expect(screen.getByText(/coba lagi/i)).toBeInTheDocument()
+      331 |       })
+
+      at waitForWrapper (node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:27)
+      at Object.<anonymous> (src/__tests__/profile.component.test.tsx:328:20)
+
+  ÔùÅ ProfileSection Component ÔÇ║ Component Rendering ÔÇ║ should have retry button on error
+
+    Unable to find role="button" and name `/coba lagi/i`
+
+    Ignored nodes: comments, script, style
+    <body>
+      <div>
+        <div
+          data-testid="profile-section"
+        >
+          <div
+            data-testid="profile-avatar"
+          >
+            <img
+              alt="avatar"
+            />
+            <input
+              data-testid="avatar-input"
+              type="file"
+            />
+          </div>
+          <div
+            data-testid="profile-form"
+          >
+            <div>
+              <p />
+              <p />
+            </div>
+          </div>
+          <div
+            data-testid="profile-actions"
+          >
+            <button
+              data-testid="edit-btn"
+            >
+              Edit
+            </button>
+          </div>
+          <div
+            data-testid="error-message"
+          >
+            Failed to load profile
+          </div>
+        </div>
+      </div>
+    </body>
+
+      339 |       render(<ProfileSection />)
+      340 |
+    > 341 |       await waitFor(() => {
+          |                    ^
+      342 |         const retryButton = screen.getByRole('button', { name: /coba lagi/i })
+      343 |         expect(retryButton).toBeInTheDocument()
+      344 |       })
+
+      at waitForWrapper (node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:27)
+      at Object.<anonymous> (src/__tests__/profile.component.test.tsx:341:20)
+
+  ÔùÅ ProfileSection Component ÔÇ║ Save Operation ÔÇ║ should handle save error
+
+    expect(jest.fn()).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+    Ignored nodes: comments, script, style
+    <html>
+      <head />
+      <body>
+        <div>
+          <div
+            data-testid="profile-section"
+          >
+            <div
+              data-testid="profile-avatar"
+            >
+              <img
+                alt="avatar"
+                src="https://example.com/avatar.jpg"
+              />
+              <input
+                data-testid="avatar-input"
+                type="file"
+              />
+            </div>
+            <div
+              data-testid="profile-form"
+            >
+              <input
+                data-testid="name-input"
+                type="text"
+                value="John Doe"
+              />
+              <input
+                data-testid="position-input"
+                type="text"
+                value="Staff Member"
+              />
+            </div>
+            <div
+              data-testid="profile-actions"
+            >
+              <button
+                data-testid="save-btn"
+              >
+                Simpan
+              </button>
+              <button
+                data-testid="cancel-btn"
+              >
+                Batal
+              </button>
+              <button
+                data-testid="delete-avatar-btn"
+              >
+                Hapus Avatar
+              </button>
+            </div>
+            <div
+              data-testid="error-message"
+            >
+              Failed to save profile
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>...
+
+      482 |
+      483 |       await waitFor(() => {
+    > 484 |         expect(toast.error).toHaveBeenCalled()
+          |                             ^
+      485 |       })
+      486 |     })
+      487 |
+
+      at toHaveBeenCalled (src/__tests__/profile.component.test.tsx:484:29)
+      at runWithExpensiveErrorDiagnosticsDisabled (node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:47:12)
+      at checkCallback (node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:124:77)
+      at checkRealTimersCallback (node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:118:16)
+      at Timeout.task [as _onTimeout] (node_modules/.pnpm/jsdom@26.1.0_canvas@3.1.2/node_modules/jsdom/lib/jsdom/browser/Window.js:579:19)
+
+  ÔùÅ ProfileSection Component ÔÇ║ Avatar Operations ÔÇ║ should show success message after avatar upload
+
+    Expected is not a string
+
+    Ignored nodes: comments, script, style
+    <html>
+      <head />
+      <body>
+        <div>
+          <div
+            data-testid="profile-section"
+          >
+            <div
+              data-testid="profile-avatar"
+            >
+              <img
+                alt="avatar"
+                src="preview-url"
+              />
+              <input
+                data-testid="avatar-input"
+                type="file"
+              />
+            </div>
+            <div
+              data-testid="profile-form"
+            >
+              <div>
+                <p>
+                  John Doe
+                </p>
+                <p>
+                  Staff Member
+                </p>
+              </div>
+            </div>
+            <div
+              data-testid="profile-actions"
+            >
+              <button
+                data-testid="edit-btn"
+              >
+                Edit
+              </button>
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>...
+
+      573 |       await waitFor(() => {
+      574 |         expect(toast.success).toHaveBeenCalledWith(
+    > 575 |           expect.stringContaining(/avatar|berhasil|sukses/i),
+          |                  ^
+      576 |         )
+      577 |       })
+      578 |     })
+
+      at new StringContaining (node_modules/.pnpm/expect@30.0.5/node_modules/expect/build/index.js:230:13)
+      at Function.stringContaining (node_modules/.pnpm/expect@30.0.5/node_modules/expect/build/index.js:316:38)
+      at stringContaining (src/__tests__/profile.component.test.tsx:575:18)
+      at runWithExpensiveErrorDiagnosticsDisabled (node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:47:12)
+      at checkCallback (node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:124:77)
+      at checkRealTimersCallback (node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:118:16)
+      at Timeout.task [as _onTimeout] (node_modules/.pnpm/jsdom@26.1.0_canvas@3.1.2/node_modules/jsdom/lib/jsdom/browser/Window.js:579:19)
+
+  ÔùÅ ProfileSection Component ÔÇ║ Avatar Operations ÔÇ║ should handle avatar upload error
+
+    expect(jest.fn()).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+    Ignored nodes: comments, script, style
+    <html>
+      <head />
+      <body>
+        <div>
+          <div
+            data-testid="profile-section"
+          >
+            <div
+              data-testid="profile-avatar"
+            >
+              <img
+                alt="avatar"
+                src="preview-url"
+              />
+              <input
+                data-testid="avatar-input"
+                type="file"
+              />
+            </div>
+            <div
+              data-testid="profile-form"
+            >
+              <input
+                data-testid="name-input"
+                type="text"
+                value="John Doe"
+              />
+              <input
+                data-testid="position-input"
+                type="text"
+                value="Staff Member"
+              />
+            </div>
+            <div
+              data-testid="profile-actions"
+            >
+              <button
+                data-testid="save-btn"
+              >
+                Simpan
+              </button>
+              <button
+                data-testid="cancel-btn"
+              >
+                Batal
+              </button>
+              <button
+                data-testid="delete-avatar-btn"
+              >
+                Hapus Avatar
+              </button>
+            </div>
+            <div
+              data-testid="error-message"
+            >
+              Failed to save profile
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>...
+
+      597 |
+      598 |       await waitFor(() => {
+    > 599 |         expect(toast.error).toHaveBeenCalled()
+          |                             ^
+      600 |       })
+      601 |     })
+      602 |   })
+
+      at toHaveBeenCalled (src/__tests__/profile.component.test.tsx:599:29)
+      at runWithExpensiveErrorDiagnosticsDisabled (node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:47:12)
+      at checkCallback (node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:124:77)
+      at checkRealTimersCallback (node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:118:16)
+      at Timeout.task [as _onTimeout] (node_modules/.pnpm/jsdom@26.1.0_canvas@3.1.2/node_modules/jsdom/lib/jsdom/browser/Window.js:579:19)
+
+  ÔùÅ ProfileSection Component ÔÇ║ Error Recovery ÔÇ║ should retry profile load on error
+
+    Unable to find role="button" and name `/coba lagi/i`
+
+    Ignored nodes: comments, script, style
+    <body>
+      <div>
+        <div
+          data-testid="profile-section"
+        >
+          <div
+            data-testid="profile-avatar"
+          >
+            <img
+              alt="avatar"
+            />
+            <input
+              data-testid="avatar-input"
+              type="file"
+            />
+          </div>
+          <div
+            data-testid="profile-form"
+          >
+            <div>
+              <p />
+              <p />
+            </div>
+          </div>
+          <div
+            data-testid="profile-actions"
+          >
+            <button
+              data-testid="edit-btn"
+            >
+              Edit
+            </button>
+          </div>
+          <div
+            data-testid="error-message"
+          >
+            Failed to load profile
+          </div>
+        </div>
+      </div>
+    </body>
+
+      660 |       render(<ProfileSection />)
+      661 |
+    > 662 |       await waitFor(() => {
+          |                    ^
+      663 |         expect(
+      664 |           screen.getByRole('button', { name: /coba lagi/i }),
+      665 |         ).toBeInTheDocument()
+
+      at waitForWrapper (node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:27)
+      at Object.<anonymous> (src/__tests__/profile.component.test.tsx:662:20)
+
+Test Suites: 1 failed, 1 total
+Tests:       7 failed, 17 passed, 24 total
+Snapshots:   0 total
+Time:        8.08 s
+Ran all test suites matching src/__tests__/profile.component.test.tsx|--no-coverage.
+ÔÇëELIFECYCLEÔÇë Test failed. See above for more details.

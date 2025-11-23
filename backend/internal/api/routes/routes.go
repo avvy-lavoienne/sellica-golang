@@ -3,6 +3,7 @@ package routes
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -17,7 +18,9 @@ import (
 	"selly-backend/internal/services/concurrent"
 	"selly-backend/internal/services/database"
 	"selly-backend/internal/services/eventbus"
+	"selly-backend/internal/services/knowledge"
 	"selly-backend/internal/services/monitoring"
+	"selly-backend/internal/services/salah_rekam"
 	"selly-backend/internal/services/silpana"
 	"selly-backend/internal/services/supabase_analyzer"
 	"selly-backend/internal/services/training"
@@ -38,7 +41,9 @@ type Services struct {
 	SilpanaBroadcaster  *silpana.WebSocketBroadcaster
 	SupabaseAnalyzer    *supabase_analyzer.Service
 	AktivitasSiak       aktivitas_siak.Service
+	SalahRekam          salah_rekam.Service
 	SessionManager      *auth.SessionManager // Session manager for SILPANA operations
+	Knowledge           *knowledge.DocumentLoaderService
 }
 
 // SetupRoutes configures all API routes and middleware
@@ -66,25 +71,25 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	router.Use(middleware.OptionalAuthMiddleware(services.Auth))
 
 	// Health check routes (public)
-	setupHealthRoutes(router, healthHandler)
+	setupHealthRoutes(router, healthHandler, services.Knowledge)
 
 	// Metrics routes (public)
 	setupMetricsRoutes(router, metricsHandler)
 
 	// Database test routes (public)
-	setupDatabaseRoutes(router, databaseHandler)
+	setupDatabaseRoutes(router, databaseHandler, services.Auth)
 
-	// Cache routes (public)
-	setupCacheRoutes(router, cacheHandler)
+	// Cache routes (public GET, admin-only DELETE - CRITICAL FIX)
+	setupCacheRoutes(router, cacheHandler, services.Auth)
 
 	// Chat routes (public and protected)
-	setupChatRoutes(router, chatHandler, services.Auth)
+	setupChatRoutes(router, chatHandler)
 
 	// Training data routes (protected)
 	setupTrainingRoutes(router, trainingHandler, services.Auth)
 
-	// Performance monitoring routes (public)
-	setupPerformanceRoutes(router, performanceHandler)
+	// Performance monitoring routes (public read-only, admin-only POST - CRITICAL FIX)
+	setupPerformanceRoutes(router, performanceHandler, services.Auth)
 
 	// Concurrent processing routes (public)
 	SetupConcurrentRoutes(router, services.Concurrent)
@@ -111,14 +116,19 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 		setupAktivitasSiakRoutes(router, services.AktivitasSiak, services.Auth)
 	}
 
-	// Supabase analyzer routes (public)
-	if services.SupabaseAnalyzer != nil {
-		setupSupabaseAnalyzerRoutes(router, supabaseAnalyzerHandler)
+	// Salah Rekam routes (protected - require authentication)
+	if services.SalahRekam != nil {
+		setupSalahRekamRoutes(router, services.SalahRekam, services.Auth)
 	}
 
-	// WebSocket routes (public)
+	// Supabase analyzer routes (admin only - CRITICAL FIX)
+	if services.SupabaseAnalyzer != nil {
+		setupSupabaseAnalyzerRoutes(router, supabaseAnalyzerHandler, services.Auth)
+	}
+
+	// WebSocket routes (authenticated - CRITICAL FIX: Requires authentication)
 	if services.SilpanaBroadcaster != nil {
-		setupWebSocketRoutes(router, services.SilpanaBroadcaster)
+		setupWebSocketRoutes(router, services.SilpanaBroadcaster, services.Auth)
 	}
 
 	// Protected routes (require authentication)
@@ -140,7 +150,7 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 }
 
 // setupHealthRoutes configures health check endpoints
-func setupHealthRoutes(router *gin.Engine, handler *handlers.HealthHandler) {
+func setupHealthRoutes(router *gin.Engine, handler *handlers.HealthHandler, knowledgeService *knowledge.DocumentLoaderService) {
 	// Root health endpoint for load balancers
 	router.GET("/health", handler.GetHealth)
 
@@ -152,6 +162,33 @@ func setupHealthRoutes(router *gin.Engine, handler *handlers.HealthHandler) {
 		health.GET("/simple", handler.GetHealthSimple) // GET /health/simple - Simple health check
 		health.GET("/live", handler.GetHealthLive)     // GET /health/live - Liveness probe
 		health.GET("/ready", handler.GetHealthReady)   // GET /health/ready - Readiness probe
+
+		// Background indexing status endpoints
+		if knowledgeService != nil {
+			health.GET("/indexing", func(c *gin.Context) {
+				stats := knowledgeService.GetBackgroundIndexingStatus()
+				c.JSON(http.StatusOK, gin.H{
+					"status":         "ok",
+					"indexing":       stats,
+					"timestamp":      time.Now(),
+					"server_ready":   !stats.IsRunning,
+				})
+			})
+
+			health.GET("/ready-with-indexing", func(c *gin.Context) {
+				stats := knowledgeService.GetBackgroundIndexingStatus()
+				isReady := !stats.IsRunning
+				statusCode := http.StatusOK
+				if !isReady {
+					statusCode = http.StatusServiceUnavailable
+				}
+				c.JSON(statusCode, gin.H{
+					"ready":          isReady,
+					"indexing":       stats,
+					"timestamp":      time.Now(),
+				})
+			})
+		}
 	}
 }
 
@@ -168,12 +205,16 @@ func setupMetricsRoutes(router *gin.Engine, handler *handlers.MetricsHandler) {
 }
 
 // setupDatabaseRoutes configures database test endpoints
-func setupDatabaseRoutes(router *gin.Engine, handler *handlers.DatabaseHandler) {
+func setupDatabaseRoutes(router *gin.Engine, handler *handlers.DatabaseHandler, authService *auth.Service) {
 	database := router.Group("/database")
 	{
 		database.GET("/health", handler.GetDatabaseHealth)            // GET /database/health
 		database.GET("/stats", handler.GetDatabaseStats)              // GET /database/stats
-		database.GET("/performance", handler.TestDatabasePerformance) // GET /database/performance
+		// GET /database/performance - ADMIN ONLY (expensive operation)
+		database.GET("/performance",
+			middleware.AuthMiddleware(authService),
+			middleware.RequireRole("admin"),
+			handler.TestDatabasePerformance)
 	}
 
 	// Root database test endpoint (matches Next.js /api/test-db)
@@ -181,13 +222,18 @@ func setupDatabaseRoutes(router *gin.Engine, handler *handlers.DatabaseHandler) 
 }
 
 // setupCacheRoutes configures cache endpoints
-func setupCacheRoutes(router *gin.Engine, handler *handlers.CacheHandler) {
+func setupCacheRoutes(router *gin.Engine, handler *handlers.CacheHandler, authService *auth.Service) {
 	cache := router.Group("/cache")
 	{
 		cache.GET("/health", handler.GetCacheHealth)            // GET /cache/health
 		cache.GET("/stats", handler.GetCacheStats)              // GET /cache/stats
+		cache.GET("/metrics", handler.GetCacheMetrics)          // GET /cache/metrics (Phase 3A - Advanced metrics)
 		cache.GET("/performance", handler.TestCachePerformance) // GET /cache/performance
-		cache.DELETE("/clear", handler.ClearCache)              // DELETE /cache/clear
+		// DELETE /cache/clear - ADMIN ONLY (destructive operation)
+		cache.DELETE("/clear",
+			middleware.AuthMiddleware(authService),
+			middleware.RequireRole("admin"),
+			handler.ClearCache)
 	}
 }
 
@@ -224,8 +270,14 @@ func setupAuthRoutes(router *gin.Engine, authService *auth.Service, dbService *d
 }
 
 // setupChatRoutes configures chat endpoints
-func setupChatRoutes(router *gin.Engine, handler *handlers.ChatHandler, _ *auth.Service) {
-	// Public chat endpoints (with optional auth)
+func setupChatRoutes(router *gin.Engine, handler *handlers.ChatHandler) {
+	// SECURITY DECISION: Chat endpoints are PUBLIC with OPTIONAL authentication
+	// - Allows anonymous users to use the chat feature (public chatbot use case)
+	// - Authenticated users are tracked and associated with their sessions
+	// - This is intentional to support public-facing chatbot while enabling user tracking
+	// - If business requirements change to require authentication, apply AuthMiddleware to entire group
+	
+	// Public chat endpoints (with optional auth via global OptionalAuthMiddleware)
 	router.POST("/chat", handler.ProcessChat)
 	router.POST("/chat/session", handler.ProcessSessionChat)
 
@@ -235,7 +287,9 @@ func setupChatRoutes(router *gin.Engine, handler *handlers.ChatHandler, _ *auth.
 		api.POST("/chat", handler.ProcessChat) // POST /api/chat - API chat endpoint
 	}
 
-	// Chat management endpoints
+	// Chat management endpoints (read user's own chat data)
+	// TODO: Future enhancement - consider protecting these with AuthMiddleware
+	// Currently relies on handler-level permission checking (verify handler checks user ownership)
 	chat := router.Group("/chat")
 	{
 		chat.GET("/history", handler.GetChatHistory)   // GET /chat/history - Chat history retrieval
@@ -254,17 +308,25 @@ func setupTrainingRoutes(router *gin.Engine, handler *handlers.TrainingHandler, 
 }
 
 // setupPerformanceRoutes configures performance monitoring endpoints
-func setupPerformanceRoutes(router *gin.Engine, handler *handlers.PerformanceHandler) {
+func setupPerformanceRoutes(router *gin.Engine, handler *handlers.PerformanceHandler, authService *auth.Service) {
 	// Documented performance endpoint (primary path)
 	router.GET("/performance", handler.GetPerformanceMetrics) // GET /performance - Documented performance endpoint
 
-	// Performance monitoring endpoints (public) - backward compatibility
+	// Performance monitoring endpoints (public read-only) - backward compatibility
 	api := router.Group("/api/performance")
 	{
 		api.GET("/metrics", handler.GetHighPerformanceMetrics) // GET /api/performance/metrics - High-performance AI metrics
 		api.GET("/health", handler.GetPerformanceHealth)       // GET /api/performance/health - Performance health check
 		api.GET("/stats", handler.GetPerformanceStats)         // GET /api/performance/stats - Performance statistics
-		api.POST("/test", handler.PostPerformanceTest)         // POST /api/performance/test - Performance test endpoint
+	}
+
+	// Admin-only performance test endpoint (CRITICAL FIX: Requires admin JWT)
+	// This endpoint can generate significant load and should only be accessible to administrators
+	adminApi := router.Group("/api/performance")
+	adminApi.Use(middleware.AuthMiddleware(authService))
+	adminApi.Use(middleware.RequireRole("admin"))
+	{
+		adminApi.POST("/test", handler.PostPerformanceTest) // POST /api/performance/test - Admin-only performance test endpoint
 	}
 }
 
@@ -306,7 +368,7 @@ func setupAktivitasSiakRoutes(router *gin.Engine, aktivitasSiakService aktivitas
 }
 
 // GetServices creates and returns the services struct for dependency injection
-func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service, silpanaService silpana.ServiceInterface, silpanaBroadcaster *silpana.WebSocketBroadcaster, supabaseAnalyzer *supabase_analyzer.Service, aktivitasSiakService aktivitas_siak.Service, sessionManager *auth.SessionManager) *Services {
+func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cache *cache.Service, auth *auth.Service, chat *chat.Service, monitoring *monitoring.Service, training *training.Service, concurrent *concurrent.Service, silpanaService silpana.ServiceInterface, silpanaBroadcaster *silpana.WebSocketBroadcaster, supabaseAnalyzer *supabase_analyzer.Service, aktivitasSiakService aktivitas_siak.Service, sessionManager *auth.SessionManager, knowledgeService *knowledge.DocumentLoaderService, salahRekamService salah_rekam.Service) *Services {
 	return &Services{
 		EventBus:            eventBus,
 		Database:            db,
@@ -320,7 +382,9 @@ func GetServices(eventBus eventbus.EventBusInterface, db *database.Service, cach
 		SilpanaBroadcaster:  silpanaBroadcaster,
 		SupabaseAnalyzer:    supabaseAnalyzer,
 		AktivitasSiak:       aktivitasSiakService,
+		SalahRekam:          salahRekamService,
 		SessionManager:      sessionManager,
+		Knowledge:           knowledgeService,
 	}
 }
 
@@ -363,7 +427,7 @@ func setupSilpanaRoutes(router *gin.Engine, silpanaService silpana.ServiceInterf
 }
 
 // setupWebSocketRoutes configures WebSocket endpoints for real-time updates
-func setupWebSocketRoutes(router *gin.Engine, broadcaster *silpana.WebSocketBroadcaster) {
+func setupWebSocketRoutes(router *gin.Engine, broadcaster *silpana.WebSocketBroadcaster, authService *auth.Service) {
 	log.Println("🔌 Setting up WebSocket routes...")
 	
 	// Get the hub from broadcaster
@@ -387,10 +451,16 @@ func setupWebSocketRoutes(router *gin.Engine, broadcaster *silpana.WebSocketBroa
 		},
 	}
 
-	// WebSocket endpoint for ticket updates
-	router.GET("/ws/tickets", wsHandler.Handle)
+	// Protected WebSocket endpoint for ticket updates (CRITICAL FIX: Requires authentication)
+	// WebSocket connections must be authenticated to subscribe to ticket updates
+	// This prevents unauthorized users from listening to ticket change events
+	ws := router.Group("/ws")
+	ws.Use(middleware.AuthMiddleware(authService))
+	{
+		ws.GET("/tickets", wsHandler.Handle)
+	}
 	
-	log.Println("✅ WebSocket route registered at /ws/tickets")
+	log.Println("✅ WebSocket route registered at /ws/tickets (authentication required)")
 }
 
 // WebSocketTicketHandler handles WebSocket connections for ticket updates
@@ -401,11 +471,14 @@ type WebSocketTicketHandler struct {
 
 // Handle handles WebSocket upgrade and registration
 func (h *WebSocketTicketHandler) Handle(c *gin.Context) {
-	// Extract user information from context (set by auth middleware)
+	// Extract user information from context (set by AuthMiddleware)
 	userID, exists := c.Get("user_id")
 	if !exists {
-		// Allow anonymous connections for now
-		userID = "anonymous"
+		// CRITICAL FIX: Reject unauthenticated WebSocket connections
+		// Authentication is now required to subscribe to ticket updates
+		log.Printf("❌ WebSocket connection attempt without authentication")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required for WebSocket connection"})
+		return
 	}
 
 	isAdmin := false
@@ -427,7 +500,39 @@ func (h *WebSocketTicketHandler) Handle(c *gin.Context) {
 	go client.WritePump()
 	go client.ReadPump()
 
-	log.Printf("New WebSocket connection established for user: %s (admin: %v)", userID, isAdmin)
+	log.Printf("✅ New WebSocket connection established for user: %s (admin: %v)", userID, isAdmin)
+}
+
+// setupSalahRekamRoutes configures salah-rekam endpoints
+// All routes require authentication and extract user context from JWT
+func setupSalahRekamRoutes(router *gin.Engine, salahRekamService salah_rekam.Service, authService *auth.Service) {
+	// Create salah-rekam handler
+	salahRekamHandler := handlers.NewSalahRekamHandler(salahRekamService)
+
+	// Protected salah-rekam endpoints (require authentication)
+	salahRekamGroup := router.Group("/api/v1/salah-rekam")
+	salahRekamGroup.Use(middleware.AuthMiddleware(authService))
+	{
+		// List records with pagination and filtering
+		salahRekamGroup.GET("", salahRekamHandler.ListRecords) // GET /api/v1/salah-rekam
+
+		// Search records
+		salahRekamGroup.GET("/search", salahRekamHandler.SearchRecords) // GET /api/v1/salah-rekam/search
+
+		// Get single record
+		salahRekamGroup.GET("/:id", salahRekamHandler.GetRecord) // GET /api/v1/salah-rekam/:id
+
+		// Create new record
+		salahRekamGroup.POST("", salahRekamHandler.CreateRecord) // POST /api/v1/salah-rekam
+
+		// Update existing record
+		salahRekamGroup.PUT("/:id", salahRekamHandler.UpdateRecord) // PUT /api/v1/salah-rekam/:id
+
+		// Delete record
+		salahRekamGroup.DELETE("/:id", salahRekamHandler.DeleteRecord) // DELETE /api/v1/salah-rekam/:id
+	}
+
+	logrus.Info("✅ Salah Rekam routes configured successfully")
 }
 
 // setupDataRekamRoutes configures data-rekam endpoints
@@ -442,15 +547,23 @@ func setupDataRekamRoutes(router *gin.Engine, authService *auth.Service, dbServi
 	{
 		// Adjudicate record endpoints
 		dataRekamGroup.GET("/adjudicate", dataRekamHandler.GetAdjudicateRecords)
+		dataRekamGroup.PATCH("/adjudicate/:id/toggle-status", dataRekamHandler.ToggleAdjudicateRecordStatus)
+		dataRekamGroup.PATCH("/adjudicate/:id/update-date", dataRekamHandler.UpdateAdjudicateRecordDate)
 
 		// Duplicate operator endpoints
 		dataRekamGroup.GET("/duplicate-operator", dataRekamHandler.GetDuplicateOperatorRecords)
+		dataRekamGroup.PATCH("/duplicate-operator/:id/toggle-status", dataRekamHandler.ToggleDuplicateOperatorStatus)
+		dataRekamGroup.PATCH("/duplicate-operator/:id/update-date", dataRekamHandler.UpdateDuplicateOperatorDate)
 
 		// Pengajuan bulanan endpoints
 		dataRekamGroup.GET("/pengajuan-bulanan", dataRekamHandler.GetPengajuanBulananRecords)
+		dataRekamGroup.PATCH("/pengajuan-bulanan/:id/toggle-status", dataRekamHandler.TogglePengajuanBulananStatus)
+		dataRekamGroup.PATCH("/pengajuan-bulanan/:id/update-date", dataRekamHandler.UpdatePengajuanBulananDate)
 
 		// Salah rekam endpoints
 		dataRekamGroup.GET("/salah-rekam", dataRekamHandler.GetSalahRekamRecords)
+		dataRekamGroup.PATCH("/salah-rekam/:id/toggle-status", dataRekamHandler.ToggleSalahRekamStatus)
+		dataRekamGroup.PATCH("/salah-rekam/:id/update-date", dataRekamHandler.UpdateSalahRekamDate)
 
 		// Dashboard statistics endpoint
 		dataRekamGroup.GET("/dashboard-stats", dataRekamHandler.GetDashboardStats)
@@ -466,9 +579,14 @@ func setupAdminRoutes(router *gin.Engine, authService *auth.Service, dbService *
 	// Protected admin endpoints (require authentication and admin role)
 	adminGroup := router.Group("/admin")
 	adminGroup.Use(middleware.AuthMiddleware(authService))
+	adminGroup.Use(middleware.RequireRole("admin"))
 	{
 		// Get all pending users (for admin review)
 		adminGroup.GET("/pending-users", adminHandler.GetPendingUsers)
+		// Approve a pending user registration
+		adminGroup.POST("/approve-user", adminHandler.ApproveUser)
+		// Reject a pending user registration
+		adminGroup.POST("/reject-user", adminHandler.RejectPendingUser)
 	}
 }
 

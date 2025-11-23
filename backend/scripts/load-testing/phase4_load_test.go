@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"runtime"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -174,8 +173,6 @@ func TestConcurrentSilpanaTicketCreation(t *testing.T) {
 			results.P99ResponseTime = times[int(float64(len(times))*0.99)]
 		}
 	}
-
-	results.GoroutineCount = runtime.NumGoroutine()
 
 	// Print results
 	t.Logf("✅ Phase 4 Load Test Results:")

@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { supabase } from "@/lib/conn/supabaseClient";
+import { GoAuthAPI } from "@/lib/api/goAuth";
 import { cn } from "@/lib/conn/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -253,6 +254,30 @@ export default function LoginForm() {
 
         if (authResult.success && authResult.user) {
           console.log('✅ Go backend authentication successful');
+
+          // Fetch complete user profile including avatar before redirecting
+          try {
+            console.log('📋 Fetching complete user profile...');
+            const profileResult = await GoAuthAPI.getProfile();
+
+            if (profileResult.success && profileResult.user) {
+              // Update the user object with complete profile data
+              authResult.user = {
+                ...authResult.user,
+                ...profileResult.user,
+              };
+              
+              // Update localStorage with complete user info so layout can pick it up
+              GoAuthAPI.setUserInfo(authResult.user);
+              
+              console.log('✅ Complete user profile loaded with avatar and stored');
+            } else {
+              console.warn('⚠️ Could not fetch complete profile, using login data only');
+            }
+          } catch (profileError) {
+            console.warn('⚠️ Profile fetch failed, using login data only:', profileError);
+          }
+
           toast.success("Login successful! Redirecting to dashboard...");
 
           // Add a small delay for better UX
