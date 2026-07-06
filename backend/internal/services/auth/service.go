@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
 
 	"selly-backend/internal/services/database"
 )
@@ -574,12 +575,26 @@ func (s *Service) AuthenticateUser(ctx context.Context, email, password string) 
 		return user, nil
 	}
 
-	// For other users, we'll implement a placeholder that always succeeds
-	// during the migration phase to maintain functionality
+	// Get password hash from pending_users table for proper bcrypt verification
+	passwordHash, err := s.db.GetPendingUserPasswordHash(ctx, email)
+	if err != nil {
+		logrus.WithError(err).WithField("email", email).Warn("Failed to get password hash from pending_users")
+		return nil, fmt.Errorf("invalid credentials")
+	}
+
+	// Verify password with bcrypt
+	if err := bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password)); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"email":   email,
+			"user_id": user.ID,
+		}).Warn("User authentication failed: invalid password")
+		return nil, fmt.Errorf("invalid credentials")
+	}
+
 	logrus.WithFields(logrus.Fields{
 		"email":   email,
 		"user_id": user.ID,
-	}).Info("User authentication successful (migration placeholder)")
+	}).Info("User authentication successful")
 
 	return user, nil
 }

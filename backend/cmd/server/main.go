@@ -277,32 +277,46 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 		logrus.WithError(err).Warn("Failed to start concurrent service")
 	}
 
-	// Initialize RAG service
-	ragService := rag.NewRedisRAGService(cacheService.GetRedisClient())
-
-	// Initialize RAG service
-	if err := ragService.Initialize(context.Background()); err != nil {
-		return nil, fmt.Errorf("failed to initialize RAG service: %w", err)
+	// Initialize RAG service (optional - requires Redis)
+	redisClient := cacheService.GetRedisClient()
+	var ragService *rag.RedisRAGService
+	if redisClient != nil {
+		ragService = rag.NewRedisRAGService(redisClient)
+		if err := ragService.Initialize(context.Background()); err != nil {
+			logrus.WithError(err).Warn("RAG service disabled - Redis initialization failed")
+			ragService = nil
+		} else {
+			logrus.Info("✅ RAG service initialized successfully")
+		}
+	} else {
+		logrus.Warn("⚠️ RAG service disabled - no Redis client available")
 	}
 
-	// Initialize Knowledge service (Document Loader)
-	knowledgeService, err := knowledge.NewDocumentLoaderService(
-		ragService,
-		cacheService,
-		cfg.Knowledge.DocumentsPath,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize knowledge service: %w", err)
+	// Initialize Knowledge service (Document Loader) - optional, depends on RAG
+	var knowledgeService *knowledge.DocumentLoaderService
+	if ragService != nil {
+		var err error
+		knowledgeService, err = knowledge.NewDocumentLoaderService(
+			ragService,
+			cacheService,
+			cfg.Knowledge.DocumentsPath,
+		)
+		if err != nil {
+			logrus.WithError(err).Warn("Knowledge service disabled - initialization failed")
+			knowledgeService = nil
+		}
+	} else {
+		logrus.Warn("⚠️ Knowledge service disabled - RAG service unavailable")
 	}
 
 	// Configure recursive scanning
-	if cfg.Knowledge.RecursiveScan {
+	if knowledgeService != nil && cfg.Knowledge.RecursiveScan {
 		logrus.WithField("recursive_scan", cfg.Knowledge.RecursiveScan).Info("🔄 Recursive document scanning enabled")
 		knowledgeService.SetRecursiveScan(true)
 	}
 
 	// Configure additional document paths for specialized training data
-	if len(cfg.Knowledge.AdditionalPaths) > 0 {
+	if knowledgeService != nil && len(cfg.Knowledge.AdditionalPaths) > 0 {
 		logrus.WithField("additional_paths", cfg.Knowledge.AdditionalPaths).Info("📁 Configuring additional document paths")
 		for _, path := range cfg.Knowledge.AdditionalPaths {
 			if err := knowledgeService.AddDocumentPath(path); err != nil {
@@ -312,7 +326,7 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	}
 
 	// Configure JSON processing if enabled
-	if cfg.Knowledge.JSONProcessing.Enabled {
+	if knowledgeService != nil && cfg.Knowledge.JSONProcessing.Enabled {
 		logrus.WithFields(logrus.Fields{
 			"supported_types":    cfg.Knowledge.JSONProcessing.SupportedTypes,
 			"auto_load":         cfg.Knowledge.JSONProcessing.AutoLoadOnStartup,
@@ -325,18 +339,20 @@ func initializeServices(cfg *config.Config) (*Services, error) {
 	}
 
 	// Load all training documents on startup
-	logrus.Info("📚 Loading training documents...")
-	if err := knowledgeService.LoadAllDocuments(); err != nil {
-		logrus.WithError(err).Fatal("Failed to load training documents")
-	}
+	if knowledgeService != nil {
+		logrus.Info("📚 Loading training documents...")
+		if err := knowledgeService.LoadAllDocuments(); err != nil {
+			logrus.WithError(err).Warn("Failed to load training documents (non-fatal)")
+		}
 
-	// Log knowledge service status with detailed verification
-	knowledgeStats := knowledgeService.GetStats()
-	logrus.WithFields(logrus.Fields{
-		"documents_loaded":    knowledgeStats.DocumentsLoaded,
-		"json_files_processed": knowledgeStats.JSONFilesProcessed,
-		"paths_watched":       knowledgeStats.PathsWatched,
-	}).Info("✅ Document loading verification")
+		// Log knowledge service status with detailed verification
+		knowledgeStats := knowledgeService.GetStats()
+		logrus.WithFields(logrus.Fields{
+			"documents_loaded":    knowledgeStats.DocumentsLoaded,
+			"json_files_processed": knowledgeStats.JSONFilesProcessed,
+			"paths_watched":       knowledgeStats.PathsWatched,
+		}).Info("✅ Document loading verification")
+	}
 
 	// Initialize chat service with RAG integration (after RAG service is ready)
 	chatService := chat.NewService(dbService, cacheService, authService, ragService)

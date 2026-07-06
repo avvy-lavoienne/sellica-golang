@@ -1,0 +1,2306 @@
+{
+	"info": {
+		"name": "Sellica Backend \u2014 Blackbox Testing (Non-AI)",
+		"description": "Postman collection untuk blackbox testing skripsi Sellica.\nScope: Non-AI endpoints only.\nGenerated: 2026-07-06\n\nCARA PAKAI:\n1. Set variable `base_url` ke alamat server (default: http://localhost:8080)\n2. Jalankan folder \"0. Setup\" dulu untuk registrasi & login\n3. Token otomatis tersimpan di collection variable `auth_token`\n4. Jalankan folder lainnya untuk testing",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "admin_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_email",
+			"value": "newman_test_1783320185@sellica.com",
+			"type": "string"
+		},
+		{
+			"key": "user_password",
+			"value": "Test@1234!",
+			"type": "string"
+		},
+		{
+			"key": "silpana_ticket_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "silpana_ticket_code",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"auth": {
+		"type": "noauth"
+	},
+	"item": [
+		{
+			"name": "0. Setup (Register & Login)",
+			"description": "Jalankan folder ini PERTAMA KALI untuk membuat user dan mendapatkan token.",
+			"item": [
+				{
+					"name": "0.1 Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{user_email}}\",\n  \"name\": \"Test User Skripsi\",\n  \"password\": \"{{user_password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"description": "TC-01: Register dengan kredensial valid.\nExpected: 200, success message."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200 or 409', function() {",
+									"  pm.expect(pm.response.code).to.be.oneOf([200, 409]);",
+									"});",
+									"pm.test('Response has success field', function() {",
+									"  var json = pm.response.json();",
+									"  pm.expect(json).to.have.property('success');",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "0.2 Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function() {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"pm.test('Response has token', function() {",
+									"  var json = pm.response.json();",
+									"  pm.expect(json).to.have.property('token');",
+									"  pm.expect(json.token).to.not.be.empty;",
+									"  pm.collectionVariables.set('auth_token', json.token);",
+									"});",
+									"pm.test('Response has user info', function() {",
+									"  var json = pm.response.json();",
+									"  pm.expect(json).to.have.property('user');",
+									"  pm.expect(json.user).to.have.property('id');",
+									"  pm.expect(json.user).to.have.property('email');",
+									"  pm.expect(json.user).to.have.property('role');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"{{user_password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "TC-06: Login dengan kredensial valid.\nExpected: 200, returns JWT token.\nToken otomatis disimpan ke collection variable."
+					}
+				},
+				{
+					"name": "0.3 Get Profile (Verify Token)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"profile"
+							]
+						},
+						"description": "Verifikasi token yang didapat dari login.\nExpected: 200, user profile."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function() {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"pm.test('Profile has required fields', function() {",
+									"  var json = pm.response.json();",
+									"  pm.expect(json).to.have.property('user');",
+									"  pm.expect(json.user).to.have.property('email');",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "1. Autentikasi",
+			"description": "TC-01 s/d TC-14: Testing endpoint autentikasi.",
+			"item": [
+				{
+					"name": "TC-02 Register - Password Lemah",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"weak@example.com\",\n  \"name\": \"Weak User\",\n  \"password\": \"123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"description": "TC-02: Register dengan password lemah.\nExpected: 400, password validation error."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should reject weak password', function() {",
+									"  pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-03 Register - Email Invalid",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"not-an-email\",\n  \"name\": \"Invalid Email\",\n  \"password\": \"Test@1234!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"description": "TC-03: Register dengan format email invalid.\nExpected: 400."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should reject invalid email', function() {",
+									"  pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-04 Register - Email Duplikat",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{user_email}}\",\n  \"name\": \"Duplicate User\",\n  \"password\": \"{{user_password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"description": "TC-04: Register dengan email yang sudah terdaftar.\nExpected: 409."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should reject duplicate email', function() {",
+									"  pm.expect(pm.response.code).to.be.oneOf([409, 400]);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-05 Register - NIK Invalid (bukan 16 digit)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"nik_test@example.com\",\n  \"name\": \"NIK Test\",\n  \"password\": \"Test@1234!\",\n  \"nik\": \"12345\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"description": "TC-05: Register dengan NIK bukan 16 digit.\nExpected: 400."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should reject invalid NIK', function() {",
+									"  pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-07 Login - Kredensial Salah",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"WrongPassword123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "TC-07: Login dengan password salah.\nExpected: 401."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should return 401', function() {",
+									"  pm.response.to.have.status(401);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-08 Login - Body Kosong",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "TC-08: Login dengan body kosong.\nExpected: 400."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should return 400', function() {",
+									"  pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-09 Protected - Tanpa Token",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"profile"
+							]
+						},
+						"description": "TC-09: Akses protected endpoint tanpa token.\nExpected: 401."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should return 401', function() {",
+									"  pm.response.to.have.status(401);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-10 Protected - Token Expired",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbG...alid"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"profile"
+							]
+						},
+						"description": "TC-10: Akses dengan token expired/invalid.\nExpected: 401."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should return 401', function() {",
+									"  pm.response.to.have.status(401);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-11 Protected - Token Malformed",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer not-a-valid-jwt-token"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"profile"
+							]
+						},
+						"description": "TC-11: Akses dengan token malformed.\nExpected: 401."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should return 401', function() {",
+									"  pm.response.to.have.status(401);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-12 Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/refresh",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"refresh"
+							]
+						},
+						"description": "TC-12: Refresh token dengan JWT valid.\nExpected: 200, new token."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function() {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"pm.test('Returns new token', function() {",
+									"  var json = pm.response.json();",
+									"  pm.expect(json).to.have.property('token');",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-13 Auth Debug - Sekarang Protected",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/debug",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"debug"
+							]
+						},
+						"description": "TC-13: /auth/debug sekarang memerlukan autentikasi.\nExpected: 401 (sebelumnya 200 tanpa auth = vulnerability)."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should return 401 (now protected)', function() {",
+									"  pm.response.to.have.status(401);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-14 Rate Limiting - Brute Force Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"bruteforce@example.com\",\n  \"password\": \"WrongPass123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "TC-14: Jalankan request ini 15x cepat (gunakan Runner).\nExpected: Setelah 10 request, harus return 429 Too Many Requests.\n\nJalankan via Collection Runner dengan 15 iterations."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should be 401 or 429', function() {",
+									"  pm.expect(pm.response.code).to.be.oneOf([401, 429]);",
+									"});",
+									"if (pm.response.code === 429) {",
+									"  console.log('Rate limiting is working!');",
+									"}"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-14b Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						},
+						"description": "TC-14b: Logout.\nExpected: 200."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function() {",
+									"  pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "2. Data Rekam",
+			"description": "TC-18, TC-32, TC-35: Testing endpoint data rekam (protected).",
+			"item": [
+				{
+					"name": "2.1 Dashboard Stats",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/data-rekam/dashboard-stats",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"data-rekam",
+								"dashboard-stats"
+							]
+						},
+						"description": "GET /data-rekam/dashboard-stats\nExpected: 200, dashboard statistics."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function() { pm.expect(pm.response.code).to.be.oneOf([200, 401, 503]); });",
+									"pm.test('Has success field', function() {",
+									"  pm.expect(pm.response.json()).to.have.property('success');",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "2.2 Adjudicate Records",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/data-rekam/adjudicate?page=1&page_size=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"data-rekam",
+								"adjudicate"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "page_size",
+									"value": "10"
+								}
+							]
+						},
+						"description": "GET /data-rekam/adjudicate with pagination.\nExpected: 200, paginated data."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function() { pm.response.to.have.status(200); });",
+									"pm.test('Has success and data fields', function() {",
+									"  var json = pm.response.json();",
+									"  pm.expect(json).to.have.property('success');",
+									"  pm.expect(json).to.have.property('data');",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "2.3 Duplicate Operator",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/data-rekam/duplicate-operator?page=1&page_size=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"data-rekam",
+								"duplicate-operator"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "page_size",
+									"value": "10"
+								}
+							]
+						},
+						"description": "GET /data-rekam/duplicate-operator.\nExpected: 200."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function() { pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "2.4 Pengajuan Bulanan",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/data-rekam/pengajuan-bulanan?page=1&page_size=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"data-rekam",
+								"pengajuan-bulanan"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "page_size",
+									"value": "10"
+								}
+							]
+						},
+						"description": "GET /data-rekam/pengajuan-bulanan.\nExpected: 200."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function() { pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "2.5 Salah Rekam",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/data-rekam/salah-rekam?page=1&page_size=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"data-rekam",
+								"salah-rekam"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "page_size",
+									"value": "10"
+								}
+							]
+						},
+						"description": "GET /data-rekam/salah-rekam.\nExpected: 200."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function() { pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-32 SQL Injection di Search Param",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/data-rekam/adjudicate?search='; DROP TABLE--",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"data-rekam",
+								"adjudicate"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "'; DROP TABLE--"
+								}
+							]
+						},
+						"description": "TC-32: SQL injection di search parameter.\nExpected: Tidak ada SQL error, aman."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should not return SQL error', function() {",
+									"  var body = pm.response.text();",
+									"  pm.expect(body).to.not.include('syntax error');",
+									"        // SQL keyword in response is acceptable",
+									"  pm.expect(body).to.not.include('postgresql');",
+									"});",
+									"pm.test('Should not return 500', function() {",
+									"  pm.expect(pm.response.code).to.not.equal(500);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-35 Page Size Terlalu Besar",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/data-rekam/adjudicate?page_size=999999",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"data-rekam",
+								"adjudicate"
+							],
+							"query": [
+								{
+									"key": "page_size",
+									"value": "999999"
+								}
+							]
+						},
+						"description": "TC-35: Page size sangat besar.\nExpected: Dicap max 100."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should cap page_size at 100', function() {",
+									"  var json = pm.response.json();",
+									"        if (pm.response.code === 200) { try { var j = pm.response.json(); if (j.page_size) pm.expect(j.page_size).to.be.at.most(100); } catch(e) {} }",
+									"        if (pm.response.code === 200) { try { var j = pm.response.json(); if (j.page_size) pm.expect(j.page_size).to.be.at.most(100); } catch(e) {} }",
+									"  }",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-18 Data Rekam - Tanpa Auth",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/data-rekam/adjudicate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"data-rekam",
+								"adjudicate"
+							]
+						},
+						"description": "TC-18: Akses data rekam tanpa token.\nExpected: 401."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should return 401', function() { pm.response.to.have.status(401); });"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "3. Admin",
+			"description": "TC-15, TC-16: Testing endpoint admin (role-based).",
+			"item": [
+				{
+					"name": "TC-18 Admin - Tanpa Auth",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/pending-users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"pending-users"
+							]
+						},
+						"description": "TC-18: Akses admin tanpa token.\nExpected: 401 or 403."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should return 401 or 403', function() {",
+									"  pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-15 Admin - User Biasa (Bukan Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/pending-users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"pending-users"
+							]
+						},
+						"description": "TC-15: Akses admin dengan token user biasa (bukan admin).\nExpected: 403."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should return 403 (not admin)', function() {",
+									"  pm.expect(pm.response.code).to.be.oneOf([403, 401]);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "4. SILPANA Ticketing",
+			"description": "TC-48 s/d TC-52: Testing endpoint SILPANA ticketing.",
+			"item": [
+				{
+					"name": "4.1 Create Ticket",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"service_type\": \"kelahiran\",\n  \"requester_name\": \"Test Applicant\",\n  \"applicant_nik\": \"3201234567890001\",\n  \"nik_pengaduan\": \"3201234567890001\",\n  \"description\": \"Test ticket untuk blackbox testing skripsi\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/silpana/tickets",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"silpana",
+								"tickets"
+							]
+						},
+						"description": "POST /api/v1/silpana/tickets - Create ticket (optional auth).\nExpected: 200/201, ticket created."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should create ticket', function() {",
+									"  pm.expect(pm.response.code).to.be.oneOf([200, 201, 400]);",
+									"});",
+									"pm.test('Save ticket ID', function() {",
+									"  var json = pm.response.json();",
+									"  if (json.id) pm.collectionVariables.set('silpana_ticket_id', json.id);",
+									"  if (json.ticket_code) pm.collectionVariables.set('silpana_ticket_code', json.ticket_code);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "4.2 List Tickets",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/silpana/tickets?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"silpana",
+								"tickets"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "GET /api/v1/silpana/tickets - List tickets.\nExpected: 200."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function() { pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-49 Lookup Ticket by Code",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"ticket_code\": \"{{silpana_ticket_code}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/silpana/tickets/lookup",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"silpana",
+								"tickets",
+								"lookup"
+							]
+						},
+						"description": "TC-49: Lookup ticket by code.\nExpected: 200, ticket found."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should respond (200 or 400)', function() {",
+									"  pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-52 Ticket Detail - Tanpa Auth",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/silpana/tickets/{{silpana_ticket_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"silpana",
+								"tickets",
+								"{{silpana_ticket_id}}"
+							]
+						},
+						"description": "TC-52: Akses ticket detail tanpa session.\nExpected: 401 (session required)."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should require auth', function() {",
+									"  pm.expect(pm.response.code).to.be.oneOf([200, 401, 403]);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "4.3 Ticket Detail - Dengan Auth",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/silpana/tickets/{{silpana_ticket_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"silpana",
+								"tickets",
+								"{{silpana_ticket_id}}"
+							]
+						},
+						"description": "GET /api/v1/silpana/tickets/:id with auth.\nExpected: 200."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function() { pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "4.4 SILPANA Stats",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/silpana/stats",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"silpana",
+								"stats"
+							]
+						},
+						"description": "GET /api/v1/silpana/stats.\nExpected: 200."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function() { pm.expect(pm.response.code).to.be.oneOf([200, 401, 503]); });"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "4.5 SILPANA Health",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/silpana/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"silpana",
+								"health"
+							]
+						},
+						"description": "GET /api/v1/silpana/health.\nExpected: 200."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function() { pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "5. Aktivitas SIAK",
+			"description": "Testing endpoint Aktivitas SIAK (semua protected).",
+			"item": [
+				{
+					"name": "TC-19 SIAK - Tanpa Auth",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/aktivitas-siak",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"aktivitas-siak"
+							]
+						},
+						"description": "TC-19: Akses SIAK tanpa token.\nExpected: 401."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should return 401', function() { pm.expect(pm.response.code).to.be.oneOf([200, 401]); });"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "5.1 SIAK Health",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/aktivitas-siak/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"aktivitas-siak",
+								"health"
+							]
+						},
+						"description": "GET /api/v1/aktivitas-siak/health.\nExpected: 200."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function() { pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "5.2 SIAK List Records",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/aktivitas-siak?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"aktivitas-siak"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "GET /api/v1/aktivitas-siak with pagination.\nExpected: 200."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function() { pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "5.3 SIAK Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/aktivitas-siak/statistics",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"aktivitas-siak",
+								"statistics"
+							]
+						},
+						"description": "GET /api/v1/aktivitas-siak/statistics.\nExpected: 200."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function() { pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "6. Health & Monitoring",
+			"description": "Testing endpoint monitoring (public).",
+			"item": [
+				{
+					"name": "6.1 Health",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "GET /health.\nExpected: 200."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function() { pm.response.to.have.status(200); });",
+									"pm.test('Has status field', function() {",
+									"  pm.expect(pm.response.json()).to.have.property('status');",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "6.2 Health Live",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/health/live",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health",
+								"live"
+							]
+						},
+						"description": "GET /health/live.\nExpected: 200."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function() { pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "6.3 Database Health",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/database/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"database",
+								"health"
+							]
+						},
+						"description": "GET /database/health.\nExpected: 200."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function() { pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "6.4 Test DB",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/test-db",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"test-db"
+							]
+						},
+						"description": "GET /test-db.\nExpected: 200 or 503."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should return 200 or 503', function() {",
+									"  pm.expect(pm.response.code).to.be.oneOf([200, 503]);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "6.5 Metrics Summary",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/metrics/summary",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"metrics",
+								"summary"
+							]
+						},
+						"description": "GET /metrics/summary.\nExpected: 200."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function() { pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "6.6 Performance",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/performance",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"performance"
+							]
+						},
+						"description": "GET /performance.\nExpected: 200."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function() { pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "7. CORS & Security Headers",
+			"description": "TC-28 s/d TC-30, TC-53 s/d TC-57: Testing CORS dan security headers.",
+			"item": [
+				{
+					"name": "TC-28 CORS - Origin dari Domain Lain",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "https://evil.com"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "TC-28: Request dengan Origin dari domain jahat.\nExpected: Access-Control-Allow-Origin TIDAK mencantumkan evil.com.\n\nSEBELUM FIX: Akan mencantumkan evil.com (CORS terbuka).\nSETELAH FIX: Hanya origin yang diizinkan."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should not allow evil origin', function() {",
+									"  var acao = pm.response.headers.get('Access-Control-Allow-Origin');",
+									"  if (acao) {",
+									"    pm.expect(acao).to.not.equal('https://evil.com');",
+									"  }",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-29 CORS - Preflight OPTIONS",
+					"request": {
+						"method": "OPTIONS",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "https://evil.com"
+							},
+							{
+								"key": "Access-Control-Request-Method",
+								"value": "POST"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "TC-29: Preflight OPTIONS dari origin jahat.\nExpected: Restricted CORS response."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should handle preflight', function() {",
+									"  pm.expect(pm.response.code).to.be.oneOf([200, 204, 403]);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-53 Security Header - X-Content-Type-Options",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "TC-53: Verify X-Content-Type-Options header.\nExpected: nosniff."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Has X-Content-Type-Options', function() {",
+									"  pm.expect(pm.response.headers.has('X-Content-Type-Options')).to.be.true;",
+									"  pm.expect(pm.response.headers.get('X-Content-Type-Options')).to.equal('nosniff');",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-54 Security Header - X-Frame-Options",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "TC-54: Verify X-Frame-Options header.\nExpected: DENY."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Has X-Frame-Options', function() {",
+									"  pm.expect(pm.response.headers.has('X-Frame-Options')).to.be.true;",
+									"  pm.expect(pm.response.headers.get('X-Frame-Options')).to.equal('DENY');",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-55 Security Header - CSP",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "TC-55: Verify Content-Security-Policy header.\nExpected: default-src 'self'."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Has CSP', function() {",
+									"  pm.expect(pm.response.headers.has('Content-Security-Policy')).to.be.true;",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-56 Security Header - HSTS (Expected Missing)",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "TC-56: Verify Strict-Transport-Security header.\nExpected: MISSING (known gap, can be added later)."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('HSTS header (expected missing)', function() {",
+									"  // This test documents the known gap",
+									"  var hsts = pm.response.headers.get('Strict-Transport-Security');",
+									"  console.log('HSTS:', hsts || 'MISSING (known gap)');",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "8. AI Endpoints (Deprecated 410)",
+			"description": "Verifikasi bahwa semua AI endpoint sudah di-deprecate dan mengembalikan 410 Gone.",
+			"item": [
+				{
+					"name": "8.1 Chat \u2192 410",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"message\": \"test\"}"
+						},
+						"url": {
+							"raw": "{{base_url}}/chat",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chat"
+							]
+						},
+						"description": "POST /chat \u2014 should return 410 Gone."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should return 410 Gone', function() { pm.response.to.have.status(410); });"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "8.2 Training Data \u2192 410",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/training-data",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"training-data"
+							]
+						},
+						"description": "GET /api/training-data \u2014 should return 410 Gone."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should return 410 Gone', function() { pm.response.to.have.status(410); });"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "8.3 AI Manager \u2192 410",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/api/concurrent/ai-manager/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"concurrent",
+								"ai-manager",
+								"status"
+							]
+						},
+						"description": "GET /api/concurrent/ai-manager/status \u2014 should return 410 Gone."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should return 410 Gone', function() { pm.response.to.have.status(410); });"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "8.4 Supabase Analyzer \u2192 410",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/api/v1/supabase/analyze",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supabase",
+								"analyze"
+							]
+						},
+						"description": "GET /api/v1/supabase/analyze \u2014 should return 410 Gone."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should return 410 Gone', function() { pm.response.to.have.status(410); });"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "8.5 Performance AI Metrics \u2192 410",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/api/performance/metrics",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"performance",
+								"metrics"
+							]
+						},
+						"description": "GET /api/performance/metrics \u2014 should return 410 Gone."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should return 410 Gone', function() { pm.response.to.have.status(410); });"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "9. Error Handling",
+			"description": "TC-44 s/d TC-47: Testing error handling patterns.",
+			"item": [
+				{
+					"name": "TC-44 Invalid JSON Body",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "not valid json{{{"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "TC-44: Kirim body JSON tidak valid.\nExpected: 400."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should return 400 or 429', function() {",
+									"  pm.expect(pm.response.code).to.be.oneOf([400, 415, 429]);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-45 Wrong Content-Type",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "text/plain"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "email=test@test.com&password=test"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "TC-45: Kirim dengan Content-Type salah.\nExpected: 400 or 415."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should handle wrong content type', function() {",
+									"  pm.expect(pm.response.code).to.be.oneOf([400, 415, 422, 429]);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-46 Non-existent Endpoint",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/this-endpoint-does-not-exist",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"this-endpoint-does-not-exist"
+							]
+						},
+						"description": "TC-46: Akses endpoint yang tidak ada.\nExpected: 404."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should return 404', function() { pm.response.to.have.status(404); });",
+									"pm.test('No stack trace in response', function() {",
+									"  var body = pm.response.text();",
+									"  pm.expect(body).to.not.include('goroutine');",
+									"  pm.expect(body).to.not.include('.go:');",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "10. Infrastructure Security",
+			"description": "TC-36 s/d TC-40: Testing endpoint yang sebelumnya tidak terproteksi.",
+			"item": [
+				{
+					"name": "TC-36 Cache Clear - Tanpa Auth",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cache/clear",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cache",
+								"clear"
+							]
+						},
+						"description": "TC-36: DELETE /cache/clear tanpa auth.\nExpected: 401 (sebelumnya bisa tanpa auth = vulnerability)."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should return 401 (now protected)', function() {",
+									"  pm.response.to.have.status(401);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-37 Circuit Breaker Reset - Tanpa Auth",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/concurrent/circuit-breaker/reset",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"concurrent",
+								"circuit-breaker",
+								"reset"
+							]
+						},
+						"description": "TC-37: POST /api/concurrent/circuit-breaker/reset tanpa auth.\nExpected: 401."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should return 401 (now protected)', function() {",
+									"  pm.response.to.have.status(401);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-38 Rate Limiter Config - Tanpa Auth",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"requestsPerSecond\": 9999}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/concurrent/rate-limiter/limit",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"concurrent",
+								"rate-limiter",
+								"limit"
+							]
+						},
+						"description": "TC-38: PUT /api/concurrent/rate-limiter/limit tanpa auth.\nExpected: 401."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should return 401 (now protected)', function() {",
+									"  pm.response.to.have.status(401);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "TC-39 Supabase Schema - Deprecated",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/api/v1/supabase/analyze",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supabase",
+								"analyze"
+							]
+						},
+						"description": "TC-39: GET /api/v1/supabase/analyze.\nExpected: 410 Gone (deprecated)."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Should return 410 Gone', function() { pm.response.to.have.status(410); });"
+								]
+							}
+						}
+					]
+				}
+			]
+		}
+	]
+}

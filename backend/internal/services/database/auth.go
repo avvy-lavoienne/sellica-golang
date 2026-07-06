@@ -252,6 +252,40 @@ func (s *Service) UpdateUserLastLogin(ctx context.Context, userID string) error 
 }
 
 // GetPendingUsers retrieves all pending users (for admin functionality)
+
+// GetPendingUserPasswordHash retrieves the password hash for a pending user by email
+func (s *Service) GetPendingUserPasswordHash(ctx context.Context, email string) (string, error) {
+	if !s.isHealthy {
+		return "", ErrDatabaseNotHealthy
+	}
+
+	data, _, err := s.client.From("pending_users").
+		Select("password", "", false).
+		Eq("email", email).
+		Single().
+		Execute()
+
+	if err != nil {
+		if err.Error() == "PGRST116" || err.Error() == "No rows found" {
+			return "", fmt.Errorf("user not found in pending_users")
+		}
+		return "", err
+	}
+
+	if len(data) == 0 {
+		return "", fmt.Errorf("user not found in pending_users")
+	}
+
+	var result struct {
+		Password string `json:"password"`
+	}
+	if err := json.Unmarshal(data, &result); err != nil {
+		return "", fmt.Errorf("failed to parse password hash: %w", err)
+	}
+
+	return result.Password, nil
+}
+
 func (s *Service) GetPendingUsers(ctx context.Context) ([]PendingUser, error) {
 	if !s.isHealthy {
 		return nil, ErrDatabaseNotHealthy

@@ -2,7 +2,10 @@ package middleware
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -150,7 +153,6 @@ func isPublicEndpoint(path string) bool {
 		"/database/health",
 		"/cache/health",
 		"/auth/register",
-		"/auth/debug",
 	}
 
 	for _, endpoint := range publicEndpoints {
@@ -287,18 +289,61 @@ func SuperAdminMiddleware(authService *auth.Service) gin.HandlerFunc {
 	})
 }
 
-// AuthRateLimitMiddleware implements basic rate limiting for auth endpoints
+// rateLimitEntry tracks request count per IP within a time window
+type rateLimitEntry struct {
+	count       int
+	windowStart time.Time
+}
+
+var (
+	authRateLimitMap   = make(map[string]*rateLimitEntry)
+	authRateLimitMutex sync.Mutex
+)
+
+// AuthRateLimitMiddleware implements real rate limiting for auth endpoints
+// Limits to 10 requests per minute per IP address
 func AuthRateLimitMiddleware() gin.HandlerFunc {
-	// This is a basic implementation
-	// In production, use a proper rate limiting library
 	return func(c *gin.Context) {
-		// Add rate limiting headers for auth endpoints
-		if strings.HasPrefix(c.Request.URL.Path, "/auth/") {
-			c.Header("X-RateLimit-Limit", "10") // 10 requests per minute for auth
+		ip := c.ClientIP()
+
+		authRateLimitMutex.Lock()
+		entry, exists := authRateLimitMap[ip]
+		now := time.Now()
+
+		if !exists || now.Sub(entry.windowStart) > time.Minute {
+			// New IP or window expired - reset
+			authRateLimitMap[ip] = &rateLimitEntry{count: 1, windowStart: now}
+			authRateLimitMutex.Unlock()
+			c.Header("X-RateLimit-Limit", "10")
 			c.Header("X-RateLimit-Remaining", "9")
 			c.Header("X-RateLimit-Reset", "60")
+			c.Next()
+			return
 		}
 
+		entry.count++
+		remaining := 10 - entry.count
+		if remaining < 0 {
+			remaining = 0
+		}
+
+		if entry.count > 10 {
+			authRateLimitMutex.Unlock()
+			logrus.WithField("ip", ip).Warn("🔒 Rate limit exceeded for auth endpoint")
+			c.JSON(http.StatusTooManyRequests, gin.H{
+				"error":   "Rate limit exceeded",
+				"message": "Too many requests. Maximum 10 requests per minute.",
+				"code":    "RATE_LIMIT_EXCEEDED",
+			})
+			c.Abort()
+			return
+		}
+
+		authRateLimitMutex.Unlock()
+
+		c.Header("X-RateLimit-Limit", "10")
+		c.Header("X-RateLimit-Remaining", strconv.Itoa(remaining))
+		c.Header("X-RateLimit-Reset", "60")
 		c.Next()
 	}
 }

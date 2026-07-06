@@ -3,6 +3,7 @@ package routes
 import (
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -48,10 +49,7 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	metricsHandler := handlers.NewMetricsHandler(services.Monitoring, services.Database, services.Cache)
 	databaseHandler := handlers.NewDatabaseHandler(services.Database, services.Monitoring)
 	cacheHandler := handlers.NewCacheHandler(services.Cache, services.Monitoring)
-	chatHandler := handlers.NewChatHandler(services.Chat, services.Monitoring)
-	trainingHandler := handlers.NewTrainingHandler(services.Training)
 	performanceHandler := handlers.NewPerformanceHandler(services.Chat, services.Monitoring)
-	supabaseAnalyzerHandler := handlers.NewSupabaseAnalyzerHandler(services.SupabaseAnalyzer, services.Monitoring)
 
 	// Global middleware
 	router.Use(middleware.RequestIDMiddleware())
@@ -59,8 +57,8 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	router.Use(middleware.SecurityHeadersMiddleware())
 	router.Use(middleware.LoggingMiddleware(services.Monitoring))
 
-	// CORS middleware (use development CORS for now)
-	router.Use(middleware.DevelopmentCORSMiddleware())
+	// CORS middleware (restricted to known origins)
+	router.Use(middleware.CORSMiddleware())
 
 	// Optional authentication middleware for all routes
 	router.Use(middleware.OptionalAuthMiddleware(services.Auth))
@@ -75,19 +73,19 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	setupDatabaseRoutes(router, databaseHandler)
 
 	// Cache routes (public)
-	setupCacheRoutes(router, cacheHandler)
+	setupCacheRoutes(router, cacheHandler, services.Auth)
 
 	// Chat routes (public and protected)
-	setupChatRoutes(router, chatHandler, services.Auth)
+	setupChatRoutes(router)
 
 	// Training data routes (protected)
-	setupTrainingRoutes(router, trainingHandler, services.Auth)
+	setupTrainingRoutes(router)
 
 	// Performance monitoring routes (public)
 	setupPerformanceRoutes(router, performanceHandler)
 
 	// Concurrent processing routes (public)
-	SetupConcurrentRoutes(router, services.Concurrent)
+	SetupConcurrentRoutes(router, services.Concurrent, services.Auth)
 
 	// Authentication routes (public)
 	setupAuthRoutes(router, services.Auth, services.Database)
@@ -112,13 +110,11 @@ func SetupRoutes(router *gin.Engine, services *Services) {
 	}
 
 	// Supabase analyzer routes (public)
-	if services.SupabaseAnalyzer != nil {
-		setupSupabaseAnalyzerRoutes(router, supabaseAnalyzerHandler)
-	}
+	setupSupabaseAnalyzerRoutes(router)
 
 	// WebSocket routes (public)
 	if services.SilpanaBroadcaster != nil {
-		setupWebSocketRoutes(router, services.SilpanaBroadcaster)
+		setupWebSocketRoutes(router, services.SilpanaBroadcaster, services.Auth)
 	}
 
 	// Protected routes (require authentication)
@@ -181,13 +177,19 @@ func setupDatabaseRoutes(router *gin.Engine, handler *handlers.DatabaseHandler) 
 }
 
 // setupCacheRoutes configures cache endpoints
-func setupCacheRoutes(router *gin.Engine, handler *handlers.CacheHandler) {
+func setupCacheRoutes(router *gin.Engine, handler *handlers.CacheHandler, authService *auth.Service) {
 	cache := router.Group("/cache")
 	{
 		cache.GET("/health", handler.GetCacheHealth)            // GET /cache/health
 		cache.GET("/stats", handler.GetCacheStats)              // GET /cache/stats
 		cache.GET("/performance", handler.TestCachePerformance) // GET /cache/performance
-		cache.DELETE("/clear", handler.ClearCache)              // DELETE /cache/clear
+	}
+
+	// Protected cache management endpoints (require authentication)
+	cacheProtected := router.Group("/cache")
+	cacheProtected.Use(middleware.AuthMiddleware(authService))
+	{
+		cacheProtected.DELETE("/clear", handler.ClearCache) // DELETE /cache/clear
 	}
 }
 
@@ -196,15 +198,25 @@ func setupAuthRoutes(router *gin.Engine, authService *auth.Service, dbService *d
 	// Create auth handler with both services
 	authHandler := handlers.NewAuthHandler(authService, dbService)
 
-	// Public auth endpoints
+	// Public auth endpoints (rate limited)
 	auth := router.Group("/auth")
+	auth.Use(middleware.AuthRateLimitMiddleware())
 	{
 		auth.POST("/register", authHandler.Register)
 		auth.POST("/login", authHandler.Login)
 		auth.POST("/logout", authHandler.Logout)
+	}
 
-		// Debug endpoint (keep existing functionality)
-		auth.GET("/debug", func(c *gin.Context) {
+	// Protected auth endpoints (require authentication + rate limiting)
+	authProtected := router.Group("/auth")
+	authProtected.Use(middleware.AuthRateLimitMiddleware())
+	authProtected.Use(middleware.AuthMiddleware(authService))
+	{
+		authProtected.POST("/refresh", authHandler.RefreshToken)
+		authProtected.GET("/profile", authHandler.GetProfile)
+
+		// Debug endpoint (require authentication)
+		authProtected.GET("/debug", func(c *gin.Context) {
 			token := c.GetHeader("Authorization")
 			if token != "" {
 				token = token[7:] // Remove "Bearer " prefix
@@ -213,44 +225,39 @@ func setupAuthRoutes(router *gin.Engine, authService *auth.Service, dbService *d
 			c.JSON(200, debugInfo)
 		})
 	}
-
-	// Protected auth endpoints (require authentication)
-	authProtected := router.Group("/auth")
-	authProtected.Use(middleware.AuthMiddleware(authService))
-	{
-		authProtected.POST("/refresh", authHandler.RefreshToken)
-		authProtected.GET("/profile", authHandler.GetProfile)
-	}
 }
 
-// setupChatRoutes configures chat endpoints
-func setupChatRoutes(router *gin.Engine, handler *handlers.ChatHandler, _ *auth.Service) {
-	// Public chat endpoints (with optional auth)
-	router.POST("/chat", handler.ProcessChat)
-	router.POST("/chat/session", handler.ProcessSessionChat)
-
-	// API chat endpoints (for compatibility with Next.js frontend)
-	api := router.Group("/api")
-	{
-		api.POST("/chat", handler.ProcessChat) // POST /api/chat - API chat endpoint
+// setupChatRoutes configures chat endpoints - all deprecated
+func setupChatRoutes(router *gin.Engine) {
+	deprecated := func(c *gin.Context) {
+		c.JSON(http.StatusGone, gin.H{
+			"error":   "Endpoint deprecated",
+			"message": "AI chat endpoints are not in scope",
+		})
 	}
 
-	// Chat management endpoints
-	chat := router.Group("/chat")
-	{
-		chat.GET("/history", handler.GetChatHistory)   // GET /chat/history - Chat history retrieval
-		chat.GET("/sessions", handler.GetChatSessions) // GET /chat/sessions - User session management
-	}
+	router.POST("/chat", deprecated)
+	router.POST("/chat/session", deprecated)
+	router.POST("/api/chat", deprecated)
+	router.GET("/chat/history", deprecated)
+	router.GET("/chat/sessions", deprecated)
 }
 
-// setupTrainingRoutes configures training data endpoints
-func setupTrainingRoutes(router *gin.Engine, handler *handlers.TrainingHandler, authService *auth.Service) {
-	// Training data endpoints (require authentication)
-	api := router.Group("/api")
-	api.Use(middleware.AuthMiddleware(authService))
-	{
-		handler.RegisterRoutes(api)
+// setupTrainingRoutes configures training data endpoints - all deprecated
+func setupTrainingRoutes(router *gin.Engine) {
+	deprecated := func(c *gin.Context) {
+		c.JSON(http.StatusGone, gin.H{
+			"error":   "Endpoint deprecated",
+			"message": "Training data endpoints are not in scope",
+		})
 	}
+
+	router.POST("/api/training-data", deprecated)
+	router.GET("/api/training-data", deprecated)
+	router.POST("/api/training-data/enhanced", deprecated)
+	router.GET("/api/training-data/enhanced", deprecated)
+	router.GET("/api/training-data/stats", deprecated)
+	router.GET("/api/training-data/suggestions", deprecated)
 }
 
 // setupPerformanceRoutes configures performance monitoring endpoints
@@ -261,10 +268,22 @@ func setupPerformanceRoutes(router *gin.Engine, handler *handlers.PerformanceHan
 	// Performance monitoring endpoints (public) - backward compatibility
 	api := router.Group("/api/performance")
 	{
-		api.GET("/metrics", handler.GetHighPerformanceMetrics) // GET /api/performance/metrics - High-performance AI metrics
-		api.GET("/health", handler.GetPerformanceHealth)       // GET /api/performance/health - Performance health check
-		api.GET("/stats", handler.GetPerformanceStats)         // GET /api/performance/stats - Performance statistics
-		api.POST("/test", handler.PostPerformanceTest)         // POST /api/performance/test - Performance test endpoint
+		// Deprecated: High-performance AI metrics
+		api.GET("/metrics", func(c *gin.Context) {
+			c.JSON(http.StatusGone, gin.H{
+				"error":   "Endpoint deprecated",
+				"message": "AI performance metrics are not in scope",
+			})
+		})
+		api.GET("/health", handler.GetPerformanceHealth) // GET /api/performance/health - Performance health check
+		api.GET("/stats", handler.GetPerformanceStats)   // GET /api/performance/stats - Performance statistics
+		// Deprecated: Performance test endpoint
+		api.POST("/test", func(c *gin.Context) {
+			c.JSON(http.StatusGone, gin.H{
+				"error":   "Endpoint deprecated",
+				"message": "Performance test endpoints are not in scope",
+			})
+		})
 	}
 }
 
@@ -363,7 +382,7 @@ func setupSilpanaRoutes(router *gin.Engine, silpanaService silpana.ServiceInterf
 }
 
 // setupWebSocketRoutes configures WebSocket endpoints for real-time updates
-func setupWebSocketRoutes(router *gin.Engine, broadcaster *silpana.WebSocketBroadcaster) {
+func setupWebSocketRoutes(router *gin.Engine, broadcaster *silpana.WebSocketBroadcaster, authService *auth.Service) {
 	log.Println("🔌 Setting up WebSocket routes...")
 	
 	// Get the hub from broadcaster
@@ -374,7 +393,7 @@ func setupWebSocketRoutes(router *gin.Engine, broadcaster *silpana.WebSocketBroa
 	}
 	log.Println("✅ WebSocket hub found, creating handler...")
 
-	// Create WebSocket handler
+	// Create WebSocket handler with auth service for JWT validation
 	wsHandler := &WebSocketTicketHandler{
 		hub: hub,
 		upgrader: websocket.Upgrader{
@@ -385,9 +404,10 @@ func setupWebSocketRoutes(router *gin.Engine, broadcaster *silpana.WebSocketBroa
 				return true
 			},
 		},
+		authService: authService,
 	}
 
-	// WebSocket endpoint for ticket updates
+	// WebSocket endpoint for ticket updates (requires JWT authentication)
 	router.GET("/ws/tickets", wsHandler.Handle)
 	
 	log.Println("✅ WebSocket route registered at /ws/tickets")
@@ -395,23 +415,65 @@ func setupWebSocketRoutes(router *gin.Engine, broadcaster *silpana.WebSocketBroa
 
 // WebSocketTicketHandler handles WebSocket connections for ticket updates
 type WebSocketTicketHandler struct {
-	hub      *ws.Hub
-	upgrader websocket.Upgrader
+	hub         *ws.Hub
+	upgrader    websocket.Upgrader
+	authService *auth.Service
 }
 
-// Handle handles WebSocket upgrade and registration
+// Handle handles WebSocket upgrade and registration with JWT validation
 func (h *WebSocketTicketHandler) Handle(c *gin.Context) {
-	// Extract user information from context (set by auth middleware)
-	userID, exists := c.Get("user_id")
-	if !exists {
-		// Allow anonymous connections for now
-		userID = "anonymous"
+	// Validate JWT before WebSocket upgrade
+	var tokenString string
+
+	// Check Authorization header first
+	authHeader := c.GetHeader("Authorization")
+	if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
+		tokenString = strings.TrimPrefix(authHeader, "Bearer ")
 	}
 
-	isAdmin := false
-	if role, exists := c.Get("role"); exists {
-		isAdmin = role == "admin"
+	// Fallback to query parameter
+	if tokenString == "" {
+		tokenString = c.Query("token")
 	}
+
+	if tokenString == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error":   "Authentication required",
+			"message": "WebSocket connections require a valid JWT token",
+			"code":    "MISSING_TOKEN",
+		})
+		return
+	}
+
+	// Validate token
+	claims, err := h.authService.ValidateToken(tokenString)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error":   "Invalid token",
+			"message": err.Error(),
+			"code":    "INVALID_TOKEN",
+		})
+		return
+	}
+
+	// Check if token is expired
+	if h.authService.IsTokenExpired(claims) {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error":   "Token expired",
+			"message": "Please refresh your token",
+			"code":    "TOKEN_EXPIRED",
+		})
+		return
+	}
+
+	// Create auth context and set in gin context
+	authContext := h.authService.CreateAuthContext(claims)
+	c.Set("auth_context", authContext)
+	c.Set("user_id", authContext.UserID)
+	c.Set("user_role", authContext.Role)
+
+	userID := authContext.UserID
+	isAdmin := authContext.Role == "admin"
 
 	// Upgrade HTTP connection to WebSocket
 	conn, err := h.upgrader.Upgrade(c.Writer, c.Request, nil)
@@ -421,7 +483,7 @@ func (h *WebSocketTicketHandler) Handle(c *gin.Context) {
 	}
 
 	// Create new client
-	client := ws.NewClient(h.hub, conn, userID.(string), isAdmin)
+	client := ws.NewClient(h.hub, conn, userID, isAdmin)
 
 	// The client will register itself and start pumps
 	go client.WritePump()

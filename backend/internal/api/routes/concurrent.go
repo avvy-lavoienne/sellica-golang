@@ -1,14 +1,18 @@
 package routes
 
 import (
+	"net/http"
+
 	"selly-backend/internal/api/handlers"
+	"selly-backend/internal/api/middleware"
+	"selly-backend/internal/services/auth"
 	"selly-backend/internal/services/concurrent"
 
 	"github.com/gin-gonic/gin"
 )
 
 // SetupConcurrentRoutes sets up routes for concurrent processing endpoints
-func SetupConcurrentRoutes(router *gin.Engine, concurrentService *concurrent.Service) {
+func SetupConcurrentRoutes(router *gin.Engine, concurrentService *concurrent.Service, authService *auth.Service) {
 	if concurrentService == nil || !concurrentService.IsEnabled() {
 		// Skip route setup if concurrent processing is disabled
 		return
@@ -35,31 +39,40 @@ func SetupConcurrentRoutes(router *gin.Engine, concurrentService *concurrent.Ser
 			workerPoolGroup.GET("/metrics", handler.GetWorkerPoolMetrics)
 		}
 
-		// Rate limiter endpoints
+		// Rate limiter endpoints (admin-only for mutations)
 		rateLimiterGroup := concurrentGroup.Group("/rate-limiter")
 		{
 			rateLimiterGroup.GET("/status", handler.GetRateLimiterStatus)
-			rateLimiterGroup.PUT("/limit", handler.UpdateRateLimit)
+			rateLimiterGroup.PUT("/limit", middleware.AuthMiddleware(authService), handler.UpdateRateLimit)
 		}
 
-		// Circuit breaker endpoints
+		// Circuit breaker endpoints (admin-only for mutations)
 		circuitBreakerGroup := concurrentGroup.Group("/circuit-breaker")
 		{
 			circuitBreakerGroup.GET("/status", handler.GetCircuitBreakerStatus)
-			circuitBreakerGroup.POST("/reset", handler.ResetCircuitBreaker)
+			circuitBreakerGroup.POST("/reset", middleware.AuthMiddleware(authService), handler.ResetCircuitBreaker)
 		}
 
-		// AI manager endpoints
+		// Deprecated: AI manager endpoints
 		aiManagerGroup := concurrentGroup.Group("/ai-manager")
 		{
-			aiManagerGroup.GET("/status", handler.GetAIManagerStatus)
-			aiManagerGroup.GET("/metrics", handler.GetAIManagerMetrics)
+			aiManagerGroup.GET("/status", func(c *gin.Context) {
+				c.JSON(http.StatusGone, gin.H{"error": "Endpoint deprecated", "message": "AI manager endpoints are not in scope"})
+			})
+			aiManagerGroup.GET("/metrics", func(c *gin.Context) {
+				c.JSON(http.StatusGone, gin.H{"error": "Endpoint deprecated", "message": "AI manager endpoints are not in scope"})
+			})
 		}
 
-		// AI processing endpoints
+		// Deprecated: AI processing endpoints
 		aiGroup := concurrentGroup.Group("/ai")
 		{
-			aiGroup.POST("/process-batch", handler.ProcessConcurrentAIRequests)
+			aiGroup.POST("/process-batch", func(c *gin.Context) {
+				c.JSON(http.StatusGone, gin.H{"error": "Endpoint deprecated", "message": "AI processing endpoints are not in scope"})
+			})
+			aiGroup.POST("/process", func(c *gin.Context) {
+				c.JSON(http.StatusGone, gin.H{"error": "Endpoint deprecated", "message": "AI processing endpoints are not in scope"})
+			})
 		}
 	}
 }
