@@ -88,6 +88,13 @@ export default async function RootLayout({
         className={`${inter.variable} font-sans antialiased`}
         suppressHydrationWarning={true}
       >
+        {/* Skip navigation link for keyboard/screen-reader users */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:shadow-lg"
+        >
+          Langsung ke konten utama
+        </a>
         <ApiInterceptorProvider>
           <QueryProvider>
             <ThemeProvider defaultTheme="system">

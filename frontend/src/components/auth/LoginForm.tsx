@@ -483,16 +483,6 @@ export default function LoginForm() {
                   )}
                   disabled={!canSubmit}
                   size="lg"
-                  onClick={(e) => {
-                    // Debug logging
-                    console.log("Button clicked", {
-                      canSubmit,
-                      formData,
-                      formState,
-                      emailLength: formData.email.trim().length,
-                      passwordLength: formData.password.trim().length,
-                    });
-                  }}
                 >
                   {formState.isSubmitting ? (
                     <>

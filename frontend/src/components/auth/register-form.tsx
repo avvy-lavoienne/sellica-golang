@@ -43,26 +43,26 @@ import {
 const formSteps: FormStep[] = [
   {
     id: 'personal',
-    title: 'Personal Info',
-    description: 'Basic personal information',
+    title: 'Informasi Pribadi',
+    description: 'Informasi pribadi dasar',
     fields: ['firstName', 'lastName', 'position']
   },
   {
     id: 'identification',
-    title: 'Identification',
-    description: 'Government identification',
+    title: 'Identitas',
+    description: 'Identitas pemerintah',
     fields: ['nik', 'nip']
   },
   {
     id: 'account',
-    title: 'Account Setup',
-    description: 'Email and password',
+    title: 'Pengaturan Akun',
+    description: 'Email dan kata sandi',
     fields: ['email', 'password', 'confirmPassword']
   },
   {
     id: 'terms',
-    title: 'Terms & Privacy',
-    description: 'Accept terms and privacy policy',
+    title: 'Syarat & Privasi',
+    description: 'Terima syarat dan kebijakan privasi',
     fields: ['acceptTerms', 'acceptPrivacy']
   }
 ]
@@ -140,65 +140,65 @@ export default function RegisterForm() {
       case 'firstName':
       case 'lastName':
         if (!value || value.trim().length === 0) {
-          errors.push(`${name === 'firstName' ? 'First' : 'Last'} name is required`)
+          errors.push(`${name === 'firstName' ? 'Nama depan' : 'Nama belakang'} wajib diisi`)
         } else if (value.trim().length < 2) {
-          errors.push(`${name === 'firstName' ? 'First' : 'Last'} name must be at least 2 characters`)
+          errors.push(`${name === 'firstName' ? 'Nama depan' : 'Nama belakang'} minimal 2 karakter`)
         }
         break
 
       case 'email':
         if (!value) {
-          errors.push("Email is required")
+          errors.push("Email wajib diisi")
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          errors.push("Please enter a valid email address")
+          errors.push("Masukkan alamat email yang valid")
         }
         break
 
       case 'password':
         if (!value) {
-          errors.push("Password is required")
+          errors.push("Kata sandi wajib diisi")
         } else {
-          if (value.length < 8) errors.push("Password must be at least 8 characters")
-          if (!/[A-Z]/.test(value)) warnings.push("Add uppercase letters for stronger security")
-          if (!/[a-z]/.test(value)) warnings.push("Add lowercase letters for stronger security")
-          if (!/\d/.test(value)) warnings.push("Add numbers for stronger security")
-          if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value)) warnings.push("Add special characters for stronger security")
+          if (value.length < 8) errors.push("Kata sandi minimal 8 karakter")
+          if (!/[A-Z]/.test(value)) warnings.push("Tambahkan huruf besar untuk keamanan lebih kuat")
+          if (!/[a-z]/.test(value)) warnings.push("Tambahkan huruf kecil untuk keamanan lebih kuat")
+          if (!/\d/.test(value)) warnings.push("Tambahkan angka untuk keamanan lebih kuat")
+          if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value)) warnings.push("Tambahkan karakter khusus untuk keamanan lebih kuat")
         }
         break
 
       case 'confirmPassword':
         if (!value) {
-          errors.push("Please confirm your password")
+          errors.push("Harap konfirmasi kata sandi Anda")
         } else if (value !== formData.password) {
-          errors.push("Passwords do not match")
+          errors.push("Kata sandi tidak cocok")
         }
         break
 
       case 'position':
         if (!value || value.trim().length === 0) {
-          errors.push("Position is required")
+          errors.push("Jabatan wajib diisi")
         }
         break
 
       case 'nik':
         if (!value || value.trim().length === 0) {
-          errors.push("NIK is required")
+          errors.push("NIK wajib diisi")
         } else if (!/^\d{16}$/.test(value)) {
-          errors.push("NIK must be exactly 16 digits")
+          errors.push("NIK harus 16 digit")
         }
         break
 
       case 'nip':
         // NIP is optional, but if provided should be valid (Issue #5: Change warning to error)
         if (value && value.trim().length > 0 && !/^\d{18}$/.test(value)) {
-          errors.push("NIP must be exactly 18 digits if provided")
+          errors.push("NIP harus 18 digit jika diisi")
         }
         break
 
       case 'acceptTerms':
       case 'acceptPrivacy':
         if (!value) {
-          errors.push(`You must accept the ${name === 'acceptTerms' ? 'Terms of Service' : 'Privacy Policy'}`)
+          errors.push(`Anda harus menyetujui ${name === 'acceptTerms' ? 'Syarat Layanan' : 'Kebijakan Privasi'}`)
         }
         break
     }
@@ -280,7 +280,7 @@ export default function RegisterForm() {
       setStepErrors(allErrors)
       setFormState(prev => ({
         ...prev,
-        errors: ["Please fix all validation errors before submitting"]
+        errors: ["Harap perbaiki semua error validasi sebelum mengirim"]
       }))
       return
     }
@@ -357,6 +357,16 @@ export default function RegisterForm() {
     }
   }
 
+  // Wrapper for form onSubmit — handles both Enter key and button click
+  const onFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (progress.canProceed) {
+      handleNextStep();
+    } else {
+      handleSubmit();
+    }
+  };
+
   if (!mounted) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -397,10 +407,10 @@ export default function RegisterForm() {
                 <UserPlus className="h-6 w-6 text-primary" />
               </div>
               <CardTitle className="text-2xl font-bold tracking-tight">
-                Create Your Account
+                Buat Akun Anda
               </CardTitle>
               <CardDescription className="text-muted-foreground">
-                Join SELLICA to access government civil registration services
+                Bergabung dengan SELLICA untuk mengakses layanan pendaftaran sipil pemerintah
               </CardDescription>
 
               {/* Progress Indicator */}
@@ -415,6 +425,7 @@ export default function RegisterForm() {
             </CardHeader>
 
             <CardContent className="space-y-6">
+              <form onSubmit={onFormSubmit}>
               {/* Error Alert */}
               <AnimatePresence>
                 {(formState.errors.length > 0 || hasStepErrors) && (
@@ -428,7 +439,7 @@ export default function RegisterForm() {
                       <AlertTriangle className="h-4 w-4" />
                       <AlertDescription>
                         {formState.errors[0] ||
-                          "Please fix the errors below to continue"}
+                          "Harap perbaiki error di bawah untuk melanjutkan"}
                       </AlertDescription>
                     </Alert>
                   </motion.div>
@@ -462,9 +473,9 @@ export default function RegisterForm() {
                       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <FormField
                           name="firstName"
-                          label="First Name"
+                          label="Nama Depan"
                           type="text"
-                          placeholder="Enter your first name"
+                          placeholder="Masukkan nama depan Anda"
                           value={formData.firstName}
                           onChange={(value) =>
                             handleFieldChange("firstName", value)
@@ -488,9 +499,9 @@ export default function RegisterForm() {
 
                         <FormField
                           name="lastName"
-                          label="Last Name"
+                          label="Nama Belakang"
                           type="text"
-                          placeholder="Enter your last name"
+                          placeholder="Masukkan nama belakang Anda"
                           value={formData.lastName}
                           onChange={(value) =>
                             handleFieldChange("lastName", value)
@@ -515,9 +526,9 @@ export default function RegisterForm() {
 
                       <FormField
                         name="position"
-                        label="Position/Job Title"
+                        label="Jabatan"
                         type="text"
-                        placeholder="Enter your position or job title"
+                        placeholder="Masukkan jabatan Anda"
                         value={formData.position}
                         onChange={(value) =>
                           handleFieldChange("position", value)
@@ -537,7 +548,7 @@ export default function RegisterForm() {
                         leftIcon={<Briefcase className="h-4 w-4" />}
                         disabled={formState.isSubmitting}
                         size="lg"
-                        helperText="Your current position or job title in the organization"
+                        helperText="Jabatan Anda saat ini di organisasi"
                       />
                     </div>
                   )}
@@ -547,9 +558,9 @@ export default function RegisterForm() {
                     <div className="space-y-4">
                       <FormField
                         name="nik"
-                        label="NIK (National Identity Number)"
+                        label="NIK (Nomor Induk Kependudukan)"
                         type="text"
-                        placeholder="Enter your 16-digit NIK"
+                        placeholder="Masukkan 16 digit NIK Anda"
                         value={formData.nik}
                         onChange={(value) =>
                           handleFieldChange(
@@ -572,14 +583,14 @@ export default function RegisterForm() {
                         leftIcon={<CreditCard className="h-4 w-4" />}
                         disabled={formState.isSubmitting}
                         size="lg"
-                        helperText="Your 16-digit National Identity Number (NIK)"
+                        helperText="Nomor Induk Kependudukan 16 digit Anda"
                       />
 
                       <FormField
                         name="nip"
-                        label="NIP (Employee ID)"
+                        label="NIP (Nomor Induk Pegawai)"
                         type="text"
-                        placeholder="Enter your 18-digit NIP (optional)"
+                        placeholder="Masukkan 18 digit NIP Anda (opsional)"
                         value={formData.nip || ""}
                         onChange={(value) =>
                           handleFieldChange(
@@ -601,7 +612,7 @@ export default function RegisterForm() {
                         leftIcon={<CreditCard className="h-4 w-4" />}
                         disabled={formState.isSubmitting}
                         size="lg"
-                        helperText="Your 18-digit Employee ID (NIP) - optional for non-government employees"
+                        helperText="Nomor Induk Pegawai 18 digit - opsional untuk non-PNS"
                       />
                     </div>
                   )}
@@ -611,9 +622,9 @@ export default function RegisterForm() {
                     <div className="space-y-4">
                       <FormField
                         name="email"
-                        label="Email Address"
+                        label="Alamat Email"
                         type="email"
-                        placeholder="Enter your email address"
+                        placeholder="Masukkan alamat email Anda"
                         value={formData.email}
                         onChange={(value) => handleFieldChange("email", value)}
                         validation={
@@ -631,14 +642,14 @@ export default function RegisterForm() {
                         leftIcon={<Mail className="h-4 w-4" />}
                         disabled={formState.isSubmitting}
                         size="lg"
-                        helperText="We'll send account verification to this email"
+                        helperText="Kami akan mengirim verifikasi akun ke email ini"
                       />
 
                       <FormField
                         name="password"
-                        label="Password"
+                        label="Kata Sandi"
                         type="password"
-                        placeholder="Create a strong password"
+                        placeholder="Buat kata sandi yang kuat"
                         value={formData.password}
                         onChange={(value) =>
                           handleFieldChange("password", value)
@@ -673,9 +684,9 @@ export default function RegisterForm() {
 
                       <FormField
                         name="confirmPassword"
-                        label="Confirm Password"
+                        label="Konfirmasi Kata Sandi"
                         type="password"
-                        placeholder="Confirm your password"
+                        placeholder="Konfirmasi kata sandi Anda"
                         value={formData.confirmPassword}
                         onChange={(value) =>
                           handleFieldChange("confirmPassword", value)
@@ -729,7 +740,7 @@ export default function RegisterForm() {
                     className="flex-1"
                   >
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Previous
+                    Sebelumnya
                   </Button>
                 )}
 
@@ -740,13 +751,12 @@ export default function RegisterForm() {
                     disabled={formState.isSubmitting}
                     className={cn("flex-1", !progress.canGoBack && "w-full")}
                   >
-                    Next
+                    Selanjutnya
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 ) : (
                   <Button
-                    type="button"
-                    onClick={handleSubmit}
+                    type="submit"
                     disabled={
                       formState.isSubmitting ||
                       !formData.acceptTerms ||
@@ -757,29 +767,30 @@ export default function RegisterForm() {
                     {formState.isSubmitting ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating Account...
+                        Membuat Akun...
                       </>
                     ) : (
                       <>
-                        Create Account
+                        Buat Akun
                         <CheckCircle className="ml-2 h-4 w-4" />
                       </>
                     )}
                   </Button>
                 )}
               </div>
+              </form>
             </CardContent>
 
             <CardFooter className="flex flex-col space-y-4">
               {/* Login Link */}
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">
-                  Already have an account?{" "}
+                  Sudah punya akun?{" "}
                   <Link
                     href="/login"
                     className="font-medium text-primary transition-colors hover:text-primary/80"
                   >
-                    Sign in here
+                    Masuk di sini
                   </Link>
                 </p>
               </div>

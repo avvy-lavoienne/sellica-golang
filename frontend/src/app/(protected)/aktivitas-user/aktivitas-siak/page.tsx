@@ -576,7 +576,7 @@ export default function AktivitasSiakPage() {
                 )}
 
                 {showTable && (
-                    <div className="space-y-4">
+                    <div className="space-y-4" aria-live="polite" aria-busy={isTableLoading}>
                         {isTableLoading ? (
                             <Card className="border-0 shadow-lg">
                                 <CardContent className="p-8">

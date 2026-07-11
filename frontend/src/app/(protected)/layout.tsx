@@ -154,7 +154,7 @@ export default function ProtectedLayout({
   if (useEnhancedLayout) {
     return (
       <ProtectedLayoutProvider user={user} loading={loading}>
-        {children}
+        <div id="main-content" tabIndex={-1}>{children}</div>
       </ProtectedLayoutProvider>
     );
   }
@@ -181,7 +181,7 @@ export default function ProtectedLayout({
             isMobileSidebarOpen={isMobileSidebarOpen}
             setIsMobileSidebarOpen={setIsMobileSidebarOpen}
           />
-          <main className="p-3 pb-24 md:p-6 laptop:p-8 laptop:pb-32">
+          <main id="main-content" tabIndex={-1} className="p-3 pb-24 md:p-6 laptop:p-8 laptop:pb-32">
             {children}
           </main>
         </div>
