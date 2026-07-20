@@ -36,6 +36,7 @@
   ],
   "exclude": [
     "node_modules",
+    "scripts/**/*",
     "selly-legacy-nextjs-backend/**/*",
     "**/selly-legacy-nextjs-backend/**/*",
     "src/**/selly-legacy-nextjs-backend/**/*",

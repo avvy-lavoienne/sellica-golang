@@ -50,7 +50,6 @@ if (process.env.NODE_ENV !== 'test') {
   AlertCircle = createIconMock('alert-circle');
   FileText = createIconMock('file-text');
 }
-import { useTranslations } from 'next-intl';
 import { toast } from 'react-toastify';
 
 import { AuthenticatedUser, SearchQuery, SearchResult, TicketSearchResult } from './types';
@@ -103,7 +102,20 @@ const SearchBar = React.memo(
     onOpenChange,
     className = '',
   }: SearchBarProps) => {
-    const t = useTranslations('topnav.search');
+    const t = {
+      'pages.dashboard_subtitle': 'Ringkasan aktivitas terkini',
+      'pages.analytics_subtitle': 'Analisis data dan metrik',
+      'pages.profile': 'Profil',
+      'pages.profile_subtitle': 'Kelola informasi akun Anda',
+      'pages.settings': 'Pengaturan',
+      'pages.settings_subtitle': 'Konfigurasi aplikasi',
+      'error.search_failed': 'Pencarian gagal. Silakan coba lagi.',
+      placeholder: 'Cari tiket, halaman...',
+      aria_label: 'Cari',
+      'clear_search': 'Hapus pencarian',
+      'results_label': 'Hasil pencarian',
+      'no_results': 'Tidak ada hasil ditemukan',
+    };
 
     // State management
     const [localIsOpen, setLocalIsOpen] = useState(false);
@@ -137,28 +149,28 @@ const SearchBar = React.memo(
           id: 'dashboard',
           type: 'page',
           title: 'Dashboard',
-          subtitle: t('pages.dashboard_subtitle'),
+          subtitle: t['pages.dashboard_subtitle'],
           href: '/dashboard',
         },
         {
           id: 'analytics',
           type: 'page',
           title: 'Analytics',
-          subtitle: t('pages.analytics_subtitle'),
+          subtitle: t['pages.analytics_subtitle'],
           href: '/analytics',
         },
         {
           id: 'profile',
           type: 'page',
-          title: t('pages.profile'),
-          subtitle: t('pages.profile_subtitle'),
+          title: t['pages.profile'],
+          subtitle: t['pages.profile_subtitle'],
           href: '/profile',
         },
         {
           id: 'settings',
           type: 'page',
-          title: t('pages.settings'),
-          subtitle: t('pages.settings_subtitle'),
+          title: t['pages.settings'],
+          subtitle: t['pages.settings_subtitle'],
           href: '/settings',
         },
       ],
@@ -232,7 +244,7 @@ const SearchBar = React.memo(
           console.error('Search failed:', error);
 
           // Show error toast
-          toast.error(t('error.search_failed'), {
+          toast.error(t['error.search_failed'], {
             position: 'top-right',
             autoClose: 3000,
           });
@@ -240,7 +252,7 @@ const SearchBar = React.memo(
           setResults([]);
         }
       },
-      [user, setIsOpen, t, pageShortcuts]
+      [user, setIsOpen, pageShortcuts]
     );
 
     // Debounce search (300ms) - temporarily disabled for testing
@@ -362,9 +374,9 @@ const SearchBar = React.memo(
             value={query}
             onChange={handleInputChange}
             onFocus={() => query && results.length > 0 && setIsOpen(true)}
-            placeholder={t('placeholder')}
+            placeholder={t['placeholder']}
             className="w-full pl-10 pr-8 py-2 border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            aria-label={t('aria_label')}
+            aria-label={t['aria_label']}
             role="combobox"
             aria-expanded={isOpen}
             aria-controls="search-results"
@@ -377,7 +389,7 @@ const SearchBar = React.memo(
             <button
               onClick={handleClear}
               className="absolute right-3 p-1 text-gray-400 hover:text-gray-600 transition-colors"
-              aria-label={t('clear_search')}
+              aria-label={t['clear_search']}
             >
               <X className="h-4 w-4" />
             </button>
@@ -390,7 +402,7 @@ const SearchBar = React.memo(
             id="search-results"
             className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-96 overflow-y-auto"
             role="listbox"
-            aria-label={t('results_label')}
+            aria-label={t['results_label']}
           >
             {isLoading && (
               <div className="p-4 text-center text-gray-500">
@@ -400,7 +412,7 @@ const SearchBar = React.memo(
 
             {!isLoading && results.length === 0 && query && (
               <div className="p-4 text-center text-gray-500">
-                <p>{t('no_results')}</p>
+                <p>{t['no_results']}</p>
               </div>
             )}
 
